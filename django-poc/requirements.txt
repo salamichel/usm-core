@@ -1,0 +1,6 @@
+Django>=5.2,<5.3
+django-allauth>=65.0
+django-htmx>=1.19
+psycopg[binary]>=3.2
+python-dotenv>=1.0
+Pillow>=10.0
