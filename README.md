@@ -63,17 +63,17 @@ cp .env.example .env
 
 3. **Démarrer Docker Compose**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 4. **Initialiser la base de données**
 ```bash
-docker-compose exec app npx prisma migrate dev
+docker compose exec app npx prisma migrate dev
 ```
 
 5. **Accéder à l'application**
 - App: http://localhost:3000
-- Prisma Studio: `docker-compose exec app npx prisma studio`
+- Prisma Studio: `docker compose exec app npx prisma studio`
 - PostgreSQL: localhost:5432
 
 ### Démarrage Local (sans Docker)

@@ -136,9 +136,9 @@ npm run prisma:generate         # Générer types
 npm run prisma:studio           # UI Prisma
 
 # Docker
-docker-compose up -d            # Démarrer services
-docker-compose down             # Arrêter services
-docker-compose logs app         # Logs application
+docker compose up -d            # Démarrer services
+docker compose down             # Arrêter services
+docker compose logs app         # Logs application
 
 # Build production
 npm run build && npm start

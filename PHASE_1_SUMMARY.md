@@ -101,7 +101,7 @@ src/
 
 ```bash
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Initialize database
 npx prisma migrate dev --name init
@@ -123,6 +123,8 @@ npm run build            # Production build
 npm run prisma:migrate   # Create migrations
 npm run prisma:studio    # Database UI
 npm run prisma:generate  # Generate types
+docker compose up -d     # Start Docker services
+docker compose down      # Stop Docker services
 ```
 
 ---
