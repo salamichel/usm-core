@@ -18,16 +18,20 @@
 - ✅ Configuration Tailwind CSS
 - ✅ Structure de base du projet
 
-### Phase 2: Authentification & RBAC (À FAIRE)
+### Phase 2: Authentification & RBAC (EN COURS)
 - [ ] Configuration NextAuth.js
+- [x] **Component Library** (Button, Input, Card, FormError, Label, Grid, Container)
+- [x] **Login UI Page** (styling Neo-Brutaliste, bordure 4px, hard shadow)
 - [ ] Modèles de session & JWT
 - [ ] Middleware d'authentification
 - [ ] Tests d'authentification
 
-### Phase 3: Processus d'Adhésion (À FAIRE)
+### Phase 3: Processus d'Adhésion (EN COURS)
 - [ ] Route API `/api/adhesion/calculate`
 - [ ] Validation règles métiers (âge, genre, catégories)
-- [ ] Formulaire dynamique front-end
+- [x] **Formulaire dynamique front-end** (3 étapes, SelectCard, prix en temps réel)
+- [x] **SelectCard Component** (bordure 4px, effet enfoncement au clic)
+- [x] **ProgressBar Component** (barre progression massive)
 - [ ] Intégration HelloAsso
 
 ### Phase 4: Webhooks & Paiements (À FAIRE)
@@ -128,28 +132,45 @@ Event & Photo (galeries)
 
 ```bash
 # Développement
-npm run dev
+npm run dev                      # Démarrer serveur dev sur http://localhost:3000
+
+# Build & Vérification
+npm run build                    # Build production
+npm run lint                     # Lint TypeScript
+npm start                        # Démarrer serveur production
 
 # Prisma
 npm run prisma:migrate          # Créer migration
-npm run prisma:generate         # Générer types
-npm run prisma:studio           # UI Prisma
+npm run prisma:generate         # Générer types Prisma
+npm run prisma:studio           # UI Prisma http://localhost:5555
 
 # Docker
-docker compose up -d            # Démarrer services
+docker compose up -d            # Démarrer services (App + PostgreSQL)
 docker compose down             # Arrêter services
 docker compose logs app         # Logs application
 
-# Build production
-npm run build && npm start
+# Pages à explorer localement
+- http://localhost:3000/          # Home (hero + matchs + CTA)
+- http://localhost:3000/adhesion  # Formulaire adhésion 3-étapes
 ```
 
 ## Fichiers Importants
 
+### Design System & Components
+- `tailwind.config.ts` - **Design system Neo-Brutaliste complet** (colors, shadows, transforms)
+- `src/app/globals.css` - **Styles globaux** (button interactions, inputs focus)
+- `src/components/ui/` - **Component library** (Button, Input, Card, SelectCard, etc.)
+- `src/components/form/` - **Form components** (FormField, FormSection, ProgressBar)
+
+### Pages Implémentées
+- `src/app/page.tsx` - **Home page** avec hero section, carrousel matchs, CTA
+- `src/app/(front)/adhesion/page.tsx` - **Adhesion tunnel** 3-étapes avec SelectCard et prix en temps réel
+- `src/app/(front)/layout.tsx` - **Layout front-office** (Header + Footer wrapper)
+
+### Backend
 - `prisma/schema.prisma` - Schéma de données complet
 - `src/lib/prisma.ts` - Instance Prisma client
 - `src/lib/utils.ts` - Utilitaires (formatDate, calculateAge, etc.)
-- `tailwind.config.ts` - Design system Neo-Brutaliste
 - `docker-compose.yml` - Configuration services
 
 ## Notes de Sécurité
@@ -179,4 +200,13 @@ npm run build && npm start
 
 ---
 
-**Statut**: Infrastructure ✅ | Authentification ⏳ | Adhésion ⏳ | Admin ⏳
+## Statut du Projet
+
+**Infrastructure ✅** | **Authentification ⏳** (Component Library done) | **Adhésion ⏳** (Form UI done) | **Admin ⏳**
+
+### Implémenté cette session
+- ✅ Component Library (8 composants: Button, Input, Card, SelectCard, Label, FormError, Container, Grid)
+- ✅ Home page Neo-Brutaliste (hero, carrousel matchs, CTA)
+- ✅ Adhesion form (3 étapes, SelectCard, ProgressBar, prix en temps réel)
+- ✅ Header & Footer réutilisables
+- ✅ Layout front-office
