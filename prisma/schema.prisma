@@ -32,8 +32,8 @@ enum CategorieAdhesion {
 
 enum StatutPaiement {
   EN_ATTENTE
-  VALIDÉ
-  REMBOURSÉ
+  VALIDE
+  REMBOURSE
 }
 
 enum TypeDocument {

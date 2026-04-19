@@ -1,4 +1,21 @@
 // Re-export Prisma types for convenient importing
+import type {
+  User,
+  Saison,
+  Adhesion,
+  Equipe_Groupe,
+  Document,
+  Post,
+  Event,
+  Photo,
+  Role,
+  Gender,
+  CategorieAdhesion,
+  StatutPaiement,
+  TypeDocument,
+  PermissionDocument,
+} from '@prisma/client'
+
 export type {
   User,
   Saison,
@@ -8,16 +25,13 @@ export type {
   Post,
   Event,
   Photo,
-} from '@prisma/client'
-
-export type {
   Role,
   Gender,
   CategorieAdhesion,
   StatutPaiement,
   TypeDocument,
   PermissionDocument,
-} from '@prisma/client'
+}
 
 // Extended types for application logic
 
@@ -27,7 +41,7 @@ export interface AdhesionPreferences {
   choix_coupes?: string[] // ['Challenge Loisir mixte', 'Coupe Heitz', 'Coupe Aïco']
 }
 
-export interface UserWithAdhesions extends User {
+export type UserWithAdhesions = User & {
   adhesions: Adhesion[]
 }
 
