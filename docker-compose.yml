@@ -9,16 +9,20 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://usm:usm_password@postgres:5432/usm_volley
-      - NEXTAUTH_SECRET=your-secret-key-change-in-production
-      - NEXTAUTH_URL=http://localhost:3000
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-usm}:${POSTGRES_PASSWORD:-usm_password}@postgres:5432/${POSTGRES_DB:-usm_volley}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - HELLOASSO_API_KEY=${HELLOASSO_API_KEY}
+      - HELLOASSO_WEBHOOK_SECRET=${HELLOASSO_WEBHOOK_SECRET}
+      - BREVO_API_KEY=${BREVO_API_KEY}
     volumes:
       - ./src:/app/src
       - ./public/uploads:/app/public/uploads
       - /app/node_modules
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - usm-network
     command: npm run dev
@@ -27,9 +31,9 @@ services:
     image: postgres:16-alpine
     container_name: usm-volley-postgres
     environment:
-      POSTGRES_USER: usm
-      POSTGRES_PASSWORD: usm_password
-      POSTGRES_DB: usm_volley
+      POSTGRES_USER: ${POSTGRES_USER:-usm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-usm_password}
+      POSTGRES_DB: ${POSTGRES_DB:-usm_volley}
     ports:
       - "5432:5432"
     volumes:
@@ -37,7 +41,7 @@ services:
     networks:
       - usm-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usm"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-usm}"]
       interval: 10s
       timeout: 5s
       retries: 5
