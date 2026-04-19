@@ -1,16 +1,12 @@
 'use client'
 
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { Container } from '@/components/ui/Container'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 
 export default function Home() {
   return (
-    <>
-      <Header />
-      <main className="min-h-screen w-full bg-white">
+    <main className="min-h-screen w-full bg-white">
         {/* Hero Section */}
         <section className="relative py-20 overflow-hidden">
           <div className="absolute inset-0 -z-10">
@@ -78,7 +74,5 @@ export default function Home() {
           </Container>
         </section>
       </main>
-      <Footer />
-    </>
   )
 }
