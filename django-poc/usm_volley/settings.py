@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "django_htmx",
+    "django_ckeditor_5",
     # Project app (loads admin customisations via AppConfig.ready)
     "usm_volley",
     # Local apps
@@ -79,6 +80,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "content.context_processors.menu",
             ],
         },
     },
@@ -155,3 +157,33 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# django-ckeditor-5 — éditeur WYSIWYG pour Post.contenu / PageStatique.contenu
+CKEDITOR_5_UPLOAD_PATH = "uploads/"
+CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+CKEDITOR_5_FILE_UPLOAD_PERMISSION = "staff"  # seuls les staff peuvent uploader
+CKEDITOR_5_CONFIGS = {
+    "default": {
+        "toolbar": [
+            "heading", "|",
+            "bold", "italic", "link", "|",
+            "bulletedList", "numberedList", "blockQuote", "|",
+            "imageUpload", "insertTable", "|",
+            "undo", "redo",
+        ],
+        "image": {
+            "toolbar": [
+                "imageTextAlternative", "|",
+                "imageStyle:alignLeft", "imageStyle:alignRight",
+                "imageStyle:alignCenter", "imageStyle:side", "|",
+            ],
+            "styles": ["full", "side", "alignLeft", "alignRight", "alignCenter"],
+        },
+        "table": {
+            "contentToolbar": [
+                "tableColumn", "tableRow", "mergeTableCells",
+            ],
+        },
+    },
+}

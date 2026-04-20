@@ -22,7 +22,30 @@
     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
       <a href="/" class="text-2xl font-black tracking-tight">USM VOLLEY</a>
       <nav class="flex gap-4 text-sm font-bold items-center">
-        <a href="/adhesion/" class="hover:underline">Adhésion</a>
+        {% for item in menu_items %}
+          {% with children=item.children.all %}
+            {% if children %}
+              <div class="relative group">
+                <button type="button" class="hover:underline py-1">
+                  {{ item.label }} <span class="text-xs">▾</span>
+                </button>
+                <div class="hidden group-hover:block absolute top-full left-0 bg-white text-black border-4 border-black min-w-[200px] z-20 shadow-[4px_4px_0_#000]">
+                  {% for child in children %}
+                    {% if child.is_active %}
+                      <a href="{{ child.get_url }}"
+                         class="block px-4 py-2 border-b-2 border-black last:border-b-0 hover:bg-amber-200">
+                        {{ child.label }}
+                      </a>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            {% else %}
+              <a href="{{ item.get_url }}" class="hover:underline">{{ item.label }}</a>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+
         {% if user.is_authenticated %}
           <a href="{% url 'mon_compte' %}" class="hover:underline border-2 border-white px-3 py-1">
             👤 {{ user.first_name|default:user.email }}

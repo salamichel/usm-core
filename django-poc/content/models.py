@@ -1,4 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import NoReverseMatch, reverse
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class TypeDocument(models.TextChoices):
@@ -50,8 +53,8 @@ class Document(models.Model):
 class Post(models.Model):
     titre = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True)
-    contenu = models.TextField(help_text="HTML CKEditor")
-    categorie = models.CharField(max_length=50)
+    contenu = CKEditor5Field("Contenu", config_name="default")
+    categorie = models.CharField(max_length=50, blank=True)
     date_publication = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -68,6 +71,119 @@ class Post(models.Model):
 
     def __str__(self) -> str:
         return self.titre
+
+    def get_absolute_url(self) -> str:
+        return reverse("blog_detail", args=[self.slug])
+
+
+class PageStatique(models.Model):
+    titre = models.CharField("titre", max_length=200)
+    slug = models.SlugField("slug", max_length=200, unique=True)
+    contenu = CKEditor5Field("Contenu", config_name="default")
+    is_published = models.BooleanField("publiée", default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Page statique"
+        verbose_name_plural = "Pages statiques"
+        ordering = ["titre"]
+        indexes = [
+            models.Index(fields=["slug"]),
+            models.Index(fields=["is_published"]),
+        ]
+
+    def __str__(self) -> str:
+        return self.titre
+
+    def get_absolute_url(self) -> str:
+        return reverse("page_detail", args=[self.slug])
+
+
+class MenuLinkType(models.TextChoices):
+    PAGE = "PAGE", "Page statique"
+    ROUTE = "ROUTE", "Route nommée"
+    URL = "URL", "URL brute"
+    NONE = "NONE", "Aucun (parent seulement)"
+
+
+class MenuItem(models.Model):
+    label = models.CharField("label", max_length=80)
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="children",
+        verbose_name="parent",
+        help_text="Attention : la suppression d'un parent supprime ses enfants.",
+    )
+    ordre = models.PositiveIntegerField("ordre", default=0)
+    is_active = models.BooleanField("actif", default=True)
+    link_type = models.CharField(
+        "type de lien",
+        max_length=10,
+        choices=MenuLinkType.choices,
+        default=MenuLinkType.NONE,
+    )
+    link_value = models.CharField(
+        "valeur du lien",
+        max_length=255,
+        blank=True,
+        help_text=(
+            "PAGE : slug de la page statique • "
+            "ROUTE : nom de route Django (ex: blog_list) • "
+            "URL : URL brute (ex: /adhesion/) • "
+            "NONE : laisser vide"
+        ),
+    )
+
+    class Meta:
+        verbose_name = "Entrée de menu"
+        verbose_name_plural = "Menu — entrées"
+        ordering = ["parent__ordre", "parent_id", "ordre", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.parent.label} › {self.label}" if self.parent_id else self.label
+
+    def get_url(self) -> str:
+        if self.link_type == MenuLinkType.PAGE and self.link_value:
+            return reverse("page_detail", args=[self.link_value])
+        if self.link_type == MenuLinkType.ROUTE and self.link_value:
+            try:
+                return reverse(self.link_value)
+            except NoReverseMatch:
+                return "#"
+        if self.link_type == MenuLinkType.URL:
+            return self.link_value or "#"
+        return "#"
+
+    def clean(self):
+        # Max 2 niveaux : un enfant ne peut pas avoir un parent lui-même enfant.
+        if self.parent_id and self.parent and self.parent.parent_id:
+            raise ValidationError(
+                "Profondeur maximale du menu : 2 niveaux. "
+                "Cet item ne peut pas être rattaché à un sous-menu."
+            )
+
+        if self.link_type == MenuLinkType.PAGE:
+            if not self.link_value:
+                raise ValidationError({"link_value": "Indiquez le slug de la page statique."})
+            if not PageStatique.objects.filter(slug=self.link_value).exists():
+                raise ValidationError(
+                    {"link_value": f"Aucune page statique avec le slug « {self.link_value} »."}
+                )
+        elif self.link_type == MenuLinkType.ROUTE:
+            if not self.link_value:
+                raise ValidationError({"link_value": "Indiquez le nom de la route."})
+            try:
+                reverse(self.link_value)
+            except NoReverseMatch:
+                raise ValidationError(
+                    {"link_value": f"La route « {self.link_value} » n'existe pas."}
+                )
+        elif self.link_type == MenuLinkType.URL and not self.link_value:
+            raise ValidationError({"link_value": "Indiquez l'URL."})
 
 
 class Event(models.Model):
