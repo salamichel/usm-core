@@ -61,6 +61,15 @@
               Responsable : {{ a.user.get_full_name }}
             </p>
           {% endif %}
+
+          {% if a.statut_paiement == 'EN_ATTENTE' %}
+            <form method="post" action="{% url 'adhesion_payer' a.pk %}" class="mt-4">
+              {% csrf_token %}
+              <button type="submit" class="btn-neo bg-yellow-400 px-5 py-2 font-black text-sm">
+                💳 Payer {{ a.montant }} € sur HelloAsso
+              </button>
+            </form>
+          {% endif %}
         </article>
       {% endfor %}
     </div>
