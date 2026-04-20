@@ -1,13 +1,16 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
 from members.models import User
+from seasons.models import Saison
 from teams.models import CategorieAdhesion
 
 from .forms import AdhesionForm
-from .models import PRICING, Adhesion
+from .models import Adhesion, get_tarif
 
 
 def adhesion_view(request: HttpRequest) -> HttpResponse:
@@ -15,6 +18,12 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
         form = AdhesionForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
+            saison = data["saison"]
+            categorie = data["categorie_adhesion"]
+            tarif = get_tarif(saison, categorie) or Decimal("0")
+            souhait = data.get("souhait_equipe")
+            coupes = list(data.get("choix_coupes") or [])
+
             with transaction.atomic():
                 user, _ = User.objects.get_or_create(
                     email=data["email"],
@@ -27,33 +36,43 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                 )
                 Adhesion.objects.update_or_create(
                     user=user,
-                    saison=data["saison"],
+                    saison=saison,
                     defaults={
-                        "categorie_adhesion": data["categorie_adhesion"],
-                        "montant": PRICING[data["categorie_adhesion"]],
+                        "categorie_adhesion": categorie,
+                        "montant": tarif,
                         "preferences": {
                             "indisponibilites": data.get("indisponibilites", []),
-                            "souhaits_equipe": data.get("souhaits_equipe", ""),
-                            "choix_coupes": data.get("choix_coupes", []),
+                            "souhait_equipe_id": souhait.pk if souhait else None,
+                            "souhait_equipe_nom": souhait.nom if souhait else "",
+                            "coupes_slugs": [c.slug for c in coupes],
+                            "coupes_noms": [c.nom for c in coupes],
                         },
                     },
                 )
             messages.success(
                 request,
-                f"Adhésion enregistrée — montant à régler : {PRICING[data['categorie_adhesion']]} €",
+                f"Adhésion enregistrée — montant à régler : {tarif} €",
             )
             return redirect("adhesion")
     else:
         form = AdhesionForm()
 
-    return render(request, "adhesion/form.html", {"form": form, "pricing": PRICING})
+    return render(request, "adhesion/form.html", {"form": form})
 
 
 def pricing_partial(request: HttpRequest) -> HttpResponse:
-    """HTMX endpoint — retourne le tarif + les champs conditionnels quand la catégorie change."""
+    """Endpoint AJAX : renvoie le tarif + l'indicateur pour les champs Compet Loisir."""
     categorie = request.GET.get("categorie_adhesion") or ""
-    montant = PRICING.get(categorie)
+    saison_id = request.GET.get("saison") or ""
+    saison = None
+    if saison_id:
+        saison = Saison.objects.filter(pk=saison_id).first()
+    if saison is None:
+        saison = Saison.objects.filter(is_active=True).first()
+
+    montant = get_tarif(saison, categorie) if categorie else None
     show_compet_loisir = categorie == CategorieAdhesion.COMPETLIB
+
     return render(
         request,
         "adhesion/_pricing_partial.html",

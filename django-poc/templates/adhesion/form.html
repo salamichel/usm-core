@@ -17,7 +17,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for field in form %}
-          {% if field.name != "indisponibilites" and field.name != "souhaits_equipe" and field.name != "choix_coupes" %}
+          {% if field.name != "indisponibilites" and field.name != "souhait_equipe" and field.name != "choix_coupes" %}
             <label class="block">
               <span class="font-bold">{{ field.label }}{% if field.field.required %} *{% endif %}</span>
               {{ field }}
@@ -38,12 +38,18 @@
 
       <div id="compet-loisir-fields" class="hidden space-y-4">
         <fieldset class="border-4 border-black p-4">
-          <legend class="font-bold px-2">Souhait d'équipe</legend>
-          {{ form.souhaits_equipe }}
+          <legend class="font-bold px-2">Souhait d'équipe (Compet Loisir)</legend>
+          {{ form.souhait_equipe }}
+          <p class="text-xs mt-1 text-gray-600">
+            Équipes de la saison active, catégorie « Compétition Loisir » (gérées dans l'admin).
+          </p>
         </fieldset>
         <fieldset class="border-4 border-black p-4">
           <legend class="font-bold px-2">Coupes</legend>
           {{ form.choix_coupes }}
+          <p class="text-xs mt-1 text-gray-600">
+            Coupes gérées dans l'admin (actives uniquement).
+          </p>
         </fieldset>
       </div>
 
@@ -54,21 +60,26 @@
   </div>
 
   <script>
-    // HTMX trigger via change event on categorie_adhesion select
     document.addEventListener("DOMContentLoaded", () => {
-      const select = document.querySelector("[name='categorie_adhesion']");
+      const catSelect = document.querySelector("[name='categorie_adhesion']");
+      const saisonSelect = document.querySelector("[name='saison']");
       const pricing = document.getElementById("pricing-area");
       const compet = document.getElementById("compet-loisir-fields");
       const inputs = document.querySelectorAll("input, select, textarea");
-      inputs.forEach(i => i.classList.add("border-4","border-black","p-2","w-full","bg-white"));
+      inputs.forEach(i => i.classList.add("border-4", "border-black", "p-2", "w-full", "bg-white"));
 
       async function update() {
-        const r = await fetch(`/adhesion/pricing/?categorie_adhesion=${select.value}`);
+        const cat = catSelect.value;
+        const saison = saisonSelect ? saisonSelect.value : "";
+        const params = new URLSearchParams({categorie_adhesion: cat, saison: saison});
+        const r = await fetch(`/adhesion/pricing/?${params}`);
         pricing.innerHTML = await r.text();
-        compet.classList.toggle("hidden", select.value !== "COMPETLIB");
+        compet.classList.toggle("hidden", cat !== "COMPETLIB");
       }
-      select.addEventListener("change", update);
-      if (select.value) update();
+
+      catSelect.addEventListener("change", update);
+      if (saisonSelect) saisonSelect.addEventListener("change", update);
+      if (catSelect.value) update();
     });
   </script>
 {% endblock %}

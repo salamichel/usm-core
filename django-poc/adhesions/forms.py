@@ -3,29 +3,16 @@ from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
 
-from members.models import Gender, User
+from members.models import Gender
 from seasons.models import Saison
-from teams.models import CategorieAdhesion
+from teams.models import CategorieAdhesion, EquipeGroupe
+
+from .models import Coupe, GenreRequis
 
 INDISPO_CHOICES = [
-    ("mardi", "Mardi soir"),
-    ("mercredi", "Mercredi soir"),
-    ("vendredi", "Vendredi soir"),
-]
-
-COUPE_CHOICES = [
-    ("challenge_loisir_mixte", "Challenge Loisir Mixte"),
-    ("coupe_heitz", "Coupe Heitz (filet 2m24 — Féminin)"),
-    ("coupe_aico", "Coupe Aïco (filet 2m43 — Masculin)"),
-]
-
-SOUHAIT_EQUIPE_CHOICES = [
-    ("", "—"),
-    ("L1", "L1"),
-    ("L2", "L2"),
-    ("L3", "L3"),
-    ("L4", "L4"),
-    ("INDIFFERENT", "Indifférent"),
+    ("Mardi soir", "Mardi soir"),
+    ("Mercredi soir", "Mercredi soir"),
+    ("Vendredi soir", "Vendredi soir"),
 ]
 
 
@@ -54,17 +41,33 @@ class AdhesionForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         required=False,
     )
-    souhaits_equipe = forms.ChoiceField(
+    souhait_equipe = forms.ModelChoiceField(
         label="Souhait d'équipe (Compet Loisir uniquement)",
-        choices=SOUHAIT_EQUIPE_CHOICES,
+        queryset=EquipeGroupe.objects.none(),
         required=False,
+        empty_label="— Indifférent —",
     )
-    choix_coupes = forms.MultipleChoiceField(
+    choix_coupes = forms.ModelMultipleChoiceField(
         label="Coupes (Compet Loisir uniquement)",
-        choices=COUPE_CHOICES,
+        queryset=Coupe.objects.filter(is_active=True),
         widget=forms.CheckboxSelectMultiple,
         required=False,
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Présélection de la saison active
+        active = Saison.objects.filter(is_active=True).first()
+        if active and not self.is_bound:
+            self.fields["saison"].initial = active.pk
+
+        # Souhait d'équipe : équipes Compet Loisir de la saison active
+        if active:
+            self.fields["souhait_equipe"].queryset = EquipeGroupe.objects.filter(
+                categorie=CategorieAdhesion.COMPETLIB,
+                saison=active,
+            )
 
     def clean(self):
         cleaned = super().clean()
@@ -73,7 +76,7 @@ class AdhesionForm(forms.Form):
         gender = cleaned.get("gender")
         coupes = cleaned.get("choix_coupes") or []
 
-        # Règle: Sans Compétition bloqué si <15 ans
+        # Règle : Sans Compétition bloqué si < 15 ans
         if categorie == CategorieAdhesion.SANS_COMPETITION and dob:
             today = date.today()
             age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
@@ -82,10 +85,11 @@ class AdhesionForm(forms.Form):
                     "La catégorie « Sans Compétition » est réservée aux plus de 15 ans."
                 )
 
-        # Règle: Coupe Heitz = Féminin, Coupe Aïco = Masculin
-        if "coupe_heitz" in coupes and gender != Gender.FEMININ:
-            raise ValidationError("La Coupe Heitz (filet 2m24) est réservée aux joueuses.")
-        if "coupe_aico" in coupes and gender != Gender.MASCULIN:
-            raise ValidationError("La Coupe Aïco (filet 2m43) est réservée aux joueurs.")
+        # Règle : genre requis sur coupes (administré via Coupe.genre_requis)
+        for coupe in coupes:
+            if coupe.genre_requis == GenreRequis.FEMININ and gender != Gender.FEMININ:
+                raise ValidationError(f"La « {coupe.nom} » est réservée aux joueuses.")
+            if coupe.genre_requis == GenreRequis.MASCULIN and gender != Gender.MASCULIN:
+                raise ValidationError(f"La « {coupe.nom} » est réservée aux joueurs.")
 
         return cleaned
