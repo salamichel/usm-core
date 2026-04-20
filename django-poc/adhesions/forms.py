@@ -23,7 +23,7 @@ class AdhesionForm(forms.Form):
     email = forms.EmailField(label="Email")
     date_of_birth = forms.DateField(
         label="Date de naissance",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     gender = forms.ChoiceField(label="Genre", choices=Gender.choices)
 
@@ -37,7 +37,7 @@ class AdhesionForm(forms.Form):
     membre_nom = forms.CharField(label="Nom du membre", max_length=150, required=False)
     membre_date_naissance = forms.DateField(
         label="Date de naissance du membre",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         required=False,
     )
     membre_genre = forms.ChoiceField(

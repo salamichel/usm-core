@@ -19,7 +19,7 @@ class ProfilForm(forms.ModelForm):
             "emergency_phone",
         )
         widgets = {
-            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
+            "date_of_birth": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
         labels = {
             "first_name": "Prénom",
