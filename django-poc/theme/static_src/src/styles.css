@@ -17,4 +17,22 @@
     transform: translate(4px, 4px);
     box-shadow: 2px 2px 0 #000;
   }
+
+  .allauth-form input[type="text"],
+  .allauth-form input[type="email"],
+  .allauth-form input[type="password"],
+  .allauth-form input[type="url"],
+  .allauth-form input[type="tel"],
+  .allauth-form input[type="number"],
+  .allauth-form textarea {
+    @apply w-full border-4 border-black p-2 bg-white;
+  }
+  .allauth-form input:focus,
+  .allauth-form textarea:focus {
+    @apply outline-none;
+    box-shadow: 4px 4px 0 #000;
+  }
+  .allauth-form ul.errorlist {
+    @apply list-none p-0 m-0 text-red-700 text-sm font-bold mb-1;
+  }
 }
