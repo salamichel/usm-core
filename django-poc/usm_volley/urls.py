@@ -8,6 +8,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
+    path("api/webhooks/helloasso/", include("adhesions.urls_webhook")),
     path("adhesion/", include("adhesions.urls")),
     path("mon-compte/", include("compte.urls")),
     path("blog/", include("content.urls_blog")),

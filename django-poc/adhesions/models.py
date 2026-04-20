@@ -137,6 +137,15 @@ class Adhesion(models.Model):
     )
     transaction_id = models.CharField(max_length=100, blank=True)
     preferences = models.JSONField(default=default_preferences, blank=True)
+
+    # HelloAsso — renseignés via webhook
+    helloasso_payment_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    helloasso_order_id = models.CharField(max_length=255, null=True, blank=True)
+    helloasso_payer_email = models.EmailField(null=True, blank=True)
+    helloasso_webhook_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
+    helloasso_metadata = models.JSONField(null=True, blank=True, default=dict)
+    last_webhook_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -161,6 +170,8 @@ class Adhesion(models.Model):
             models.Index(fields=["user"]),
             models.Index(fields=["saison"]),
             models.Index(fields=["membre_famille"]),
+            models.Index(fields=["helloasso_webhook_id"]),
+            models.Index(fields=["helloasso_payment_id"]),
         ]
 
     def __str__(self) -> str:

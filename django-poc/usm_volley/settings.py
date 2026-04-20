@@ -197,3 +197,11 @@ CKEDITOR_5_CONFIGS = {
         },
     },
 }
+
+
+# HelloAsso — SDK pour appels sortants + secret pour vérifier les webhooks entrants
+HELLOASSO_API_HOST = os.environ.get("HELLOASSO_API_HOST", "https://api.helloasso.com/v5")
+HELLOASSO_CLIENT_ID = os.environ.get("HELLOASSO_CLIENT_ID", "")
+HELLOASSO_CLIENT_SECRET = os.environ.get("HELLOASSO_CLIENT_SECRET", "")
+HELLOASSO_WEBHOOK_SECRET = os.environ.get("HELLOASSO_WEBHOOK_SECRET", "dev-webhook-secret")
+HELLOASSO_ORGANIZATION_SLUG = os.environ.get("HELLOASSO_ORGANIZATION_SLUG", "usm-volley")

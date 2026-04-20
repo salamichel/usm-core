@@ -6,3 +6,4 @@ python-dotenv>=1.0
 Pillow>=10.0
 django-ckeditor-5>=0.2.13
 django-tailwind[reload]>=4.4
+helloasso-python>=1.0.0
