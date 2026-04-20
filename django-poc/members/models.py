@@ -72,3 +72,51 @@ class User(AbstractUser):
             - self.date_of_birth.year
             - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
         )
+
+
+def _calc_age(dob) -> int | None:
+    if dob is None:
+        return None
+    today = date.today()
+    return (
+        today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    )
+
+
+class MembreFamille(models.Model):
+    """
+    Membres de la famille rattachés à un adhérent responsable.
+    Permet à un parent d'enregistrer l'adhésion d'un enfant (ou conjoint)
+    sans créer de compte séparé.
+    """
+
+    responsable = models.ForeignKey(
+        "members.User",
+        on_delete=models.CASCADE,
+        related_name="famille",
+        verbose_name="Responsable (adhérent principal)",
+    )
+    first_name = models.CharField("prénom", max_length=150)
+    last_name = models.CharField("nom", max_length=150)
+    date_of_birth = models.DateField("date de naissance")
+    gender = models.CharField(
+        "genre", max_length=10, choices=Gender.choices, default=Gender.AUTRE
+    )
+
+    class Meta:
+        verbose_name = "Membre de la famille"
+        verbose_name_plural = "Membres de la famille"
+        ordering = ["last_name", "first_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["responsable", "first_name", "last_name", "date_of_birth"],
+                name="unique_membre_famille",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
+    @property
+    def age(self) -> int | None:
+        return _calc_age(self.date_of_birth)

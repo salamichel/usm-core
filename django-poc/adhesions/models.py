@@ -99,10 +99,26 @@ def default_preferences() -> dict:
 
 
 class Adhesion(models.Model):
+    """
+    Une adhésion par bénéficiaire par saison.
+    - membre_famille = NULL  →  l'adhérent (user) adhère pour lui-même
+    - membre_famille = FK    →  l'adhérent adhère pour un membre de sa famille
+      (enfant, conjoint…). Le responsable légal/payeur reste `user`.
+    """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="adhesions",
+        verbose_name="Responsable / payeur",
+    )
+    membre_famille = models.ForeignKey(
+        "members.MembreFamille",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="adhesions",
+        verbose_name="Membre de la famille (si pas le responsable)",
     )
     saison = models.ForeignKey(
         "seasons.Saison",
@@ -128,18 +144,34 @@ class Adhesion(models.Model):
         verbose_name = "Adhésion"
         verbose_name_plural = "Adhésions"
         constraints = [
+            # Un user ne peut adhérer qu'une fois par saison pour lui-même
             models.UniqueConstraint(
                 fields=["user", "saison"],
-                name="unique_adhesion_per_season",
-            )
+                condition=models.Q(membre_famille__isnull=True),
+                name="unique_adhesion_user_per_season",
+            ),
+            # Un membre de la famille ne peut avoir qu'une adhésion par saison
+            models.UniqueConstraint(
+                fields=["membre_famille", "saison"],
+                condition=models.Q(membre_famille__isnull=False),
+                name="unique_adhesion_membre_per_season",
+            ),
         ]
         indexes = [
             models.Index(fields=["user"]),
             models.Index(fields=["saison"]),
+            models.Index(fields=["membre_famille"]),
         ]
 
     def __str__(self) -> str:
-        return f"{self.user} — {self.saison.label} — {self.get_categorie_adhesion_display()}"
+        beneficiaire = str(self.membre_famille) if self.membre_famille else self.user.get_full_name() or str(self.user)
+        return f"{beneficiaire} — {self.saison.label} — {self.get_categorie_adhesion_display()}"
+
+    @property
+    def beneficiaire_nom(self) -> str:
+        if self.membre_famille:
+            return str(self.membre_famille)
+        return self.user.get_full_name() or self.user.email
 
     def save(self, *args, **kwargs):
         if not self.montant:

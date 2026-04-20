@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "django_htmx",
+    # Project app (loads admin customisations via AppConfig.ready)
+    "usm_volley",
     # Local apps
     "members",
     "seasons",

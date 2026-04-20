@@ -17,6 +17,7 @@ INDISPO_CHOICES = [
 
 
 class AdhesionForm(forms.Form):
+    # ── Responsable (payeur) ──────────────────────────────────────────────────
     first_name = forms.CharField(label="Prénom", max_length=150)
     last_name = forms.CharField(label="Nom", max_length=150)
     email = forms.EmailField(label="Email")
@@ -26,6 +27,26 @@ class AdhesionForm(forms.Form):
     )
     gender = forms.ChoiceField(label="Genre", choices=Gender.choices)
 
+    # ── Membre de la famille (optionnel) ─────────────────────────────────────
+    pour_membre_famille = forms.BooleanField(
+        label="Cette adhésion est pour un membre de la famille",
+        required=False,
+        widget=forms.CheckboxInput(attrs={"id": "pour_membre_famille"}),
+    )
+    membre_prenom = forms.CharField(label="Prénom du membre", max_length=150, required=False)
+    membre_nom = forms.CharField(label="Nom du membre", max_length=150, required=False)
+    membre_date_naissance = forms.DateField(
+        label="Date de naissance du membre",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+    membre_genre = forms.ChoiceField(
+        label="Genre du membre",
+        choices=[("", "—")] + Gender.choices,
+        required=False,
+    )
+
+    # ── Saison & catégorie ────────────────────────────────────────────────────
     saison = forms.ModelChoiceField(
         label="Saison",
         queryset=Saison.objects.filter(is_active=True),
@@ -35,6 +56,7 @@ class AdhesionForm(forms.Form):
         choices=CategorieAdhesion.choices,
     )
 
+    # ── Préférences ───────────────────────────────────────────────────────────
     indisponibilites = forms.MultipleChoiceField(
         label="Indisponibilités",
         choices=INDISPO_CHOICES,
@@ -57,26 +79,46 @@ class AdhesionForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Présélection de la saison active
         active = Saison.objects.filter(is_active=True).first()
         if active and not self.is_bound:
             self.fields["saison"].initial = active.pk
 
-        # Souhait d'équipe : équipes Compet Loisir de la saison active
         if active:
             self.fields["souhait_equipe"].queryset = EquipeGroupe.objects.filter(
                 categorie=CategorieAdhesion.COMPETLIB,
                 saison=active,
             )
 
+    def _get_effective_gender(self) -> str:
+        """Retourne le genre du bénéficiaire réel (membre ou responsable)."""
+        data = self.cleaned_data
+        if data.get("pour_membre_famille"):
+            return data.get("membre_genre", "")
+        return data.get("gender", "")
+
+    def _get_effective_dob(self):
+        data = self.cleaned_data
+        if data.get("pour_membre_famille"):
+            return data.get("membre_date_naissance")
+        return data.get("date_of_birth")
+
     def clean(self):
         cleaned = super().clean()
+        pour_membre = cleaned.get("pour_membre_famille")
+
+        # Validation des champs obligatoires si c'est pour un membre
+        if pour_membre:
+            for field in ("membre_prenom", "membre_nom", "membre_date_naissance", "membre_genre"):
+                if not cleaned.get(field):
+                    label = self.fields[field].label
+                    self.add_error(field, f"Ce champ est obligatoire pour un membre de la famille.")
+
         categorie = cleaned.get("categorie_adhesion")
-        dob = cleaned.get("date_of_birth")
-        gender = cleaned.get("gender")
+        dob = self._get_effective_dob()
+        gender = self._get_effective_gender()
         coupes = cleaned.get("choix_coupes") or []
 
-        # Règle : Sans Compétition bloqué si < 15 ans
+        # Règle : Sans Compétition bloqué si < 15 ans (appliqué au bénéficiaire)
         if categorie == CategorieAdhesion.SANS_COMPETITION and dob:
             today = date.today()
             age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
@@ -85,7 +127,7 @@ class AdhesionForm(forms.Form):
                     "La catégorie « Sans Compétition » est réservée aux plus de 15 ans."
                 )
 
-        # Règle : genre requis sur coupes (administré via Coupe.genre_requis)
+        # Règle : genre requis sur coupes — appliqué au bénéficiaire
         for coupe in coupes:
             if coupe.genre_requis == GenreRequis.FEMININ and gender != Gender.FEMININ:
                 raise ValidationError(f"La « {coupe.nom} » est réservée aux joueuses.")

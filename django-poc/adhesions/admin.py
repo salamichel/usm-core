@@ -25,6 +25,7 @@ class CoupeAdmin(admin.ModelAdmin):
 @admin.register(Adhesion)
 class AdhesionAdmin(admin.ModelAdmin):
     list_display = (
+        "beneficiaire_nom",
         "user",
         "saison",
         "categorie_adhesion",
@@ -33,11 +34,18 @@ class AdhesionAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("statut_paiement", "categorie_adhesion", "saison")
-    search_fields = ("user__email", "user__first_name", "user__last_name", "transaction_id")
-    autocomplete_fields = ("user", "saison")
+    search_fields = (
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "membre_famille__first_name",
+        "membre_famille__last_name",
+        "transaction_id",
+    )
+    autocomplete_fields = ("user", "saison", "membre_famille")
     readonly_fields = ("created_at", "updated_at", "preferences_display")
     fieldsets = (
-        ("Adhérent", {"fields": ("user", "saison", "categorie_adhesion")}),
+        ("Bénéficiaire", {"fields": ("user", "membre_famille", "saison", "categorie_adhesion")}),
         ("Paiement", {"fields": ("montant", "statut_paiement", "transaction_id")}),
         (
             "Préférences",
