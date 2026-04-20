@@ -166,7 +166,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # django-tailwind — build JIT via Tailwind CLI (plus de CDN en prod)
 TAILWIND_APP_NAME = "theme"
 INTERNAL_IPS = ["127.0.0.1"]
-NPM_BIN_PATH = "/opt/node22/bin/npm"
+NPM_BIN_PATH = os.environ.get("NPM_BIN_PATH", "/opt/node22/bin/npm")
 
 
 # django-ckeditor-5 — éditeur WYSIWYG pour Post.contenu / PageStatique.contenu
