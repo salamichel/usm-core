@@ -1,11 +1,13 @@
 """Client HelloAsso : OAuth2 client_credentials + création de checkout intents."""
 from __future__ import annotations
 
+import base64
+import json
 import logging
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
-import json
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
@@ -60,19 +62,31 @@ def _fetch_token() -> str:
 
     data = urllib.parse.urlencode({
         "grant_type": "client_credentials",
-        "client_id": settings.HELLOASSO_CLIENT_ID,
-        "client_secret": settings.HELLOASSO_CLIENT_SECRET,
     }).encode()
+
+    # HelloAsso utilise Basic Auth pour les credentials
+    credentials = f"{settings.HELLOASSO_CLIENT_ID}:{settings.HELLOASSO_CLIENT_SECRET}"
+    auth_header = base64.b64encode(credentials.encode()).decode()
 
     req = urllib.request.Request(
         _oauth_base_host(),
         data=data,
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": f"Basic {auth_header}",
+        },
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             body = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        logger.error(
+            "HelloAsso OAuth2 token failed (status %d): %s",
+            e.code,
+            e.read().decode(),
+        )
+        raise HelloAssoError(f"OAuth2 token request failed: {e}") from e
     except Exception as e:
         logger.error("HelloAsso OAuth2 token failed: %s", e)
         raise HelloAssoError(f"OAuth2 token request failed: {e}") from e
