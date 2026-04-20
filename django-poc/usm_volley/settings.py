@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "teams",
     "adhesions",
     "content",
+    "compte",
 ]
 
 SITE_ID = 1

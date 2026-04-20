@@ -1,0 +1,38 @@
+{% extends "compte/base_compte.html" %}
+
+{% block title %}Documents — USM Volley{% endblock %}
+
+{% block compte_content %}
+
+  <h1 class="text-3xl font-black">Documents</h1>
+
+  {% if docs_by_type %}
+    {% for type_label, docs in docs_by_type.items %}
+      <section class="border-4 border-black bg-white p-5 shadow-[6px_6px_0_#000]">
+        <h2 class="font-black text-lg mb-3 border-b-2 border-black pb-2">{{ type_label }}</h2>
+        <ul class="space-y-2">
+          {% for doc in docs %}
+            <li class="flex items-center justify-between border-2 border-black px-4 py-3">
+              <div>
+                <p class="font-bold">{{ doc.titre }}</p>
+                {% if doc.equipe_groupe %}
+                  <p class="text-xs text-gray-500">Équipe : {{ doc.equipe_groupe.nom }}</p>
+                {% endif %}
+                <p class="text-xs text-gray-400">{{ doc.created_at|date:"d/m/Y" }}</p>
+              </div>
+              <a href="{% url 'mon_compte_document' doc.pk %}"
+                 class="btn-neo bg-amber-100 px-3 py-1 text-sm font-bold whitespace-nowrap">
+                ⬇ Télécharger
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endfor %}
+  {% else %}
+    <div class="border-4 border-black bg-white p-8 shadow-[6px_6px_0_#000] text-center">
+      <p class="text-gray-500">Aucun document disponible pour votre profil.</p>
+    </div>
+  {% endif %}
+
+{% endblock %}

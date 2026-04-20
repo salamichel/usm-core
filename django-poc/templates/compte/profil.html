@@ -1,0 +1,84 @@
+{% extends "compte/base_compte.html" %}
+
+{% block title %}Mon profil — USM Volley{% endblock %}
+
+{% block compte_content %}
+
+  <h1 class="text-3xl font-black">Mon profil</h1>
+
+  <section class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+    <p class="text-sm text-gray-600 mb-4">
+      Email : <strong>{{ request.user.email }}</strong>
+      (modification via <a href="{% url 'account_email' %}" class="underline">Paramètres email</a>)
+    </p>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="p-3 border-4 border-red-600 bg-red-100 font-bold">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for field in form %}
+          <label class="block">
+            <span class="font-bold">{{ field.label }}{% if field.field.required %} *{% endif %}</span>
+            {{ field }}
+            {% if field.errors %}<div class="text-red-700 text-sm">{{ field.errors }}</div>{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn-neo bg-yellow-400 px-6 py-3 font-black">
+        Enregistrer
+      </button>
+    </form>
+  </section>
+
+  {# ── Sécurité ────────────────────────────────────────────────────────── #}
+  <section class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+    <h2 class="font-black text-lg mb-3">Sécurité</h2>
+    <div class="flex gap-3 flex-wrap">
+      <a href="{% url 'account_change_password' %}" class="btn-neo bg-white px-4 py-2 font-bold text-sm">
+        Changer le mot de passe
+      </a>
+      <a href="{% url 'account_email' %}" class="btn-neo bg-white px-4 py-2 font-bold text-sm">
+        Gérer l'email
+      </a>
+    </div>
+  </section>
+
+  {# ── Membres de la famille ────────────────────────────────────────────── #}
+  <section class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+    <h2 class="font-black text-lg mb-3">Membres de la famille</h2>
+    {% with famille=request.user.famille.all %}
+      {% if famille %}
+        <ul class="space-y-2">
+          {% for m in famille %}
+            <li class="flex justify-between items-center border-2 border-black px-4 py-2">
+              <div>
+                <span class="font-bold">{{ m.first_name }} {{ m.last_name }}</span>
+                <span class="text-sm text-gray-600 ml-2">{{ m.date_of_birth }} · {{ m.get_gender_display }}</span>
+              </div>
+              <span class="text-sm text-gray-500">{{ m.age }} ans</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-500 text-sm">Aucun membre de la famille enregistré.</p>
+      {% endif %}
+      <p class="text-xs text-gray-500 mt-3">
+        Les membres de la famille sont ajoutés automatiquement lors d'une adhésion familiale,
+        ou gérables dans l'<a href="/admin/members/membrefamille/" class="underline">administration</a>.
+      </p>
+    {% endwith %}
+  </section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll("input, select, textarea")
+    .forEach(i => i.classList.add("border-4", "border-black", "p-2", "w-full", "bg-white"));
+</script>
+{% endblock %}
