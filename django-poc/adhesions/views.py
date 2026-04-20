@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -13,9 +14,11 @@ from .forms import AdhesionForm
 from .models import Adhesion, get_tarif
 
 
+@login_required(login_url="account_login")
 def adhesion_view(request: HttpRequest) -> HttpResponse:
+    """Formulaire d'adhésion pour utilisateur connecté."""
     if request.method == "POST":
-        form = AdhesionForm(request.POST)
+        form = AdhesionForm(request.POST, user=request.user)
         if form.is_valid():
             data = form.cleaned_data
             saison = data["saison"]
@@ -26,18 +29,10 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
             pour_membre = data.get("pour_membre_famille")
 
             with transaction.atomic():
-                # Responsable (payeur) — créé ou récupéré par email
-                user, _ = User.objects.get_or_create(
-                    email=data["email"],
-                    defaults={
-                        "first_name": data["first_name"],
-                        "last_name": data["last_name"],
-                        "date_of_birth": data["date_of_birth"],
-                        "gender": data["gender"],
-                    },
-                )
+                # Responsable = utilisateur connecté
+                user = request.user
 
-                # Bénéficiaire : le responsable lui-même ou un membre de sa famille
+                # Bénéficiaire : l'utilisateur lui-même ou un membre de sa famille
                 membre_famille = None
                 if pour_membre:
                     membre_famille, _ = MembreFamille.objects.get_or_create(
@@ -79,19 +74,24 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                         },
                     )
 
-            beneficiaire = f"{data['membre_prenom']} {data['membre_nom']}" if pour_membre else data["first_name"]
+            beneficiaire = (
+                f"{data['membre_prenom']} {data['membre_nom']}"
+                if pour_membre
+                else user.get_full_name() or user.email
+            )
             messages.success(
                 request,
                 f"Adhésion de {beneficiaire} enregistrée — montant à régler : {tarif} €",
             )
             return redirect("adhesion")
     else:
-        form = AdhesionForm()
+        form = AdhesionForm(user=request.user)
 
     return render(request, "adhesion/form.html", {"form": form})
 
 
 def pricing_partial(request: HttpRequest) -> HttpResponse:
+    """Endpoint AJAX : tarif + affichage CompetLib."""
     categorie = request.GET.get("categorie_adhesion") or ""
     saison_id = request.GET.get("saison") or ""
     saison = None

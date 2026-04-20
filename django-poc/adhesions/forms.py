@@ -76,8 +76,16 @@ class AdhesionForm(forms.Form):
         required=False,
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Pré-remplir si l'utilisateur est connecté
+        if user and not self.is_bound:
+            self.fields["first_name"].initial = user.first_name
+            self.fields["last_name"].initial = user.last_name
+            self.fields["email"].initial = user.email
+            self.fields["date_of_birth"].initial = user.date_of_birth
+            self.fields["gender"].initial = user.gender
 
         active = Saison.objects.filter(is_active=True).first()
         if active and not self.is_bound:
