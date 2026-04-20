@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY . .
 
 # Build Tailwind CSS (production, minified) then collect statics
-RUN python manage.py tailwind install --no-input \
- && python manage.py tailwind build --no-input \
+RUN python manage.py tailwind install \
+ && python manage.py tailwind build \
  && python manage.py collectstatic --noinput || true
 
 EXPOSE 8000

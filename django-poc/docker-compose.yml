@@ -13,8 +13,8 @@ services:
       - .:/app
       - media_data:/app/media
     command: >
-      sh -c "python manage.py tailwind install --no-input &&
-             python manage.py tailwind build --no-input &&
+      sh -c "python manage.py tailwind install &&
+             python manage.py tailwind build &&
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
 
