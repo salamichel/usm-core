@@ -133,7 +133,7 @@ def create_checkout_intent(
         api = CheckoutApi(client)
         resp = api.organizations_organization_slug_checkout_intents_post(
             organization_slug=settings.HELLOASSO_ORGANIZATION_SLUG,
-            body=body,
+            hello_asso_api_v5_models_carts_init_checkout_body=body,
         )
 
     # Réponse : { id, redirectUrl }
