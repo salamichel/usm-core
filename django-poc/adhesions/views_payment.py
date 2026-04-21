@@ -1,6 +1,7 @@
 """Vues pour déclencher et gérer le paiement HelloAsso d'une adhésion."""
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -31,7 +32,8 @@ def adhesion_payer(request: HttpRequest, adhesion_id: int) -> HttpResponse:
     beneficiaire = adhesion.beneficiaire_nom
     item_name = f"Adhésion {beneficiaire} — {adhesion.saison.label}"
 
-    base = f"{request.scheme}://{request.get_host()}"
+    # HelloAsso exige des URLs HTTPS publiquement accessibles (pas localhost)
+    base = settings.PUBLIC_BASE_URL.rstrip("/") if settings.PUBLIC_BASE_URL else f"{request.scheme}://{request.get_host()}"
     back_url = base + reverse("mon_compte_adhesions")
     return_url = base + reverse("adhesion_paiement_retour", args=[adhesion.pk])
     error_url = base + reverse("adhesion_paiement_erreur", args=[adhesion.pk])

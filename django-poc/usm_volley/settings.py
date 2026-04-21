@@ -206,6 +206,10 @@ HELLOASSO_CLIENT_SECRET = os.environ.get("HELLOASSO_CLIENT_SECRET", "")
 HELLOASSO_WEBHOOK_SECRET = os.environ.get("HELLOASSO_WEBHOOK_SECRET", "dev-webhook-secret")
 HELLOASSO_ORGANIZATION_SLUG = os.environ.get("HELLOASSO_ORGANIZATION_SLUG", "usm-volley")
 
+# URL publique HTTPS du site (requis par HelloAsso pour BackUrl/ReturnUrl/ErrorUrl)
+# Ex: https://usm.moka-web.net ou un tunnel ngrok en dev
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "")
+
 # Brevo — Transactional email API
 BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
 # Template IDs: définir dans le dashboard Brevo
