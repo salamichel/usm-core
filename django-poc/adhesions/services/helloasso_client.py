@@ -1,17 +1,13 @@
 """Client HelloAsso : OAuth2 client_credentials + création de checkout intents."""
 from __future__ import annotations
 
-import base64
-import json
 import logging
 import time
-import urllib.error
-import urllib.parse
-import urllib.request
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
 
+from authlib.integrations.requests_client import OAuth2Session
 from django.conf import settings
 
 from helloasso_python import (
@@ -54,47 +50,29 @@ def _oauth_base_host() -> str:
 
 
 def _fetch_token() -> str:
-    """Appelle HelloAsso OAuth2 (grant_type=client_credentials) et retourne un access_token."""
+    """Appelle HelloAsso OAuth2 (grant_type=client_credentials) via Authlib."""
     if not settings.HELLOASSO_CLIENT_ID or not settings.HELLOASSO_CLIENT_SECRET:
         raise HelloAssoNotConfigured(
             "HELLOASSO_CLIENT_ID / HELLOASSO_CLIENT_SECRET manquants dans .env"
         )
 
-    data = urllib.parse.urlencode({
-        "grant_type": "client_credentials",
-    }).encode()
-
-    # HelloAsso utilise Basic Auth pour les credentials
-    credentials = f"{settings.HELLOASSO_CLIENT_ID}:{settings.HELLOASSO_CLIENT_SECRET}"
-    auth_header = base64.b64encode(credentials.encode()).decode()
-
-    req = urllib.request.Request(
-        _oauth_base_host(),
-        data=data,
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": f"Basic {auth_header}",
-        },
-        method="POST",
-    )
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = json.loads(resp.read().decode())
-    except urllib.error.HTTPError as e:
-        logger.error(
-            "HelloAsso OAuth2 token failed (status %d): %s",
-            e.code,
-            e.read().decode(),
+        client = OAuth2Session(
+            settings.HELLOASSO_CLIENT_ID,
+            settings.HELLOASSO_CLIENT_SECRET,
         )
-        raise HelloAssoError(f"OAuth2 token request failed: {e}") from e
+        token = client.fetch_token(
+            _oauth_base_host(),
+            grant_type="client_credentials",
+        )
     except Exception as e:
         logger.error("HelloAsso OAuth2 token failed: %s", e)
         raise HelloAssoError(f"OAuth2 token request failed: {e}") from e
 
-    access_token = body.get("access_token")
-    expires_in = int(body.get("expires_in", 1800))
+    access_token = token.get("access_token")
+    expires_in = int(token.get("expires_in", 1800))
     if not access_token:
-        raise HelloAssoError(f"Réponse OAuth2 invalide: {body}")
+        raise HelloAssoError(f"Réponse OAuth2 invalide: {token}")
 
     # Cache jusqu'à 60s avant l'expiration pour éviter les races
     _token_cache["access_token"] = access_token
