@@ -59,7 +59,6 @@ class AdhesionAdmin(admin.ModelAdmin):
         "helloasso_metadata",
         "last_webhook_at",
         "helloasso_receipt_link",
-        "helloasso_admin_link",
     )
     fieldsets = (
         ("Bénéficiaire", {"fields": ("user", "membre_famille", "saison", "categorie_adhesion")}),
@@ -69,7 +68,6 @@ class AdhesionAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "helloasso_receipt_link",
-                    "helloasso_admin_link",
                     "helloasso_checkout_intent_id",
                     "helloasso_payment_id",
                     "helloasso_order_id",
@@ -110,10 +108,13 @@ class AdhesionAdmin(admin.ModelAdmin):
 
     @admin.display(description="Commande HelloAsso")
     def helloasso_order_link(self, obj: Adhesion):
-        url = obj.helloasso_admin_url
-        if not url:
+        if not obj.helloasso_payment_receipt_url or not obj.helloasso_order_id:
             return "—"
-        return format_html('<a href="{}" target="_blank">#{}</a>', url, obj.helloasso_order_id)
+        return format_html(
+            '<a href="{}" target="_blank">#{}</a>',
+            obj.helloasso_payment_receipt_url,
+            obj.helloasso_order_id,
+        )
 
     @admin.display(description="Attestation de paiement")
     def helloasso_receipt_link(self, obj: Adhesion):
@@ -122,14 +123,4 @@ class AdhesionAdmin(admin.ModelAdmin):
         return format_html(
             '<a href="{}" target="_blank">📄 Voir l\'attestation</a>',
             obj.helloasso_payment_receipt_url,
-        )
-
-    @admin.display(description="Admin HelloAsso")
-    def helloasso_admin_link(self, obj: Adhesion):
-        url = obj.helloasso_admin_url
-        if not url:
-            return "—"
-        return format_html(
-            '<a href="{}" target="_blank">🔗 Ouvrir la commande dans HelloAsso</a>',
-            url,
         )

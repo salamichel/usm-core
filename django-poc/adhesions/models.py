@@ -186,16 +186,6 @@ class Adhesion(models.Model):
             return str(self.membre_famille)
         return self.user.get_full_name() or self.user.email
 
-    @property
-    def helloasso_admin_url(self) -> Optional[str]:
-        """Lien vers la commande dans le back-office HelloAsso (pour le bureau)."""
-        if not self.helloasso_order_id:
-            return None
-        api_host = getattr(settings, "HELLOASSO_API_HOST", "")
-        domain = "helloasso-sandbox.com" if "sandbox" in api_host else "helloasso.com"
-        slug = getattr(settings, "HELLOASSO_ORGANIZATION_SLUG", "")
-        return f"https://admin.{domain}/associations/{slug}/checkout/paiement-attestation/{self.helloasso_order_id}"
-
     def save(self, *args, **kwargs):
         if not self.montant:
             tarif = get_tarif(self.saison, self.categorie_adhesion)
