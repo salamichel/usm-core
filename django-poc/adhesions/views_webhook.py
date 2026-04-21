@@ -82,50 +82,125 @@ def _verify_signature(payload_raw: str, signature: str) -> bool:
     return any(hmac.compare_digest(signature, c) for c in candidates)
 
 
+def _extract_adhesion_id(payload: dict) -> int | None:
+    """Cherche adhesion_id dans plusieurs emplacements possibles de la payload."""
+    candidates = [
+        payload.get("metadata"),
+        (payload.get("data") or {}).get("metadata"),
+        ((payload.get("data") or {}).get("order") or {}).get("metadata"),
+    ]
+    for meta in candidates:
+        if isinstance(meta, dict) and meta.get("adhesion_id"):
+            try:
+                return int(meta["adhesion_id"])
+            except (ValueError, TypeError):
+                continue
+    return None
+
+
+def _resolve_adhesion(payload: dict) -> Adhesion:
+    """
+    Trouve l'adhésion correspondant au webhook via plusieurs stratégies :
+    1. metadata.adhesion_id (plusieurs locations possibles) ← le plus fiable
+    2. helloasso_order_id (stocké via querystring de retour)
+    3. helloasso_checkout_intent_id (depuis data.checkoutIntentId si présent)
+    4. email + montant (fallback ambigu, peut échouer si plusieurs matches)
+    """
+    data = payload.get("data", {}) or {}
+
+    # 1. metadata.adhesion_id dans n'importe quelle location
+    adhesion_id = _extract_adhesion_id(payload)
+    if adhesion_id:
+        try:
+            adhesion = Adhesion.objects.get(pk=adhesion_id)
+            logger.info("Resolved adhesion %s via metadata.adhesion_id", adhesion.pk)
+            return adhesion
+        except Adhesion.DoesNotExist:
+            logger.warning("metadata.adhesion_id=%s pointe sur une adhésion inexistante", adhesion_id)
+
+    # 2. helloasso_order_id (depuis data.order.id — set sur la querystring de retour)
+    order_id = (data.get("order") or {}).get("id") or data.get("orderId")
+    if order_id:
+        adhesion = Adhesion.objects.filter(helloasso_order_id=str(order_id)).first()
+        if adhesion:
+            logger.info("Resolved adhesion %s via helloasso_order_id=%s", adhesion.pk, order_id)
+            return adhesion
+
+    # 3. checkoutIntentId si renvoyé dans le payload
+    checkout_intent_id = data.get("checkoutIntentId") or data.get("checkoutIntentID")
+    if checkout_intent_id:
+        adhesion = Adhesion.objects.filter(
+            helloasso_checkout_intent_id=str(checkout_intent_id)
+        ).first()
+        if adhesion:
+            logger.info(
+                "Resolved adhesion %s via helloasso_checkout_intent_id=%s",
+                adhesion.pk, checkout_intent_id,
+            )
+            return adhesion
+
+    # 4. Fallback : email + montant (ambigu si plusieurs adhésions au même prix)
+    payer_email = (data.get("payer") or {}).get("email")
+    amount_cents = data.get("amount")
+    if payer_email and amount_cents is not None:
+        try:
+            amount = Decimal(str(amount_cents)) / Decimal(100)
+        except Exception:
+            logger.error("Impossible de convertir amount_cents=%r", amount_cents)
+            amount = None
+
+        if amount is not None:
+            matches = list(
+                Adhesion.objects.filter(
+                    user__email__iexact=payer_email,
+                    montant=amount,
+                    statut_paiement=StatutPaiement.EN_ATTENTE,
+                ).order_by("created_at")
+            )
+            if len(matches) == 1:
+                logger.info(
+                    "Resolved adhesion %s via email+montant (fallback unique)", matches[0].pk
+                )
+                return matches[0]
+            if len(matches) > 1:
+                logger.error(
+                    "Lookup ambigu: %d adhésions EN_ATTENTE pour %s à %.2f € — webhook non traité. Payload=%s",
+                    len(matches), payer_email, amount, payload,
+                )
+                raise Adhesion.MultipleObjectsReturned(
+                    f"{len(matches)} adhésions EN_ATTENTE match pour {payer_email} à {amount} €"
+                )
+
+    logger.error("Impossible de résoudre l'adhésion pour ce webhook. Payload=%s", payload)
+    raise Adhesion.DoesNotExist("Aucune adhésion ne correspond au webhook")
+
+
 def _process_payment(payload: dict) -> None:
     data = payload.get("data", {}) or {}
     payer = data.get("payer", {}) or {}
 
     payment_id = data.get("id")
     payer_email = payer.get("email")
-    amount_cents = data.get("amount")
     state = data.get("state")
-    # Notre metadata custom est à la racine du payload (renvoyée telle qu'envoyée au checkout)
     metadata = payload.get("metadata") or {}
     order_id = (data.get("order") or {}).get("id") or data.get("orderId")
     payment_receipt_url = data.get("paymentReceiptUrl")
 
-    logger.debug(
-        "Processing payment: payment_id=%s, email=%s, amount_cents=%s (type=%s), state=%s, metadata=%s",
-        payment_id, payer_email, amount_cents, type(amount_cents).__name__, state, metadata,
+    logger.info(
+        "Processing payment: payment_id=%s, email=%s, state=%s",
+        payment_id, payer_email, state,
     )
 
     if not payment_id:
         logger.error("Payload HelloAsso sans payment_id: %s", payload)
         raise ValueError("Payload HelloAsso sans payment_id")
 
-    # Lookup prioritaire via notre metadata.adhesion_id (plus fiable que email+montant)
-    adhesion_id = metadata.get("adhesion_id")
-    if adhesion_id:
-        logger.debug("Looking up adhesion by metadata.adhesion_id=%s", adhesion_id)
-        adhesion = Adhesion.objects.get(pk=adhesion_id)
-    else:
-        # Fallback : lookup par email + montant (si disponible)
-        if not (payer_email and amount_cents is not None):
-            raise ValueError("Payload HelloAsso incomplet pour fallback lookup (email+montant)")
-        try:
-            amount = Decimal(str(amount_cents)) / Decimal(100)
-        except Exception as e:
-            logger.error("amount_cents invalide: %s (type=%s)", amount_cents, type(amount_cents))
-            raise ValueError(f"Invalid amount_cents: {amount_cents}") from e
-        logger.debug("Looking up adhesion by email=%s + amount=%.2f €", payer_email, amount)
-        adhesion = Adhesion.objects.get(
-            user__email__iexact=payer_email,
-            montant=amount,
-        )
+    adhesion = _resolve_adhesion(payload)
 
-    logger.info("Found adhesion %s (user=%s, montant=%.2f €, status=%s)",
-                adhesion.pk, adhesion.user.email, adhesion.montant, adhesion.statut_paiement)
+    logger.info(
+        "Found adhesion %s (user=%s, montant=%.2f €, status=%s)",
+        adhesion.pk, adhesion.user.email, adhesion.montant, adhesion.statut_paiement,
+    )
 
     if state in AUTHORIZED_STATES:
         new_status = StatutPaiement.VALIDE
@@ -137,11 +212,11 @@ def _process_payment(payload: dict) -> None:
     logger.info("Setting adhesion %s status to %s", adhesion.pk, new_status)
 
     adhesion.helloasso_payment_id = payment_id
-    adhesion.helloasso_order_id = str(order_id) if order_id else None
+    adhesion.helloasso_order_id = str(order_id) if order_id else adhesion.helloasso_order_id
     adhesion.helloasso_webhook_id = str(payment_id)
     adhesion.helloasso_payer_email = payer_email
-    adhesion.helloasso_metadata = metadata
-    adhesion.helloasso_payment_receipt_url = payment_receipt_url or None
+    adhesion.helloasso_metadata = metadata or adhesion.helloasso_metadata
+    adhesion.helloasso_payment_receipt_url = payment_receipt_url or adhesion.helloasso_payment_receipt_url
     adhesion.last_webhook_at = timezone.now()
     adhesion.statut_paiement = new_status
     adhesion.save(
