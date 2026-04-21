@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .models import Adhesion, StatutPaiement
+from .services.brevo_client import send_payment_confirmed
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,15 @@ def _process_payment(payload: dict) -> None:
             "updated_at",
         ]
     )
+
+    if state in AUTHORIZED_STATES:
+        send_payment_confirmed(
+            email=adhesion.user.email,
+            first_name=adhesion.user.first_name,
+            last_name=adhesion.user.last_name,
+            amount=adhesion.montant,
+            payment_id=payment_id,
+        )
 
     logger.info(
         "Adhésion %s synchronisée: statut=%s payment_id=%s",

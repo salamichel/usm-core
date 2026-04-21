@@ -205,3 +205,9 @@ HELLOASSO_CLIENT_ID = os.environ.get("HELLOASSO_CLIENT_ID", "")
 HELLOASSO_CLIENT_SECRET = os.environ.get("HELLOASSO_CLIENT_SECRET", "")
 HELLOASSO_WEBHOOK_SECRET = os.environ.get("HELLOASSO_WEBHOOK_SECRET", "dev-webhook-secret")
 HELLOASSO_ORGANIZATION_SLUG = os.environ.get("HELLOASSO_ORGANIZATION_SLUG", "usm-volley")
+
+# Brevo — Transactional email API
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
+# Template IDs: définir dans le dashboard Brevo
+BREVO_TEMPLATE_ADHESION_CREATED = os.environ.get("BREVO_TEMPLATE_ADHESION_CREATED", "1")
+BREVO_TEMPLATE_PAYMENT_CONFIRMED = os.environ.get("BREVO_TEMPLATE_PAYMENT_CONFIRMED", "2")

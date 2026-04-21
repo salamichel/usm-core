@@ -12,6 +12,7 @@ from teams.models import CategorieAdhesion
 
 from .forms import AdhesionForm
 from .models import Adhesion, get_tarif
+from .services.brevo_client import send_adhesion_created
 
 
 @login_required(login_url="account_login")
@@ -52,7 +53,7 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                 }
 
                 if membre_famille:
-                    Adhesion.objects.update_or_create(
+                    adhesion, created = Adhesion.objects.update_or_create(
                         membre_famille=membre_famille,
                         saison=saison,
                         defaults={
@@ -63,7 +64,7 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                         },
                     )
                 else:
-                    Adhesion.objects.update_or_create(
+                    adhesion, created = Adhesion.objects.update_or_create(
                         user=user,
                         saison=saison,
                         membre_famille=None,
@@ -72,6 +73,16 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                             "montant": tarif,
                             "preferences": prefs,
                         },
+                    )
+
+                if created:
+                    send_adhesion_created(
+                        email=user.email,
+                        first_name=user.first_name or "Adhérent",
+                        last_name=user.last_name or "USM",
+                        amount=float(tarif),
+                        category=categorie.get_categorie_adhesion_display() if hasattr(categorie, 'get_categorie_adhesion_display') else str(categorie),
+                        season=saison.label,
                     )
 
             beneficiaire = (
