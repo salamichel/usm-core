@@ -1,0 +1,100 @@
+{% extends "compte/base_compte.html" %}
+
+{% block title %}Mon compte — USM Volley{% endblock %}
+
+{% block compte_content %}
+
+  <h1 class="text-3xl font-black">Tableau de bord</h1>
+
+  {# ── Adhésion saison active ───────────────────────────────────────────── #}
+  <section class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+    <h2 class="font-black text-lg mb-4">
+      Saison {{ saison_active.label|default:"—" }}
+    </h2>
+
+    {% if adhesion_active %}
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <p class="font-bold">{{ adhesion_active.get_categorie_adhesion_display }}</p>
+          <p class="text-sm text-gray-600">{{ adhesion_active.montant }} € —
+            <span class="{% if adhesion_active.statut_paiement == 'VALIDE' %}text-green-700{% elif adhesion_active.statut_paiement == 'REMBOURSE' %}text-red-700{% else %}text-amber-700{% endif %} font-bold">
+              {{ adhesion_active.get_statut_paiement_display }}
+            </span>
+          </p>
+        </div>
+        <a href="{% url 'mon_compte_adhesions' %}" class="btn-neo bg-amber-100 px-4 py-2 text-sm font-bold">
+          Voir le détail
+        </a>
+      </div>
+    {% else %}
+      <p class="text-gray-500 mb-3">Pas encore d'adhésion pour cette saison.</p>
+      <a href="{% url 'adhesion' %}" class="btn-neo bg-yellow-400 px-4 py-2 font-bold">
+        ➕ M'inscrire
+      </a>
+    {% endif %}
+
+    {# Membres de la famille #}
+    {% if adhesions_famille %}
+      <hr class="border-black my-4">
+      <h3 class="font-bold mb-2">Membres de la famille inscrits</h3>
+      <ul class="space-y-1">
+        {% for a in adhesions_famille %}
+          <li class="flex justify-between text-sm border-2 border-black px-3 py-2">
+            <span class="font-bold">{{ a.membre_famille }}</span>
+            <span class="{% if a.statut_paiement == 'VALIDE' %}text-green-700{% else %}text-amber-700{% endif %}">
+              {{ a.get_statut_paiement_display }} — {{ a.montant }} €
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  {# ── Accès rapides ───────────────────────────────────────────────────── #}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <a href="{% url 'adhesion' %}"
+       class="btn-neo bg-yellow-400 p-4 text-center font-black">
+      ➕<br>Nouvelle adhésion
+    </a>
+    <a href="{% url 'mon_compte_documents' %}"
+       class="btn-neo bg-white p-4 text-center font-black">
+      📄<br>Documents
+    </a>
+    <a href="{% url 'mon_compte_profil' %}"
+       class="btn-neo bg-white p-4 text-center font-black">
+      👤<br>Mon profil
+    </a>
+  </div>
+
+  {# ── Historique récent ───────────────────────────────────────────────── #}
+  {% if historique %}
+    <section class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+      <h2 class="font-black text-lg mb-3">Dernières adhésions</h2>
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="border-b-4 border-black text-left">
+            <th class="py-2 pr-4">Bénéficiaire</th>
+            <th class="py-2 pr-4">Saison</th>
+            <th class="py-2 pr-4">Catégorie</th>
+            <th class="py-2">Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in historique %}
+            <tr class="border-b-2 border-gray-200">
+              <td class="py-2 pr-4 font-bold">{{ a.beneficiaire_nom }}</td>
+              <td class="py-2 pr-4">{{ a.saison.label }}</td>
+              <td class="py-2 pr-4">{{ a.get_categorie_adhesion_display }}</td>
+              <td class="py-2">
+                <span class="{% if a.statut_paiement == 'VALIDE' %}text-green-700{% elif a.statut_paiement == 'REMBOURSE' %}text-red-700{% else %}text-amber-700{% endif %} font-bold">
+                  {{ a.get_statut_paiement_display }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+
+{% endblock %}

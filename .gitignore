@@ -37,3 +37,12 @@ yarn-error.log*
 
 # Prisma
 prisma/.migrations
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+venv/
+staticfiles/
+django-poc/media/
+django-poc/theme/static/css/dist/
