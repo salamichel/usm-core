@@ -95,8 +95,8 @@ def _process_payment(payload: dict) -> None:
     order_id = (data.get("order") or {}).get("id") or data.get("orderId")
 
     logger.debug(
-        "Processing payment: payment_id=%s, email=%s, amount_cents=%s, state=%s, metadata=%s",
-        payment_id, payer_email, amount_cents, state, metadata,
+        "Processing payment: payment_id=%s, email=%s, amount_cents=%s (type=%s), state=%s, metadata=%s",
+        payment_id, payer_email, amount_cents, type(amount_cents).__name__, state, metadata,
     )
 
     if not (payment_id and payer_email and amount_cents is not None):
@@ -106,7 +106,11 @@ def _process_payment(payload: dict) -> None:
         )
         raise ValueError("Payload HelloAsso incomplet")
 
-    amount = Decimal(amount_cents) / Decimal(100)
+    try:
+        amount = Decimal(str(amount_cents)) / Decimal(100)
+    except (ValueError, TypeError) as e:
+        logger.error("Impossible de convertir amount_cents en Decimal: %s (type=%s)", amount_cents, type(amount_cents), exc_info=True)
+        raise ValueError(f"Invalid amount_cents: {amount_cents}") from e
 
     # Lookup prioritaire via notre metadata.adhesion_id (plus fiable que email+montant)
     adhesion_id = metadata.get("adhesion_id")
@@ -114,13 +118,14 @@ def _process_payment(payload: dict) -> None:
         logger.debug("Looking up adhesion by metadata.adhesion_id=%s", adhesion_id)
         adhesion = Adhesion.objects.get(pk=adhesion_id)
     else:
-        logger.debug("Looking up adhesion by email=%s + amount=%.2f", payer_email, amount)
+        logger.debug("Looking up adhesion by email=%s + amount=%.2f €", payer_email, amount)
         adhesion = Adhesion.objects.get(
             user__email__iexact=payer_email,
             montant=amount,
         )
 
-    logger.info("Found adhesion %s (user=%s)", adhesion.pk, adhesion.user.email)
+    logger.info("Found adhesion %s (user=%s, montant=%.2f €, status=%s)",
+                adhesion.pk, adhesion.user.email, adhesion.montant, adhesion.statut_paiement)
 
     if state in AUTHORIZED_STATES:
         new_status = StatutPaiement.VALIDE
