@@ -93,6 +93,7 @@ def _process_payment(payload: dict) -> None:
     # Notre metadata custom est à la racine du payload (renvoyée telle qu'envoyée au checkout)
     metadata = payload.get("metadata") or {}
     order_id = (data.get("order") or {}).get("id") or data.get("orderId")
+    payment_receipt_url = data.get("paymentReceiptUrl")
 
     logger.debug(
         "Processing payment: payment_id=%s, email=%s, amount_cents=%s (type=%s), state=%s, metadata=%s",
@@ -140,6 +141,7 @@ def _process_payment(payload: dict) -> None:
     adhesion.helloasso_webhook_id = str(payment_id)
     adhesion.helloasso_payer_email = payer_email
     adhesion.helloasso_metadata = metadata
+    adhesion.helloasso_payment_receipt_url = payment_receipt_url or None
     adhesion.last_webhook_at = timezone.now()
     adhesion.statut_paiement = new_status
     adhesion.save(
@@ -149,6 +151,7 @@ def _process_payment(payload: dict) -> None:
             "helloasso_webhook_id",
             "helloasso_payer_email",
             "helloasso_metadata",
+            "helloasso_payment_receipt_url",
             "last_webhook_at",
             "statut_paiement",
             "updated_at",

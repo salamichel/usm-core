@@ -65,9 +65,9 @@ def adhesion_payer(request: HttpRequest, adhesion_id: int) -> HttpResponse:
         )
         return HttpResponseRedirect(reverse("mon_compte_adhesions"))
 
-    # Persiste l'order_id pour corrélation (le payment_id sera mis à jour via webhook)
-    adhesion.helloasso_order_id = intent.id
-    adhesion.save(update_fields=["helloasso_order_id", "updated_at"])
+    # Persiste le checkoutIntentId pour corrélation (le payment_id et order_id viendront via webhook)
+    adhesion.helloasso_checkout_intent_id = intent.id
+    adhesion.save(update_fields=["helloasso_checkout_intent_id", "updated_at"])
 
     return HttpResponseRedirect(intent.redirect_url)
 
@@ -76,6 +76,22 @@ def adhesion_payer(request: HttpRequest, adhesion_id: int) -> HttpResponse:
 def adhesion_paiement_retour(request: HttpRequest, adhesion_id: int) -> HttpResponse:
     """Page de retour après paiement HelloAsso réussi (statut final via webhook)."""
     adhesion = get_object_or_404(Adhesion, pk=adhesion_id, user=request.user)
+
+    # HelloAsso passe ?checkoutIntentId=...&code=succeeded&orderId=... dans la querystring
+    # On persiste ces IDs en backup (le webhook les confirmera avec plus d'infos)
+    checkout_intent_id = request.GET.get("checkoutIntentId")
+    order_id = request.GET.get("orderId")
+    fields_to_update = []
+    if checkout_intent_id and not adhesion.helloasso_checkout_intent_id:
+        adhesion.helloasso_checkout_intent_id = checkout_intent_id
+        fields_to_update.append("helloasso_checkout_intent_id")
+    if order_id and not adhesion.helloasso_order_id:
+        adhesion.helloasso_order_id = order_id
+        fields_to_update.append("helloasso_order_id")
+    if fields_to_update:
+        fields_to_update.append("updated_at")
+        adhesion.save(update_fields=fields_to_update)
+
     return render(request, "adhesion/paiement_retour.html", {"adhesion": adhesion})
 
 

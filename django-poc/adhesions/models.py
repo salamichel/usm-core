@@ -138,12 +138,14 @@ class Adhesion(models.Model):
     transaction_id = models.CharField(max_length=100, blank=True)
     preferences = models.JSONField(default=default_preferences, blank=True)
 
-    # HelloAsso — renseignés via webhook
-    helloasso_payment_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
-    helloasso_order_id = models.CharField(max_length=255, null=True, blank=True)
+    # HelloAsso — renseignés via webhook et/ou querystring
+    helloasso_checkout_intent_id = models.CharField(max_length=255, null=True, blank=True, help_text="ID du checkout intent (créé à l'initialisation du paiement)")
+    helloasso_payment_id = models.CharField(max_length=255, null=True, blank=True, unique=True, help_text="ID unique du paiement (reçu via webhook)")
+    helloasso_order_id = models.CharField(max_length=255, null=True, blank=True, help_text="ID de la commande HelloAsso")
     helloasso_payer_email = models.EmailField(null=True, blank=True)
     helloasso_webhook_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     helloasso_metadata = models.JSONField(null=True, blank=True, default=dict)
+    helloasso_payment_receipt_url = models.URLField(max_length=500, null=True, blank=True, help_text="URL de l'attestation de paiement HelloAsso")
     last_webhook_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -183,6 +185,16 @@ class Adhesion(models.Model):
         if self.membre_famille:
             return str(self.membre_famille)
         return self.user.get_full_name() or self.user.email
+
+    @property
+    def helloasso_admin_url(self) -> Optional[str]:
+        """Lien vers la commande dans le back-office HelloAsso (pour le bureau)."""
+        if not self.helloasso_order_id:
+            return None
+        api_host = getattr(settings, "HELLOASSO_API_HOST", "")
+        domain = "helloasso-sandbox.com" if "sandbox" in api_host else "helloasso.com"
+        slug = getattr(settings, "HELLOASSO_ORGANIZATION_SLUG", "")
+        return f"https://admin.{domain}/associations/{slug}/commandes/{self.helloasso_order_id}"
 
     def save(self, *args, **kwargs):
         if not self.montant:

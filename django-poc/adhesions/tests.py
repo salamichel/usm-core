@@ -212,7 +212,7 @@ class AdhesionPaymentViewTests(TestCase):
         self.assertEqual(response["Location"], "https://helloasso.com/checkout/intent-abc")
 
         self.adhesion.refresh_from_db()
-        self.assertEqual(self.adhesion.helloasso_order_id, "intent-abc")
+        self.assertEqual(self.adhesion.helloasso_checkout_intent_id, "intent-abc")
 
         # Checkout called with les bonnes valeurs
         kwargs = mock_checkout.call_args.kwargs
