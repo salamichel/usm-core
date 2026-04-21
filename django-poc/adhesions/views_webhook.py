@@ -44,8 +44,9 @@ def webhook_helloasso(request):
 
     try:
         payload = json.loads(payload_raw)
+        logger.debug("HelloAsso webhook payload: %s", json.dumps(payload, indent=2))
     except json.JSONDecodeError:
-        logger.error("HelloAsso webhook JSON invalide")
+        logger.error("HelloAsso webhook JSON invalide: %s", payload_raw)
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
     # HelloAsso format réel : pas d'id racine, on utilise data.id (payment_id) pour l'idempotence
@@ -93,7 +94,16 @@ def _process_payment(payload: dict) -> None:
     metadata = payload.get("metadata") or {}
     order_id = (data.get("order") or {}).get("id") or data.get("orderId")
 
+    logger.debug(
+        "Processing payment: payment_id=%s, email=%s, amount_cents=%s, state=%s, metadata=%s",
+        payment_id, payer_email, amount_cents, state, metadata,
+    )
+
     if not (payment_id and payer_email and amount_cents is not None):
+        logger.error(
+            "Payload HelloAsso incomplet: payment_id=%s, email=%s, amount=%s",
+            payment_id, payer_email, amount_cents,
+        )
         raise ValueError("Payload HelloAsso incomplet")
 
     amount = Decimal(amount_cents) / Decimal(100)
@@ -101,12 +111,16 @@ def _process_payment(payload: dict) -> None:
     # Lookup prioritaire via notre metadata.adhesion_id (plus fiable que email+montant)
     adhesion_id = metadata.get("adhesion_id")
     if adhesion_id:
+        logger.debug("Looking up adhesion by metadata.adhesion_id=%s", adhesion_id)
         adhesion = Adhesion.objects.get(pk=adhesion_id)
     else:
+        logger.debug("Looking up adhesion by email=%s + amount=%.2f", payer_email, amount)
         adhesion = Adhesion.objects.get(
             user__email__iexact=payer_email,
             montant=amount,
         )
+
+    logger.info("Found adhesion %s (user=%s)", adhesion.pk, adhesion.user.email)
 
     if state in AUTHORIZED_STATES:
         new_status = StatutPaiement.VALIDE
@@ -114,6 +128,8 @@ def _process_payment(payload: dict) -> None:
         new_status = StatutPaiement.REMBOURSE
     else:
         new_status = StatutPaiement.EN_ATTENTE
+
+    logger.info("Setting adhesion %s status to %s", adhesion.pk, new_status)
 
     adhesion.helloasso_payment_id = payment_id
     adhesion.helloasso_order_id = str(order_id) if order_id else None

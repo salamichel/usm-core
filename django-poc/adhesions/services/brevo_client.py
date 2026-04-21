@@ -63,8 +63,8 @@ def send_adhesion_created(
             },
         )
 
-        api.send_transac_email(email_obj)
-        logger.info(f"Email adhésion créée envoyé à {email}")
+        result = api.send_transac_email(email_obj)
+        logger.info(f"Email adhésion créée envoyé à {email}: {result}")
     except ApiException as e:
         logger.error(f"Brevo API error lors de l'envoi à {email}: {e}")
     except Exception as e:
@@ -109,8 +109,8 @@ def send_payment_confirmed(
             },
         )
 
-        api.send_transac_email(email_obj)
-        logger.info(f"Email paiement confirmé envoyé à {email}")
+        result = api.send_transac_email(email_obj)
+        logger.info(f"Email paiement confirmé envoyé à {email}: {result}")
     except ApiException as e:
         logger.error(f"Brevo API error lors de l'envoi à {email}: {e}")
     except Exception as e:

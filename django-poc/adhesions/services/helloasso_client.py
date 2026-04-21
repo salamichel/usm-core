@@ -136,10 +136,13 @@ def create_checkout_intent(
             hello_asso_api_v5_models_carts_init_checkout_body=body,
         )
 
+    logger.debug("HelloAsso checkout response: %s", resp)
+
     # Réponse : { id, redirectUrl }
     redirect_url = getattr(resp, "redirect_url", None) or getattr(resp, "redirectUrl", None)
     intent_id = getattr(resp, "id", None)
     if not redirect_url or not intent_id:
+        logger.error("HelloAsso checkout response invalide: %s", resp)
         raise HelloAssoError(f"Réponse checkout invalide: {resp}")
 
     return CheckoutIntent(id=str(intent_id), redirect_url=str(redirect_url))
