@@ -48,9 +48,12 @@ def webhook_helloasso(request):
         logger.error("HelloAsso webhook JSON invalide")
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    webhook_id = payload.get("id")
+    # HelloAsso format réel : pas d'id racine, on utilise data.id (payment_id) pour l'idempotence
+    data = payload.get("data", {}) or {}
+    webhook_id = str(data.get("id") or "")
     if not webhook_id:
-        return JsonResponse({"error": "Missing webhook id"}, status=400)
+        logger.error("HelloAsso webhook sans data.id: %s", payload)
+        return JsonResponse({"error": "Missing payment id"}, status=400)
 
     if Adhesion.objects.filter(helloasso_webhook_id=webhook_id).exists():
         logger.info("HelloAsso webhook %s déjà traité", webhook_id)
@@ -86,7 +89,8 @@ def _process_payment(payload: dict) -> None:
     payer_email = payer.get("email")
     amount_cents = data.get("amount")
     state = data.get("state")
-    metadata = data.get("metadata") or {}
+    # Notre metadata custom est à la racine du payload (renvoyée telle qu'envoyée au checkout)
+    metadata = payload.get("metadata") or {}
     order_id = (data.get("order") or {}).get("id") or data.get("orderId")
 
     if not (payment_id and payer_email and amount_cents is not None):
@@ -94,10 +98,15 @@ def _process_payment(payload: dict) -> None:
 
     amount = Decimal(amount_cents) / Decimal(100)
 
-    adhesion = Adhesion.objects.get(
-        user__email__iexact=payer_email,
-        montant=amount,
-    )
+    # Lookup prioritaire via notre metadata.adhesion_id (plus fiable que email+montant)
+    adhesion_id = metadata.get("adhesion_id")
+    if adhesion_id:
+        adhesion = Adhesion.objects.get(pk=adhesion_id)
+    else:
+        adhesion = Adhesion.objects.get(
+            user__email__iexact=payer_email,
+            montant=amount,
+        )
 
     if state in AUTHORIZED_STATES:
         new_status = StatutPaiement.VALIDE
@@ -108,7 +117,7 @@ def _process_payment(payload: dict) -> None:
 
     adhesion.helloasso_payment_id = payment_id
     adhesion.helloasso_order_id = str(order_id) if order_id else None
-    adhesion.helloasso_webhook_id = payload.get("id")
+    adhesion.helloasso_webhook_id = str(payment_id)
     adhesion.helloasso_payer_email = payer_email
     adhesion.helloasso_metadata = metadata
     adhesion.last_webhook_at = timezone.now()

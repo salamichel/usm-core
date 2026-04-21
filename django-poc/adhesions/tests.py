@@ -79,7 +79,8 @@ class HelloAssoWebhookTests(TestCase):
         self.adhesion.refresh_from_db()
         self.assertEqual(self.adhesion.statut_paiement, StatutPaiement.VALIDE)
         self.assertEqual(self.adhesion.helloasso_payment_id, "payment-1")
-        self.assertEqual(self.adhesion.helloasso_webhook_id, "webhook-1")
+        # webhook_id = payment_id (HelloAsso ne renvoie pas d'id racine distinct)
+        self.assertEqual(self.adhesion.helloasso_webhook_id, "payment-1")
         self.assertEqual(self.adhesion.helloasso_payer_email, "user@example.com")
         self.assertIsNotNone(self.adhesion.last_webhook_at)
 
@@ -138,7 +139,7 @@ class HelloAssoWebhookTests(TestCase):
         self.assertEqual(r1.status_code, 200)
         self.assertEqual(r2.status_code, 200)
         self.assertEqual(
-            Adhesion.objects.filter(helloasso_webhook_id="webhook-1").count(),
+            Adhesion.objects.filter(helloasso_webhook_id="payment-1").count(),
             1,
         )
 
