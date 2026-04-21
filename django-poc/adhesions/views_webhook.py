@@ -13,6 +13,9 @@ from django.views.decorators.http import require_http_methods
 from .models import Adhesion, StatutPaiement
 from .services.brevo_client import send_payment_confirmed
 
+# En mode DEBUG, autoriser les webhooks sans signature (utile pour sandbox/dev)
+SKIP_SIGNATURE_IN_DEBUG = True
+
 logger = logging.getLogger(__name__)
 
 AUTHORIZED_STATES = {"authorized", "Authorized"}
@@ -23,15 +26,21 @@ REFUNDED_STATES = {"refunded", "Refunded"}
 @csrf_exempt
 def webhook_helloasso(request):
     """Reçoit les notifications HelloAsso et synchronise le statut de l'adhésion."""
-    signature = request.headers.get("X-HelloAsso-Signature", "")
-    if not signature:
-        logger.warning("HelloAsso webhook sans signature")
-        return JsonResponse({"error": "No signature"}, status=401)
-
     payload_raw = request.body.decode("utf-8")
-    if not _verify_signature(payload_raw, signature):
-        logger.warning("HelloAsso webhook signature invalide")
-        return JsonResponse({"error": "Invalid signature"}, status=401)
+    signature = request.headers.get("X-HelloAsso-Signature", "")
+
+    # Vérifier la signature
+    if signature:
+        if not _verify_signature(payload_raw, signature):
+            logger.warning("HelloAsso webhook signature invalide")
+            return JsonResponse({"error": "Invalid signature"}, status=401)
+    else:
+        # Pas de signature
+        if not (settings.DEBUG and SKIP_SIGNATURE_IN_DEBUG):
+            logger.warning("HelloAsso webhook sans signature (en prod/staging, c'est une erreur)")
+            logger.debug("Headers reçus: %s", dict(request.headers))
+            return JsonResponse({"error": "No signature"}, status=401)
+        logger.warning("HelloAsso webhook sans signature (accepté en DEBUG mode)")
 
     try:
         payload = json.loads(payload_raw)
