@@ -94,7 +94,7 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                 request,
                 f"Adhésion de {beneficiaire} enregistrée — montant à régler : {tarif} €",
             )
-            return redirect("adhesion")
+            return redirect("mon_compte_adhesions")
     else:
         form = AdhesionForm(user=request.user)
 
