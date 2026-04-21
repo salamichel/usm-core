@@ -132,6 +132,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # django-allauth — email-based auth, no username
+ACCOUNT_ADAPTER = "members.adapters.BrevoAccountAdapter"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
