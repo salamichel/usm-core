@@ -11,7 +11,7 @@ from seasons.models import Saison
 from teams.models import CategorieAdhesion
 
 from .forms import AdhesionForm
-from .models import Adhesion, get_tarif
+from .models import Adhesion, StatutPaiement, get_tarif
 from .services.brevo_client import send_adhesion_created
 
 
@@ -51,6 +51,28 @@ def adhesion_view(request: HttpRequest) -> HttpResponse:
                     "coupes_slugs": [c.slug for c in coupes],
                     "coupes_noms": [c.nom for c in coupes],
                 }
+
+                # Empêche d'écraser une adhésion déjà validée ou remboursée
+                existing_qs = Adhesion.objects.filter(saison=saison)
+                if membre_famille:
+                    existing_qs = existing_qs.filter(membre_famille=membre_famille)
+                else:
+                    existing_qs = existing_qs.filter(user=user, membre_famille__isnull=True)
+                existing = existing_qs.first()
+
+                if existing and existing.statut_paiement != StatutPaiement.EN_ATTENTE:
+                    beneficiaire_label = (
+                        f"{data['membre_prenom']} {data['membre_nom']}"
+                        if pour_membre
+                        else user.get_full_name() or user.email
+                    )
+                    messages.error(
+                        request,
+                        f"Une adhésion « {existing.get_statut_paiement_display().lower()} » "
+                        f"existe déjà pour {beneficiaire_label} sur la saison {saison.label}. "
+                        f"Contactez le bureau pour toute modification.",
+                    )
+                    return redirect("mon_compte_adhesions")
 
                 if membre_famille:
                     adhesion, created = Adhesion.objects.update_or_create(
