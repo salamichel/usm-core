@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block subject %}USM Volley{% endblock %}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f0eb;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f0eb;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border:3px solid #1a1a1a;">
+
+          <!-- En-tête -->
+          <tr>
+            <td style="background-color:#94674d;padding:24px 32px;">
+              <span style="color:#ffffff;font-size:22px;font-weight:900;letter-spacing:1px;">USM VOLLEY</span>
+            </td>
+          </tr>
+
+          <!-- Contenu -->
+          <tr>
+            <td style="padding:32px;">
+              {% block content %}{% endblock %}
+            </td>
+          </tr>
+
+          <!-- Pied de page -->
+          <tr>
+            <td style="background-color:#f0ebe5;border-top:3px solid #1a1a1a;padding:16px 32px;text-align:center;font-size:12px;color:#666666;">
+              USM Volley — Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

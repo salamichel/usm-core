@@ -59,8 +59,6 @@ PUBLIC_BASE_URL=https://example.com
 
 # Brevo
 BREVO_API_KEY=...
-BREVO_TEMPLATE_ADHESION_CREATED=123
-BREVO_TEMPLATE_PAYMENT_CONFIRMED=456
 ```
 
 ## Structure du projet

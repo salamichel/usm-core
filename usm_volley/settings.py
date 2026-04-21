@@ -212,6 +212,3 @@ PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "")
 
 # Brevo — Transactional email API
 BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
-# Template IDs: définir dans le dashboard Brevo
-BREVO_TEMPLATE_ADHESION_CREATED = os.environ.get("BREVO_TEMPLATE_ADHESION_CREATED", "1")
-BREVO_TEMPLATE_PAYMENT_CONFIRMED = os.environ.get("BREVO_TEMPLATE_PAYMENT_CONFIRMED", "2")
