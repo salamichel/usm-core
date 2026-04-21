@@ -11,7 +11,6 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
-      - media_data:/app/media
     command: >
       sh -c "python manage.py tailwind install &&
              python manage.py tailwind build &&
@@ -24,14 +23,9 @@ services:
       POSTGRES_USER: usm
       POSTGRES_PASSWORD: usm_password
       POSTGRES_DB: usm_volley
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U usm"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-volumes:
-  postgres_data:
-  media_data:
