@@ -82,9 +82,14 @@ class App
         $r->post('/admin/documents/{id}/delete',[DocumentController::class, 'delete']);
 
         // ── Admin photos (posts) ──────────────────────────────────────────────
-        $r->post('/admin/posts/{id}/photos/{pid}/delete', [PostController::class, 'deletePhoto']);
+        $r->post('/admin/posts/{id}/photos/upload',           [PostController::class, 'uploadPhoto']);
+        $r->post('/admin/posts/{id}/photos/{pid}/delete',     [PostController::class, 'deletePhoto']);
+        $r->post('/admin/posts/{id}/photos/{pid}/delete-xhr', [PostController::class, 'deletePhotoXhr']);
 
         // ── Admin photos (pages) ──────────────────────────────────────────────
+        $r->post('/admin/pages/{id}/photos/upload',           [PageAdminController::class, 'uploadPhoto']);
+        $r->post('/admin/pages/{id}/photos/{pid}/delete',     [PageAdminController::class, 'deletePhoto']);
+        $r->post('/admin/pages/{id}/photos/{pid}/delete-xhr', [PageAdminController::class, 'deletePhotoXhr']);
         $r->post('/admin/pages/{id}/photos/{pid}/delete', [PageAdminController::class, 'deletePhoto']);
     }
 }

@@ -70,6 +70,35 @@ class Photo
     }
 
     /**
+     * Upload a single file (from Dropzone: $_FILES['file']).
+     * Returns the saved filename.
+     */
+    public static function uploadSingle(?array $file): string
+    {
+        if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            throw new \RuntimeException('Aucun fichier reçu.');
+        }
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException('Erreur upload : code ' . $file['error']);
+        }
+        if ($file['size'] > self::MAX_SIZE) {
+            throw new \RuntimeException('Fichier trop volumineux (max 10 Mo).');
+        }
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime  = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        if (!in_array($mime, self::ALLOWED_TYPES, true)) {
+            throw new \RuntimeException('Type non autorisé (' . $mime . ').');
+        }
+        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
+        if (!move_uploaded_file($file['tmp_name'], UPLOAD_DIR . '/' . $filename)) {
+            throw new \RuntimeException('Impossible de sauvegarder le fichier.');
+        }
+        return $filename;
+    }
+
+    /**
      * Process a multi-file upload ($_FILES['photos']).
      * Returns array of saved filenames.
      */

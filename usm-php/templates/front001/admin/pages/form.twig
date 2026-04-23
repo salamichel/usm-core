@@ -43,43 +43,13 @@
     </div>
   </div>
 
-  {# ── Galerie photos ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
-    <h2 class="font-black text-lg mb-4">Galerie photos</h2>
-
-    {% if photos|length %}
-      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mb-5">
-        {% for photo in photos %}
-        <div class="relative border-2 border-black overflow-hidden group">
-          <img src="{{ asset('uploads/' ~ photo.filename) }}"
-               alt="{{ photo.caption ?? '' }}"
-               class="w-full h-28 object-cover">
-          <form method="POST"
-                action="{{ url('admin/pages/' ~ page.id ~ '/photos/' ~ photo.id ~ '/delete') }}"
-                onsubmit="return confirm('Supprimer cette photo ?')"
-                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-black/50">
-            <button type="submit"
-                    class="border-2 border-white text-white font-black px-3 py-1 text-sm hover:bg-white hover:text-black transition">
-              ✕ Supprimer
-            </button>
-          </form>
-        </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <div>
-      <label class="block font-black mb-1" for="photos">
-        Ajouter des photos
-        {% if not page %}<span class="font-normal text-sm text-gray-500">(disponible après la création)</span>{% endif %}
-      </label>
-      <input type="file" id="photos" name="photos[]" multiple
-             accept="image/jpeg,image/png,image/webp,image/gif"
-             {% if not page %}disabled{% endif %}
-             class="w-full border-2 border-black px-3 py-2 bg-white {% if not page %}opacity-50 cursor-not-allowed{% endif %}">
-      <p class="text-xs text-gray-500 mt-1">Formats : JPG, PNG, WebP, GIF — max 10 Mo par fichier</p>
-    </div>
-  </div>
+  {# ── Galerie photos (Dropzone) ── #}
+  {% include 'admin/_photo_dropzone.twig' with {
+    entity_id:   page ? page.id : 0,
+    entity_type: 'page',
+    upload_url:  page ? url('admin/pages/' ~ page.id ~ '/photos/upload') : '',
+    photos:      photos
+  } %}
 
   <button type="submit"
           class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">

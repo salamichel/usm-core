@@ -92,6 +92,24 @@ class PageAdminController
         exit;
     }
 
+    // ── Upload via Dropzone (réponse JSON) ───────────────────────────────────
+
+    public function uploadPhoto(array $params): void
+    {
+        Auth::require();
+        $id   = (int)$params['id'];
+        $page = PageStatique::find($id);
+        if (!$page) { $this->jsonError('Page introuvable.', 404); return; }
+
+        try {
+            $filename = Photo::uploadSingle($_FILES['file'] ?? null);
+            $pid      = Photo::create('page', $id, $filename);
+            $this->jsonSuccess($id, $pid, $filename);
+        } catch (\RuntimeException $e) {
+            $this->jsonError($e->getMessage());
+        }
+    }
+
     public function deletePhoto(array $params): void
     {
         Auth::require();
@@ -103,6 +121,44 @@ class PageAdminController
             View::flash('success', 'Photo supprimée.');
         }
         header('Location: ' . BASE_URL . '/admin/pages/' . $id . '/edit');
+        exit;
+    }
+
+    public function deletePhotoXhr(array $params): void
+    {
+        Auth::require();
+        $id    = (int)$params['id'];
+        $pid   = (int)$params['pid'];
+        $photo = Photo::find($pid);
+        if ($photo && $photo['entity_type'] === 'page' && (int)$photo['entity_id'] === $id) {
+            Photo::delete($pid);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => true]);
+        } else {
+            header('Content-Type: application/json');
+            http_response_code(404);
+            echo json_encode(['error' => 'Photo introuvable.']);
+        }
+        exit;
+    }
+
+    private function jsonSuccess(int $entityId, int $pid, string $filename): void
+    {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'ok'       => true,
+            'id'       => $pid,
+            'url'      => BASE_URL . '/assets/uploads/' . $filename,
+            'deleteUrl'=> BASE_URL . '/admin/pages/' . $entityId . '/photos/' . $pid . '/delete-xhr',
+        ]);
+        exit;
+    }
+
+    private function jsonError(string $message, int $code = 422): void
+    {
+        header('Content-Type: application/json');
+        http_response_code($code);
+        echo json_encode(['error' => $message]);
         exit;
     }
 
