@@ -31,13 +31,13 @@
 
     <div>
       <label class="block font-black mb-1" for="content">Contenu</label>
-      <div id="editor" class="border-2 border-black min-h-[400px]">{{ page.content|raw ?? '' }}</div>
+      <div id="editor" class="border-2 border-black min-h-[400px]">{{ page and page.content ? page.content|raw : '' }}</div>
       <input type="hidden" id="content" name="content" value="{{ page.content ?? '' }}">
     </div>
 
     <div class="flex items-center gap-3">
       <input type="checkbox" id="is_published" name="is_published" value="1"
-             {% if page.is_published ?? false %}checked{% endif %}
+             {% if page is not null and page.is_published %}checked{% endif %}
              class="w-5 h-5 border-2 border-black">
       <label class="font-black" for="is_published">Publiée</label>
     </div>

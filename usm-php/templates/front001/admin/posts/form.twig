@@ -37,7 +37,7 @@
 
     <div>
       <label class="block font-black mb-1" for="content">Contenu</label>
-      <div id="editor" class="border-2 border-black min-h-[300px]">{{ post.content|raw ?? '' }}</div>
+      <div id="editor" class="border-2 border-black min-h-[300px]">{{ post and post.content ? post.content|raw : '' }}</div>
       <input type="hidden" id="content" name="content" value="{{ post.content ?? '' }}">
     </div>
 
@@ -50,7 +50,7 @@
       </div>
       <div class="flex items-center gap-3 pt-7">
         <input type="checkbox" id="is_published" name="is_published" value="1"
-               {% if post.is_published ?? false %}checked{% endif %}
+               {% if post is not null and post.is_published %}checked{% endif %}
                class="w-5 h-5 border-2 border-black">
         <label class="font-black" for="is_published">Publié</label>
       </div>
