@@ -14,7 +14,14 @@ define('ADMIN_EMAIL',         getenv('ADMIN_EMAIL')         ?: 'admin@usm-volley
 define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$12$placeholderHashChangeMe000000000000000000000000000000000000');
 
 // ── App ────────────────────────────────────────────────────────────────────────
-define('BASE_URL',  rtrim(getenv('BASE_URL') ?: 'http://localhost:8080', '/'));
+if (getenv('BASE_URL')) {
+    define('BASE_URL', rtrim(getenv('BASE_URL'), '/'));
+} else {
+    // Auto-detect: works on InfinityFree and any shared hosting without env vars
+    $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host  = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    define('BASE_URL', $proto . '://' . $host);
+}
 define('THEME',     getenv('THEME') ?: 'front001');
 define('APP_DEBUG', (bool)(getenv('APP_DEBUG') ?: true));
 

@@ -1,6 +1,9 @@
 -- Données d'exemple USM Volley
 -- Importer après schema.sql
 
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- Menu
 INSERT INTO menu_items (label, link_type, target, parent_id, position) VALUES
 ('Club',      'none', NULL,     NULL, 0),

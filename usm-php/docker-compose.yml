@@ -20,13 +20,14 @@ services:
 
   db:
     image: mysql:8.0
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_DATABASE: usm_volley
       MYSQL_USER: usm
       MYSQL_PASSWORD: usm_password
       MYSQL_ROOT_PASSWORD: root_password
     volumes:
-      - db_data:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
     ports:
@@ -47,6 +48,3 @@ services:
       PMA_PASSWORD: root_password
     depends_on:
       - db
-
-volumes:
-  db_data:
