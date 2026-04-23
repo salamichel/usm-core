@@ -50,8 +50,8 @@
 </div>
 
 {% if entity_id != 0 %}
-<link rel="stylesheet" href="https://unpkg.com/dropzone@6/dist/dropzone.css">
-<script src="https://unpkg.com/dropzone@6/dist/dropzone.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
 <script>
 Dropzone.autoDiscover = false;
 
@@ -59,11 +59,11 @@ const dz = new Dropzone('#photo-dropzone', {
   url:              '{{ upload_url }}',
   paramName:        'file',
   acceptedFiles:    'image/jpeg,image/png,image/webp,image/gif',
-  maxFilesize:      10,       // Mo
+  maxFilesize:      10,
   parallelUploads:  3,
-  uploadMultiple:   false,    // un fichier par requête → réponse JSON simple
+  uploadMultiple:   false,
   addRemoveLinks:   false,
-  previewsContainer:false,    // on gère nos propres previews
+  previewTemplate:  '<div style="display:none"></div>',
   clickable:        true,
   dictDefaultMessage: '',
 
@@ -71,7 +71,7 @@ const dz = new Dropzone('#photo-dropzone', {
     this.on('success', (file, resp) => {
       if (!resp.ok) { alert(resp.error || 'Erreur upload'); return; }
       addThumb(resp.id, resp.url, resp.deleteUrl);
-      this.removeFile(file);   // retire l'aperçu Dropzone natif
+      this.removeFile(file);
     });
     this.on('error', (file, msg) => {
       const txt = typeof msg === 'string' ? msg : (msg.error || 'Erreur inconnue');
