@@ -1,7 +1,6 @@
-venv/
-__pycache__/
-*.pyc
-*.sqlite3
 .env
-media/
-staticfiles/
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep
+cache/twig/
+cache/agenda/*.json
+data/

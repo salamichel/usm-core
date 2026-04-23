@@ -11,7 +11,7 @@ define('DB_CHARSET',  'utf8mb4');
 // ── Admin credentials ─────────────────────────────────────────────────────────
 // Generate a new hash: password_hash('your_password', PASSWORD_BCRYPT)
 define('ADMIN_EMAIL',         getenv('ADMIN_EMAIL')         ?: 'admin@usm-volley.fr');
-define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$12$placeholderHashChangeMe000000000000000000000000000000000000');
+define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$10$afFrFTWviOiBaVpcqoKfJ.ovXqF1rlTCFvv3ldRQcBdUCjpgrMEz2');
 
 // ── App ────────────────────────────────────────────────────────────────────────
 if (getenv('BASE_URL')) {
