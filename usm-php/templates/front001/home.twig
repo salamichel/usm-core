@@ -10,6 +10,41 @@
     <p class="text-lg text-gray-700">Club de volley-ball — Trouvez toutes les informations sur le club, les actualités et les documents.</p>
   </section>
 
+  {# ── Agenda : Matchs + Entraînements côte à côte ── #}
+  {% if matches|length or trainings|length %}
+  <div class="grid gap-8 lg:grid-cols-2">
+
+    {# Prochains matchs #}
+    {% if matches|length %}
+    <section>
+      <h2 class="text-2xl font-black mb-4 border-b-4 border-black pb-2 flex items-center gap-2">
+        <span>🏐</span> Prochains matchs
+      </h2>
+      <div class="space-y-3">
+        {% for event in matches %}
+          {{ _self.event_card(event) }}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {# Prochains entraînements #}
+    {% if trainings|length %}
+    <section>
+      <h2 class="text-2xl font-black mb-4 border-b-4 border-black pb-2 flex items-center gap-2">
+        <span>📅</span> Prochains entraînements
+      </h2>
+      <div class="space-y-3">
+        {% for event in trainings %}
+          {{ _self.event_card(event) }}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
   {# Derniers articles #}
   {% if latest_posts|length %}
   <section>
@@ -39,3 +74,54 @@
 
 </div>
 {% endblock %}
+
+{# ── Macro carte événement ── #}
+{% macro event_card(event) %}
+  {% set cancelled = event.status == 'Annulé' %}
+  <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000] p-4 flex gap-4 items-start
+              {{ cancelled ? 'opacity-60' : '' }}">
+
+    {# Date bloc — "Ven 24 Avr" → parts[0]=Ven, parts[1]=24, parts[2]=Avr #}
+    {% set dp = event.date_display|split(' ') %}
+    <div class="flex-shrink-0 border-4 border-black bg-usm-brown text-white text-center px-3 py-2 min-w-[64px]">
+      <div class="text-xs font-bold leading-tight">{{ dp[0] ?? '' }}</div>
+      <div class="text-2xl font-black leading-none">{{ dp[1] ?? '' }}</div>
+      <div class="text-xs font-semibold leading-tight">{{ dp[2] ?? '' }}</div>
+    </div>
+
+    {# Infos #}
+    <div class="flex-1 min-w-0">
+      <div class="flex items-start justify-between gap-2 flex-wrap">
+        <span class="font-black text-base leading-tight">{{ event.title }}</span>
+        {% if cancelled %}
+          <span class="flex-shrink-0 bg-red-600 text-white text-xs font-black px-2 py-0.5 border-2 border-black">ANNULÉ</span>
+        {% elseif event.is_soon %}
+          <span class="flex-shrink-0 bg-amber-400 text-black text-xs font-black px-2 py-0.5 border-2 border-black">BIENTÔT</span>
+        {% endif %}
+      </div>
+
+      <div class="text-sm text-gray-600 mt-1 space-y-0.5">
+        <div>🕐 {{ event.time_display }}</div>
+        {% if event.location %}
+          <div>📍 {{ event.location }}</div>
+        {% endif %}
+        {% if event.comment %}
+          <div class="italic text-gray-500">{{ event.comment }}</div>
+        {% endif %}
+      </div>
+
+      {# Stats joueurs #}
+      {% if event.stats is defined and event.stats.present > 0 %}
+      <div class="mt-2 flex items-center gap-3 text-xs font-semibold">
+        <span class="text-green-700">✓ {{ event.stats.present }} présent{{ event.stats.present > 1 ? 's' : '' }}</span>
+        {% if event.stats.absent > 0 %}
+          <span class="text-red-600">✗ {{ event.stats.absent }} absent{{ event.stats.absent > 1 ? 's' : '' }}</span>
+        {% endif %}
+        {% if not event.enough_players and not cancelled %}
+          <span class="text-amber-600 font-black">⚠ Effectif insuffisant</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
