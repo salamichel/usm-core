@@ -80,5 +80,11 @@ class App
         $r->get('/admin/documents/{id}/edit',   [DocumentController::class, 'edit']);
         $r->post('/admin/documents/{id}/edit',  [DocumentController::class, 'update']);
         $r->post('/admin/documents/{id}/delete',[DocumentController::class, 'delete']);
+
+        // ── Admin photos (posts) ──────────────────────────────────────────────
+        $r->post('/admin/posts/{id}/photos/{pid}/delete', [PostController::class, 'deletePhoto']);
+
+        // ── Admin photos (pages) ──────────────────────────────────────────────
+        $r->post('/admin/pages/{id}/photos/{pid}/delete', [PageAdminController::class, 'deletePhoto']);
     }
 }

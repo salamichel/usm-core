@@ -1,4 +1,5 @@
 {% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
 {% block title %}{{ page.title }} — USM Volley{% endblock %}
 
 {% block content %}
@@ -8,6 +9,18 @@
     <div class="prose prose-gray max-w-none">
       {{ page.content|raw }}
     </div>
+
+    {{ components.gallery(photos) }}
   </article>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+  GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });
+</script>
+{% endif %}
 {% endblock %}

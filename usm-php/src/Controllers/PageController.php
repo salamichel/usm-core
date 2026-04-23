@@ -4,8 +4,9 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\View;
-use App\Models\PageStatique;
 use App\Models\Document;
+use App\Models\PageStatique;
+use App\Models\Photo;
 
 class PageController
 {
@@ -17,7 +18,10 @@ class PageController
             View::render('404.twig');
             return;
         }
-        View::render('pages/detail.twig', ['page' => $page]);
+        View::render('pages/detail.twig', [
+            'page'   => $page,
+            'photos' => Photo::forEntity('page', $page['id']),
+        ]);
     }
 
     public function documents(array $params): void

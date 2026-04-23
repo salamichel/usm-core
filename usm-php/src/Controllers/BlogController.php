@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\View;
+use App\Models\Photo;
 use App\Models\Post;
 
 class BlogController
@@ -21,6 +22,9 @@ class BlogController
             View::render('404.twig');
             return;
         }
-        View::render('blog/detail.twig', ['post' => $post]);
+        View::render('blog/detail.twig', [
+            'post'   => $post,
+            'photos' => Photo::forEntity('post', $post['id']),
+        ]);
     }
 }

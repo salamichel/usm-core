@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Core\Auth;
 use App\Core\View;
 use App\Models\PageStatique;
+use App\Models\Photo;
 use App\Models\Post;
 
 class PageAdminController
@@ -19,7 +20,11 @@ class PageAdminController
     public function create(array $params): void
     {
         Auth::require();
-        View::render('admin/pages/form.twig', ['page' => null, 'action' => BASE_URL . '/admin/pages/create']);
+        View::render('admin/pages/form.twig', [
+            'page'   => null,
+            'photos' => [],
+            'action' => BASE_URL . '/admin/pages/create',
+        ]);
     }
 
     public function store(array $params): void
@@ -27,12 +32,13 @@ class PageAdminController
         Auth::require();
         $data = $this->formData();
         if (empty($data['title'])) {
-            View::render('admin/pages/form.twig', ['page' => $data, 'action' => BASE_URL . '/admin/pages/create', 'error' => 'Le titre est obligatoire.']);
+            View::render('admin/pages/form.twig', ['page' => $data, 'photos' => [], 'action' => BASE_URL . '/admin/pages/create', 'error' => 'Le titre est obligatoire.']);
             return;
         }
-        PageStatique::create($data);
+        $id = PageStatique::create($data);
+        $this->handlePhotoUploads('page', $id);
         View::flash('success', 'Page créée avec succès.');
-        header('Location: ' . BASE_URL . '/admin/pages');
+        header('Location: ' . BASE_URL . '/admin/pages/' . $id . '/edit');
         exit;
     }
 
@@ -41,7 +47,11 @@ class PageAdminController
         Auth::require();
         $page = PageStatique::find((int)$params['id']);
         if (!$page) { $this->notFound(); return; }
-        View::render('admin/pages/form.twig', ['page' => $page, 'action' => BASE_URL . '/admin/pages/' . $page['id'] . '/edit']);
+        View::render('admin/pages/form.twig', [
+            'page'   => $page,
+            'photos' => Photo::forEntity('page', $page['id']),
+            'action' => BASE_URL . '/admin/pages/' . $page['id'] . '/edit',
+        ]);
     }
 
     public function update(array $params): void
@@ -52,22 +62,64 @@ class PageAdminController
         if (!$page) { $this->notFound(); return; }
         $data = $this->formData();
         if (empty($data['title'])) {
-            View::render('admin/pages/form.twig', ['page' => array_merge($page, $data), 'action' => BASE_URL . '/admin/pages/' . $id . '/edit', 'error' => 'Le titre est obligatoire.']);
+            View::render('admin/pages/form.twig', [
+                'page'   => array_merge($page, $data),
+                'photos' => Photo::forEntity('page', $id),
+                'action' => BASE_URL . '/admin/pages/' . $id . '/edit',
+                'error'  => 'Le titre est obligatoire.',
+            ]);
             return;
         }
         PageStatique::update($id, $data);
-        View::flash('success', 'Page mise à jour.');
-        header('Location: ' . BASE_URL . '/admin/pages');
+        $error = $this->handlePhotoUploads('page', $id);
+        if ($error) {
+            View::flash('error', $error);
+        } else {
+            View::flash('success', 'Page mise à jour.');
+        }
+        header('Location: ' . BASE_URL . '/admin/pages/' . $id . '/edit');
         exit;
     }
 
     public function delete(array $params): void
     {
         Auth::require();
-        PageStatique::delete((int)$params['id']);
+        $id = (int)$params['id'];
+        Photo::deleteAllForEntity('page', $id);
+        PageStatique::delete($id);
         View::flash('success', 'Page supprimée.');
         header('Location: ' . BASE_URL . '/admin/pages');
         exit;
+    }
+
+    public function deletePhoto(array $params): void
+    {
+        Auth::require();
+        $id    = (int)$params['id'];
+        $pid   = (int)$params['pid'];
+        $photo = Photo::find($pid);
+        if ($photo && $photo['entity_type'] === 'page' && (int)$photo['entity_id'] === $id) {
+            Photo::delete($pid);
+            View::flash('success', 'Photo supprimée.');
+        }
+        header('Location: ' . BASE_URL . '/admin/pages/' . $id . '/edit');
+        exit;
+    }
+
+    private function handlePhotoUploads(string $type, int $id): ?string
+    {
+        if (empty($_FILES['photos']['name'][0]) && empty($_FILES['photos']['name'])) {
+            return null;
+        }
+        try {
+            $filenames = Photo::uploadFiles($_FILES['photos']);
+            foreach ($filenames as $i => $filename) {
+                Photo::create($type, $id, $filename, null, $i);
+            }
+        } catch (\RuntimeException $e) {
+            return $e->getMessage();
+        }
+        return null;
     }
 
     private function formData(): array
