@@ -1,0 +1,41 @@
+{% extends 'base.twig' %}
+{% block title %}Accueil — USM Volley{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-10 space-y-10">
+
+  {# Hero #}
+  <section class="border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
+    <h1 class="text-4xl font-black mb-3">USM Volley</h1>
+    <p class="text-lg text-gray-700">Club de volley-ball — Trouvez toutes les informations sur le club, les actualités et les documents.</p>
+  </section>
+
+  {# Derniers articles #}
+  {% if latest_posts|length %}
+  <section>
+    <h2 class="text-2xl font-black mb-4 border-b-4 border-black pb-2">Dernières actualités</h2>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for post in latest_posts %}
+      <article class="border-4 border-black bg-white p-5 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+        <h3 class="font-black text-lg mb-2">
+          <a href="{{ url('blog/' ~ post.slug) }}" class="hover:underline">{{ post.title }}</a>
+        </h3>
+        {% if post.excerpt %}
+          <p class="text-gray-600 text-sm mb-3">{{ post.excerpt }}</p>
+        {% endif %}
+        {% if post.published_at %}
+          <time class="text-xs text-gray-500">{{ post.published_at|date_fr }}</time>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    <div class="mt-6">
+      <a href="{{ url('blog') }}" class="inline-block border-4 border-black bg-usm-brown text-white font-black px-5 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+        Toutes les actualités →
+      </a>
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

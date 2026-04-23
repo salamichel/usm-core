@@ -1,0 +1,52 @@
+services:
+
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor   # exclure vendor du bind mount
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: usm_volley
+      DB_USER: usm
+      DB_PASS: usm_password
+      APP_DEBUG: "true"
+      BASE_URL: "http://localhost:8080"
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: usm_volley
+      MYSQL_USER: usm
+      MYSQL_PASSWORD: usm_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "usm", "-pusm_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root_password
+    depends_on:
+      - db
+
+volumes:
+  db_data:

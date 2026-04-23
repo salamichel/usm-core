@@ -1,0 +1,18 @@
+{% extends 'base.twig' %}
+{% block title %}{{ post.title }} — USM Volley{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-10">
+  <a href="{{ url('blog') }}" class="inline-block mb-6 text-sm font-bold hover:underline">← Retour aux actualités</a>
+
+  <article class="border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
+    <h1 class="text-3xl font-black mb-2">{{ post.title }}</h1>
+    {% if post.published_at %}
+      <time class="text-sm text-gray-500 block mb-6">{{ post.published_at|date_fr('d/m/Y') }}</time>
+    {% endif %}
+    <div class="prose prose-gray max-w-none">
+      {{ post.content|raw }}
+    </div>
+  </article>
+</div>
+{% endblock %}
