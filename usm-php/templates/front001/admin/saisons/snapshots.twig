@@ -1,0 +1,61 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Joueurs — {{ saison.libelle }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{{ url('admin/saisons') }}" class="text-sm text-gray-500 hover:underline">← Saisons</a>
+  <h1 class="text-3xl font-black mt-1">Joueurs — {{ saison.libelle }}</h1>
+  <p class="text-gray-500 mt-1">{{ snapshots|length }} joueur(s) dans ce snapshot</p>
+</div>
+
+<div class="mb-4 flex gap-3">
+  <form method="POST" action="{{ url('admin/saisons/' ~ saison.id ~ '/flash') }}"
+        onsubmit="return confirm('Re-flasher la saison ? Les ajustements manuels des équipes seront réinitialisés.')">
+    <button type="submit"
+            class="border-4 border-usm-brown bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      ↺ Re-flasher
+    </button>
+  </form>
+</div>
+
+{% if snapshots|length %}
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black">Nom</th>
+        <th class="text-left px-4 py-3 font-black">Prénom</th>
+        <th class="text-left px-4 py-3 font-black">Email</th>
+        <th class="text-left px-4 py-3 font-black">Équipes</th>
+        <th class="text-left px-4 py-3 font-black text-xs">Mis à jour</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for snap in snapshots %}
+      {% set equipes = [] %}
+      {% for col in ['Eq_L1','Eq_L2','Eq_L3','Eq_L4','Eq_Open','DEP','Eq_Heitz','Eq_Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Debutant'] %}
+        {% if snap.data[col] is defined and snap.data[col] %}
+          {% set equipes = equipes|merge([col]) %}
+        {% endif %}
+      {% endfor %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 font-semibold">{{ snap.nom }}</td>
+        <td class="px-4 py-3">{{ snap.prenom }}</td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ snap.data.Email ?? '—' }}</td>
+        <td class="px-4 py-3 text-xs text-gray-600">
+          {% if equipes|length %}
+            {{ equipes|join(', ') }}
+          {% else %}
+            <span class="text-gray-400">—</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-xs text-gray-400">{{ snap.snapped_at|date('d/m/Y H:i') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-gray-500 italic">Aucun joueur. Utilisez le bouton « Re-flasher » pour importer depuis la base externe.</p>
+{% endif %}
+{% endblock %}

@@ -3,103 +3,80 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\ExternalDatabase;
+
 class AgendaService
 {
-    private const API_URL   = 'https://unionsallesmiosvolley.free.nf/api_agenda.php';
-    private const CACHE_TTL = 900; // 15 minutes
+    private static array $MONTHS_FR = [
+        'Jan' => 'Jan', 'Feb' => 'Fév', 'Mar' => 'Mar', 'Apr' => 'Avr',
+        'May' => 'Mai', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Aoû',
+        'Sep' => 'Sep', 'Oct' => 'Oct', 'Nov' => 'Nov', 'Dec' => 'Déc',
+    ];
 
-    /**
-     * Upcoming matches (type_manifestation=Match), limited to $limit events.
-     */
+    private static array $DAYS_FR = [
+        'Mon' => 'Lun', 'Tue' => 'Mar', 'Wed' => 'Mer', 'Thu' => 'Jeu',
+        'Fri' => 'Ven', 'Sat' => 'Sam', 'Sun' => 'Dim',
+    ];
+
     public static function getUpcomingMatches(int $limit = 5): array
     {
-        return array_slice(
-            self::getEvents(['type_manifestation' => 'Match']),
-            0,
-            $limit
-        );
+        return self::queryByType('Match', $limit);
     }
 
-    /**
-     * Upcoming trainings (type_manifestation=Entraînement), limited to $limit events.
-     */
     public static function getUpcomingTrainings(int $limit = 5): array
     {
-        return array_slice(
-            self::getEvents(['type_manifestation' => 'Entraînement']),
-            0,
-            $limit
-        );
+        return self::queryByType('Entraînement', $limit);
     }
 
-    /**
-     * Fetch events from the API with optional query filters.
-     * Results are cached to a file for CACHE_TTL seconds.
-     */
-    public static function getEvents(array $params = []): array
+    private static function queryByType(string $type, int $limit): array
     {
-        $params['endpoint'] = 'events';
-        $cacheKey = md5(serialize($params));
-        $cacheDir = ROOT . '/cache/agenda';
-        $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
-
-        // Return cached result if fresh
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < self::CACHE_TTL) {
-            $data = json_decode(file_get_contents($cacheFile), true);
-            if (is_array($data)) {
-                return $data;
-            }
+        try {
+            $stmt = ExternalDatabase::get()->prepare(
+                "SELECT * FROM Manifestation
+                 WHERE type_manifestation = :type
+                   AND DateManif >= CURDATE()
+                 ORDER BY DateManif ASC, HeureManif ASC
+                 LIMIT :limit"
+            );
+            $stmt->bindValue(':type',  $type);
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+        } catch (\Throwable) {
+            return [];
         }
 
-        $data = self::fetch($params);
-
-        // Write cache (silently ignore write errors on read-only hosting)
-        if (is_array($data) && is_dir($cacheDir) && is_writable($cacheDir)) {
-            file_put_contents($cacheFile, json_encode($data), LOCK_EX);
-        }
-
-        return is_array($data) ? $data : [];
+        return array_map([self::class, 'buildEvent'], $rows);
     }
 
-    private static function fetch(array $params): array
+    private static function buildEvent(array $row): array
     {
-        $url = self::API_URL . '?' . http_build_query($params);
+        $today = new \DateTimeImmutable('today');
+        $date  = \DateTimeImmutable::createFromFormat('Y-m-d', $row['DateManif']);
+        $isSoon = $date && $date->diff($today)->days <= 3 && $date >= $today;
 
-        if (function_exists('curl_init')) {
-            return self::fetchWithCurl($url);
+        $timeDisplay = '';
+        if (!empty($row['HeureManif'])) {
+            $timeDisplay = substr($row['HeureManif'], 0, 5); // HH:MM
         }
 
-        // Fallback: file_get_contents
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout'        => 5,
-                'ignore_errors'  => true,
-                'user_agent'     => 'USM-Volley/1.0',
-            ],
-        ]);
-        $raw = @file_get_contents($url, false, $ctx);
-        if ($raw === false) return [];
-        $data = json_decode($raw, true);
-        return is_array($data) ? $data : [];
+        return [
+            'title'        => $row['LibelleManif'],
+            'date_display' => $date ? self::formatDateDisplay($date) : ($row['DateManif'] ?? ''),
+            'time_display' => $timeDisplay,
+            'location'     => $row['Lieu'] ?? null,
+            'comment'      => !empty($row['commentaire']) ? $row['commentaire'] : null,
+            'status'       => $row['statut'] ?? null,
+            'is_soon'      => $isSoon,
+        ];
     }
 
-    private static function fetchWithCurl(string $url): array
+    private static function formatDateDisplay(\DateTimeImmutable $date): string
     {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 5,
-            CURLOPT_CONNECTTIMEOUT => 3,
-            CURLOPT_USERAGENT      => 'USM-Volley/1.0',
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 3,
-        ]);
-        $raw  = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($raw === false || $code !== 200) return [];
-        $data = json_decode($raw, true);
-        return is_array($data) ? $data : [];
+        $dayEn   = $date->format('D'); // Mon, Tue, …
+        $dayFr   = self::$DAYS_FR[$dayEn]  ?? $dayEn;
+        $monthEn = $date->format('M'); // Jan, Feb, …
+        $monthFr = self::$MONTHS_FR[$monthEn] ?? $monthEn;
+        return $dayFr . ' ' . $date->format('j') . ' ' . $monthFr;
     }
 }
