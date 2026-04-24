@@ -8,10 +8,16 @@ define('DB_USER',     getenv('DB_USER')   ?: 'usm');
 define('DB_PASS',     getenv('DB_PASS')   ?: 'usm_password');
 define('DB_CHARSET',  'utf8mb4');
 
+// ── External Database (base USM — simulée en dev via db_external) ─────────────
+define('EXT_DB_HOST', getenv('EXT_DB_HOST') ?: 'db_external');
+define('EXT_DB_NAME', getenv('EXT_DB_NAME') ?: 'usm_external');
+define('EXT_DB_USER', getenv('EXT_DB_USER') ?: 'usm_ext');
+define('EXT_DB_PASS', getenv('EXT_DB_PASS') ?: 'usm_ext_password');
+
 // ── Admin credentials ─────────────────────────────────────────────────────────
 // Generate a new hash: password_hash('your_password', PASSWORD_BCRYPT)
 define('ADMIN_EMAIL',         getenv('ADMIN_EMAIL')         ?: 'admin@usm-volley.fr');
-define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$10$afFrFTWviOiBaVpcqoKfJ.ovXqF1rlTCFvv3ldRQcBdUCjpgrMEz2');
+define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$12$placeholderHashChangeMe000000000000000000000000000000000000');
 
 // ── App ────────────────────────────────────────────────────────────────────────
 if (getenv('BASE_URL')) {

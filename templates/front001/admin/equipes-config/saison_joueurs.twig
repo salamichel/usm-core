@@ -1,0 +1,69 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Joueurs — {{ equipe.libelle }} / {{ saison.libelle }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{{ url('admin/equipes-config/' ~ equipe.id ~ '/edit') }}" class="text-sm text-gray-500 hover:underline">← {{ equipe.libelle }}</a>
+  <h1 class="text-3xl font-black mt-1">Joueurs — {{ equipe.libelle }} <span class="font-normal text-gray-500">/ {{ saison.libelle }}</span></h1>
+</div>
+
+<div class="border-2 border-amber-400 bg-amber-50 text-amber-800 p-3 mb-6 text-sm font-semibold">
+  ⚠ Les ajustements manuels seront réinitialisés si vous re-flashez la saison.
+</div>
+
+{# Ajouter un joueur #}
+{% if available|length %}
+<div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] mb-6 flex items-end gap-3">
+  <form method="POST" action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/add') }}"
+        class="flex items-end gap-3 flex-wrap">
+    <div>
+      <label class="block font-black text-sm mb-1">Ajouter un joueur</label>
+      <select name="snapshot_id"
+              class="border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+        {% for snap in available %}
+        <option value="{{ snap.id }}">{{ snap.nom }} {{ snap.prenom }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit"
+            class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      Ajouter
+    </button>
+  </form>
+</div>
+{% endif %}
+
+{# Liste des membres #}
+{% if joueurs|length %}
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black">Nom</th>
+        <th class="text-left px-4 py-3 font-black">Prénom</th>
+        <th class="text-left px-4 py-3 font-black">Email</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for j in joueurs %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 font-semibold">{{ j.nom }}</td>
+        <td class="px-4 py-3">{{ j.prenom }}</td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ j.data.Email ?? '—' }}</td>
+        <td class="px-4 py-3 text-right">
+          <form method="POST"
+                action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/remove') }}"
+                onsubmit="return confirm('Retirer ce joueur de l\'équipe ?')">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Retirer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-gray-500 italic">Aucun joueur dans cette équipe pour cette saison.</p>
+{% endif %}
+{% endblock %}
