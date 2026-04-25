@@ -10,23 +10,65 @@
 <body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
 
   {# ── Top bar ── #}
-  <header class="bg-black text-white flex items-center justify-between px-6 py-3 border-b-4 border-usm-brown">
-    <div class="flex items-center gap-6">
-      <a href="{{ url('admin') }}" class="font-black text-lg tracking-tight">⚙ USM Admin</a>
-      <nav class="hidden sm:flex items-center gap-4 text-sm font-semibold">
-        <a href="{{ url('admin/posts') }}"          class="hover:text-amber-400 transition">Articles</a>
-        <a href="{{ url('admin/pages') }}"          class="hover:text-amber-400 transition">Pages</a>
-        <a href="{{ url('admin/menu') }}"           class="hover:text-amber-400 transition">Menu</a>
-        <a href="{{ url('admin/saisons') }}"        class="hover:text-amber-400 transition">Saisons</a>
-        <a href="{{ url('admin/saisons/joueurs') }}" class="hover:text-amber-400 transition">Joueurs</a>
-        <a href="{{ url('admin/equipes-config') }}" class="hover:text-amber-400 transition">Équipes</a>
-      </nav>
+  <header class="bg-black text-white border-b-4 border-usm-brown">
+    <div class="flex items-center justify-between px-6 py-3">
+      <div class="flex items-center gap-6">
+        <a href="{{ url('admin') }}" class="font-black text-lg tracking-tight">⚙ USM Admin</a>
+        <nav class="hidden sm:flex items-center gap-4 text-sm font-semibold">
+          <a href="{{ url('admin/posts') }}"           class="hover:text-amber-400 transition">Articles</a>
+          <a href="{{ url('admin/pages') }}"           class="hover:text-amber-400 transition">Pages</a>
+          <a href="{{ url('admin/menu') }}"            class="hover:text-amber-400 transition">Menu</a>
+          <a href="{{ url('admin/saisons') }}"         class="hover:text-amber-400 transition">Saisons</a>
+          <a href="{{ url('admin/saisons/joueurs') }}" class="hover:text-amber-400 transition">Joueurs</a>
+          <a href="{{ url('admin/equipes-config') }}"  class="hover:text-amber-400 transition">Équipes</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-3 text-sm">
+        <a href="{{ url('/') }}" class="hidden sm:inline hover:underline opacity-70">← Site public</a>
+        <a href="{{ url('admin/logout') }}" class="hidden sm:inline border-2 border-white px-3 py-1 hover:bg-white hover:text-black transition font-bold">Déconnexion</a>
+        {# Burger mobile #}
+        <button id="burger" aria-label="Menu" aria-expanded="false"
+                class="sm:hidden flex flex-col justify-center gap-1.5 w-9 h-9 p-1.5">
+          <span class="block h-0.5 bg-white transition-all duration-200"></span>
+          <span class="block h-0.5 bg-white transition-all duration-200"></span>
+          <span class="block h-0.5 bg-white transition-all duration-200"></span>
+        </button>
+      </div>
     </div>
-    <div class="flex items-center gap-4 text-sm">
-      <a href="{{ url('/') }}" class="hover:underline opacity-70">← Site public</a>
-      <a href="{{ url('admin/logout') }}" class="border-2 border-white px-3 py-1 hover:bg-white hover:text-black transition font-bold">Déconnexion</a>
-    </div>
+
+    {# ── Menu mobile (drawer) ── #}
+    <nav id="mobile-menu" class="sm:hidden hidden border-t-2 border-usm-brown px-6 py-4 flex flex-col gap-3 text-sm font-semibold">
+      <a href="{{ url('admin/posts') }}"           class="hover:text-amber-400 transition">Articles</a>
+      <a href="{{ url('admin/pages') }}"           class="hover:text-amber-400 transition">Pages</a>
+      <a href="{{ url('admin/menu') }}"            class="hover:text-amber-400 transition">Menu</a>
+      <a href="{{ url('admin/saisons') }}"         class="hover:text-amber-400 transition">Saisons</a>
+      <a href="{{ url('admin/saisons/joueurs') }}" class="hover:text-amber-400 transition">Joueurs</a>
+      <a href="{{ url('admin/equipes-config') }}"  class="hover:text-amber-400 transition">Équipes</a>
+      <hr class="border-gray-700">
+      <a href="{{ url('/') }}"            class="hover:text-amber-400 transition opacity-70">← Site public</a>
+      <a href="{{ url('admin/logout') }}" class="hover:text-amber-400 transition">Déconnexion</a>
+    </nav>
   </header>
+
+  <script>
+    (function () {
+      var btn  = document.getElementById('burger');
+      var menu = document.getElementById('mobile-menu');
+      var bars = btn.querySelectorAll('span');
+      btn.addEventListener('click', function () {
+        var open = menu.classList.toggle('hidden');
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        // Croix / burger animation
+        if (!open) {
+          bars[0].style.cssText = 'transform:translateY(8px) rotate(45deg)';
+          bars[1].style.cssText = 'opacity:0';
+          bars[2].style.cssText = 'transform:translateY(-8px) rotate(-45deg)';
+        } else {
+          bars[0].style.cssText = bars[1].style.cssText = bars[2].style.cssText = '';
+        }
+      });
+    })();
+  </script>
 
   {# ── Flash ── #}
   {% if flash %}
