@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion Admin — USM Volley</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
+</head>
+<body class="bg-amber-50 flex items-center justify-center min-h-screen">
+  <div class="border-4 border-black bg-white p-10 shadow-[8px_8px_0_#000] w-full max-w-sm">
+    <h1 class="text-2xl font-black mb-6 text-center">⚙ Admin</h1>
+
+    {% if error %}
+      <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold text-sm">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url('admin/login') }}" class="space-y-4">
+      <div>
+        <label class="block font-bold mb-1 text-sm" for="email">Email</label>
+        <input type="email" id="email" name="email" required
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown"
+               value="{{ _post.email ?? '' }}">
+      </div>
+      <div>
+        <label class="block font-bold mb-1 text-sm" for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" required
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      </div>
+      <button type="submit"
+              class="w-full border-4 border-black bg-usm-brown text-white font-black py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all mt-2">
+        Connexion
+      </button>
+    </form>
+  </div>
+</body>
+</html>

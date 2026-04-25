@@ -1,0 +1,53 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Articles{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-3xl font-black">Articles</h1>
+  <a href="{{ url('admin/posts/create') }}" class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    + Nouveau
+  </a>
+</div>
+
+{% if posts|length %}
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black">Titre</th>
+        <th class="text-left px-4 py-3 font-black">Slug</th>
+        <th class="text-left px-4 py-3 font-black">Statut</th>
+        <th class="text-left px-4 py-3 font-black">Date</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for post in posts %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 font-semibold">{{ post.title }}</td>
+        <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ post.slug }}</td>
+        <td class="px-4 py-3">
+          {% if post.is_published %}
+            <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">Publié</span>
+          {% else %}
+            <span class="bg-gray-100 text-gray-600 border border-gray-400 px-2 py-0.5 text-xs font-bold rounded">Brouillon</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ post.published_at|date_fr }}</td>
+        <td class="px-4 py-3 flex gap-2 justify-end">
+          <a href="{{ url('blog/' ~ post.slug) }}" target="_blank" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Voir</a>
+          <a href="{{ url('admin/posts/' ~ post.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+          <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/delete') }}"
+                onsubmit="return confirm('Supprimer cet article ?')">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-gray-500 italic">Aucun article.</p>
+{% endif %}
+{% endblock %}

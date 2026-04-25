@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}USM Volley{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { 'usm-brown': '#94674d' }
+        }
+      }
+    }
+  </script>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-amber-50 text-gray-900 min-h-screen flex flex-col">
+
+  {# ── Header ── #}
+  <header class="border-b-4 border-black bg-usm-brown text-white">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-4">
+      <a href="{{ url('/') }}" class="text-2xl font-black tracking-tight hover:opacity-80">USM VOLLEY</a>
+      <nav class="flex items-center gap-2 flex-wrap text-sm font-semibold">
+        {% for item in menu_items %}
+          {% if item.children|length %}
+            <div class="relative group">
+              <button class="px-3 py-1 border-2 border-white/40 hover:border-white rounded transition flex items-center gap-1">
+                {{ item.label }} <span class="text-xs">▾</span>
+              </button>
+              <div class="hidden group-hover:block absolute top-full left-0 z-50 bg-usm-brown border-2 border-black shadow-[4px_4px_0_#000] min-w-[160px]">
+                {% for child in item.children %}
+                  <a href="{{ item_url(child) }}" class="block px-4 py-2 hover:bg-black/20 border-b border-white/20 last:border-b-0">
+                    {{ child.label }}
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <a href="{{ item_url(item) }}" class="px-3 py-1 border-2 border-white/40 hover:border-white rounded transition">
+              {{ item.label }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if admin_logged_in %}
+          <a href="{{ url('admin') }}" class="px-3 py-1 bg-black text-white border-2 border-black hover:bg-gray-800 rounded transition">⚙ Admin</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {# ── Flash message ── #}
+  {% if flash %}
+    <div class="max-w-5xl mx-auto w-full px-4 pt-4">
+      <div class="border-2 border-black p-3 shadow-[4px_4px_0_#000] font-semibold
+        {% if flash.type == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+        {{ flash.message }}
+      </div>
+    </div>
+  {% endif %}
+
+  {# ── Content ── #}
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ── Footer ── #}
+  <footer class="border-t-4 border-black bg-usm-brown text-white text-center py-4 text-sm font-semibold mt-8">
+    USM Volley © {{ "now"|date("Y") }}
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
