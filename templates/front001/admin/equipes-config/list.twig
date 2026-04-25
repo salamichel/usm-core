@@ -1,0 +1,56 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Équipes{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-3xl font-black">Équipes</h1>
+  <a href="{{ url('admin/equipes-config/create') }}"
+     class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    + Ajouter
+  </a>
+</div>
+
+{% if equipes|length %}
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black">Libellé</th>
+        <th class="text-left px-4 py-3 font-black">Catégorie</th>
+        <th class="text-left px-4 py-3 font-black">Colonne DB</th>
+        <th class="text-left px-4 py-3 font-black">Ordre</th>
+        <th class="text-left px-4 py-3 font-black">Actif</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for eq in equipes %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 font-semibold">{{ eq.libelle }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ eq.categorie }}</td>
+        <td class="px-4 py-3 font-mono text-xs text-gray-500">{{ eq.slug_colonne }}</td>
+        <td class="px-4 py-3 text-gray-500">{{ eq.ordre }}</td>
+        <td class="px-4 py-3">
+          {% if eq.is_active %}
+            <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">Oui</span>
+          {% else %}
+            <span class="bg-gray-100 text-gray-500 border border-gray-300 px-2 py-0.5 text-xs font-bold rounded">Non</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 flex gap-2 justify-end">
+          <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/edit') }}"
+             class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+          <form method="POST" action="{{ url('admin/equipes-config/' ~ eq.id ~ '/delete') }}"
+                onsubmit="return confirm('Supprimer cette équipe ?')">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="text-gray-500 italic">Aucune équipe configurée.</p>
+{% endif %}
+{% endblock %}

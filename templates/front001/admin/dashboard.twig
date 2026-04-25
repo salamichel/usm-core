@@ -4,12 +4,13 @@
 {% block content %}
 <h1 class="text-3xl font-black mb-8">Tableau de bord</h1>
 
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-10">
+{# ── CMS ── #}
+<h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">CMS</h2>
+<div class="grid grid-cols-3 gap-4 mb-10">
   {% set tiles = [
-    {label: 'Articles',  count: stats.posts,     link: 'admin/posts'},
-    {label: 'Pages',     count: stats.pages,     link: 'admin/pages'},
-    {label: 'Menu',      count: stats.menu,      link: 'admin/menu'},
-    {label: 'Documents', count: stats.documents, link: 'admin/documents'}
+    {label: 'Articles', count: stats.posts, link: 'admin/posts'},
+    {label: 'Pages',    count: stats.pages, link: 'admin/pages'},
+    {label: 'Menu',     count: stats.menu,  link: 'admin/menu'}
   ] %}
   {% for tile in tiles %}
   <a href="{{ url(tile.link) }}"
@@ -20,14 +21,91 @@
   {% endfor %}
 </div>
 
-<div class="grid sm:grid-cols-2 gap-5">
+{# ── Club — Saison active ── #}
+<h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Club</h2>
+
+<div class="mb-4">
+  {% if clubStats.saison_active %}
+  <div class="border-4 border-black bg-green-100 p-4 shadow-[6px_6px_0_#000] flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <div class="text-xs font-black uppercase tracking-widest text-green-700">Saison active</div>
+      <div class="text-2xl font-black mt-0.5">{{ clubStats.saison_active.libelle }}</div>
+    </div>
+    <div class="flex gap-3">
+      <a href="{{ url('admin/saisons/' ~ clubStats.saison_active.id ~ '/snapshots') }}"
+         class="border-4 border-black bg-white px-4 py-2 font-black text-sm shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+        Voir les joueurs
+      </a>
+      <a href="{{ url('admin/saisons') }}"
+         class="border-4 border-black bg-white px-4 py-2 font-black text-sm shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+        Gérer les saisons
+      </a>
+    </div>
+  </div>
+  {% else %}
+  <div class="border-4 border-black bg-amber-50 p-4 shadow-[6px_6px_0_#000] flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <div class="text-xs font-black uppercase tracking-widest text-amber-700">Aucune saison active</div>
+      <div class="text-sm text-gray-500 mt-0.5">Créez et activez une saison pour démarrer.</div>
+    </div>
+    <a href="{{ url('admin/saisons/create') }}"
+       class="border-4 border-black bg-usm-brown text-white px-4 py-2 font-black text-sm shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+      + Nouvelle saison
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{# ── Métriques club ── #}
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+
+  <a href="{{ url('admin/saisons') }}"
+     class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black">{{ clubStats.saisons }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Saisons</div>
+  </a>
+
+  <a href="{{ clubStats.saison_active ? url('admin/saisons/' ~ clubStats.saison_active.id ~ '/snapshots') : url('admin/saisons') }}"
+     class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black">{{ clubStats.snapshots }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Joueurs flashés</div>
+    {% if clubStats.saison_active %}
+      <div class="text-xs text-gray-400 mt-0.5 truncate">{{ clubStats.saison_active.libelle }}</div>
+    {% endif %}
+  </a>
+
+  <a href="{{ url('admin/equipes-config') }}"
+     class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black">{{ clubStats.equipes }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Équipes actives</div>
+  </a>
+
+  <a href="{{ url('admin/saisons/joueurs') }}"
+     class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black">{{ extStats.joueurs ?? '—' }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Joueurs USM</div>
+    <div class="text-xs text-gray-400 mt-0.5">base externe</div>
+  </a>
+
+  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] text-center">
+    <div class="text-3xl font-black">{{ extStats.matchs ?? '—' }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Matchs à venir</div>
+    <div class="text-3xl font-black mt-3">{{ extStats.entrainements ?? '—' }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Entraînements</div>
+  </div>
+
+</div>
+
+{# ── Actions rapides ── #}
+<h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Actions rapides</h2>
+<div class="grid sm:grid-cols-2 gap-4">
   <a href="{{ url('admin/posts/create') }}"
      class="border-4 border-black bg-usm-brown text-white p-5 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all font-black text-lg">
     + Nouvel article
   </a>
-  <a href="{{ url('admin/pages/create') }}"
+  <a href="{{ url('admin/saisons/create') }}"
      class="border-4 border-black bg-white p-5 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all font-black text-lg">
-    + Nouvelle page
+    + Nouvelle saison
   </a>
 </div>
 {% endblock %}

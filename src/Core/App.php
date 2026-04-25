@@ -5,13 +5,15 @@ namespace App\Core;
 
 use App\Controllers\HomeController;
 use App\Controllers\BlogController;
+use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\DashboardController;
-use App\Controllers\Admin\PostController;
-use App\Controllers\Admin\PageAdminController;
+use App\Controllers\Admin\EquipeConfigController;
 use App\Controllers\Admin\MenuController;
-use App\Controllers\Admin\DocumentController;
+use App\Controllers\Admin\PageAdminController;
+use App\Controllers\Admin\PostController;
+use App\Controllers\Admin\SaisonController;
 
 class App
 {
@@ -39,7 +41,8 @@ class App
         $r->get('/blog',          [BlogController::class, 'list']);
         $r->get('/blog/{slug}',   [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
-        $r->get('/documents',     [PageController::class, 'documents']);
+        $r->get('/equipes',       [EquipesController::class, 'index']);
+        $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
         $r->get('/admin/login',   [AuthController::class, 'showLogin']);
@@ -73,13 +76,35 @@ class App
         $r->post('/admin/menu/{id}/edit',  [MenuController::class, 'update']);
         $r->post('/admin/menu/{id}/delete',[MenuController::class, 'delete']);
 
-        // ── Admin documents ───────────────────────────────────────────────────
-        $r->get('/admin/documents',             [DocumentController::class, 'index']);
-        $r->get('/admin/documents/create',      [DocumentController::class, 'create']);
-        $r->post('/admin/documents/create',     [DocumentController::class, 'store']);
-        $r->get('/admin/documents/{id}/edit',   [DocumentController::class, 'edit']);
-        $r->post('/admin/documents/{id}/edit',  [DocumentController::class, 'update']);
-        $r->post('/admin/documents/{id}/delete',[DocumentController::class, 'delete']);
+        // ── Admin saisons & joueurs ───────────────────────────────────────────
+        $r->get('/admin/saisons',                [SaisonController::class, 'index']);
+        $r->get('/admin/saisons/create',         [SaisonController::class, 'create']);
+        $r->post('/admin/saisons/create',        [SaisonController::class, 'store']);
+        $r->get('/admin/saisons/joueurs',        [SaisonController::class, 'joueurs']);
+        $r->post('/admin/saisons/{id}/delete',   [SaisonController::class, 'delete']);
+        $r->post('/admin/saisons/{id}/activate', [SaisonController::class, 'activate']);
+        $r->post('/admin/saisons/{id}/flash',    [SaisonController::class, 'flash']);
+        $r->get('/admin/saisons/{id}/snapshots', [SaisonController::class, 'snapshots']);
+
+        // ── Admin équipes config ──────────────────────────────────────────────
+        $r->get('/admin/equipes-config',        [EquipeConfigController::class, 'index']);
+        $r->get('/admin/equipes-config/create', [EquipeConfigController::class, 'create']);
+        $r->post('/admin/equipes-config/create',[EquipeConfigController::class, 'store']);
+        $r->get('/admin/equipes-config/{id}/edit',   [EquipeConfigController::class, 'edit']);
+        $r->post('/admin/equipes-config/{id}/edit',  [EquipeConfigController::class, 'update']);
+        $r->post('/admin/equipes-config/{id}/delete',[EquipeConfigController::class, 'delete']);
+        $r->get('/admin/equipes-config/{id}/saisons/{sid}/photos',
+            [EquipeConfigController::class, 'saisonPhotos']);
+        $r->post('/admin/equipes-config/{id}/saisons/{sid}/photos/upload',
+            [EquipeConfigController::class, 'uploadSaisonPhoto']);
+        $r->post('/admin/equipes-config/{id}/saisons/{sid}/photos/{pid}/delete-xhr',
+            [EquipeConfigController::class, 'deleteSaisonPhotoXhr']);
+        $r->get('/admin/equipes-config/{id}/saisons/{sid}/joueurs',
+            [EquipeConfigController::class, 'saisonJoueurs']);
+        $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/add',
+            [EquipeConfigController::class, 'addJoueur']);
+        $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/remove',
+            [EquipeConfigController::class, 'removeJoueur']);
 
         // ── Admin photos (posts) ──────────────────────────────────────────────
         $r->post('/admin/posts/{id}/photos/upload',           [PostController::class, 'uploadPhoto']);

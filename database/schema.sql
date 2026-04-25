@@ -67,14 +67,3 @@ CREATE TABLE IF NOT EXISTS photos (
   PRIMARY KEY (id),
   KEY idx_photos_entity (entity_type, entity_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
--- ─────────────────────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS documents (
-  id         INT          NOT NULL AUTO_INCREMENT,
-  title      VARCHAR(255) NOT NULL,
-  filename   VARCHAR(255) NOT NULL,
-  doc_type   VARCHAR(100)          DEFAULT NULL,
-  is_public  TINYINT(1)   NOT NULL DEFAULT 1,
-  created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  KEY idx_documents_public (is_public)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

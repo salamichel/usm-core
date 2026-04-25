@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\View;
-use App\Models\Document;
 use App\Models\PageStatique;
 use App\Models\Photo;
 
@@ -24,8 +23,4 @@ class PageController
         ]);
     }
 
-    public function documents(array $params): void
-    {
-        View::render('documents/list.twig', ['documents' => Document::allPublic()]);
-    }
 }
