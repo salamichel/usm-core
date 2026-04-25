@@ -50,7 +50,7 @@
       <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
         <td class="px-4 py-3 font-semibold">{{ j.nom }}</td>
         <td class="px-4 py-3">{{ j.prenom }}</td>
-        <td class="px-4 py-3 text-gray-500 text-xs">{{ j.data.Email ?? '—' }}</td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ j.data.Mel ?? '—' }}</td>
         <td class="px-4 py-3 text-right">
           <form method="POST"
                 action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/remove') }}"

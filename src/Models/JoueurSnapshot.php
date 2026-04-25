@@ -11,7 +11,7 @@ class JoueurSnapshot
     public static function getExternalJoueurs(): array
     {
         return ExternalDatabase::get()
-            ->query("SELECT * FROM Joueurs ORDER BY Nom ASC, Prenom ASC")
+            ->query("SELECT * FROM Joueurs ORDER BY Nom ASC, `Prénom` ASC")
             ->fetchAll();
     }
 
@@ -30,20 +30,22 @@ class JoueurSnapshot
         try {
             // 1. Upsert joueur_snapshots
             $upsert = $db->prepare(
-                "INSERT INTO joueur_snapshots (saison_id, id_joueur, nom, prenom, data)
-                 VALUES (:saison_id, :id_joueur, :nom, :prenom, :data)
+                "INSERT INTO joueur_snapshots (saison_id, id_joueur, nom, prenom, nlicence, data)
+                 VALUES (:saison_id, :id_joueur, :nom, :prenom, :nlicence, :data)
                  ON DUPLICATE KEY UPDATE
-                   nom  = VALUES(nom),
-                   prenom = VALUES(prenom),
-                   data = VALUES(data),
+                   nom        = VALUES(nom),
+                   prenom     = VALUES(prenom),
+                   nlicence   = VALUES(nlicence),
+                   data       = VALUES(data),
                    snapped_at = CURRENT_TIMESTAMP"
             );
             foreach ($joueurs as $j) {
                 $upsert->execute([
                     ':saison_id' => $saisonId,
-                    ':id_joueur' => $j['id'],
+                    ':id_joueur' => $j['id_joueur'],
                     ':nom'       => $j['Nom'],
-                    ':prenom'    => $j['Prenom'],
+                    ':prenom'    => $j['Prénom'],
+                    ':nlicence'  => $j['NLicence'] ?? null,
                     ':data'      => json_encode($j),
                 ]);
             }

@@ -33,7 +33,7 @@
     <tbody>
       {% for snap in snapshots %}
       {% set equipes = [] %}
-      {% for col in ['Eq_L1','Eq_L2','Eq_L3','Eq_L4','Eq_Open','DEP','Eq_Heitz','Eq_Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Debutant'] %}
+      {% for col in ['Eq_L1','Eq_L2','Eq_L3','Eq_L4','Eq_Open','DEP','Eq_Heitz','Eq_Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Débutant'] %}
         {% if snap.data[col] is defined and snap.data[col] %}
           {% set equipes = equipes|merge([col]) %}
         {% endif %}
@@ -41,7 +41,7 @@
       <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
         <td class="px-4 py-3 font-semibold">{{ snap.nom }}</td>
         <td class="px-4 py-3">{{ snap.prenom }}</td>
-        <td class="px-4 py-3 text-gray-500 text-xs">{{ snap.data.Email ?? '—' }}</td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ snap.data.Mel ?? '—' }}</td>
         <td class="px-4 py-3 text-xs text-gray-600">
           {% if equipes|length %}
             {{ equipes|join(', ') }}

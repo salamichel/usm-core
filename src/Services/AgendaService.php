@@ -33,9 +33,9 @@ class AgendaService
         try {
             $stmt = ExternalDatabase::get()->prepare(
                 "SELECT * FROM Manifestation
-                 WHERE type_manifestation = :type
-                   AND DateManif >= CURDATE()
-                 ORDER BY DateManif ASC, HeureManif ASC
+                 WHERE Manifestation = :type
+                   AND `Date` >= CURDATE()
+                 ORDER BY `Date` ASC, Creneau ASC
                  LIMIT :limit"
             );
             $stmt->bindValue(':type',  $type);
@@ -51,22 +51,26 @@ class AgendaService
 
     private static function buildEvent(array $row): array
     {
-        $today = new \DateTimeImmutable('today');
-        $date  = \DateTimeImmutable::createFromFormat('Y-m-d', $row['DateManif']);
+        $today   = new \DateTimeImmutable('today');
+        $dateStr = $row['Date'] ?? null;
+        $date    = $dateStr
+            ? (\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateStr)
+               ?: \DateTimeImmutable::createFromFormat('Y-m-d', substr($dateStr, 0, 10)))
+            : null;
         $isSoon = $date && $date->diff($today)->days <= 3 && $date >= $today;
 
         $timeDisplay = '';
-        if (!empty($row['HeureManif'])) {
-            $timeDisplay = substr($row['HeureManif'], 0, 5); // HH:MM
+        if (!empty($row['Creneau'])) {
+            $timeDisplay = substr($row['Creneau'], 0, 5); // HH:MM
         }
 
         return [
-            'title'        => $row['LibelleManif'],
-            'date_display' => $date ? self::formatDateDisplay($date) : ($row['DateManif'] ?? ''),
+            'title'        => $row['ManifestationTypée'],
+            'date_display' => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_display' => $timeDisplay,
             'location'     => $row['Lieu'] ?? null,
-            'comment'      => !empty($row['commentaire']) ? $row['commentaire'] : null,
-            'status'       => $row['statut'] ?? null,
+            'comment'      => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
+            'status'       => $row['Statut'] ?? null,
             'is_soon'      => $isSoon,
         ];
     }

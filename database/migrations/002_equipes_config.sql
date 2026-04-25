@@ -38,6 +38,9 @@ CREATE TABLE IF NOT EXISTS equipe_saison_joueur (
   KEY fk_esj_snap (snapshot_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Migrer slug_colonne 'Debutant' → 'Débutant' si déjà seedé sans accent
+UPDATE equipes_config SET slug_colonne = 'Débutant' WHERE slug_colonne = 'Debutant';
+
 -- Seed équipes_config
 INSERT IGNORE INTO equipes_config (slug_colonne, libelle, categorie, ordre) VALUES
 ('Eq_L1',       'Loisir 1',      'Compétition', 1),
@@ -56,4 +59,4 @@ INSERT IGNORE INTO equipes_config (slug_colonne, libelle, categorie, ordre) VALU
 ('M15F',        'M15 Féminin',   'Jeunes',      31),
 ('R2F',         'R2 Féminin',    'Jeunes',      32),
 ('Loisir',      'Loisir',        'Loisir',      40),
-('Debutant',    'Débutant',      'Loisir',      41);
+('Débutant',    'Débutant',      'Loisir',      41);

@@ -27,15 +27,15 @@
     <tbody>
       {% for j in joueurs %}
       {% set flags = [] %}
-      {% for col in ['Eq_L1','Eq_L2','Eq_L3','Eq_L4','Eq_Open','DEP','Eq_Heitz','Eq_Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Debutant'] %}
+      {% for col in ['Eq_L1','Eq_L2','Eq_L3','Eq_L4','Eq_Open','DEP','Eq_Heitz','Eq_Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Débutant'] %}
         {% if j[col] is defined and j[col] %}
           {% set flags = flags|merge([col]) %}
         {% endif %}
       {% endfor %}
       <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
         <td class="px-4 py-3 font-semibold">{{ j.Nom }}</td>
-        <td class="px-4 py-3">{{ j.Prenom }}</td>
-        <td class="px-4 py-3 text-gray-500 text-xs">{{ j.Email ?: '—' }}</td>
+        <td class="px-4 py-3">{{ j['Prénom'] }}</td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ j.Mel ?: '—' }}</td>
         <td class="px-4 py-3 text-xs text-gray-600">{{ flags|length ? flags|join(', ') : '—' }}</td>
       </tr>
       {% endfor %}

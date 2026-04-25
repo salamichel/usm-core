@@ -1,47 +1,58 @@
 SET NAMES utf8mb4;
 
 -- Base externe simulée (dev) — tables Joueurs et Manifestation
--- En production, ces tables existent dans la base IF0 du club.
+-- En production : base InfinityFree IF0 du club (MyISAM, utf8mb3).
+-- Simulation en dev avec InnoDB + utf8mb4 (structure de colonnes identique).
 
 CREATE TABLE IF NOT EXISTS Joueurs (
-  id          INT NOT NULL AUTO_INCREMENT,
-  Nom         VARCHAR(100) NOT NULL,
-  Prenom      VARCHAR(100) NOT NULL,
-  Email       VARCHAR(255) DEFAULT NULL,
-  Telephone   VARCHAR(20)  DEFAULT NULL,
-  -- Équipes compétition
-  Eq_L1       TINYINT(1) NOT NULL DEFAULT 0,
-  Eq_L2       TINYINT(1) NOT NULL DEFAULT 0,
-  Eq_L3       TINYINT(1) NOT NULL DEFAULT 0,
-  Eq_L4       TINYINT(1) NOT NULL DEFAULT 0,
-  Eq_Open     TINYINT(1) NOT NULL DEFAULT 0,
-  DEP         TINYINT(1) NOT NULL DEFAULT 0,
-  -- Coupes
-  Eq_Heitz    TINYINT(1) NOT NULL DEFAULT 0,
-  Eq_Aico     TINYINT(1) NOT NULL DEFAULT 0,
-  CoupeLoisir TINYINT(1) NOT NULL DEFAULT 0,
-  -- UFOLEP
-  UFOLEP_1    TINYINT(1) NOT NULL DEFAULT 0,
-  UFOLEP_2    TINYINT(1) NOT NULL DEFAULT 0,
-  UFOLEP_3    TINYINT(1) NOT NULL DEFAULT 0,
-  -- Jeunes filles
-  M18F        TINYINT(1) NOT NULL DEFAULT 0,
-  M15F        TINYINT(1) NOT NULL DEFAULT 0,
-  R2F         TINYINT(1) NOT NULL DEFAULT 0,
-  -- Loisir
-  Loisir      TINYINT(1) NOT NULL DEFAULT 0,
-  Debutant    TINYINT(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (id)
+  id_joueur       INT(4)        NOT NULL,
+  Nom             VARCHAR(50)   NOT NULL,
+  `Prénom`        VARCHAR(50)   NOT NULL,
+  Sexe            CHAR(1)       NOT NULL DEFAULT 'F',
+  Adresse         CHAR(200)     DEFAULT NULL,
+  CodePostal      INT(5)        DEFAULT 33380,
+  Commune         CHAR(15)      DEFAULT NULL,
+  Caracteristique CHAR(15)      DEFAULT NULL,
+  NLicence        MEDIUMINT(9)  DEFAULT NULL,
+  Mel             CHAR(50)      DEFAULT NULL,
+  `Téléphone`     CHAR(50)      NOT NULL DEFAULT '',
+  DateNaissance   DATE          DEFAULT NULL,
+  Equipe          CHAR(20)      DEFAULT NULL,
+  Equipes         VARCHAR(100)  NOT NULL DEFAULT '',
+  Eq_L1           TINYINT(1)    NOT NULL DEFAULT 0,
+  Eq_L2           TINYINT(1)    NOT NULL DEFAULT 0,
+  Eq_L3           TINYINT(1)    NOT NULL DEFAULT 0,
+  Eq_L4           TINYINT(1)    NOT NULL DEFAULT 0,
+  Eq_Open         TINYINT(1)    NOT NULL DEFAULT 0,
+  CoupeLoisir     TINYINT(4)    NOT NULL DEFAULT 0,
+  Eq_Heitz        TINYINT(4)    NOT NULL DEFAULT 0,
+  Eq_Aico         TINYINT(4)    NOT NULL DEFAULT 0,
+  UFOLEP_1        TINYINT(4)    NOT NULL DEFAULT 0,
+  UFOLEP_2        TINYINT(4)    NOT NULL DEFAULT 0,
+  UFOLEP_3        TINYINT(4)    NOT NULL DEFAULT 0,
+  DEP             TINYINT(4)    NOT NULL DEFAULT 0,
+  Adulte          TINYINT(1)    NOT NULL DEFAULT 0,
+  Jeune           TINYINT(1)    NOT NULL DEFAULT 0,
+  M18F            TINYINT(4)    NOT NULL DEFAULT 0,
+  M15F            TINYINT(4)    NOT NULL DEFAULT 0,
+  R2F             TINYINT(4)    NOT NULL DEFAULT 0,
+  `Compétition`   TINYINT(1)    NOT NULL DEFAULT 0,
+  Loisir          TINYINT(1)    NOT NULL DEFAULT 0,
+  `Débutant`      TINYINT(1)    NOT NULL DEFAULT 0,
+  mdp             TINYTEXT      NOT NULL,
+  PRIMARY KEY (id_joueur)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS Manifestation (
-  id                 INT NOT NULL AUTO_INCREMENT,
-  LibelleManif       VARCHAR(255) NOT NULL,
-  DateManif          DATE NOT NULL,
-  HeureManif         TIME DEFAULT NULL,
-  Lieu               VARCHAR(255) DEFAULT NULL,
-  commentaire        TEXT DEFAULT NULL,
-  type_manifestation ENUM('Match','Entraînement','Tournoi','Stage') NOT NULL DEFAULT 'Match',
-  statut             VARCHAR(50) DEFAULT NULL,
-  PRIMARY KEY (id)
+  id_manifestation     INT(11)      NOT NULL,
+  `ManifestationTypée` VARCHAR(80)  NOT NULL DEFAULT '',
+  Manifestation        VARCHAR(20)  NOT NULL DEFAULT '',
+  `Date`               DATETIME     DEFAULT NULL,
+  `Durée_créneau`      TINYTEXT     DEFAULT NULL,
+  Lieu                 VARCHAR(80)  NOT NULL DEFAULT '',
+  Nombre_terrain       TINYINT(4)   NOT NULL DEFAULT 1,
+  Creneau              VARCHAR(20)  NOT NULL DEFAULT '',
+  Commentaire          LONGTEXT     DEFAULT NULL,
+  Statut               VARCHAR(20)  DEFAULT NULL,
+  PRIMARY KEY (id_manifestation)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
