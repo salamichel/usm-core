@@ -1,6 +1,0 @@
-.env
-public/assets/uploads/*
-!public/assets/uploads/.gitkeep
-cache/twig/
-cache/agenda/*.json
-data/

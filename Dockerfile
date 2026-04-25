@@ -1,25 +1,26 @@
-FROM python:3.12-slim
+FROM php:8.2-apache
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    NPM_BIN_PATH=/usr/bin/npm
+# Extensions PHP
+RUN docker-php-ext-install pdo_mysql
 
-WORKDIR /app
+# Activer mod_rewrite
+RUN a2enmod rewrite
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends libpq5 nodejs npm \
- && rm -rf /var/lib/apt/lists/*
+# Configurer le VirtualHost : document root = /var/www/html/public
+RUN echo '<VirtualHost *:80>\n\
+  DocumentRoot /var/www/html/public\n\
+  <Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+  </Directory>\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
- && pip install --no-cache-dir gunicorn
+WORKDIR /var/www/html
 
 COPY . .
 
-# Build Tailwind CSS (production, minified) then collect statics
-RUN python manage.py tailwind install \
- && python manage.py tailwind build \
- && python manage.py collectstatic --noinput || true
+RUN mkdir -p public/assets/uploads && \
+    chown -R www-data:www-data public/assets/uploads
 
-EXPOSE 8000
-CMD ["gunicorn", "usm_volley.wsgi:application", "--bind", "0.0.0.0:8000"]
+EXPOSE 80
