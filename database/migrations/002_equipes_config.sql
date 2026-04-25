@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- Extend ENUM to support equipe_saison photos
 ALTER TABLE photos
   MODIFY COLUMN entity_type ENUM('post','page','equipe_saison') NOT NULL;
@@ -38,10 +40,10 @@ CREATE TABLE IF NOT EXISTS equipe_saison_joueur (
 
 -- Seed équipes_config
 INSERT IGNORE INTO equipes_config (slug_colonne, libelle, categorie, ordre) VALUES
-('Eq_L1',       'Ligue 1',       'Compétition', 1),
-('Eq_L2',       'Ligue 2',       'Compétition', 2),
-('Eq_L3',       'Ligue 3',       'Compétition', 3),
-('Eq_L4',       'Ligue 4',       'Compétition', 4),
+('Eq_L1',       'Loisir 1',      'Compétition', 1),
+('Eq_L2',       'Loisir 2',      'Compétition', 2),
+('Eq_L3',       'Loisir 3',      'Compétition', 3),
+('Eq_L4',       'Loisir 4',      'Compétition', 4),
 ('Eq_Open',     'Open',          'Compétition', 5),
 ('DEP',         'Département',   'Compétition', 6),
 ('Eq_Heitz',    'Coupe Heitz',   'Coupes',      10),

@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- Base externe simulée (dev) — tables Joueurs et Manifestation
 -- En production, ces tables existent dans la base IF0 du club.
 

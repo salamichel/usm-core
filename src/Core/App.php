@@ -9,7 +9,6 @@ use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\DashboardController;
-use App\Controllers\Admin\DocumentController;
 use App\Controllers\Admin\EquipeConfigController;
 use App\Controllers\Admin\MenuController;
 use App\Controllers\Admin\PageAdminController;
@@ -42,7 +41,6 @@ class App
         $r->get('/blog',          [BlogController::class, 'list']);
         $r->get('/blog/{slug}',   [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
-        $r->get('/documents',     [PageController::class, 'documents']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
 
@@ -77,14 +75,6 @@ class App
         $r->get('/admin/menu/{id}/edit',   [MenuController::class, 'edit']);
         $r->post('/admin/menu/{id}/edit',  [MenuController::class, 'update']);
         $r->post('/admin/menu/{id}/delete',[MenuController::class, 'delete']);
-
-        // ── Admin documents ───────────────────────────────────────────────────
-        $r->get('/admin/documents',             [DocumentController::class, 'index']);
-        $r->get('/admin/documents/create',      [DocumentController::class, 'create']);
-        $r->post('/admin/documents/create',     [DocumentController::class, 'store']);
-        $r->get('/admin/documents/{id}/edit',   [DocumentController::class, 'edit']);
-        $r->post('/admin/documents/{id}/edit',  [DocumentController::class, 'update']);
-        $r->post('/admin/documents/{id}/delete',[DocumentController::class, 'delete']);
 
         // ── Admin saisons & joueurs ───────────────────────────────────────────
         $r->get('/admin/saisons',                [SaisonController::class, 'index']);

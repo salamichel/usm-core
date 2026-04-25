@@ -6,10 +6,9 @@
 
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-10">
   {% set tiles = [
-    {label: 'Articles',  count: stats.posts,     link: 'admin/posts'},
-    {label: 'Pages',     count: stats.pages,     link: 'admin/pages'},
-    {label: 'Menu',      count: stats.menu,      link: 'admin/menu'},
-    {label: 'Documents', count: stats.documents, link: 'admin/documents'}
+    {label: 'Articles', count: stats.posts, link: 'admin/posts'},
+    {label: 'Pages',    count: stats.pages, link: 'admin/pages'},
+    {label: 'Menu',     count: stats.menu,  link: 'admin/menu'}
   ] %}
   {% for tile in tiles %}
   <a href="{{ url(tile.link) }}"

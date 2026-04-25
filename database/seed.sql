@@ -6,9 +6,8 @@ SET CHARACTER SET utf8mb4;
 
 -- Menu racine
 INSERT IGNORE INTO menu_items (id, label, link_type, target, parent_id, position) VALUES
-(1, 'Club',      'none', NULL,         NULL, 0),
-(2, 'Blog',      'url',  '/blog',      NULL, 1),
-(3, 'Documents', 'url',  '/documents', NULL, 2);
+(1, 'Club', 'none', NULL,    NULL, 0),
+(2, 'Blog', 'url',  '/blog', NULL, 1);
 
 -- Sous-menu du club (parent_id=1 fixé)
 INSERT IGNORE INTO menu_items (id, label, link_type, target, parent_id, position) VALUES

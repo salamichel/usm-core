@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- Données de test pour la base externe simulée
 
 -- Joueurs (25 joueurs avec diverses combinaisons de flags)
