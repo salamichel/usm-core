@@ -115,7 +115,7 @@ services:
       - "8081:80"
     environment:
       PMA_ARBITRARY: 1
-      PMA_HOST: db
+      PMA_HOSTS: db,db_external
       PMA_USER: root
       PMA_PASSWORD: root_password
     depends_on:
