@@ -17,7 +17,7 @@ define('EXT_DB_PASS', getenv('EXT_DB_PASS') ?: 'usm_ext_password');
 // ── Admin credentials ─────────────────────────────────────────────────────────
 // Generate a new hash: password_hash('your_password', PASSWORD_BCRYPT)
 define('ADMIN_EMAIL',         getenv('ADMIN_EMAIL')         ?: 'admin@usm-volley.fr');
-define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$12$placeholderHashChangeMe000000000000000000000000000000000000');
+define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$10$uVxk4vTrkDTHilRZXcoJaOzdifgkr8Y.dTm2WEMPlPpJnzQkYXZtG');
 
 // ── App ────────────────────────────────────────────────────────────────────────
 if (getenv('BASE_URL')) {

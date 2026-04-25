@@ -3,7 +3,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:80"
+      - "8000:80"
     volumes:
       - .:/var/www/html
       - /var/www/html/vendor   # exclure vendor du bind mount
@@ -22,7 +22,7 @@ services:
       EXT_DB_USER: usm_ext
       EXT_DB_PASS: usm_ext_password
       APP_DEBUG: "true"
-      BASE_URL: "http://localhost:8080"
+      BASE_URL: "https://usm.moka-web.net"
 
   db:
     image: mysql:8.0
@@ -35,7 +35,7 @@ services:
     volumes:
       - ./data/mysql:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "3308:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "usm", "-pusm_password"]
       interval: 5s
@@ -64,8 +64,6 @@ services:
         mysql -h db -u usm usm_volley < /sql/migrations/001_saisons.sql &&
         echo '→ migrations/002_equipes_config.sql' &&
         mysql -h db -u usm usm_volley < /sql/migrations/002_equipes_config.sql &&
-        echo '→ migrations/003_snapshot_nlicence.sql' &&
-        mysql -h db -u usm usm_volley < /sql/migrations/003_snapshot_nlicence.sql &&
         echo '✓ Migrations base locale terminées'
       "
     volumes:
