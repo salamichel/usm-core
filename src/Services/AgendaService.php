@@ -20,25 +20,27 @@ class AgendaService
 
     public static function getUpcomingMatches(int $limit = 5): array
     {
-        return self::queryByType('Match', $limit);
+        // "Disponibilités - Match - Match L2" → filtre sur le segment de type
+        return self::queryByPattern('% - Match - %', $limit);
     }
 
     public static function getUpcomingTrainings(int $limit = 5): array
     {
-        return self::queryByType('Entraînement', $limit);
+        // "Disponibilités - Entraînement - …" → préfixe sans accent pour tolérance
+        return self::queryByPattern('% - Entra%', $limit);
     }
 
-    private static function queryByType(string $type, int $limit): array
+    private static function queryByPattern(string $pattern, int $limit): array
     {
         try {
             $stmt = ExternalDatabase::get()->prepare(
                 "SELECT * FROM Manifestation
-                 WHERE Manifestation = :type
+                 WHERE `ManifestationTypée` LIKE :pat
                    AND `Date` >= CURDATE()
-                 ORDER BY `Date` ASC, Creneau ASC
+                 ORDER BY `Date` ASC
                  LIMIT :limit"
             );
-            $stmt->bindValue(':type',  $type);
+            $stmt->bindValue(':pat',   $pattern);
             $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
             $stmt->execute();
             $rows = $stmt->fetchAll();
@@ -59,13 +61,11 @@ class AgendaService
             : null;
         $isSoon = $date && $date->diff($today)->days <= 3 && $date >= $today;
 
-        $timeDisplay = '';
-        if (!empty($row['Creneau'])) {
-            $timeDisplay = substr($row['Creneau'], 0, 5); // HH:MM
-        }
+        // Heure extraite du datetime (Creneau est vide dans la vraie base)
+        $timeDisplay = ($date && $date->format('H:i') !== '00:00') ? $date->format('H:i') : '';
 
         return [
-            'title'        => $row['ManifestationTypée'],
+            'title'        => self::extractTitle($row['ManifestationTypée'] ?? ''),
             'date_display' => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_display' => $timeDisplay,
             'location'     => $row['Lieu'] ?? null,
@@ -73,6 +73,13 @@ class AgendaService
             'status'       => $row['Statut'] ?? null,
             'is_soon'      => $isSoon,
         ];
+    }
+
+    private static function extractTitle(string $type): string
+    {
+        // "Disponibilités - Match - Match L2" → "Match L2"
+        $parts = explode(' - ', $type, 3);
+        return count($parts) === 3 ? trim($parts[2]) : trim($type);
     }
 
     private static function formatDateDisplay(\DateTimeImmutable $date): string

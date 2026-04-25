@@ -41,24 +41,25 @@ VALUES
 (24, 'Dupont',   'Françoise', 'francoise.dupont@example.com', 12024,  1,0,0,1,0,  0,0,0,0,0,0, 0,0,1, 0,0,0,0,0,0),
 (25, 'Lambert',  'Martine',   'martine.lambert@example.com',  12025,  1,0,0,0,1,  0,0,0,0,0,0, 0,0,1, 0,0,0,0,0,0);
 
--- Manifestations (15 événements autour d'aujourd'hui)
--- ManifestationTypée = nom descriptif (80 chars max)
--- Manifestation      = type court : Match | Entraînement | Tournoi | Stage
+-- Manifestations (15 événements)
+-- Format réel : ManifestationTypée = "Disponibilités - {Type} - {Description}"
+--               Manifestation = '' (toujours vide)
+--               Creneau = '' (toujours vide, l'heure est dans Date)
 INSERT IGNORE INTO Manifestation
-  (id_manifestation, `ManifestationTypée`, Manifestation, `Date`, Creneau, Lieu, Commentaire, Statut)
+  (id_manifestation, `ManifestationTypée`, Manifestation, `Date`, `Durée_créneau`, Lieu, Nombre_terrain, Creneau, Commentaire, Statut)
 VALUES
-(1,  'USM Volley vs Bordeaux L1',   'Match',         DATE_ADD(NOW(), INTERVAL  3 DAY), '19:00', 'Gymnase Mios',     NULL,                       NULL),
-(2,  'Entraînement L1/L2',          'Entraînement',  DATE_ADD(NOW(), INTERVAL  1 DAY), '20:30', 'Gymnase Mios',     NULL,                       NULL),
-(3,  'USM Volley vs Arcachon',      'Match',         DATE_ADD(NOW(), INTERVAL  8 DAY), '18:00', 'Salle Arcachon',   'Déplacement co-voiturage', NULL),
-(4,  'Entraînement général',        'Entraînement',  DATE_ADD(NOW(), INTERVAL  2 DAY), '20:30', 'Gymnase Mios',     NULL,                       NULL),
-(5,  'USM Volley vs Pessac VB',     'Match',         DATE_ADD(NOW(), INTERVAL 12 DAY), '20:00', 'Gymnase Mios',     NULL,                       NULL),
-(6,  'Entraînement UFOLEP',         'Entraînement',  DATE_ADD(NOW(), INTERVAL  4 DAY), '19:00', 'Gymnase Mios',     NULL,                       NULL),
-(7,  'Match DEP vs Andernos',       'Match',         DATE_ADD(NOW(), INTERVAL  6 DAY), '17:00', 'Gymnase Andernos', 'Retour prévu 20h',         NULL),
-(8,  'Entraînement jeunes',         'Entraînement',  DATE_ADD(NOW(), INTERVAL  3 DAY), '18:00', 'Gymnase Mios',     NULL,                       NULL),
-(9,  'Tournoi Open',                'Tournoi',       DATE_ADD(NOW(), INTERVAL 15 DAY), '09:00', 'Gymnase Mios',     'Journée complète',         NULL),
-(10, 'Entraînement L3/L4',          'Entraînement',  DATE_ADD(NOW(), INTERVAL  5 DAY), '21:00', 'Gymnase Mios',     NULL,                       NULL),
-(11, 'USM Volley vs Mérignac VB',   'Match',         DATE_ADD(NOW(), INTERVAL 20 DAY), '20:30', 'Gymnase Mios',     NULL,                       NULL),
-(12, 'Entraînement L1 — annulé',    'Entraînement',  DATE_ADD(NOW(), INTERVAL  7 DAY), '20:30', 'Gymnase Mios',     'Gymnase indisponible',     'Annulé'),
-(13, 'Match UFOLEP 2 vs Lège',      'Match',         DATE_ADD(NOW(), INTERVAL 10 DAY), '15:00', 'Gymnase Lège',     NULL,                       NULL),
-(14, 'Stage jeunes',                'Stage',         DATE_ADD(NOW(), INTERVAL 18 DAY), '09:00', 'Gymnase Mios',     'Inscription obligatoire',  NULL),
-(15, 'Entraînement loisir',         'Entraînement',  DATE_ADD(NOW(), INTERVAL  2 DAY), '19:30', 'Gymnase Mios',     NULL,                       NULL);
+(1,  'Disponibilités - Match - Match L1',                  '', DATE_ADD(NOW(), INTERVAL 11 DAY), '3h',   'Gymnase Mios',                    1, '', 'L2A007 (Pessac)',          'Confirmé'),
+(2,  'Disponibilités - Match - Match L2',                  '', DATE_ADD(NOW(), INTERVAL 18 DAY), '3h30', 'Chantecler (Salle GINKO)',         0, '', NULL,                      'Confirmé'),
+(3,  'Disponibilités - Match - Match L3',                  '', DATE_ADD(NOW(), INTERVAL 21 DAY), '3h',   'Gymnase Mios',                    1, '', NULL,                      'Confirmé'),
+(4,  'Disponibilités - Match - Match L4',                  '', DATE_ADD(NOW(), INTERVAL 25 DAY), '4h',   'Salles',                          1, '', 'contre L2',               'Confirmé'),
+(5,  'Disponibilités - Match - Match DEP',                 '', DATE_ADD(NOW(), INTERVAL 14 DAY), '3h',   'Gymnase Andernos',                0, '', 'Déplacement',             'Confirmé'),
+(6,  'Disponibilités - Match - Plateau UFOLEP 2',          '', DATE_ADD(NOW(), INTERVAL 28 DAY), '3h30', 'Salles',                          1, '', 'UFOLEP 3 et 2',           'Confirmé'),
+(7,  'Disponibilités - Entraînement - Entraînement L1/L2', '', DATE_ADD(NOW(), INTERVAL  1 DAY), '1h30', 'Gymnase Mios',                    2, '', NULL,                      'Confirmé'),
+(8,  'Disponibilités - Entraînement - Entraînement L3/L4', '', DATE_ADD(NOW(), INTERVAL  1 DAY), '1h30', 'Gymnase Mios',                    1, '', NULL,                      'Confirmé'),
+(9,  'Disponibilités - Entraînement - Entraînement UFOLEP','', DATE_ADD(NOW(), INTERVAL  3 DAY), '1h30', 'Gymnase Mios',                    1, '', NULL,                      'Confirmé'),
+(10, 'Disponibilités - Entraînement - Entraînement jeunes','', DATE_ADD(NOW(), INTERVAL  2 DAY), '1h30', 'Gymnase Mios',                    2, '', NULL,                      'Confirmé'),
+(11, 'Disponibilités - Entraînement - Entraînement loisir','', DATE_ADD(NOW(), INTERVAL  2 DAY), '1h30', 'Gymnase Mios',                    1, '', NULL,                      'Confirmé'),
+(12, 'Disponibilités - Entraînement - Entraînement L1',    '', DATE_ADD(NOW(), INTERVAL  5 DAY), '1h30', 'Gymnase Mios',                    0, '', 'Gymnase indisponible',    'Annulé'),
+(13, 'Disponibilités - Entraînement - Entraînement L3/L4', '', DATE_ADD(NOW(), INTERVAL  8 DAY), '1h30', 'Gymnase Mios',                    1, '', NULL,                      'Confirmé'),
+(14, 'Disponibilités - Tournoi - Tournoi Open',            '', DATE_ADD(NOW(), INTERVAL 15 DAY), '8h',   'Gymnase Mios',                    4, '', 'Journée complète',        'Confirmé'),
+(15, 'Disponibilités - Stage - Stage jeunes',              '', DATE_ADD(NOW(), INTERVAL 18 DAY), '8h',   'Gymnase Mios',                    2, '', 'Inscription obligatoire', 'Confirmé');

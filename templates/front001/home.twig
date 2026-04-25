@@ -101,7 +101,7 @@
       </div>
 
       <div class="text-sm text-gray-600 mt-1 space-y-0.5">
-        <div>🕐 {{ event.time_display }}</div>
+        {% if event.time_display %}<div>🕐 {{ event.time_display }}</div>{% endif %}
         {% if event.location %}
           <div>📍 {{ event.location }}</div>
         {% endif %}
