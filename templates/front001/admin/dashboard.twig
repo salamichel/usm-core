@@ -6,11 +6,12 @@
 
 {# ── CMS ── #}
 <h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">CMS</h2>
-<div class="grid grid-cols-3 gap-4 mb-10">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
   {% set tiles = [
-    {label: 'Articles', count: stats.posts, link: 'admin/posts'},
-    {label: 'Pages',    count: stats.pages, link: 'admin/pages'},
-    {label: 'Menu',     count: stats.menu,  link: 'admin/menu'}
+    {label: 'Articles',     count: stats.posts,       link: 'admin/posts'},
+    {label: 'Pages',        count: stats.pages,       link: 'admin/pages'},
+    {label: 'Menu',         count: stats.menu,        link: 'admin/menu'},
+    {label: 'Blocs accueil',count: stats.home_blocks, link: 'admin/home-blocks'}
   ] %}
   {% for tile in tiles %}
   <a href="{{ url(tile.link) }}"

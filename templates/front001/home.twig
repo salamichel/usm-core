@@ -1,54 +1,228 @@
 {% extends 'base.twig' %}
 {% block title %}Accueil — USM Volley{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<style>
+  /* ── Parallaxe (CSS pur) ─────────────────────────────────────────────────── */
+  .parallax-band {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  /* iOS / mobile : fallback scroll, fixed produit des artefacts */
+  @media (max-width: 768px) {
+    .parallax-band { background-attachment: scroll; }
+  }
+
+  /* ── Swiper personnalisé (style brutaliste) ──────────────────────────────── */
+  .home-hero { height: 70vh; min-height: 420px; max-height: 640px; }
+  @media (max-width: 768px) { .home-hero { height: 55vh; min-height: 360px; } }
+
+  .swiper-button-next, .swiper-button-prev {
+    color: #fff !important;
+    background: rgba(0,0,0,0.6);
+    border: 4px solid #000;
+    width: 48px !important; height: 48px !important;
+    box-shadow: 4px 4px 0 #000;
+  }
+  .swiper-button-next:after, .swiper-button-prev:after {
+    font-size: 18px !important; font-weight: 900;
+  }
+  .swiper-pagination-bullet {
+    background: #fff !important; opacity: 0.5;
+    width: 12px !important; height: 12px !important;
+    border: 2px solid #000;
+  }
+  .swiper-pagination-bullet-active {
+    background: #94674d !important; opacity: 1;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-10 space-y-10">
 
-  {# Hero #}
-  <section class="border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
-    <h1 class="text-4xl font-black mb-3">USM Volley</h1>
-    <p class="text-lg text-gray-700">Club de volley-ball — Trouvez toutes les informations sur le club et les actualités.</p>
-  </section>
-
-  {# ── Agenda : Matchs + Entraînements côte à côte ── #}
-  {% if matches|length or trainings|length %}
-  <div class="grid gap-8 lg:grid-cols-2">
-
-    {# Prochains matchs #}
-    {% if matches|length %}
-    <section>
-      <h2 class="text-2xl font-black mb-4 border-b-4 border-black pb-2 flex items-center gap-2">
-        <span>🏐</span> Prochains matchs
-      </h2>
-      <div class="space-y-3">
-        {% for event in matches %}
-          {{ _self.event_card(event) }}
-        {% endfor %}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{# HERO SLIDER                                                                #}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{% if slides|length %}
+<section class="home-hero relative border-b-4 border-black bg-black">
+  <div class="swiper home-swiper h-full">
+    <div class="swiper-wrapper">
+      {% for slide in slides %}
+      <div class="swiper-slide relative">
+        {% if slide.image %}
+          <img src="{{ asset('uploads/' ~ slide.image) }}" alt=""
+               class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20"></div>
+        {% else %}
+          <div class="absolute inset-0 bg-gradient-to-br from-usm-brown to-black"></div>
+        {% endif %}
+        <div class="relative h-full flex items-end">
+          <div class="max-w-5xl mx-auto px-4 sm:px-8 pb-12 sm:pb-16 w-full text-white">
+            <h2 class="text-3xl sm:text-5xl font-black leading-tight mb-3 drop-shadow-lg">
+              {{ slide.title }}
+            </h2>
+            {% if slide.excerpt %}
+              <p class="text-base sm:text-lg max-w-2xl mb-5 drop-shadow text-white/90">{{ slide.excerpt }}</p>
+            {% endif %}
+            <a href="{{ slide.url }}"
+               class="inline-block border-4 border-black bg-usm-brown text-white font-black px-5 py-2 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+              Lire l'article →
+            </a>
+          </div>
+        </div>
       </div>
-    </section>
-    {% endif %}
-
-    {# Prochains entraînements #}
-    {% if trainings|length %}
-    <section>
-      <h2 class="text-2xl font-black mb-4 border-b-4 border-black pb-2 flex items-center gap-2">
-        <span>📅</span> Prochains entraînements
-      </h2>
-      <div class="space-y-3">
-        {% for event in trainings %}
-          {{ _self.event_card(event) }}
-        {% endfor %}
-      </div>
-    </section>
-    {% endif %}
-
+      {% endfor %}
+    </div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+    <div class="swiper-pagination"></div>
   </div>
-  {% endif %}
+</section>
+{% else %}
+<section class="border-b-4 border-black bg-usm-brown text-white">
+  <div class="max-w-5xl mx-auto px-4 py-16">
+    <h1 class="text-4xl sm:text-5xl font-black mb-3">USM Volley-Ball</h1>
+    <p class="text-lg text-white/90">Club de volley-ball de Mios — actualités, agenda et équipes.</p>
+  </div>
+</section>
+{% endif %}
 
-  {# Derniers articles #}
-  {% if latest_posts|length %}
-  <section>
-    <h2 class="text-2xl font-black mb-4 border-b-4 border-black pb-2">Dernières actualités</h2>
+{# ────────────────────────────────────────────────────────────────────────── #}
+{# STATS — bandeau parallaxe                                                  #}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{% set parallax_img = slides|length and slides[0].image ? asset('uploads/' ~ slides[0].image) : null %}
+<section class="parallax-band relative border-b-4 border-black"
+         {% if parallax_img %}style="background-image: url('{{ parallax_img }}');"{% endif %}>
+  <div class="absolute inset-0 bg-usm-brown/90"></div>
+  <div class="relative max-w-5xl mx-auto px-4 py-14 text-white">
+    <h2 class="text-center text-xs font-black uppercase tracking-[0.3em] mb-8 opacity-80">Le club en chiffres</h2>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {% set tiles = [
+        {value: stats.licencies,      label: 'Licenciés',       suffix: ''},
+        {value: stats.equipes,        label: 'Équipes',         suffix: ''},
+        {value: stats.matchs_a_venir, label: 'Matchs à venir',  suffix: ''},
+        {value: stats.saison,         label: 'Saison en cours', suffix: '', is_text: true}
+      ] %}
+      {% for tile in tiles %}
+      <div class="border-4 border-black bg-white text-gray-900 p-5 shadow-[6px_6px_0_#000] text-center">
+        {% if tile.is_text %}
+          <div class="text-2xl sm:text-3xl font-black truncate">{{ tile.value }}</div>
+        {% else %}
+          <div class="text-4xl sm:text-5xl font-black stat-counter" data-target="{{ tile.value }}">0</div>
+        {% endif %}
+        <div class="font-semibold text-xs sm:text-sm mt-2 text-gray-600 uppercase tracking-wider">{{ tile.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ────────────────────────────────────────────────────────────────────────── #}
+{# BLOCS ÉDITORIAUX                                                           #}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{% if home_blocks|length %}
+<section class="bg-amber-50 border-b-4 border-black">
+  <div class="max-w-5xl mx-auto px-4 py-14 space-y-12">
+    {% for block in home_blocks %}
+    <article class="grid gap-6 md:grid-cols-2 items-center {{ loop.index is divisible by(2) ? 'md:[&>*:first-child]:order-2' : '' }}">
+      {# Image #}
+      <div>
+        {% if block.image %}
+          <img src="{{ asset('uploads/' ~ block.image) }}" alt=""
+               class="w-full h-64 sm:h-80 object-cover border-4 border-black shadow-[8px_8px_0_#000]">
+        {% else %}
+          <div class="w-full h-64 sm:h-80 border-4 border-black shadow-[8px_8px_0_#000]
+                      bg-gradient-to-br from-usm-brown to-black flex items-center justify-center">
+            <span class="text-white text-6xl font-black opacity-40">🏐</span>
+          </div>
+        {% endif %}
+      </div>
+      {# Contenu #}
+      <div>
+        <h2 class="text-3xl font-black mb-4 border-b-4 border-black pb-2 inline-block">{{ block.titre }}</h2>
+        <div class="text-gray-800 leading-relaxed space-y-3 [&_p]:leading-relaxed [&_strong]:font-black [&_a]:text-usm-brown [&_a]:underline [&_h2]:text-2xl [&_h2]:font-black [&_h3]:text-xl [&_h3]:font-black [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
+          {{ block.contenu|raw }}
+        </div>
+        {% if block.cta_label and block.cta_url %}
+          <a href="{{ block.cta_url starts with 'http' ? block.cta_url : url(block.cta_url|trim('/')) }}"
+             class="inline-block mt-5 border-4 border-black bg-usm-brown text-white font-black px-5 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+            {{ block.cta_label }} →
+          </a>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ────────────────────────────────────────────────────────────────────────── #}
+{# AGENDA                                                                     #}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{% if matches|length or trainings|length %}
+<section class="bg-white border-b-4 border-black">
+  <div class="max-w-5xl mx-auto px-4 py-14">
+    <h2 class="text-3xl font-black mb-8 text-center">Agenda</h2>
+    <div class="grid gap-8 lg:grid-cols-2">
+      {% if matches|length %}
+      <div>
+        <h3 class="text-xl font-black mb-4 border-b-4 border-black pb-2 flex items-center gap-2">
+          <span>🏐</span> Prochains matchs
+        </h3>
+        <div class="space-y-3">
+          {% for event in matches %}
+            {{ _self.event_card(event) }}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% if trainings|length %}
+      <div>
+        <h3 class="text-xl font-black mb-4 border-b-4 border-black pb-2 flex items-center gap-2">
+          <span>📅</span> Prochains entraînements
+        </h3>
+        <div class="space-y-3">
+          {% for event in trainings %}
+            {{ _self.event_card(event) }}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ────────────────────────────────────────────────────────────────────────── #}
+{# CTA — bandeau parallaxe "rejoindre le club"                                #}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{% set cta_img = slides|length > 1 and slides[1].image ? asset('uploads/' ~ slides[1].image) :
+                 (parallax_img ?: null) %}
+<section class="parallax-band relative border-b-4 border-black"
+         {% if cta_img %}style="background-image: url('{{ cta_img }}');"{% endif %}>
+  <div class="absolute inset-0 bg-black/70"></div>
+  <div class="relative max-w-5xl mx-auto px-4 py-16 text-center text-white">
+    <h2 class="text-3xl sm:text-4xl font-black mb-3 drop-shadow-lg">Envie de rejoindre le club&nbsp;?</h2>
+    <p class="text-lg max-w-2xl mx-auto mb-6 text-white/90 drop-shadow">
+      Venez essayer une séance gratuitement. Tous niveaux, ambiance conviviale, encadrement diplômé.
+    </p>
+    <a href="{{ url('blog') }}"
+       class="inline-block border-4 border-black bg-usm-brown text-white font-black px-6 py-3 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      Découvrir les actualités →
+    </a>
+  </div>
+</section>
+
+{# ────────────────────────────────────────────────────────────────────────── #}
+{# DERNIÈRES ACTUALITÉS                                                       #}
+{# ────────────────────────────────────────────────────────────────────────── #}
+{% if latest_posts|length %}
+<section class="bg-amber-50">
+  <div class="max-w-5xl mx-auto px-4 py-14">
+    <h2 class="text-3xl font-black mb-8 text-center">Dernières actualités</h2>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {% for post in latest_posts %}
       <article class="border-4 border-black bg-white p-5 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
@@ -64,15 +238,56 @@
       </article>
       {% endfor %}
     </div>
-    <div class="mt-6">
+    <div class="mt-8 text-center">
       <a href="{{ url('blog') }}" class="inline-block border-4 border-black bg-usm-brown text-white font-black px-5 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
         Toutes les actualités →
       </a>
     </div>
-  </section>
-  {% endif %}
+  </div>
+</section>
+{% endif %}
 
-</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+  // ── Slider hero ──────────────────────────────────────────────────────────
+  if (document.querySelector('.home-swiper')) {
+    new Swiper('.home-swiper', {
+      loop: true,
+      autoplay: { delay: 6000, disableOnInteraction: false },
+      pagination: { el: '.swiper-pagination', clickable: true },
+      navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+      effect: 'fade',
+      fadeEffect: { crossFade: true },
+    });
+  }
+
+  // ── Compteurs animés (IntersectionObserver) ──────────────────────────────
+  const counters = document.querySelectorAll('.stat-counter');
+  if (counters.length && 'IntersectionObserver' in window) {
+    const animate = (el) => {
+      const target = parseInt(el.dataset.target, 10) || 0;
+      if (target === 0) { el.textContent = '0'; return; }
+      const duration = 1500;
+      const start = performance.now();
+      const step = (now) => {
+        const p = Math.min((now - start) / duration, 1);
+        el.textContent = Math.floor(p * target).toString();
+        if (p < 1) requestAnimationFrame(step);
+        else el.textContent = target.toString();
+      };
+      requestAnimationFrame(step);
+    };
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animate(e.target); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(c => io.observe(c));
+  }
+</script>
 {% endblock %}
 
 {# ── Macro carte événement ── #}
