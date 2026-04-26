@@ -10,10 +10,12 @@ use App\Controllers\PageController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\EquipeConfigController;
+use App\Controllers\Admin\HomeBlockController;
 use App\Controllers\Admin\MenuController;
 use App\Controllers\Admin\PageAdminController;
 use App\Controllers\Admin\PostController;
 use App\Controllers\Admin\SaisonController;
+use App\Controllers\Admin\SiteConfigController;
 
 class App
 {
@@ -105,6 +107,21 @@ class App
             [EquipeConfigController::class, 'addJoueur']);
         $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/remove',
             [EquipeConfigController::class, 'removeJoueur']);
+
+        // ── Admin site config (footer, contact, réseaux) ──────────────────────
+        $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);
+        $r->post('/admin/site-config', [SiteConfigController::class, 'update']);
+
+        // ── Admin home blocks ─────────────────────────────────────────────────
+        $r->get('/admin/home-blocks',                 [HomeBlockController::class, 'index']);
+        $r->get('/admin/home-blocks/create',          [HomeBlockController::class, 'create']);
+        $r->post('/admin/home-blocks/create',         [HomeBlockController::class, 'store']);
+        $r->post('/admin/home-blocks/upload',         [HomeBlockController::class, 'uploadImage']);
+        $r->get('/admin/home-blocks/{id}/edit',       [HomeBlockController::class, 'edit']);
+        $r->post('/admin/home-blocks/{id}/edit',      [HomeBlockController::class, 'update']);
+        $r->post('/admin/home-blocks/{id}/delete',    [HomeBlockController::class, 'delete']);
+        $r->post('/admin/home-blocks/{id}/move-up',   [HomeBlockController::class, 'moveUp']);
+        $r->post('/admin/home-blocks/{id}/move-down', [HomeBlockController::class, 'moveDown']);
 
         // ── Admin photos (posts) ──────────────────────────────────────────────
         $r->post('/admin/posts/{id}/photos/upload',           [PostController::class, 'uploadPhoto']);

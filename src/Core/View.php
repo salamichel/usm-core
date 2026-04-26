@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Models\MenuItem;
+use App\Models\SiteConfig;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
@@ -27,6 +28,7 @@ class View
             $twig->addGlobal('base_url',   BASE_URL);
             $twig->addGlobal('admin_logged_in', Auth::check());
             $twig->addGlobal('flash', self::getFlash());
+            $twig->addGlobal('site_config', SiteConfig::all());
 
             // |date_fr filter
             $twig->addFilter(new TwigFilter('date_fr', function (?string $date, string $format = 'd/m/Y'): string {

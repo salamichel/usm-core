@@ -45,4 +45,16 @@ class EquipeSaison
         $stmt->execute([$saisonId]);
         return $stmt->fetchAll();
     }
+
+    public static function countWithMembersForSaison(int $saisonId): int
+    {
+        $stmt = Database::get()->prepare(
+            "SELECT COUNT(DISTINCT es.id)
+               FROM equipe_saison es
+               JOIN equipe_saison_joueur esj ON esj.equipe_saison_id = es.id
+              WHERE es.saison_id = ?"
+        );
+        $stmt->execute([$saisonId]);
+        return (int)$stmt->fetchColumn();
+    }
 }

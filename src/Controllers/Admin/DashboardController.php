@@ -18,9 +18,10 @@ class DashboardController
 
         // ── Stats CMS ──────────────────────────────────────────────────────────
         $stats = [
-            'posts' => (int)$db->query("SELECT COUNT(*) FROM posts")->fetchColumn(),
-            'pages' => (int)$db->query("SELECT COUNT(*) FROM pages")->fetchColumn(),
-            'menu'  => (int)$db->query("SELECT COUNT(*) FROM menu_items")->fetchColumn(),
+            'posts'       => (int)$db->query("SELECT COUNT(*) FROM posts")->fetchColumn(),
+            'pages'       => (int)$db->query("SELECT COUNT(*) FROM pages")->fetchColumn(),
+            'menu'        => (int)$db->query("SELECT COUNT(*) FROM menu_items")->fetchColumn(),
+            'home_blocks' => (int)$db->query("SELECT COUNT(*) FROM home_blocks")->fetchColumn(),
         ];
 
         // ── Stats club (base locale) ───────────────────────────────────────────

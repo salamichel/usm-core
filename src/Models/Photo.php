@@ -79,7 +79,7 @@ class Photo
             throw new \RuntimeException('Aucun fichier reçu.');
         }
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new \RuntimeException('Erreur upload : code ' . $file['error']);
+            throw new \RuntimeException(self::uploadErrorMessage($file['error']));
         }
         if ($file['size'] > self::MAX_SIZE) {
             throw new \RuntimeException('Fichier trop volumineux (max 10 Mo).');
@@ -98,6 +98,19 @@ class Photo
         return $filename;
     }
 
+    private static function uploadErrorMessage(int $code): string
+    {
+        return match ($code) {
+            UPLOAD_ERR_INI_SIZE   => 'Fichier trop volumineux pour la configuration PHP du serveur (limite upload_max_filesize).',
+            UPLOAD_ERR_FORM_SIZE  => 'Fichier trop volumineux (limite du formulaire HTML).',
+            UPLOAD_ERR_PARTIAL    => 'Fichier reçu partiellement, réessayez.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire serveur introuvable.',
+            UPLOAD_ERR_CANT_WRITE => 'Impossible d\'écrire le fichier sur le serveur.',
+            UPLOAD_ERR_EXTENSION  => 'Upload bloqué par une extension PHP.',
+            default               => 'Erreur d\'upload (code ' . $code . ').',
+        };
+    }
+
     /**
      * Process a multi-file upload ($_FILES['photos']).
      * Returns array of saved filenames.
@@ -110,7 +123,7 @@ class Photo
         foreach ($files as $file) {
             if ($file['error'] === UPLOAD_ERR_NO_FILE) continue;
             if ($file['error'] !== UPLOAD_ERR_OK) {
-                throw new \RuntimeException('Erreur upload : code ' . $file['error']);
+                throw new \RuntimeException(self::uploadErrorMessage($file['error']) . ' (' . $file['name'] . ')');
             }
             if ($file['size'] > self::MAX_SIZE) {
                 throw new \RuntimeException("Fichier « {$file['name']} » trop volumineux (max 10 Mo).");
