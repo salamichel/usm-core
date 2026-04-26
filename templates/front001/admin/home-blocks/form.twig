@@ -132,6 +132,7 @@
   const dz = new Dropzone('#image-dropzone', {
     url:              '{{ url('admin/home-blocks/upload') }}',
     paramName:        'file',
+    params:           { '_csrf_token': '{{ csrf_token }}' },
     acceptedFiles:    'image/jpeg,image/png,image/webp,image/gif',
     maxFilesize:      10,
     maxFiles:         1,

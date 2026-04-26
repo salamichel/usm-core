@@ -49,6 +49,7 @@ Dropzone.autoDiscover = false;
 const dz = new Dropzone('#photo-dropzone', {
   url:             '{{ upload_url }}',
   paramName:       'file',
+  params:          { '_csrf_token': '{{ csrf_token }}' },
   acceptedFiles:   'image/jpeg,image/png,image/webp',
   maxFilesize:     10,
   parallelUploads: 3,
@@ -91,7 +92,11 @@ function bindDelete(btn) {
   btn.addEventListener('click', async () => {
     if (!confirm('Supprimer cette photo ?')) return;
     try {
-      const r = await fetch(btn.dataset.deleteUrl, { method: 'POST' });
+      const r = await fetch(btn.dataset.deleteUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: '_csrf_token=' + encodeURIComponent('{{ csrf_token }}')
+      });
       if (r.ok) btn.closest('.photo-thumb').remove();
       else alert('Impossible de supprimer la photo.');
     } catch { alert('Erreur réseau.'); }
