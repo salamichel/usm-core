@@ -99,10 +99,12 @@
           <div class="flex items-center gap-2">
             <span class="font-mono text-xs text-gray-500">{{ block.position }}</span>
             <form method="POST" action="{{ url('admin/home-blocks/' ~ block.id ~ '/move-up') }}" class="inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
               <button type="submit" title="Monter"
                       class="border-2 border-black w-7 h-7 text-xs font-bold hover:bg-black hover:text-white transition">▲</button>
             </form>
             <form method="POST" action="{{ url('admin/home-blocks/' ~ block.id ~ '/move-down') }}" class="inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
               <button type="submit" title="Descendre"
                       class="border-2 border-black w-7 h-7 text-xs font-bold hover:bg-black hover:text-white transition">▼</button>
             </form>
