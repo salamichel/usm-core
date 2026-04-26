@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\NotFoundHandler;
 use App\Core\View;
 use App\Models\EquipeConfig;
 use App\Models\EquipeSaison;
@@ -12,6 +13,7 @@ use App\Models\Saison;
 
 class EquipesController
 {
+    use NotFoundHandler;
     public function index(array $params): void
     {
         $saison  = Saison::getActive();
@@ -36,8 +38,7 @@ class EquipesController
     {
         $equipe = EquipeConfig::find((int)$params['id']);
         if (!$equipe || !$equipe['is_active']) {
-            http_response_code(404);
-            View::render('404.twig');
+            $this->notFound();
             return;
         }
 
