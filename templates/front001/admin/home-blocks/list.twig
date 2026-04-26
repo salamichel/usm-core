@@ -41,9 +41,11 @@
     {% endif %}
     <div class="flex flex-wrap gap-2">
       <form method="POST" action="{{ url('admin/home-blocks/' ~ block.id ~ '/move-up') }}" class="inline">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
         <button type="submit" title="Monter" class="border-2 border-black w-8 h-8 text-xs font-bold hover:bg-black hover:text-white transition">▲</button>
       </form>
       <form method="POST" action="{{ url('admin/home-blocks/' ~ block.id ~ '/move-down') }}" class="inline">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
         <button type="submit" title="Descendre" class="border-2 border-black w-8 h-8 text-xs font-bold hover:bg-black hover:text-white transition">▼</button>
       </form>
       <a href="{{ url('admin/home-blocks/' ~ block.id ~ '/edit') }}"
