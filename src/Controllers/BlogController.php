@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\NotFoundHandler;
 use App\Core\View;
 use App\Models\Photo;
 use App\Models\Post;
 
 class BlogController
 {
+    use NotFoundHandler;
+
     public function list(array $params): void
     {
         View::render('blog/list.twig', ['posts' => Post::allPublished()]);
@@ -18,8 +21,7 @@ class BlogController
     {
         $post = Post::findBySlug($params['slug']);
         if (!$post) {
-            http_response_code(404);
-            View::render('404.twig');
+            $this->notFound();
             return;
         }
         View::render('blog/detail.twig', [

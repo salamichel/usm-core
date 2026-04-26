@@ -31,7 +31,21 @@ class App
     {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri    = $_SERVER['REQUEST_URI'];
+
+        // Validate CSRF token on POST requests (except login)
+        if ($method === 'POST' && !$this->isLoginRoute($uri) && !CsrfToken::validateFromPost()) {
+            http_response_code(403);
+            View::render('error.twig', ['error' => 'Token CSRF invalide.']);
+            return;
+        }
+
         $this->router->dispatch($method, $uri);
+    }
+
+    private function isLoginRoute(string $uri): bool
+    {
+        $path = parse_url($uri, PHP_URL_PATH);
+        return str_ends_with($path, '/admin/login');
     }
 
     private function registerRoutes(): void

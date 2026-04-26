@@ -211,6 +211,148 @@ En cas d'échec de connexion à la base externe, retourne `[]` silencieusement.
 
 ---
 
+## Services métier
+
+### Validator
+
+Validation centralisée avec API chaînable :
+
+```php
+use App\Services\Validator;
+
+$v = Validator::make($_POST)
+    ->required('title', 'Le titre est obligatoire.')
+    ->minLength('title', 3)
+    ->email('email')
+    ->unique('email', fn($val) => !UserExists($val));
+
+if ($v->fails()) {
+    // $v->errors() → tableau des erreurs
+    // $v->firstError() → première erreur
+    return;
+}
+$data = $v->getCleanData(['title', 'email']);
+```
+
+### Logger
+
+Logging multi-canal (app, audit, errors) :
+
+```php
+use App\Services\Logger;
+
+Logger::app()->info('Action effectuée', ['user_id' => 123]);
+Logger::audit()->warning('Modification sensible', ['entity' => 'post', 'id' => 45]);
+Logger::errors()->error('Erreur BDD', ['query' => '...']);
+```
+
+Logs écrits dans `/logs/app.log`, `/logs/audit.log`, `/logs/errors.log`.
+
+### SlugManager
+
+Génération et unicité des slugs :
+
+```php
+use App\Services\SlugManager;
+
+$slug = SlugManager::generate('Mon Article');      // → 'mon-article'
+$unique = SlugManager::makeUnique($slug, 'posts'); // → 'mon-article-2' si existe
+```
+
+Utilisé par Post et PageStatique (évite duplication).
+
+---
+
+## Contrôleurs CRUD admin
+
+### Base class : AdminCrudController
+
+Pour simplifier les CRUD post/page/etc., étendre `AdminCrudController` :
+
+```php
+use App\Controllers\Admin\AdminCrudController;
+use App\Models\MyEntity;
+
+class MyController extends AdminCrudController
+{
+    public function __construct()
+    {
+        $this->entityType = 'my_entity';
+        $this->itemName = 'item';
+        $this->itemsName = 'items';
+    }
+
+    protected function getEntity(int $id): ?array
+    {
+        return MyEntity::find($id);
+    }
+
+    protected function createEntity(array $data): int
+    {
+        return MyEntity::create($data);
+    }
+
+    protected function getFormData(): array
+    {
+        return ['field' => $_POST['field'] ?? ''];
+    }
+    // ... autres abstract methods
+}
+```
+
+Fournit : `index()`, `create()`, `store()`, `edit()`, `update()`, `delete()`,
+`uploadPhoto()`, `deletePhoto()`, `deletePhotoXhr()`.
+
+### 404 handler
+
+Dans les contrôleurs publics, utiliser le trait `NotFoundHandler` :
+
+```php
+use App\Core\NotFoundHandler;
+
+class BlogController
+{
+    use NotFoundHandler;
+
+    public function show(array $params): void
+    {
+        $post = Post::findBySlug($params['slug']);
+        if (!$post) {
+            $this->notFound();
+            return;
+        }
+        // ...
+    }
+}
+```
+
+---
+
+## Sécurité
+
+### CSRF tokens
+
+Tous les formulaires POST admin incluent automatiquement le token :
+```twig
+<form method="POST" action="...">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+  <!-- ... champs ... -->
+</form>
+```
+
+Validé automatiquement dans `App.php` (excepté `/admin/login`).
+
+### Photo cover
+
+Accès sûr à la photo de couverture d'une entité :
+
+```php
+$cover = Photo::getEntityCover('equipe_saison', $es['id']);
+// Remplace : $cover = Photo::forEntity(...)[0] ?? null;
+```
+
+---
+
 ## Variables d'environnement
 
 | Variable | Défaut dev | Description |
