@@ -2,6 +2,10 @@
 {% import '_gallery.twig' as components %}
 {% block title %}{{ post.title }} — USM Volley{% endblock %}
 
+{% block head %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 py-10">
   <a href="{{ url('blog') }}" class="inline-block mb-6 text-sm font-bold hover:underline">← Retour aux actualités</a>
@@ -11,7 +15,7 @@
     {% if post.published_at %}
       <time class="text-sm text-gray-500 block mb-6">{{ post.published_at|date_fr('d/m/Y') }}</time>
     {% endif %}
-    <div class="prose prose-gray max-w-none">
+    <div class="prose prose-gray max-w-none ql-editor">
       {{ post.content|raw }}
     </div>
 
