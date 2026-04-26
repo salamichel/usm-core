@@ -19,6 +19,12 @@ class Photo
         return $stmt->fetchAll();
     }
 
+    public static function getEntityCover(string $type, int $id): ?array
+    {
+        $photos = self::forEntity($type, $id);
+        return $photos[0] ?? null;
+    }
+
     public static function find(int $id): ?array
     {
         $stmt = Database::get()->prepare("SELECT * FROM photos WHERE id = ? LIMIT 1");
