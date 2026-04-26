@@ -66,6 +66,8 @@ services:
         mysql -h db -u usm usm_volley < /sql/migrations/002_equipes_config.sql &&
         echo '→ migrations/003_home_blocks.sql' &&
         mysql -h db -u usm usm_volley < /sql/migrations/003_home_blocks.sql &&
+        echo '→ migrations/004_site_config.sql' &&
+        mysql -h db -u usm usm_volley < /sql/migrations/004_site_config.sql &&
         echo '✓ Migrations base locale terminées'
       "
     volumes:

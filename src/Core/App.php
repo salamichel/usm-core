@@ -15,6 +15,7 @@ use App\Controllers\Admin\MenuController;
 use App\Controllers\Admin\PageAdminController;
 use App\Controllers\Admin\PostController;
 use App\Controllers\Admin\SaisonController;
+use App\Controllers\Admin\SiteConfigController;
 
 class App
 {
@@ -106,6 +107,10 @@ class App
             [EquipeConfigController::class, 'addJoueur']);
         $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/remove',
             [EquipeConfigController::class, 'removeJoueur']);
+
+        // ── Admin site config (footer, contact, réseaux) ──────────────────────
+        $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);
+        $r->post('/admin/site-config', [SiteConfigController::class, 'update']);
 
         // ── Admin home blocks ─────────────────────────────────────────────────
         $r->get('/admin/home-blocks',                 [HomeBlockController::class, 'index']);
