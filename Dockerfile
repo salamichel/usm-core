@@ -6,6 +6,9 @@ RUN docker-php-ext-install pdo_mysql
 # Activer mod_rewrite
 RUN a2enmod rewrite
 
+# Aligner les limites d'upload PHP sur la taille max acceptée par Photo::uploadSingle (10 Mo)
+COPY docker/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 # Configurer le VirtualHost : document root = /var/www/html/public
 RUN echo '<VirtualHost *:80>\n\
   DocumentRoot /var/www/html/public\n\
