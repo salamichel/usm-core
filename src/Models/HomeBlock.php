@@ -111,24 +111,31 @@ class HomeBlock
         $current = self::find($id);
         if (!$current) return;
 
-        $op    = $direction === 'up' ? '<' : '>';
-        $order = $direction === 'up' ? 'DESC' : 'ASC';
+        if ($direction === 'up') {
+            $stmt = $db->prepare(
+                "SELECT * FROM home_blocks
+                 WHERE position < ? OR (position = ? AND id < ?)
+                 ORDER BY position DESC, id DESC
+                 LIMIT 1"
+            );
+        } else {
+            $stmt = $db->prepare(
+                "SELECT * FROM home_blocks
+                 WHERE position > ? OR (position = ? AND id > ?)
+                 ORDER BY position ASC, id ASC
+                 LIMIT 1"
+            );
+        }
 
-        $stmt = $db->prepare(
-            "SELECT * FROM home_blocks
-             WHERE position $op :pos OR (position = :pos AND id $op :id)
-             ORDER BY position $order, id $order
-             LIMIT 1"
-        );
-        $stmt->execute([':pos' => (int)$current['position'], ':id' => $id]);
+        $stmt->execute([(int)$current['position'], (int)$current['position'], $id]);
         $other = $stmt->fetch();
         if (!$other) return;
 
         $db->beginTransaction();
         try {
-            $upd = $db->prepare("UPDATE home_blocks SET position = :p WHERE id = :id");
-            $upd->execute([':p' => (int)$other['position'],   ':id' => (int)$current['id']]);
-            $upd->execute([':p' => (int)$current['position'], ':id' => (int)$other['id']]);
+            $upd = $db->prepare("UPDATE home_blocks SET position = ? WHERE id = ?");
+            $upd->execute([(int)$other['position'],   (int)$current['id']]);
+            $upd->execute([(int)$current['position'], (int)$other['id']]);
             // Si les positions étaient identiques, on en force un cran d'écart
             if ((int)$current['position'] === (int)$other['position']) {
                 $bump = $direction === 'up' ? -1 : 1;
