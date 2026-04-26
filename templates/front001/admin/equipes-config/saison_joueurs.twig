@@ -16,6 +16,7 @@
 <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] mb-6 flex items-end gap-3">
   <form method="POST" action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/add') }}"
         class="flex items-end gap-3 flex-wrap">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
     <div>
       <label class="block font-black text-sm mb-1">Ajouter un joueur</label>
       <select name="snapshot_id"
@@ -55,6 +56,7 @@
           <form method="POST"
                 action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/remove') }}"
                 onsubmit="return confirm('Retirer ce joueur de l\'équipe ?')">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Retirer</button>
           </form>
         </td>

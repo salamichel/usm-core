@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Services\SlugManager;
 
 class PageStatique
 {
@@ -38,7 +39,7 @@ class PageStatique
     public static function create(array $data): int
     {
         $db   = Database::get();
-        $slug = self::uniqueSlug($data['slug'] ?? Post::slugify($data['title']));
+        $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages');
         $stmt = $db->prepare(
             "INSERT INTO pages (title, slug, content, is_published)
              VALUES (:title, :slug, :content, :is_published)"
@@ -54,7 +55,7 @@ class PageStatique
 
     public static function update(int $id, array $data): void
     {
-        $slug = self::uniqueSlug($data['slug'] ?? Post::slugify($data['title']), $id);
+        $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages', 'id', $id);
         Database::get()->prepare(
             "UPDATE pages SET title=:title, slug=:slug, content=:content,
              is_published=:is_published, updated_at=NOW() WHERE id=:id"
@@ -72,17 +73,4 @@ class PageStatique
         Database::get()->prepare("DELETE FROM pages WHERE id = ?")->execute([$id]);
     }
 
-    private static function uniqueSlug(string $slug, int $excludeId = 0): string
-    {
-        $base = $slug;
-        $i    = 1;
-        $db   = Database::get();
-        while (true) {
-            $stmt = $db->prepare("SELECT id FROM pages WHERE slug = ? AND id != ? LIMIT 1");
-            $stmt->execute([$slug, $excludeId]);
-            if (!$stmt->fetch()) break;
-            $slug = $base . '-' . $i++;
-        }
-        return $slug;
-    }
 }

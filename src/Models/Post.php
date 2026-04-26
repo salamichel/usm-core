@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Services\SlugManager;
 
 class Post
 {
@@ -43,7 +44,7 @@ class Post
     public static function create(array $data): int
     {
         $db   = Database::get();
-        $slug = self::uniqueSlug($data['slug'] ?? self::slugify($data['title']));
+        $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts');
         $stmt = $db->prepare(
             "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at)
              VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at)"
@@ -61,7 +62,7 @@ class Post
 
     public static function update(int $id, array $data): void
     {
-        $slug = self::uniqueSlug($data['slug'] ?? self::slugify($data['title']), $id);
+        $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts', 'id', $id);
         Database::get()->prepare(
             "UPDATE posts SET title=:title, slug=:slug, excerpt=:excerpt, content=:content,
              is_published=:is_published, published_at=:published_at, updated_at=NOW()
@@ -82,25 +83,4 @@ class Post
         Database::get()->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
     }
 
-    public static function slugify(string $text): string
-    {
-        $text = mb_strtolower($text, 'UTF-8');
-        $text = strtr($text, ['é'=>'e','è'=>'e','ê'=>'e','ë'=>'e','à'=>'a','â'=>'a','ô'=>'o','ù'=>'u','û'=>'u','ü'=>'u','î'=>'i','ï'=>'i','ç'=>'c']);
-        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
-        return trim($text, '-');
-    }
-
-    private static function uniqueSlug(string $slug, int $excludeId = 0): string
-    {
-        $base  = $slug;
-        $i     = 1;
-        $db    = Database::get();
-        while (true) {
-            $stmt = $db->prepare("SELECT id FROM posts WHERE slug = ? AND id != ? LIMIT 1");
-            $stmt->execute([$slug, $excludeId]);
-            if (!$stmt->fetch()) break;
-            $slug = $base . '-' . $i++;
-        }
-        return $slug;
-    }
 }
