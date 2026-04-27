@@ -49,7 +49,8 @@ class Tag
     public static function create(array $data): int
     {
         $name = trim((string)$data['name']);
-        $slug = SlugManager::generate($data['slug'] ?? $name);
+        $slugInput = trim((string)($data['slug'] ?? ''));
+        $slug = SlugManager::generate($slugInput ?: $name);
 
         $stmt = Database::get()->prepare(
             "INSERT INTO tags (name, slug) VALUES (:name, :slug)"
@@ -61,7 +62,8 @@ class Tag
     public static function update(int $id, array $data): void
     {
         $name = trim((string)$data['name']);
-        $slug = SlugManager::generate($data['slug'] ?? $name);
+        $slugInput = trim((string)($data['slug'] ?? ''));
+        $slug = SlugManager::generate($slugInput ?: $name);
 
         Database::get()->prepare(
             "UPDATE tags SET name = :name, slug = :slug WHERE id = :id"
