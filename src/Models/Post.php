@@ -26,6 +26,13 @@ class Post
         return $stmt->fetch() ?: null;
     }
 
+    public static function findByCanalblogId(string $canalblogId): ?array
+    {
+        $stmt = Database::get()->prepare("SELECT * FROM posts WHERE canalblog_id = ? LIMIT 1");
+        $stmt->execute([$canalblogId]);
+        return $stmt->fetch() ?: null;
+    }
+
     public static function all(): array
     {
         $stmt = Database::get()->query(
@@ -46,16 +53,17 @@ class Post
         $db   = Database::get();
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts');
         $stmt = $db->prepare(
-            "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at)
-             VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at)"
+            "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at, canalblog_id)
+             VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at, :canalblog_id)"
         );
         $stmt->execute([
-            ':title'        => $data['title'],
-            ':slug'         => $slug,
-            ':excerpt'      => $data['excerpt'] ?? null,
-            ':content'      => $data['content'] ?? '',
-            ':is_published' => (int)($data['is_published'] ?? 0),
-            ':published_at' => $data['published_at'] ?: null,
+            ':title'         => $data['title'],
+            ':slug'          => $slug,
+            ':excerpt'       => $data['excerpt'] ?? null,
+            ':content'       => $data['content'] ?? '',
+            ':is_published'  => (int)($data['is_published'] ?? 0),
+            ':published_at'  => $data['published_at'] ?: null,
+            ':canalblog_id'  => $data['canalblog_id'] ?? null,
         ]);
         return (int)$db->lastInsertId();
     }

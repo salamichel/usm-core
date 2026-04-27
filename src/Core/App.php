@@ -7,6 +7,7 @@ use App\Controllers\HomeController;
 use App\Controllers\BlogController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
+use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\EquipeConfigController;
@@ -45,7 +46,7 @@ class App
     private function isLoginRoute(string $uri): bool
     {
         $path = parse_url($uri, PHP_URL_PATH);
-        return str_ends_with($path, '/admin/login');
+        return str_ends_with($path, '/admin/login') || str_starts_with($path, '/api/');
     }
 
     private function registerRoutes(): void
@@ -59,6 +60,9 @@ class App
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
+
+        // ── API ───────────────────────────────────────────────────────────────
+        $r->post('/api/articles', [ArticleApiController::class, 'create']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
         $r->get('/admin/login',   [AuthController::class, 'showLogin']);
