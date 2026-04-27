@@ -63,6 +63,22 @@
         <label class="font-black" for="is_published">Publié</label>
       </div>
     </div>
+
+    {% if all_tags|length %}
+    <div>
+      <label class="block font-black mb-3">Tags</label>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {% for tag in all_tags %}
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="tags[]" value="{{ tag.id }}"
+                 {% if tags|map(attribute='id')|index(tag.id) is not null %}checked{% endif %}
+                 class="w-4 h-4 border-2 border-black">
+          <span class="text-sm">{{ tag.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   {# ── Galerie photos (Dropzone) ── #}

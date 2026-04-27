@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 
 use App\Models\Post;
 use App\Models\Photo;
+use App\Models\Tag;
 use App\Services\Validator;
 use App\Services\SlugManager;
 
@@ -75,6 +76,17 @@ class ArticleApiController
                 $filename = $this->downloadImage($coverImage, $postId);
                 if ($filename) {
                     Photo::create('post', $postId, $filename);
+                }
+            }
+
+            $tags = $data['tags'] ?? [];
+            if (!empty($tags) && is_array($tags)) {
+                foreach ($tags as $tagName) {
+                    $tagName = trim((string)$tagName);
+                    if (!empty($tagName)) {
+                        $tagId = Tag::findOrCreateByName($tagName);
+                        Tag::attachToPost($postId, $tagId);
+                    }
                 }
             }
 
