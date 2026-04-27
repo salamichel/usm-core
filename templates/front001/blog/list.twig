@@ -46,14 +46,9 @@
         <h2 class="text-xl font-black mb-1">
           <a href="{{ url('blog/' ~ post.slug) }}" class="hover:underline">{{ post.title }}</a>
         </h2>
-        <div class="flex items-center gap-3 mb-3 flex-wrap">
-          {% if post.published_at %}
-            <time class="text-xs text-gray-500">{{ post.published_at|date_fr }}</time>
-          {% endif %}
-          {% if post.canalblog_id %}
-            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-semibold">CanalBlog</span>
-          {% endif %}
-        </div>
+        {% if post.published_at %}
+          <time class="text-xs text-gray-500 mb-3 block">{{ post.published_at|date_fr }}</time>
+        {% endif %}
         {% if post.excerpt %}
           <p class="text-gray-700">{{ post.excerpt }}</p>
         {% endif %}
