@@ -29,9 +29,11 @@ class AIContentService
             ],
         ]);
 
+        $url = self::API_URL . '?key=' . urlencode($apiKey);
+
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => self::API_URL . '?key=' . urlencode($apiKey),
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => self::TIMEOUT,
             CURLOPT_POST => true,
@@ -52,13 +54,23 @@ class AIContentService
         }
 
         if ($httpCode !== 200) {
-            error_log("AIContentService: HTTP {$httpCode} - {$response}");
+            error_log("AIContentService: HTTP {$httpCode}");
+            error_log("AIContentService: Response - " . substr($response, 0, 500));
             return null;
         }
 
         $data = json_decode($response, true);
+
+        // Better error handling for Gemini API response
+        if (!isset($data['candidates']) || !is_array($data['candidates']) || count($data['candidates']) === 0) {
+            error_log("AIContentService: No candidates in response");
+            error_log("AIContentService: Full response - " . json_encode($data));
+            return null;
+        }
+
         if (!isset($data['candidates'][0]['content']['parts'][0]['text'])) {
             error_log("AIContentService: Unexpected API response structure");
+            error_log("AIContentService: Full response - " . json_encode($data));
             return null;
         }
 
