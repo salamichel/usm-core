@@ -55,8 +55,10 @@ class Router
 
     private function compile(string $pattern): string
     {
-        // Convert {param} to named capture groups (?P<param>[^/]+)
-        $regex = preg_replace('/\{([a-z_]+)\}/', '(?P<$1>[^/]+)', $pattern);
+        // {param+} → greedy match including slashes (e.g. slugs with /)
+        $regex = preg_replace('/\{([a-z_]+)\+\}/', '(?P<$1>.+)', $pattern);
+        // {param}  → standard segment, no slashes
+        $regex = preg_replace('/\{([a-z_]+)\}/', '(?P<$1>[^/]+)', $regex);
         return '#^' . $regex . '$#u';
     }
 

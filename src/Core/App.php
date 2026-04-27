@@ -58,7 +58,7 @@ class App
         $r->get('/',              [HomeController::class, 'index']);
         $r->get('/blog',          [BlogController::class, 'list']);
         $r->get('/blog/tag/{tag}', [BlogController::class, 'list']);
-        $r->get('/blog/{slug}',   [BlogController::class, 'show']);
+        $r->get('/blog/{slug+}',  [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
