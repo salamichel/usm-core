@@ -67,7 +67,7 @@
       </div>
       <div class="flex items-center gap-3 pt-7">
         <input type="checkbox" id="is_published" name="is_published" value="1"
-               {% if post is not null and post.is_published %}checked{% endif %}
+               {% if post is null or post.is_published %}checked{% endif %}
                class="w-5 h-5 border-2 border-black">
         <label class="font-black" for="is_published">Publié</label>
       </div>
