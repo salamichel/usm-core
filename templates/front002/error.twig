@@ -1,0 +1,24 @@
+{% extends 'base.twig' %}
+{% block title %}Erreur — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+  <div class="text-center max-w-lg">
+    <div class="font-display text-8xl text-usm-red leading-none select-none mb-4">!</div>
+    <h1 class="font-display text-3xl text-white uppercase mb-4">Une erreur est survenue</h1>
+    {% if message is defined and message %}
+      <p class="text-white/50 text-sm leading-relaxed mb-8 font-mono bg-zinc-900 border border-usm-red/30 px-4 py-3">
+        {{ message }}
+      </p>
+    {% else %}
+      <p class="text-white/50 text-sm leading-relaxed mb-8">
+        Une erreur inattendue s'est produite. Veuillez réessayer.
+      </p>
+    {% endif %}
+    <a href="{{ url('/') }}"
+       class="inline-block bg-usm-orange text-black font-black uppercase tracking-widest text-sm px-8 py-4 hover:bg-orange-400 transition">
+      Retour à l'accueil
+    </a>
+  </div>
+</div>
+{% endblock %}

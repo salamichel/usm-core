@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}USM Volley-Ball{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'usm-orange': '#F97316',
+            'usm-red':    '#CC2200',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .font-display { font-family: Impact, 'Arial Black', 'Haas Unica', Arial, sans-serif; letter-spacing: 0.02em; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; }
+    .nav-pipe { color: rgba(249,115,22,0.4); margin: 0 8px; font-weight: 900; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col">
+
+  {# ── Navigation ── #}
+  <header class="bg-black border-b-2 border-usm-orange sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+
+      <a href="{{ url('/') }}"
+         class="font-display text-lg text-usm-orange uppercase tracking-widest hover:opacity-75 transition whitespace-nowrap">
+        {{ site_config.club_name|default('USM VOLLEY') }}
+      </a>
+
+      {# Desktop nav #}
+      <nav class="hidden md:flex items-center text-xs font-black uppercase tracking-widest">
+        <a href="{{ url('/') }}" class="text-white hover:text-usm-orange transition">Accueil</a>
+
+        {% for item in menu_items %}
+          <span class="nav-pipe">|</span>
+          {% if item.children|length %}
+            <div class="relative group">
+              <button class="text-white hover:text-usm-orange transition flex items-center gap-1">
+                {{ item.label }}<span class="text-[10px] ml-0.5">▾</span>
+              </button>
+              <div class="hidden group-hover:block absolute top-full left-0 z-50 bg-black border border-usm-orange min-w-[180px]">
+                {% for child in item.children %}
+                  <a href="{{ item_url(child) }}"
+                     class="block px-4 py-2 text-white hover:bg-usm-orange hover:text-black transition border-b border-usm-orange/20 last:border-0">
+                    {{ child.label }}
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <a href="{{ item_url(item) }}" class="text-white hover:text-usm-orange transition">{{ item.label }}</a>
+          {% endif %}
+        {% endfor %}
+
+        <span class="nav-pipe">|</span>
+        <a href="{{ url('blog') }}" class="text-white hover:text-usm-orange transition">Actualités</a>
+        <span class="nav-pipe">|</span>
+        <a href="{{ url('equipes') }}" class="text-white hover:text-usm-orange transition">Équipes</a>
+
+        {% if admin_logged_in %}
+          <span class="nav-pipe">|</span>
+          <a href="{{ url('admin') }}" class="text-usm-orange hover:opacity-75 transition">⚙ Admin</a>
+        {% endif %}
+      </nav>
+
+      {# Mobile burger #}
+      <button id="burger" class="md:hidden text-white hover:text-usm-orange transition" aria-label="Menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="square" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    {# Mobile menu #}
+    <div id="mobile-nav" class="hidden md:hidden border-t border-usm-orange/30 px-4 pb-4 pt-2 space-y-1">
+      <a href="{{ url('/') }}" class="block py-2 text-sm font-black uppercase text-white hover:text-usm-orange transition">Accueil</a>
+      {% for item in menu_items %}
+        <a href="{{ item_url(item) }}" class="block py-2 text-sm font-black uppercase text-white hover:text-usm-orange transition">{{ item.label }}</a>
+        {% if item.children|length %}
+          {% for child in item.children %}
+            <a href="{{ item_url(child) }}" class="block py-1.5 pl-4 text-xs text-white/60 hover:text-usm-orange transition">{{ child.label }}</a>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      <a href="{{ url('blog') }}" class="block py-2 text-sm font-black uppercase text-white hover:text-usm-orange transition">Actualités</a>
+      <a href="{{ url('equipes') }}" class="block py-2 text-sm font-black uppercase text-white hover:text-usm-orange transition">Équipes</a>
+      {% if admin_logged_in %}
+        <a href="{{ url('admin') }}" class="block py-2 text-sm font-black uppercase text-usm-orange transition">⚙ Admin</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {# ── Flash message ── #}
+  {% if flash %}
+    <div class="border-l-4 px-4 py-3 text-sm font-bold
+      {% if flash.type == 'success' %}border-green-400 bg-green-900/30 text-green-300
+      {% else %}border-red-400 bg-red-900/30 text-red-300{% endif %}">
+      {{ flash.message }}
+    </div>
+  {% endif %}
+
+  {# ── Content ── #}
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ── Footer ── #}
+  <footer class="bg-black border-t-2 border-usm-orange">
+    <div class="max-w-7xl mx-auto px-4 pt-10 pb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      {# Club #}
+      <div>
+        <h3 class="font-display text-xl text-usm-orange uppercase mb-4 pb-2 border-b border-usm-orange/30">
+          {{ site_config.club_name|default('USM Volley') }}
+        </h3>
+        {% if site_config.club_tagline %}
+          <p class="text-white/60 text-sm mb-3 leading-relaxed">{{ site_config.club_tagline }}</p>
+        {% endif %}
+        {% if site_config.address %}
+          <address class="not-italic text-white/50 text-xs leading-relaxed whitespace-pre-line">{{ site_config.address }}</address>
+        {% endif %}
+      </div>
+
+      {# Navigation #}
+      <div>
+        <h3 class="font-display text-xl text-white uppercase mb-4 pb-2 border-b border-usm-orange/30">Navigation</h3>
+        <ul class="space-y-2">
+          <li><a href="{{ url('/') }}" class="text-white/60 hover:text-usm-orange transition text-xs font-black uppercase tracking-wider">Accueil</a></li>
+          {% for item in menu_items %}
+            <li><a href="{{ item_url(item) }}" class="text-white/60 hover:text-usm-orange transition text-xs font-black uppercase tracking-wider">{{ item.label }}</a></li>
+          {% endfor %}
+          <li><a href="{{ url('blog') }}" class="text-white/60 hover:text-usm-orange transition text-xs font-black uppercase tracking-wider">Actualités</a></li>
+          <li><a href="{{ url('equipes') }}" class="text-white/60 hover:text-usm-orange transition text-xs font-black uppercase tracking-wider">Équipes</a></li>
+        </ul>
+      </div>
+
+      {# Contact #}
+      <div>
+        <h3 class="font-display text-xl text-white uppercase mb-4 pb-2 border-b border-usm-orange/30">Contact</h3>
+        <ul class="space-y-3 text-xs">
+          {% if site_config.address %}
+            <li class="text-white/50 leading-relaxed">{{ site_config.address }}</li>
+          {% endif %}
+          {% if site_config.phone %}
+            <li>
+              <span class="text-usm-orange font-black uppercase tracking-wider">Tél :</span>
+              <a href="tel:{{ site_config.phone|replace({' ': ''}) }}"
+                 class="text-white/60 hover:text-usm-orange transition ml-1">{{ site_config.phone }}</a>
+            </li>
+          {% endif %}
+          {% if site_config.email %}
+            <li>
+              <a href="mailto:{{ site_config.email }}"
+                 class="text-white/60 hover:text-usm-orange transition break-all">{{ site_config.email }}</a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      {# Social Links #}
+      <div>
+        <h3 class="font-display text-xl text-white uppercase mb-4 pb-2 border-b border-usm-orange/30">Social Links</h3>
+        <div class="flex gap-3">
+          {% if site_config.facebook_url %}
+            <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"
+               class="w-10 h-10 border border-usm-orange/50 flex items-center justify-center text-white hover:bg-usm-orange hover:text-black hover:border-usm-orange transition">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.36 2 1.88 6.48 1.88 12.07c0 5.02 3.66 9.18 8.46 9.93v-7.03H7.83v-2.9h2.51V9.83c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.25c-1.23 0-1.61.77-1.61 1.55v1.86h2.74l-.44 2.9h-2.3V22c4.8-.75 8.46-4.91 8.46-9.93z"/>
+              </svg>
+            </a>
+          {% endif %}
+          {% if site_config.instagram_url %}
+            <a href="{{ site_config.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"
+               class="w-10 h-10 border border-usm-orange/50 flex items-center justify-center text-white hover:bg-usm-orange hover:text-black hover:border-usm-orange transition">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.07.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.07.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.07-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.07-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.8c-3.15 0-3.5.01-4.74.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.83-.39.38-.63.75-.83 1.26-.15.39-.33.97-.38 2.04-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.05 1.07.23 1.65.38 2.04.2.51.44.88.83 1.26.38.39.75.63 1.26.83.39.15.97.33 2.04.38 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.83.39-.38.63-.75.83-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.83-1.26 3.4 3.4 0 0 0-1.26-.83c-.39-.15-.97-.33-2.04-.38-1.24-.06-1.59-.07-4.74-.07zm0 3.06A4.97 4.97 0 1 1 12 17a4.97 4.97 0 0 1 0-9.97zm0 1.8a3.17 3.17 0 1 0 0 6.34 3.17 3.17 0 0 0 0-6.34zm5.18-2.16a1.16 1.16 0 1 1 0 2.32 1.16 1.16 0 0 1 0-2.32z"/>
+              </svg>
+            </a>
+          {% endif %}
+          {% if not site_config.facebook_url and not site_config.instagram_url %}
+            <p class="text-white/30 text-xs italic">Aucun réseau configuré.</p>
+          {% endif %}
+        </div>
+        <p class="text-white/30 text-xs mt-6 leading-relaxed">
+          {{ site_config.club_name|default('USM Volley') }} © {{ "now"|date("Y") }}
+        </p>
+      </div>
+    </div>
+
+    {# Bottom bar #}
+    <div class="border-t border-usm-orange/20 px-4 py-2 max-w-7xl mx-auto flex justify-between items-center text-[11px] text-white/30">
+      {% if site_config.legal_text %}<span>{{ site_config.legal_text }}</span>{% else %}<span></span>{% endif %}
+      <a href="{{ admin_logged_in ? url('admin') : url('admin/login') }}"
+         class="hover:text-usm-orange transition">Admin</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('burger')?.addEventListener('click', () => {
+      document.getElementById('mobile-nav')?.classList.toggle('hidden');
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

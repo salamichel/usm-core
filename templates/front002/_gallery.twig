@@ -1,0 +1,23 @@
+{% macro gallery(photos) %}
+{% if photos|length %}
+<section class="mt-10">
+  <h2 class="font-display text-2xl text-white uppercase tracking-wider mb-5 flex items-center gap-4">
+    Galerie photos
+    <span class="flex-1 h-px bg-usm-orange/30"></span>
+  </h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1">
+    {% for photo in photos %}
+    <a href="{{ asset('uploads/' ~ photo.filename) }}"
+       class="glightbox block overflow-hidden group relative"
+       {% if photo.caption %}data-glightbox="description: {{ photo.caption }}"{% endif %}
+       data-gallery="gallery-{{ photo.entity_type }}-{{ photo.entity_id }}">
+      <img src="{{ asset('uploads/' ~ photo.filename) }}"
+           alt="{{ photo.caption ?? 'Photo' }}"
+           class="w-full h-44 object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-80">
+      <div class="absolute inset-0 border-2 border-transparent group-hover:border-usm-orange transition pointer-events-none"></div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endmacro %}

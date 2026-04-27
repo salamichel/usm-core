@@ -1,0 +1,103 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Configuration du site{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <h1 class="text-3xl font-black">Configuration du site</h1>
+</div>
+
+<p class="text-sm text-gray-600 mb-6">
+  Ces valeurs sont utilisées dans le footer du site (et plus tard sur la page contact).
+</p>
+
+<form method="POST" action="{{ url('admin/site-config') }}" class="space-y-6">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+  {# ── Identité ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Identité du club</h2>
+
+    <div>
+      <label class="block font-black mb-1" for="club_name">Nom du club</label>
+      <input type="text" id="club_name" name="club_name"
+             value="{{ config.club_name|default('') }}"
+             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+    </div>
+
+    <div>
+      <label class="block font-black mb-1" for="club_tagline">Phrase d'accroche</label>
+      <input type="text" id="club_tagline" name="club_tagline"
+             value="{{ config.club_tagline|default('') }}"
+             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      <div class="text-xs text-gray-500 mt-1">Affichée sous le nom du club dans le footer.</div>
+    </div>
+
+    <div>
+      <label class="block font-black mb-1" for="address">Adresse</label>
+      <textarea id="address" name="address" rows="3"
+                class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.address|default('') }}</textarea>
+      <div class="text-xs text-gray-500 mt-1">Une ligne par paragraphe (les retours à la ligne sont conservés).</div>
+    </div>
+  </div>
+
+  {# ── Contact ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Contact</h2>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-black mb-1" for="email">Email</label>
+        <input type="email" id="email" name="email"
+               value="{{ config.email|default('') }}"
+               placeholder="contact@usm-volley.fr"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      </div>
+      <div>
+        <label class="block font-black mb-1" for="phone">Téléphone (optionnel)</label>
+        <input type="text" id="phone" name="phone"
+               value="{{ config.phone|default('') }}"
+               placeholder="06 12 34 56 78"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      </div>
+    </div>
+  </div>
+
+  {# ── Réseaux ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Réseaux sociaux</h2>
+    <p class="text-xs text-gray-500">Laissez vide pour masquer l'icône dans le footer.</p>
+
+    <div>
+      <label class="block font-black mb-1" for="facebook_url">URL Facebook</label>
+      <input type="url" id="facebook_url" name="facebook_url"
+             value="{{ config.facebook_url|default('') }}"
+             placeholder="https://www.facebook.com/usmvolley"
+             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+    </div>
+
+    <div>
+      <label class="block font-black mb-1" for="instagram_url">URL Instagram</label>
+      <input type="url" id="instagram_url" name="instagram_url"
+             value="{{ config.instagram_url|default('') }}"
+             placeholder="https://www.instagram.com/usmvolley"
+             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+    </div>
+  </div>
+
+  {# ── Mentions légales ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Mentions légales</h2>
+
+    <div>
+      <label class="block font-black mb-1" for="legal_text">Texte (footer bas)</label>
+      <textarea id="legal_text" name="legal_text" rows="2"
+                class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.legal_text|default('') }}</textarea>
+    </div>
+  </div>
+
+  <button type="submit"
+          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    Enregistrer
+  </button>
+</form>
+{% endblock %}

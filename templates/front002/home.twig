@@ -1,0 +1,370 @@
+{% extends 'base.twig' %}
+
+{% block title %}{{ site_config.club_name|default('USM Volley') }} — Accueil{% endblock %}
+
+{% block content %}
+
+{# ══════════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════════ #}
+<section class="relative min-h-[88vh] flex items-end overflow-hidden">
+
+  {# Background image #}
+  {% if slides is defined and slides[0] is defined and slides[0].cover is defined %}
+    <div class="absolute inset-0">
+      <img src="{{ asset(slides[0].cover) }}"
+           alt="{{ slides[0].title }}"
+           class="w-full h-full object-cover object-top">
+      <div class="absolute inset-0" style="background: linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 55%, rgba(0,0,0,0.15) 100%);"></div>
+    </div>
+  {% else %}
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, #000 0%, #1a0800 60%, #F97316 100%); opacity:0.95;"></div>
+  {% endif %}
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 pb-16 pt-32 w-full">
+    <div class="max-w-2xl">
+      {% if site_config.club_tagline %}
+        <p class="text-usm-orange font-black uppercase tracking-[0.35em] text-xs mb-5">
+          {{ site_config.club_tagline }}
+        </p>
+      {% endif %}
+
+      <h1 class="font-display text-6xl sm:text-8xl text-white uppercase leading-[0.92] mb-3">
+        DOMINEZ<br>LE TERRAIN.
+      </h1>
+      <h2 class="font-display text-4xl sm:text-6xl text-usm-orange uppercase leading-[0.92] mb-10">
+        VIVEZ LE JEU.
+      </h2>
+
+      <div class="flex flex-wrap gap-3">
+        <a href="{{ url('equipes') }}"
+           class="inline-block bg-usm-red text-white font-display text-base uppercase tracking-widest px-8 py-4 hover:bg-red-800 transition">
+          INSCRIVEZ-VOUS MAINTENANT !
+        </a>
+        <a href="{{ url('blog') }}"
+           class="inline-block border border-white/40 text-white font-black text-xs uppercase tracking-widest px-6 py-4 hover:border-usm-orange hover:text-usm-orange transition">
+          Actualités →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ══════════════════════════════════════════════════════
+   INFO GRID — ROW 1 (3 cols)
+══════════════════════════════════════════════════════ #}
+<section class="grid grid-cols-1 md:grid-cols-3 border-t-2 border-usm-orange">
+
+  {# — Équipes & Résultats — #}
+  <div class="bg-black p-8 border-r border-usm-orange/20 flex flex-col">
+    <div class="flex items-start justify-between mb-4">
+      <h3 class="font-display text-2xl text-white uppercase leading-tight">
+        ÉQUIPES &<br>RÉSULTATS
+      </h3>
+      <svg class="w-8 h-8 text-usm-orange flex-shrink-0 ml-2" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/>
+        <path d="M12 3c-1.5 3-1.5 15 0 18M12 3c1.5 3 1.5 15 0 18M3 12c3-1.5 15-1.5 18 0"/>
+      </svg>
+    </div>
+    <p class="text-white/50 text-sm leading-relaxed mb-6">Forgez votre passion, rejoignez la meute.</p>
+    {% if stats is defined and stats.teams is defined %}
+      <p class="font-display text-4xl text-usm-orange mb-1">{{ stats.teams }}</p>
+      <p class="text-white/40 text-xs uppercase tracking-wider font-bold mb-6">Équipes actives</p>
+    {% endif %}
+    <a href="{{ url('equipes') }}"
+       class="mt-auto inline-block border border-usm-orange text-usm-orange text-xs font-black uppercase tracking-widest px-4 py-2 hover:bg-usm-orange hover:text-black transition">
+      Voir les équipes →
+    </a>
+  </div>
+
+  {# — Entraînements — #}
+  <div class="bg-usm-orange p-8 border-r border-orange-400/40 flex flex-col">
+    <h3 class="font-display text-2xl text-black uppercase leading-tight mb-1">ENTRAÎNEMENTS</h3>
+    <p class="text-black/50 text-[11px] font-black uppercase tracking-wider mb-5">Prochaines sessions</p>
+
+    {% if trainings is defined and trainings|length %}
+      <ul class="space-y-3 flex-1">
+        {% for t in trainings|slice(0, 4) %}
+          <li class="flex items-start gap-2 text-sm text-black border-b border-black/10 pb-3 last:border-0 last:pb-0">
+            <span class="text-black/30 font-black mt-0.5 flex-shrink-0">•</span>
+            <div>
+              <span class="font-black">{{ t.title }}</span>
+              {% if t.date_display %}
+                <span class="text-black/60"> — {{ t.date_display }}</span>
+              {% endif %}
+              {% if t.time_display %}
+                <span class="text-black/60"> à {{ t.time_display }}</span>
+              {% endif %}
+              {% if t.location %}
+                <br><span class="text-black/40 text-xs">{{ t.location }}</span>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-black/50 text-sm italic flex-1">Aucun entraînement à venir.</p>
+    {% endif %}
+  </div>
+
+  {# — Actualités — #}
+  <div class="bg-black p-8 flex flex-col">
+    <div class="flex items-start justify-between mb-4">
+      <h3 class="font-display text-2xl text-white uppercase leading-tight">ACTUALITÉS</h3>
+      <svg class="w-8 h-8 text-usm-orange flex-shrink-0 ml-2" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="16" rx="0"/>
+        <path d="M3 9h18M8 4v5M16 4v5"/>
+      </svg>
+    </div>
+
+    {% if latest_posts is defined and latest_posts|length %}
+      <ul class="space-y-3 flex-1">
+        {% for post in latest_posts|slice(0, 3) %}
+          <li class="border-b border-white/10 pb-3 last:border-0 last:pb-0">
+            <a href="{{ url('blog/' ~ post.slug) }}"
+               class="text-sm text-white font-black hover:text-usm-orange transition block uppercase leading-tight">
+              {{ post.title }}
+            </a>
+            {% if post.published_at is defined %}
+              <time class="text-white/30 text-[11px] uppercase tracking-wider font-bold">{{ post.published_at|date_fr }}</time>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-white/30 text-sm italic flex-1">Aucune actualité.</p>
+    {% endif %}
+
+    <a href="{{ url('blog') }}"
+       class="mt-4 inline-block text-usm-orange text-xs font-black uppercase tracking-widest hover:text-orange-400 transition">
+      Toutes les actus →
+    </a>
+  </div>
+
+</section>
+
+{# ══════════════════════════════════════════════════════
+   INFO GRID — ROW 2 (2 cols : matchs + stats)
+══════════════════════════════════════════════════════ #}
+<section class="grid grid-cols-1 md:grid-cols-2 border-t border-usm-orange/20">
+
+  {# — Prochains matchs — #}
+  <div class="bg-usm-orange p-8 border-r border-orange-400/40 flex flex-col">
+    <h3 class="font-display text-2xl text-black uppercase leading-tight mb-1">ÉQUIPES & RÉSULTATS</h3>
+    {% if stats is defined and stats.season_label is defined %}
+      <p class="text-black/50 text-[11px] font-black uppercase tracking-wider mb-5">Saison {{ stats.season_label }}</p>
+    {% else %}
+      <p class="text-black/50 text-[11px] font-black uppercase tracking-wider mb-5">Saison en cours</p>
+    {% endif %}
+
+    {% if matches is defined and matches|length %}
+      <ul class="space-y-3 flex-1">
+        {% for m in matches|slice(0, 5) %}
+          <li class="flex items-start gap-3 text-sm text-black border-b border-black/10 pb-3 last:border-0 last:pb-0">
+            {% if m.is_soon is defined and m.is_soon %}
+              <span class="flex-shrink-0 w-2 h-2 rounded-full bg-red-700 mt-1.5"></span>
+            {% else %}
+              <span class="flex-shrink-0 text-black/30 font-black mt-0.5">•</span>
+            {% endif %}
+            <div>
+              <span class="font-black">{{ m.title }}</span>
+              {% if m.date_display %}
+                <span class="text-black/60"> — {{ m.date_display }}</span>
+              {% endif %}
+              {% if m.time_display %}
+                <span class="text-black/60"> à {{ m.time_display }}</span>
+              {% endif %}
+              {% if m.location %}
+                <br><span class="text-black/40 text-xs">{{ m.location }}</span>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-black/50 text-sm italic flex-1">Aucun match à venir.</p>
+    {% endif %}
+  </div>
+
+  {# — Stats club — #}
+  <div class="bg-usm-red p-8 flex flex-col justify-between">
+    <div>
+      <h3 class="font-display text-2xl text-white uppercase leading-tight mb-1">ENTRAÎNEMENTS</h3>
+      <p class="text-white/50 text-[11px] font-black uppercase tracking-wider mb-5">Calendrier complet</p>
+
+      {% if trainings is defined and trainings|length > 4 %}
+        <ul class="space-y-3">
+          {% for t in trainings|slice(4, 4) %}
+            <li class="flex items-start gap-2 text-sm text-white/80 border-b border-white/10 pb-3 last:border-0 last:pb-0">
+              <span class="text-white/30 font-black mt-0.5 flex-shrink-0">•</span>
+              <span>
+                <span class="font-black">{{ t.title }}</span>
+                {% if t.date_display %} — {{ t.date_display }}{% endif %}
+                {% if t.time_display %} à {{ t.time_display }}{% endif %}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    {% if stats is defined %}
+      <div class="grid grid-cols-2 gap-6 mt-6 pt-6 border-t border-white/20">
+        {% if stats.licencies is defined %}
+          <div class="text-center">
+            <div class="font-display text-5xl text-white">{{ stats.licencies }}</div>
+            <div class="text-white/50 text-[11px] uppercase tracking-wider font-black mt-1">Licenciés</div>
+          </div>
+        {% endif %}
+        {% if stats.teams is defined %}
+          <div class="text-center">
+            <div class="font-display text-5xl text-white">{{ stats.teams }}</div>
+            <div class="text-white/50 text-[11px] uppercase tracking-wider font-black mt-1">Équipes</div>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{# ══════════════════════════════════════════════════════
+   BLOCS ÉDITORIAUX (home_blocks)
+══════════════════════════════════════════════════════ #}
+{% if home_blocks is defined and home_blocks|length %}
+  {% for block in home_blocks %}
+    <section class="border-t border-usm-orange/20 grid grid-cols-1 {% if block.image is defined and block.image %}md:grid-cols-2{% endif %}
+      {% if loop.index is even %}bg-zinc-950{% else %}bg-black{% endif %}">
+
+      {% if block.image is defined and block.image %}
+        <div class="relative overflow-hidden min-h-[320px] {% if loop.index is even %}md:order-last{% endif %}">
+          <img src="{{ asset(block.image) }}" alt="{{ block.title }}"
+               class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/20"></div>
+        </div>
+      {% endif %}
+
+      <div class="p-10 lg:p-14 flex flex-col justify-center">
+        {% if block.label is defined and block.label %}
+          <p class="text-usm-orange text-[11px] font-black uppercase tracking-[0.35em] mb-4">{{ block.label }}</p>
+        {% endif %}
+        <h3 class="font-display text-3xl md:text-4xl text-white uppercase leading-tight mb-4">
+          {{ block.title }}
+        </h3>
+        {% if block.content is defined and block.content %}
+          <p class="text-white/60 text-sm leading-relaxed mb-6">{{ block.content }}</p>
+        {% endif %}
+        {% if block.link_url is defined and block.link_url %}
+          <div>
+            <a href="{{ block.link_url }}"
+               class="inline-block bg-usm-orange text-black font-black uppercase tracking-widest text-xs px-7 py-3 hover:bg-orange-400 transition">
+              {{ block.link_label is defined and block.link_label ? block.link_label : 'En savoir plus' }}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% endfor %}
+{% endif %}
+
+{# ══════════════════════════════════════════════════════
+   ACTUALITÉS ROW (dark + orange cards)
+══════════════════════════════════════════════════════ #}
+{% if latest_posts is defined and latest_posts|length %}
+<section class="border-t border-usm-orange/20 grid grid-cols-1 md:grid-cols-3">
+
+  {# Label column #}
+  <div class="bg-black p-8 border-r border-usm-orange/20 flex flex-col justify-between">
+    <div>
+      <h3 class="font-display text-3xl text-white uppercase leading-tight mb-4">ACTUALITÉS</h3>
+      <p class="text-white/40 text-sm leading-relaxed">
+        {{ site_config.club_tagline|default('Suivez toutes les nouvelles du club : matchs, résultats, événements.') }}
+      </p>
+    </div>
+    <a href="{{ url('blog') }}"
+       class="mt-8 inline-block bg-usm-orange text-black font-black uppercase tracking-widest text-xs px-6 py-3 hover:bg-orange-400 transition self-start">
+      Voir toutes les actus →
+    </a>
+  </div>
+
+  {# Articles grid (2 cols) #}
+  <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2">
+    {% set card_styles = [
+      'bg-usm-orange text-black',
+      'bg-usm-red text-white',
+      'bg-zinc-900 text-white'
+    ] %}
+    {% set link_styles = [
+      'text-black/80 hover:text-black',
+      'text-white/80 hover:text-white',
+      'text-usm-orange hover:text-orange-400'
+    ] %}
+
+    {% for post in latest_posts %}
+      {% set si = loop.index0 % 3 %}
+      <div class="{{ card_styles[si] }} p-6 border-b border-r border-black/20">
+        {% if post.published_at is defined %}
+          <time class="text-[11px] font-black uppercase tracking-wider opacity-50 block mb-2">
+            {{ post.published_at|date_fr }}
+          </time>
+        {% endif %}
+        <h4 class="font-display text-xl uppercase leading-tight mb-3">{{ post.title }}</h4>
+        {% if post.excerpt %}
+          <p class="text-sm leading-relaxed opacity-70 mb-4">{{ post.excerpt|slice(0, 100) }}…</p>
+        {% endif %}
+        <a href="{{ url('blog/' ~ post.slug) }}"
+           class="text-xs font-black uppercase tracking-widest {{ link_styles[si] }} transition underline hover:no-underline">
+          Lire la suite →
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ══════════════════════════════════════════════════════
+   CTA — REJOIGNEZ-NOUS
+══════════════════════════════════════════════════════ #}
+<section class="bg-black border-t-2 border-usm-orange py-16 text-center">
+  <a href="{{ url('equipes') }}"
+     class="inline-block bg-usm-orange text-black font-display text-2xl sm:text-3xl uppercase tracking-widest px-10 py-5 hover:bg-orange-400 transition">
+    REJOIGNEZ-NOUS !
+  </a>
+</section>
+
+{# ══════════════════════════════════════════════════════
+   DERNIERS RÉSULTATS
+══════════════════════════════════════════════════════ #}
+{% if matches is defined and matches|length %}
+<section class="bg-zinc-950 border-t border-usm-orange/20 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <h2 class="font-display text-xl text-white uppercase tracking-[0.25em] mb-5 flex items-center gap-4">
+      DERNIERS RÉSULTATS
+      <span class="flex-1 h-px bg-usm-orange/25"></span>
+    </h2>
+
+    <div class="flex flex-wrap gap-3">
+      {% for m in matches|slice(0, 6) %}
+        <div class="border border-usm-orange/40 bg-black px-5 py-3 min-w-[160px] flex-1 max-w-[260px]">
+          {% if m.date_display %}
+            <p class="text-usm-orange text-[11px] font-black uppercase tracking-wider mb-1">
+              {{ m.date_display }}{% if m.time_display %} · {{ m.time_display }}{% endif %}
+            </p>
+          {% endif %}
+          <p class="font-display text-base text-white uppercase leading-tight">{{ m.title }}</p>
+          {% if m.location %}
+            <p class="text-white/30 text-xs mt-1 truncate">{{ m.location }}</p>
+          {% endif %}
+          {% if m.is_soon is defined and m.is_soon %}
+            <span class="inline-block mt-2 text-[10px] font-black uppercase tracking-wider text-usm-orange border border-usm-orange/40 px-2 py-0.5">Bientôt</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

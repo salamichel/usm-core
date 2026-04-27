@@ -1,0 +1,76 @@
+{% extends 'base.twig' %}
+{% block title %}Nos équipes{% if saison is defined and saison %} — {{ saison.libelle }}{% endif %} — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block content %}
+
+{# Page header #}
+<div class="border-b-2 border-usm-orange bg-zinc-950">
+  <div class="max-w-7xl mx-auto px-4 py-10 flex items-end justify-between flex-wrap gap-4">
+    <div>
+      <p class="text-usm-orange text-[11px] font-black uppercase tracking-[0.35em] mb-2">Club</p>
+      <h1 class="font-display text-5xl text-white uppercase">NOS ÉQUIPES</h1>
+    </div>
+    {% if saison is defined and saison %}
+      <span class="border border-usm-orange/40 text-usm-orange font-black uppercase text-xs tracking-widest px-4 py-2">
+        Saison {{ saison.libelle }}
+      </span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  {% if grouped is defined and grouped|length %}
+    {% for cat, equipes in grouped %}
+    <section class="mb-14">
+      <h2 class="font-display text-3xl text-white uppercase mb-6 flex items-center gap-4">
+        {{ cat }}
+        <span class="flex-1 h-px bg-usm-orange/20"></span>
+      </h2>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-px bg-usm-orange/10">
+        {% for eq in equipes %}
+          <a href="{{ url('equipes/' ~ eq.id) }}"
+             class="bg-black group block overflow-hidden hover:bg-zinc-950 transition">
+            {% if eq.cover is defined and eq.cover %}
+              <div class="relative overflow-hidden">
+                <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
+                     alt="{{ eq.libelle }}"
+                     class="w-full h-44 object-cover transition duration-300 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                <div class="absolute inset-0 border-2 border-transparent group-hover:border-usm-orange transition pointer-events-none"></div>
+              </div>
+            {% else %}
+              <div class="w-full h-44 bg-zinc-900 flex items-center justify-center group-hover:bg-zinc-800 transition relative">
+                <svg class="w-12 h-12 text-usm-orange/30" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/>
+                  <path d="M12 3c-1.5 3-1.5 15 0 18M12 3c1.5 3 1.5 15 0 18M3 12c3-1.5 15-1.5 18 0"/>
+                </svg>
+                <div class="absolute inset-0 border-2 border-transparent group-hover:border-usm-orange transition pointer-events-none"></div>
+              </div>
+            {% endif %}
+            <div class="p-4">
+              <h3 class="font-display text-base text-white uppercase leading-tight group-hover:text-usm-orange transition">
+                {{ eq.libelle }}
+              </h3>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  {% else %}
+    <div class="border border-usm-orange/20 bg-zinc-950 p-12 text-center">
+      <svg class="w-16 h-16 text-usm-orange/20 mx-auto mb-4" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/>
+        <path d="M12 3c-1.5 3-1.5 15 0 18M12 3c1.5 3 1.5 15 0 18M3 12c3-1.5 15-1.5 18 0"/>
+      </svg>
+      <p class="font-display text-3xl text-white/30 uppercase mb-2">Aucune équipe disponible</p>
+      <p class="text-white/30 text-sm">Les équipes apparaissent après le flashage d'une saison active.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

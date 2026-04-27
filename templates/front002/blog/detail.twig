@@ -1,0 +1,64 @@
+{% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
+{% block title %}{{ post.title }} — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block head %}
+{% if photos is defined and photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# Page header #}
+<div class="border-b-2 border-usm-orange bg-zinc-950">
+  <div class="max-w-4xl mx-auto px-4 py-10">
+    <nav class="text-xs text-white/40 font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+      <a href="{{ url('/') }}" class="hover:text-usm-orange transition">Accueil</a>
+      <span class="text-usm-orange/40">›</span>
+      <a href="{{ url('blog') }}" class="hover:text-usm-orange transition">Actualités</a>
+      <span class="text-usm-orange/40">›</span>
+      <span class="text-white/60">{{ post.title }}</span>
+    </nav>
+    {% if post.published_at is defined %}
+      <time class="text-usm-orange text-[11px] font-black uppercase tracking-widest block mb-3">
+        {{ post.published_at|date_fr }}
+      </time>
+    {% endif %}
+    <h1 class="font-display text-4xl sm:text-5xl text-white uppercase leading-tight">{{ post.title }}</h1>
+  </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+  <div class="bg-zinc-950 border border-usm-orange/20 p-8 sm:p-10">
+
+    {# Article content #}
+    <div class="prose prose-invert prose-sm max-w-none
+                prose-headings:font-display prose-headings:uppercase prose-headings:text-white
+                prose-a:text-usm-orange prose-strong:text-white
+                prose-p:text-white/70 prose-p:leading-relaxed">
+      {{ post.content|raw }}
+    </div>
+
+    {# Gallery #}
+    {% if photos is defined %}
+      {{ components.gallery(photos) }}
+    {% endif %}
+  </div>
+
+  <div class="mt-6">
+    <a href="{{ url('blog') }}"
+       class="inline-block border border-usm-orange/40 text-usm-orange text-xs font-black uppercase tracking-widest px-5 py-3 hover:bg-usm-orange hover:text-black transition">
+      ← Retour aux actualités
+    </a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if photos is defined and photos|length %}
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.twig' %}
+{% block title %}Actualités — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block content %}
+
+{# Page header #}
+<div class="border-b-2 border-usm-orange bg-zinc-950">
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    <p class="text-usm-orange text-[11px] font-black uppercase tracking-[0.35em] mb-2">Club</p>
+    <h1 class="font-display text-5xl text-white uppercase">ACTUALITÉS</h1>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  {% if posts|length %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-usm-orange/10">
+      {% for post in posts %}
+        {% set i = loop.index0 % 3 %}
+        <article class="bg-black p-6 flex flex-col hover:bg-zinc-950 transition group">
+
+          {% if post.published_at is defined %}
+            <time class="text-usm-orange text-[11px] font-black uppercase tracking-wider mb-3 block">
+              {{ post.published_at|date_fr }}
+            </time>
+          {% endif %}
+
+          <h2 class="font-display text-2xl text-white uppercase leading-tight mb-3 group-hover:text-usm-orange transition">
+            <a href="{{ url('blog/' ~ post.slug) }}">{{ post.title }}</a>
+          </h2>
+
+          {% if post.excerpt %}
+            <p class="text-white/50 text-sm leading-relaxed flex-1 mb-5">{{ post.excerpt }}</p>
+          {% else %}
+            <div class="flex-1"></div>
+          {% endif %}
+
+          <a href="{{ url('blog/' ~ post.slug) }}"
+             class="self-start text-xs font-black uppercase tracking-widest text-usm-orange border border-usm-orange/40 px-4 py-2 hover:bg-usm-orange hover:text-black transition mt-2">
+            Lire la suite →
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="border border-usm-orange/20 bg-zinc-950 p-12 text-center">
+      <p class="font-display text-3xl text-white/30 uppercase mb-2">Aucune actualité</p>
+      <p class="text-white/30 text-sm">Les articles seront publiés prochainement.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

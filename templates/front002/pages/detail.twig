@@ -1,0 +1,42 @@
+{% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
+{% block title %}{{ page.title }} — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block head %}
+{% if photos is defined and photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# Page header #}
+<div class="border-b-2 border-usm-orange bg-zinc-950">
+  <div class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="font-display text-5xl text-white uppercase">{{ page.title }}</h1>
+  </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+  <div class="bg-zinc-950 border border-usm-orange/20 p-8 sm:p-10">
+    <div class="prose prose-invert prose-sm max-w-none
+                prose-headings:font-display prose-headings:uppercase prose-headings:text-white
+                prose-a:text-usm-orange prose-strong:text-white
+                prose-p:text-white/70 prose-p:leading-relaxed">
+      {{ page.content|raw }}
+    </div>
+
+    {% if photos is defined %}
+      {{ components.gallery(photos) }}
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{% if photos is defined and photos|length %}
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });</script>
+{% endif %}
+{% endblock %}

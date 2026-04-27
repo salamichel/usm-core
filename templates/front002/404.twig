@@ -1,0 +1,18 @@
+{% extends 'base.twig' %}
+{% block title %}404 — Page introuvable{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+  <div class="text-center max-w-lg">
+    <div class="font-display text-[10rem] text-usm-orange leading-none select-none">404</div>
+    <h1 class="font-display text-3xl text-white uppercase mb-4 -mt-4">Page introuvable</h1>
+    <p class="text-white/50 text-sm leading-relaxed mb-8">
+      La page que vous recherchez n'existe pas ou a été déplacée.
+    </p>
+    <a href="{{ url('/') }}"
+       class="inline-block bg-usm-orange text-black font-black uppercase tracking-widest text-sm px-8 py-4 hover:bg-orange-400 transition">
+      Retour à l'accueil
+    </a>
+  </div>
+</div>
+{% endblock %}

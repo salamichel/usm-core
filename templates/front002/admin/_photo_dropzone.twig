@@ -1,0 +1,124 @@
+{#
+  Dropzone photo réutilisable.
+  Variables attendues :
+    - entity_id    : int (post ou page id, 0 si création)
+    - upload_url   : string (url de l'endpoint upload)
+    - photos       : array (photos existantes)
+    - entity_type  : 'post' | 'page'
+#}
+<div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+  <h2 class="font-black text-lg mb-4">Galerie photos</h2>
+
+  {% if entity_id == 0 %}
+    <p class="text-sm text-gray-500 italic border-2 border-dashed border-gray-300 p-4 text-center">
+      Enregistrez d'abord l'article/la page pour pouvoir ajouter des photos.
+    </p>
+  {% else %}
+
+    {# ── Zone Dropzone ── #}
+    <div id="photo-dropzone"
+         class="dropzone border-4 border-dashed border-black bg-amber-50 rounded-none cursor-pointer
+                min-h-[140px] flex items-center justify-center mb-5
+                hover:bg-amber-100 transition-colors">
+      <div class="dz-message text-center text-gray-600 font-semibold pointer-events-none">
+        <div class="text-4xl mb-2">📸</div>
+        <div class="text-base font-black">Glissez vos photos ici</div>
+        <div class="text-sm font-normal mt-1">ou cliquez pour sélectionner</div>
+        <div class="text-xs text-gray-400 mt-1">JPG · PNG · WebP · GIF — max 10 Mo</div>
+      </div>
+    </div>
+
+    {# ── Photos existantes ── #}
+    <div id="existing-photos" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+      {% for photo in photos %}
+      <div class="photo-thumb relative border-2 border-black overflow-hidden group" data-id="{{ photo.id }}">
+        <img src="{{ asset('uploads/' ~ photo.filename) }}"
+             alt=""
+             class="w-full h-28 object-cover">
+        <button type="button"
+                data-delete-url="{{ url('admin/' ~ entity_type ~ 's/' ~ entity_id ~ '/photos/' ~ photo.id ~ '/delete-xhr') }}"
+                class="delete-photo absolute inset-0 flex items-center justify-center
+                       opacity-0 group-hover:opacity-100 transition bg-black/60
+                       text-white font-black text-sm border-0 cursor-pointer w-full">
+          ✕ Supprimer
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% endif %}
+</div>
+
+{% if entity_id != 0 %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+<script>
+Dropzone.autoDiscover = false;
+
+const dz = new Dropzone('#photo-dropzone', {
+  url:              '{{ upload_url }}',
+  paramName:        'file',
+  params:           { '_csrf_token': '{{ csrf_token }}' },
+  acceptedFiles:    'image/jpeg,image/png,image/webp,image/gif',
+  maxFilesize:      10,
+  parallelUploads:  3,
+  uploadMultiple:   false,
+  addRemoveLinks:   false,
+  previewTemplate:  '<div style="display:none"></div>',
+  clickable:        true,
+  dictDefaultMessage: '',
+
+  init() {
+    this.on('success', (file, resp) => {
+      if (!resp.ok) { alert(resp.error || 'Erreur upload'); return; }
+      addThumb(resp.id, resp.url, resp.deleteUrl);
+      this.removeFile(file);
+    });
+    this.on('error', (file, msg) => {
+      const txt = typeof msg === 'string' ? msg : (msg.error || 'Erreur inconnue');
+      alert('Erreur : ' + txt);
+      this.removeFile(file);
+    });
+  }
+});
+
+function addThumb(id, url, deleteUrl) {
+  const wrap = document.createElement('div');
+  wrap.className = 'photo-thumb relative border-2 border-black overflow-hidden group';
+  wrap.dataset.id = id;
+  wrap.innerHTML = `
+    <img src="${url}" alt="" class="w-full h-28 object-cover">
+    <button type="button"
+            data-delete-url="${deleteUrl}"
+            class="delete-photo absolute inset-0 flex items-center justify-center
+                   opacity-0 group-hover:opacity-100 transition bg-black/60
+                   text-white font-black text-sm border-0 cursor-pointer w-full">
+      ✕ Supprimer
+    </button>`;
+  document.getElementById('existing-photos').appendChild(wrap);
+  bindDelete(wrap.querySelector('.delete-photo'));
+}
+
+function bindDelete(btn) {
+  btn.addEventListener('click', async () => {
+    if (!confirm('Supprimer cette photo ?')) return;
+    const url = btn.dataset.deleteUrl;
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: '_csrf_token=' + encodeURIComponent('{{ csrf_token }}')
+      });
+      if (r.ok) {
+        btn.closest('.photo-thumb').remove();
+      } else {
+        alert('Impossible de supprimer la photo.');
+      }
+    } catch { alert('Erreur réseau.'); }
+  });
+}
+
+// Bind les boutons supprimer des photos existantes
+document.querySelectorAll('.delete-photo').forEach(bindDelete);
+</script>
+{% endif %}

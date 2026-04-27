@@ -1,0 +1,88 @@
+{% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
+{% block title %}{{ equipe.libelle }}{% if saison is defined and saison %} — {{ saison.libelle }}{% endif %} — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block head %}
+{% if photos is defined and photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# Hero équipe #}
+<div class="border-b-2 border-usm-orange bg-zinc-950">
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    <nav class="text-xs text-white/40 font-black uppercase tracking-wider mb-4 flex items-center gap-2">
+      <a href="{{ url('/') }}" class="hover:text-usm-orange transition">Accueil</a>
+      <span class="text-usm-orange/40">›</span>
+      <a href="{{ url('equipes') }}" class="hover:text-usm-orange transition">Équipes</a>
+      <span class="text-usm-orange/40">›</span>
+      <span class="text-white/60">{{ equipe.libelle }}</span>
+    </nav>
+
+    <div class="flex items-end flex-wrap gap-4">
+      <h1 class="font-display text-5xl text-white uppercase">{{ equipe.libelle }}</h1>
+      {% if equipe.categorie is defined %}
+        <span class="border border-usm-orange text-usm-orange font-black uppercase text-xs tracking-widest px-3 py-1 mb-1">
+          {{ equipe.categorie }}
+        </span>
+      {% endif %}
+      {% if saison is defined and saison %}
+        <span class="text-white/30 text-sm font-bold uppercase tracking-wider mb-1">{{ saison.libelle }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  {# Gallery #}
+  {% if photos is defined %}
+    {{ components.gallery(photos) }}
+  {% endif %}
+
+  {# Joueurs #}
+  {% if joueurs is defined and joueurs|length %}
+    <section class="mt-12">
+      <h2 class="font-display text-3xl text-white uppercase mb-6 flex items-center gap-4">
+        Joueurs
+        <span class="flex-1 h-px bg-usm-orange/20"></span>
+        <span class="font-display text-xl text-usm-orange/50">{{ joueurs|length }}</span>
+      </h2>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-px bg-usm-orange/10">
+        {% for j in joueurs %}
+          <div class="bg-black p-4 hover:bg-zinc-950 transition group">
+            <div class="w-10 h-10 bg-usm-orange/10 border border-usm-orange/20 flex items-center justify-center mb-3 group-hover:border-usm-orange transition">
+              <span class="font-display text-xl text-usm-orange/50 group-hover:text-usm-orange transition">
+                {{ j.prenom|slice(0,1) }}{{ j.nom|slice(0,1) }}
+              </span>
+            </div>
+            <p class="font-black text-sm text-white uppercase leading-tight">{{ j.prenom }} {{ j.nom }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% else %}
+    <div class="mt-12 border border-usm-orange/20 bg-zinc-950 p-8 text-center">
+      <p class="font-display text-2xl text-white/30 uppercase">Aucun joueur enregistré</p>
+    </div>
+  {% endif %}
+
+  <div class="mt-8">
+    <a href="{{ url('equipes') }}"
+       class="inline-block border border-usm-orange/40 text-usm-orange text-xs font-black uppercase tracking-widest px-5 py-3 hover:bg-usm-orange hover:text-black transition">
+      ← Retour aux équipes
+    </a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if photos is defined and photos|length %}
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox' });</script>
+{% endif %}
+{% endblock %}
