@@ -2,9 +2,9 @@
 -- Adds optional meta_description field to both posts and pages tables
 
 ALTER TABLE posts
-ADD COLUMN meta_description VARCHAR(160) NULL
+ADD COLUMN IF NOT EXISTS meta_description VARCHAR(160) NULL
 AFTER excerpt;
 
 ALTER TABLE pages
-ADD COLUMN meta_description VARCHAR(160) NULL
+ADD COLUMN IF NOT EXISTS meta_description VARCHAR(160) NULL
 AFTER content;
