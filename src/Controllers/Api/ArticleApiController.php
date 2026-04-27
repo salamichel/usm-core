@@ -41,7 +41,7 @@ class ArticleApiController
         }
 
         try {
-            $canalblogId = $data['canalblog_id'];
+            $canalblogId = trim((string)$data['canalblog_id']);
             $existingPost = Post::findByCanalblogId($canalblogId);
 
             if ($existingPost) {
@@ -53,16 +53,17 @@ class ArticleApiController
                 return;
             }
 
-            $slug = $data['slug'] ?? $data['title'];
+            $title = trim((string)$data['title']);
+            $slug = trim((string)($data['slug'] ?? $title));
             $coverImage = $data['cover_image'] ?? null;
 
             $postData = [
-                'title'        => $data['title'],
+                'title'        => $title,
                 'slug'         => $slug,
                 'excerpt'      => null,
                 'content'      => $data['content'],
                 'is_published' => 1,
-                'published_at' => $data['published_at'],
+                'published_at' => trim((string)$data['published_at']),
                 'canalblog_id' => $canalblogId,
             ];
 
