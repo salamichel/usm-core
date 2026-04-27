@@ -42,26 +42,10 @@ services:
         condition: service_healthy
     environment:
       MYSQL_PWD: ${DB_PASS}
-    command: >
-      sh -c "
-        echo '→ schema.sql' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/schema.sql &&
-        echo '→ seed.sql (INSERT IGNORE)' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/seed.sql &&
-        echo '→ add_photos.sql' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/add_photos.sql &&
-        echo '→ migrations/001_saisons.sql' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/migrations/001_saisons.sql &&
-        echo '→ migrations/002_equipes_config.sql' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/migrations/002_equipes_config.sql &&
-        echo '→ migrations/003_home_blocks.sql' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/migrations/003_home_blocks.sql &&
-        echo '→ migrations/004_site_config.sql' &&
-        mariadb -h db -u ${DB_USER} ${DB_NAME} < /sql/migrations/004_site_config.sql &&
-        echo '✓ Migrations base locale terminées'
-      "
+    command: sh /scripts/migrate.sh db ${DB_USER} ${DB_NAME}
     volumes:
       - ./database:/sql:ro
+      - ./docker:/scripts:ro
     restart: "no"
 
   # ── Base externe simulée ────────────────────────────────────────────────────
@@ -91,16 +75,10 @@ services:
         condition: service_healthy
     environment:
       MYSQL_PWD: ${EXT_DB_PASS}
-    command: >
-      sh -c "
-        echo '→ external_schema.sql' &&
-        mariadb -h db_external -u ${EXT_DB_USER} ${EXT_DB_NAME} < /sql/external_schema.sql &&
-        echo '→ external_seed.sql' &&
-        mariadb -h db_external -u ${EXT_DB_USER} ${EXT_DB_NAME} < /sql/external_seed.sql &&
-        echo '✓ Base externe prête'
-      "
+    command: sh /scripts/migrate_external.sh db_external ${EXT_DB_USER} ${EXT_DB_NAME}
     volumes:
       - ./database:/sql:ro
+      - ./docker:/scripts:ro
     restart: "no"
 
   phpmyadmin:
