@@ -60,6 +60,7 @@ class PostController extends AdminCrudController
         }
 
         $tags = Tag::findByPost($entity['id']);
+        $tagIds = array_map(fn($tag) => $tag['id'], $tags);
         $allTags = Tag::all();
 
         \App\Core\View::render($this->getFormTemplate(), [
@@ -67,6 +68,7 @@ class PostController extends AdminCrudController
             'photos'        => \App\Models\Photo::forEntity($this->entityType, $entity['id']),
             'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $entity['id'] . '/edit',
             'tags'          => $tags,
+            'tag_ids'       => $tagIds,
             'all_tags'      => $allTags,
         ]);
     }

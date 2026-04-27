@@ -71,7 +71,7 @@
         {% for tag in all_tags %}
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" name="tags[]" value="{{ tag.id }}"
-                 {% if tags|map(attribute='id')|index(tag.id) is not null %}checked{% endif %}
+                 {% if tag.id in tag_ids %}checked{% endif %}
                  class="w-4 h-4 border-2 border-black">
           <span class="text-sm">{{ tag.name }}</span>
         </label>
