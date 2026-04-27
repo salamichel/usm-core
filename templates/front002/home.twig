@@ -7,7 +7,7 @@
 {# ══════════════════════════════════════════════════════
    HERO
 ══════════════════════════════════════════════════════ #}
-<section class="relative min-h-[88vh] flex items-end overflow-hidden">
+<section class="relative min-h-[60vh] flex items-end overflow-hidden">
 
   {# Background image #}
   {% if slides is defined and slides[0] is defined and slides[0].cover is defined %}
@@ -21,18 +21,18 @@
     <div class="absolute inset-0" style="background: linear-gradient(135deg, #000 0%, #1a0800 60%, #F97316 100%); opacity:0.95;"></div>
   {% endif %}
 
-  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 pb-16 pt-32 w-full">
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 pb-10 pt-20 w-full">
     <div class="max-w-2xl">
       {% if site_config.club_tagline %}
-        <p class="text-usm-orange font-black uppercase tracking-[0.35em] text-xs mb-5">
+        <p class="text-usm-orange font-black uppercase tracking-[0.35em] text-xs mb-3">
           {{ site_config.club_tagline }}
         </p>
       {% endif %}
 
-      <h1 class="font-display text-6xl sm:text-8xl text-white uppercase leading-[0.92] mb-3">
+      <h1 class="font-display text-5xl sm:text-7xl text-white uppercase leading-[0.92] mb-2">
         DOMINEZ<br>LE TERRAIN.
       </h1>
-      <h2 class="font-display text-4xl sm:text-6xl text-usm-orange uppercase leading-[0.92] mb-10">
+      <h2 class="font-display text-3xl sm:text-5xl text-usm-orange uppercase leading-[0.92] mb-7">
         VIVEZ LE JEU.
       </h2>
 
@@ -56,7 +56,7 @@
 <section class="grid grid-cols-1 md:grid-cols-3 border-t-2 border-usm-orange">
 
   {# — Équipes & Résultats — #}
-  <div class="bg-black p-8 border-r border-usm-orange/20 flex flex-col">
+  <div class="bg-black p-5 border-r border-usm-orange/20 flex flex-col">
     <div class="flex items-start justify-between mb-4">
       <h3 class="font-display text-2xl text-white uppercase leading-tight">
         ÉQUIPES &<br>RÉSULTATS
@@ -79,7 +79,7 @@
   </div>
 
   {# — Entraînements — #}
-  <div class="bg-usm-orange p-8 border-r border-orange-400/40 flex flex-col">
+  <div class="bg-usm-orange p-5 border-r border-orange-400/40 flex flex-col">
     <h3 class="font-display text-2xl text-black uppercase leading-tight mb-1">ENTRAÎNEMENTS</h3>
     <p class="text-black/50 text-[11px] font-black uppercase tracking-wider mb-5">Prochaines sessions</p>
 
@@ -109,7 +109,7 @@
   </div>
 
   {# — Actualités — #}
-  <div class="bg-black p-8 flex flex-col">
+  <div class="bg-black p-5 flex flex-col">
     <div class="flex items-start justify-between mb-4">
       <h3 class="font-display text-2xl text-white uppercase leading-tight">ACTUALITÉS</h3>
       <svg class="w-8 h-8 text-usm-orange flex-shrink-0 ml-2" viewBox="0 0 24 24" fill="none"
@@ -151,7 +151,7 @@
 <section class="grid grid-cols-1 md:grid-cols-2 border-t border-usm-orange/20">
 
   {# — Prochains matchs — #}
-  <div class="bg-usm-orange p-8 border-r border-orange-400/40 flex flex-col">
+  <div class="bg-usm-orange p-5 border-r border-orange-400/40 flex flex-col">
     <h3 class="font-display text-2xl text-black uppercase leading-tight mb-1">ÉQUIPES & RÉSULTATS</h3>
     {% if stats is defined and stats.season_label is defined %}
       <p class="text-black/50 text-[11px] font-black uppercase tracking-wider mb-5">Saison {{ stats.season_label }}</p>
@@ -189,7 +189,7 @@
   </div>
 
   {# — Stats club — #}
-  <div class="bg-usm-red p-8 flex flex-col justify-between">
+  <div class="bg-usm-red p-5 flex flex-col justify-between">
     <div>
       <h3 class="font-display text-2xl text-white uppercase leading-tight mb-1">ENTRAÎNEMENTS</h3>
       <p class="text-white/50 text-[11px] font-black uppercase tracking-wider mb-5">Calendrier complet</p>
@@ -238,14 +238,14 @@
       {% if loop.index is even %}bg-zinc-950{% else %}bg-black{% endif %}">
 
       {% if block.image is defined and block.image %}
-        <div class="relative overflow-hidden min-h-[320px] {% if loop.index is even %}md:order-last{% endif %}">
+        <div class="relative overflow-hidden min-h-[220px] {% if loop.index is even %}md:order-last{% endif %}">
           <img src="{{ asset(block.image) }}" alt="{{ block.title }}"
                class="absolute inset-0 w-full h-full object-cover">
           <div class="absolute inset-0 bg-black/20"></div>
         </div>
       {% endif %}
 
-      <div class="p-10 lg:p-14 flex flex-col justify-center">
+      <div class="p-6 lg:p-8 flex flex-col justify-center">
         {% if block.label is defined and block.label %}
           <p class="text-usm-orange text-[11px] font-black uppercase tracking-[0.35em] mb-4">{{ block.label }}</p>
         {% endif %}
@@ -275,9 +275,9 @@
 <section class="border-t border-usm-orange/20 grid grid-cols-1 md:grid-cols-3">
 
   {# Label column #}
-  <div class="bg-black p-8 border-r border-usm-orange/20 flex flex-col justify-between">
+  <div class="bg-black p-5 border-r border-usm-orange/20 flex flex-col justify-between">
     <div>
-      <h3 class="font-display text-3xl text-white uppercase leading-tight mb-4">ACTUALITÉS</h3>
+      <h3 class="font-display text-2xl text-white uppercase leading-tight mb-3">ACTUALITÉS</h3>
       <p class="text-white/40 text-sm leading-relaxed">
         {{ site_config.club_tagline|default('Suivez toutes les nouvelles du club : matchs, résultats, événements.') }}
       </p>
@@ -303,7 +303,7 @@
 
     {% for post in latest_posts %}
       {% set si = loop.index0 % 3 %}
-      <div class="{{ card_styles[si] }} p-6 border-b border-r border-black/20">
+      <div class="{{ card_styles[si] }} p-5 border-b border-r border-black/20">
         {% if post.published_at is defined %}
           <time class="text-[11px] font-black uppercase tracking-wider opacity-50 block mb-2">
             {{ post.published_at|date_fr }}
@@ -326,9 +326,9 @@
 {# ══════════════════════════════════════════════════════
    CTA — REJOIGNEZ-NOUS
 ══════════════════════════════════════════════════════ #}
-<section class="bg-black border-t-2 border-usm-orange py-16 text-center">
+<section class="bg-black border-t-2 border-usm-orange py-10 text-center">
   <a href="{{ url('equipes') }}"
-     class="inline-block bg-usm-orange text-black font-display text-2xl sm:text-3xl uppercase tracking-widest px-10 py-5 hover:bg-orange-400 transition">
+     class="inline-block bg-usm-orange text-black font-display text-xl sm:text-2xl uppercase tracking-widest px-8 py-4 hover:bg-orange-400 transition">
     REJOIGNEZ-NOUS !
   </a>
 </section>
