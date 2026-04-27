@@ -15,6 +15,13 @@
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
 
+    {% if post and post.canalblog_id %}
+    <div class="bg-blue-50 border-2 border-blue-300 p-3 rounded">
+      <div class="text-xs text-blue-600 font-bold mb-1">Importé via API CanalBlog</div>
+      <div class="font-mono text-sm text-blue-900">ID: {{ post.canalblog_id }}</div>
+    </div>
+    {% endif %}
+
     <div>
       <label class="block font-black mb-1" for="title">Titre *</label>
       <input type="text" id="title" name="title" required

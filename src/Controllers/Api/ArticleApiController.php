@@ -6,6 +6,7 @@ namespace App\Controllers\Api;
 use App\Models\Post;
 use App\Models\Photo;
 use App\Services\Validator;
+use App\Services\SlugManager;
 
 class ArticleApiController
 {
@@ -54,7 +55,8 @@ class ArticleApiController
             }
 
             $title = trim((string)$data['title']);
-            $slug = trim((string)($data['slug'] ?? $title));
+            $slugInput = trim((string)($data['slug'] ?? $title));
+            $slug = SlugManager::generate($slugInput);
             $coverImage = $data['cover_image'] ?? null;
 
             $postData = [
