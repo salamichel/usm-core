@@ -87,6 +87,39 @@
     Enregistrer
   </button>
 </form>
+
+{# ── Modal pour les suggestions d'amélioration ── #}
+<div id="improve-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white border-4 border-black shadow-[8px_8px_0_#000] max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+    <div class="bg-gradient-to-r from-yellow-300 to-yellow-200 border-b-4 border-black p-6">
+      <h2 class="text-2xl font-black text-black">✨ Version améliorée</h2>
+      <p class="text-sm text-gray-700 mt-1">Proposée par notre IA magique 🎩</p>
+    </div>
+
+    <div class="p-8">
+      <div id="improved-text-display" class="prose prose-sm max-w-none mb-8 p-6 bg-amber-50 border-2 border-dashed border-usm-brown rounded-lg">
+        <!-- Le texte amélioré s'affichera ici -->
+      </div>
+
+      <div class="bg-yellow-50 border-2 border-yellow-300 p-4 rounded mb-6 text-sm">
+        <p class="text-gray-700">
+          <span class="font-bold">💡 Conseil :</span> Le texte proposé a été amélioré pour plus de clarté, d'engagement et de style. N'hésite pas à le personnaliser davantage si besoin !
+        </p>
+      </div>
+    </div>
+
+    <div class="border-t-4 border-black bg-gray-50 p-6 flex gap-3">
+      <button id="modal-cancel-btn" type="button"
+              class="flex-1 border-2 border-black bg-white text-black font-bold px-6 py-3 hover:bg-gray-200 transition-all">
+        ← Refuser
+      </button>
+      <button id="modal-accept-btn" type="button"
+              class="flex-1 border-4 border-black bg-green-400 text-black font-black px-6 py-3 shadow-[3px_3px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+        ✓ Accepter & remplacer
+      </button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -111,6 +144,8 @@
   });
 
   // Improve content button handler
+  let pendingImprovedText = null;
+
   document.getElementById('improve-content-btn')?.addEventListener('click', async function(e) {
     e.preventDefault();
 
@@ -123,7 +158,7 @@
     const btn = this;
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = '⏳ Génération...';
+    btn.textContent = '⏳ Génération en cours...';
 
     try {
       const response = await fetch('{{ url("admin/api/improve-content") }}', {
@@ -135,18 +170,52 @@
       const data = await response.json();
 
       if (data.success) {
-        const confirmed = confirm('Voici la version améliorée :\n\n' + data.improved_text.substring(0, 200) + '...\n\nRemplacer le contenu ?');
-        if (confirmed) {
-          quill.setContents(quill.clipboard.convert(data.improved_text));
-        }
+        pendingImprovedText = data.improved_text;
+        showImproveModal(data.improved_text);
       } else {
-        alert('Erreur : ' + (data.error || 'Impossible de générer'));
+        alert('❌ Oups ! ' + (data.error || 'Impossible de générer une amélioration'));
       }
     } catch (error) {
-      alert('Erreur réseau : ' + error.message);
+      alert('🔌 Erreur réseau : ' + error.message);
     } finally {
       btn.disabled = false;
       btn.textContent = originalText;
+    }
+  });
+
+  function showImproveModal(text) {
+    const modal = document.getElementById('improve-modal');
+    const display = document.getElementById('improved-text-display');
+
+    // Format le texte avec des paragraphes et du styling
+    const formatted = text
+      .split('\n\n')
+      .filter(p => p.trim())
+      .map(p => '<p class="mb-4 leading-relaxed">' + p.trim() + '</p>')
+      .join('');
+
+    display.innerHTML = formatted;
+    modal.classList.remove('hidden');
+  }
+
+  function hideImproveModal() {
+    document.getElementById('improve-modal').classList.add('hidden');
+    pendingImprovedText = null;
+  }
+
+  document.getElementById('modal-cancel-btn')?.addEventListener('click', hideImproveModal);
+
+  document.getElementById('modal-accept-btn')?.addEventListener('click', function() {
+    if (pendingImprovedText) {
+      quill.setContents(quill.clipboard.convert(pendingImprovedText));
+      hideImproveModal();
+    }
+  });
+
+  // Fermer la modal au clic en dehors
+  document.getElementById('improve-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+      hideImproveModal();
     }
   });
 </script>
