@@ -102,19 +102,29 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {% set tiles = [
         {value: stats.licencies,      label: 'Licenciés',       suffix: ''},
-        {value: stats.equipes,        label: 'Équipes',         suffix: ''},
+        {value: stats.equipes,        label: 'Équipes',         suffix: '', url: url('equipes')},
         {value: stats.matchs_a_venir, label: 'Matchs à venir',  suffix: ''},
         {value: stats.saison,         label: 'Saison en cours', suffix: '', is_text: true}
       ] %}
       {% for tile in tiles %}
-      <div class="border-4 border-black bg-white text-gray-900 p-5 shadow-[6px_6px_0_#000] text-center">
+      {% set tile_content %}
         {% if tile.is_text %}
           <div class="text-2xl sm:text-3xl font-black truncate">{{ tile.value }}</div>
         {% else %}
           <div class="text-4xl sm:text-5xl font-black stat-counter" data-target="{{ tile.value }}">0</div>
         {% endif %}
         <div class="font-semibold text-xs sm:text-sm mt-2 text-gray-600 uppercase tracking-wider">{{ tile.label }}</div>
+      {% endset %}
+      {% if tile.url is defined and tile.url %}
+      <a href="{{ tile.url }}"
+         class="block border-4 border-black bg-white text-gray-900 p-5 shadow-[6px_6px_0_#000] text-center hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+        {{ tile_content }}
+      </a>
+      {% else %}
+      <div class="border-4 border-black bg-white text-gray-900 p-5 shadow-[6px_6px_0_#000] text-center">
+        {{ tile_content }}
       </div>
+      {% endif %}
       {% endfor %}
     </div>
   </div>
