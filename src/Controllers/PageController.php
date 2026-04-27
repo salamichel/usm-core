@@ -20,8 +20,9 @@ class PageController
             return;
         }
         View::render('pages/detail.twig', [
-            'page'   => $page,
-            'photos' => Photo::forEntity('page', $page['id']),
+            'page'               => $page,
+            'photos'             => Photo::forEntity('page', $page['id']),
+            'meta_description'   => $page['meta_description'] ?? null,
         ]);
     }
 

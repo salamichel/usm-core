@@ -25,8 +25,9 @@ class BlogController
             return;
         }
         View::render('blog/detail.twig', [
-            'post'   => $post,
-            'photos' => Photo::forEntity('post', $post['id']),
+            'post'               => $post,
+            'photos'             => Photo::forEntity('post', $post['id']),
+            'meta_description'   => $post['meta_description'] ?? null,
         ]);
     }
 }

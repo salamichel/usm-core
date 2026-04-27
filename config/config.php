@@ -31,6 +31,11 @@ if (getenv('BASE_URL')) {
 define('THEME',     getenv('THEME') ?: 'front001');
 define('APP_DEBUG', (bool)(getenv('APP_DEBUG') ?: true));
 
+// ── AI/Gemini API ──────────────────────────────────────────────────────────────
+// Set GEMINI_API_KEY environment variable for AI content generation features
+putenv('GEMINI_API_KEY=' . (getenv('GEMINI_API_KEY') ?: ''));
+define('GEMINI_MODEL', getenv('GEMINI_MODEL') ?: 'gemini-1.5-flash');
+
 // ── Upload ────────────────────────────────────────────────────────────────────
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');
 define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024); // 10 MB

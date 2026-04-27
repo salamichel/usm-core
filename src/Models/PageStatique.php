@@ -5,6 +5,7 @@ namespace App\Models;
 
 use App\Core\Database;
 use App\Services\SlugManager;
+use App\Services\AIContentService;
 
 class PageStatique
 {
@@ -40,15 +41,26 @@ class PageStatique
     {
         $db   = Database::get();
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages');
+
+        // Generate meta_description via AI if empty
+        $metaDescription = $data['meta_description'] ?? null;
+        if (empty($metaDescription) && !empty($data['content'])) {
+            $generated = AIContentService::generateMetaDescription($data['title'], $data['content']);
+            if ($generated) {
+                $metaDescription = $generated;
+            }
+        }
+
         $stmt = $db->prepare(
-            "INSERT INTO pages (title, slug, content, is_published)
-             VALUES (:title, :slug, :content, :is_published)"
+            "INSERT INTO pages (title, slug, content, meta_description, is_published)
+             VALUES (:title, :slug, :content, :meta_description, :is_published)"
         );
         $stmt->execute([
-            ':title'        => $data['title'],
-            ':slug'         => $slug,
-            ':content'      => $data['content'] ?? '',
-            ':is_published' => (int)($data['is_published'] ?? 0),
+            ':title'            => $data['title'],
+            ':slug'             => $slug,
+            ':content'          => $data['content'] ?? '',
+            ':meta_description' => $metaDescription,
+            ':is_published'     => (int)($data['is_published'] ?? 0),
         ]);
         return (int)$db->lastInsertId();
     }
@@ -56,15 +68,26 @@ class PageStatique
     public static function update(int $id, array $data): void
     {
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages', 'id', $id);
+
+        // Generate meta_description via AI if empty
+        $metaDescription = $data['meta_description'] ?? null;
+        if (empty($metaDescription) && !empty($data['content'])) {
+            $generated = AIContentService::generateMetaDescription($data['title'], $data['content']);
+            if ($generated) {
+                $metaDescription = $generated;
+            }
+        }
+
         Database::get()->prepare(
             "UPDATE pages SET title=:title, slug=:slug, content=:content,
-             is_published=:is_published, updated_at=NOW() WHERE id=:id"
+             meta_description=:meta_description, is_published=:is_published, updated_at=NOW() WHERE id=:id"
         )->execute([
-            ':title'        => $data['title'],
-            ':slug'         => $slug,
-            ':content'      => $data['content'] ?? '',
-            ':is_published' => (int)($data['is_published'] ?? 0),
-            ':id'           => $id,
+            ':title'            => $data['title'],
+            ':slug'             => $slug,
+            ':content'          => $data['content'] ?? '',
+            ':meta_description' => $metaDescription,
+            ':is_published'     => (int)($data['is_published'] ?? 0),
+            ':id'               => $id,
         ]);
     }
 

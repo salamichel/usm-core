@@ -53,12 +53,13 @@ class PostController extends AdminCrudController
     {
         $title = trim($_POST['title'] ?? '');
         return [
-            'title'        => $title,
-            'slug'         => SlugManager::generate(trim($_POST['slug'] ?? '') ?: $title),
-            'excerpt'      => trim($_POST['excerpt'] ?? ''),
-            'content'      => $_POST['content'] ?? '',
-            'is_published' => isset($_POST['is_published']) ? 1 : 0,
-            'published_at' => trim($_POST['published_at'] ?? '') ?: null,
+            'title'               => $title,
+            'slug'                => SlugManager::generate(trim($_POST['slug'] ?? '') ?: $title),
+            'excerpt'             => trim($_POST['excerpt'] ?? ''),
+            'meta_description'    => trim($_POST['meta_description'] ?? ''),
+            'content'             => $_POST['content'] ?? '',
+            'is_published'        => isset($_POST['is_published']) ? 1 : 0,
+            'published_at'        => trim($_POST['published_at'] ?? '') ?: null,
         ];
     }
 }
