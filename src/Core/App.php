@@ -9,6 +9,7 @@ use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
+use App\Controllers\Admin\TagController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\EquipeConfigController;
 use App\Controllers\Admin\HomeBlockController;
@@ -72,6 +73,14 @@ class App
 
         // ── Admin dashboard ───────────────────────────────────────────────────
         $r->get('/admin',         [DashboardController::class, 'index']);
+
+        // ── Admin tags ─────────────────────────────────────────────────────
+        $r->get('/admin/tags',             [TagController::class, 'index']);
+        $r->get('/admin/tags/create',      [TagController::class, 'create']);
+        $r->post('/admin/tags/create',     [TagController::class, 'store']);
+        $r->get('/admin/tags/{id}/edit',   [TagController::class, 'edit']);
+        $r->post('/admin/tags/{id}/edit',  [TagController::class, 'update']);
+        $r->post('/admin/tags/{id}/delete',[TagController::class, 'delete']);
 
         // ── Admin posts ───────────────────────────────────────────────────────
         $r->get('/admin/posts',             [PostController::class, 'index']);

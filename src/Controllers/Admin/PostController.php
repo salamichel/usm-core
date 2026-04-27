@@ -77,14 +77,14 @@ class PostController extends AdminCrudController
     {
         \App\Core\Auth::require();
         $allTags = Tag::all();
-        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         \App\Core\View::render($this->getFormTemplate(), [
-            $this->itemName => ['published_at' => $now->format('Y-m-d\TH:i')],
+            $this->itemName => null,
             'photos'        => [],
             'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
             'tags'          => [],
             'tag_ids'       => [],
             'all_tags'      => $allTags,
+            'default_date'  => (new \DateTime('now', new \DateTimeZone('Europe/Paris')))->format('Y-m-d\TH:i'),
         ]);
     }
 
