@@ -77,11 +77,13 @@ class PostController extends AdminCrudController
     {
         \App\Core\Auth::require();
         $allTags = Tag::all();
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         \App\Core\View::render($this->getFormTemplate(), [
-            $this->itemName => null,
+            $this->itemName => ['published_at' => $now->format('Y-m-d\TH:i')],
             'photos'        => [],
             'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
             'tags'          => [],
+            'tag_ids'       => [],
             'all_tags'      => $allTags,
         ]);
     }
@@ -99,6 +101,7 @@ class PostController extends AdminCrudController
                 'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
                 'error'         => 'Le titre est obligatoire.',
                 'tags'          => [],
+                'tag_ids'       => [],
                 'all_tags'      => $allTags,
             ]);
             return;
@@ -128,6 +131,7 @@ class PostController extends AdminCrudController
 
         if (empty($data['title'])) {
             $tags = Tag::findByPost($id);
+            $tagIds = array_map(fn($tag) => $tag['id'], $tags);
             $allTags = Tag::all();
             \App\Core\View::render($this->getFormTemplate(), [
                 $this->itemName => array_merge($entity, $data),
@@ -135,6 +139,7 @@ class PostController extends AdminCrudController
                 'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit',
                 'error'         => 'Le titre est obligatoire.',
                 'tags'          => $tags,
+                'tag_ids'       => $tagIds,
                 'all_tags'      => $allTags,
             ]);
             return;

@@ -64,9 +64,9 @@
       </div>
     </div>
 
-    {% if all_tags|length %}
     <div>
       <label class="block font-black mb-3">Tags</label>
+      {% if all_tags|length %}
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {% for tag in all_tags %}
         <label class="flex items-center gap-2 cursor-pointer">
@@ -77,8 +77,12 @@
         </label>
         {% endfor %}
       </div>
+      {% else %}
+      <div class="bg-amber-50 border-2 border-amber-300 p-3 rounded text-sm text-amber-800">
+        <strong>Aucun tag disponible.</strong> Les tags seront créés automatiquement lors de l'import d'articles CanalBlog ou peuvent être ajoutés via l'API.
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
   {# ── Galerie photos (Dropzone) ── #}
