@@ -5,78 +5,45 @@
 <div class="max-w-5xl mx-auto px-4 py-10">
   <h1 class="text-3xl font-black mb-6 border-b-4 border-black pb-3">Actualités</h1>
 
-  {# ── Filtres ── #}
+  {# ── Barre de filtres ── #}
   {% if all_tags|length or months|length %}
-  <div class="mb-8 space-y-4">
+  <form method="GET" action="{{ url('blog') }}"
+        class="mb-8 flex flex-wrap items-center gap-2 p-3 border-2 border-gray-200 bg-gray-50 rounded">
 
-    {# Tags #}
     {% if all_tags|length %}
-    <div class="p-4 bg-gray-50 border-2 border-gray-200 rounded">
-      <div class="text-xs font-black text-gray-500 uppercase mb-3">Par catégorie</div>
-      <div class="flex flex-wrap gap-2">
-        <a href="{{ url('blog') ~ (selected_month ? '?month=' ~ selected_month : '') }}"
-           class="px-3 py-1.5 text-sm font-semibold rounded border transition
-                  {{ not selected_tag ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300 hover:border-black' }}">
-          Tous
-        </a>
-        {% for tag in all_tags %}
+    <select name="tag" onchange="this.form.submit()"
+            class="border-2 border-black bg-white px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-black">
+      <option value="">Toutes catégories</option>
+      {% for tag in all_tags %}
         {% set count = tag_counts[tag.id] ?? 0 %}
         {% if count > 0 %}
-          {% set href = url('blog/tag/' ~ tag.slug) ~ (selected_month ? '?month=' ~ selected_month : '') %}
-          <a href="{{ href }}"
-             class="px-3 py-1.5 text-sm font-semibold rounded border transition
-                    {{ selected_tag and selected_tag.id == tag.id ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300 hover:border-black' }}">
-            {{ tag.name }} <span class="opacity-60 text-xs">({{ count }})</span>
-          </a>
+          <option value="{{ tag.slug }}" {{ selected_tag and selected_tag.id == tag.id ? 'selected' : '' }}>
+            {{ tag.name }} ({{ count }})
+          </option>
         {% endif %}
-        {% endfor %}
-      </div>
-    </div>
+      {% endfor %}
+    </select>
     {% endif %}
 
-    {# Mois #}
     {% if months|length %}
-    <div class="p-4 bg-gray-50 border-2 border-gray-200 rounded">
-      <div class="text-xs font-black text-gray-500 uppercase mb-3">Par mois</div>
-      <div class="flex flex-wrap gap-2">
-        {% set tag_qs = selected_tag ? (selected_tag.slug ? '/tag/' ~ selected_tag.slug : '') : '' %}
-        <a href="{{ url('blog' ~ tag_qs) }}"
-           class="px-3 py-1.5 text-sm font-semibold rounded border transition
-                  {{ not selected_month ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300 hover:border-black' }}">
-          Tous
-        </a>
-        {% for month in months %}
-          {% set href = url('blog' ~ tag_qs) ~ '?month=' ~ month %}
-          <a href="{{ href }}"
-             class="px-3 py-1.5 text-sm font-semibold rounded border transition
-                    {{ selected_month == month ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300 hover:border-black' }}">
-            {{ month|month_fr }}
-          </a>
-        {% endfor %}
-      </div>
-    </div>
+    <select name="month" onchange="this.form.submit()"
+            class="border-2 border-black bg-white px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-black">
+      <option value="">Tous les mois</option>
+      {% for month in months %}
+        <option value="{{ month }}" {{ selected_month == month ? 'selected' : '' }}>{{ month|month_fr }}</option>
+      {% endfor %}
+    </select>
     {% endif %}
 
-  </div>
-  {% endif %}
+    <noscript>
+      <button type="submit" class="border-2 border-black bg-black text-white px-3 py-1.5 text-sm font-bold">Filtrer</button>
+    </noscript>
 
-  {# ── Résumé des filtres actifs ── #}
-  {% if selected_tag or selected_month %}
-  <div class="flex flex-wrap items-center gap-2 mb-6 text-sm">
-    <span class="text-gray-500">Filtres actifs :</span>
-    {% if selected_tag %}
-      <span class="bg-black text-white px-3 py-1 rounded font-semibold">
-        {{ selected_tag.name }}
-        <a href="{{ url('blog') ~ (selected_month ? '?month=' ~ selected_month : '') }}" class="ml-2 hover:text-gray-300">×</a>
-      </span>
+    {% if selected_tag or selected_month %}
+      <a href="{{ url('blog') }}"
+         class="ml-auto text-sm font-bold text-gray-700 underline hover:no-underline">Réinitialiser</a>
     {% endif %}
-    {% if selected_month %}
-      <span class="bg-black text-white px-3 py-1 rounded font-semibold">
-        {{ selected_month|month_fr }}
-        <a href="{{ url('blog' ~ (selected_tag ? '/tag/' ~ selected_tag.slug : '')) }}" class="ml-2 hover:text-gray-300">×</a>
-      </span>
-    {% endif %}
-  </div>
+  </form>
   {% endif %}
 
   {# ── Articles ── #}
