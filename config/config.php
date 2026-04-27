@@ -31,9 +31,9 @@ if (getenv('BASE_URL')) {
 define('THEME',     getenv('THEME') ?: 'front001');
 define('APP_DEBUG', (bool)(getenv('APP_DEBUG') ?: true));
 
-// ── AI/Claude API ──────────────────────────────────────────────────────────────
-// Set ANTHROPIC_API_KEY environment variable for AI content generation features
-putenv('ANTHROPIC_API_KEY=' . (getenv('ANTHROPIC_API_KEY') ?: ''));
+// ── AI/Gemini API ──────────────────────────────────────────────────────────────
+// Set GEMINI_API_KEY environment variable for AI content generation features
+putenv('GEMINI_API_KEY=' . (getenv('GEMINI_API_KEY') ?: ''));
 
 // ── Upload ────────────────────────────────────────────────────────────────────
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');

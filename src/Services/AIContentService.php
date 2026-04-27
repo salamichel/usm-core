@@ -3,45 +3,41 @@ namespace App\Services;
 
 class AIContentService
 {
-    private const API_URL = 'https://api.anthropic.com/v1/messages';
-    private const MODEL = 'claude-opus-4-7';
+    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     private const TIMEOUT = 10;
 
     private static function getApiKey(): ?string
     {
-        return $_ENV['ANTHROPIC_API_KEY'] ?? null;
+        return $_ENV['GEMINI_API_KEY'] ?? null;
     }
 
     private static function callApi(string $userMessage): ?string
     {
         $apiKey = self::getApiKey();
         if (!$apiKey) {
-            error_log('AIContentService: ANTHROPIC_API_KEY not set');
+            error_log('AIContentService: GEMINI_API_KEY not set');
             return null;
         }
 
         $payload = json_encode([
-            'model' => self::MODEL,
-            'max_tokens' => 500,
-            'messages' => [
+            'contents' => [
                 [
-                    'role' => 'user',
-                    'content' => $userMessage,
+                    'parts' => [
+                        ['text' => $userMessage],
+                    ],
                 ],
             ],
         ]);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => self::API_URL,
+            CURLOPT_URL => self::API_URL . '?key=' . urlencode($apiKey),
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => self::TIMEOUT,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $payload,
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
-                'x-api-key: ' . $apiKey,
-                'anthropic-version: 2023-06-01',
             ],
         ]);
 
@@ -61,12 +57,12 @@ class AIContentService
         }
 
         $data = json_decode($response, true);
-        if (!isset($data['content'][0]['text'])) {
+        if (!isset($data['candidates'][0]['content']['parts'][0]['text'])) {
             error_log("AIContentService: Unexpected API response structure");
             return null;
         }
 
-        return trim($data['content'][0]['text']);
+        return trim($data['candidates'][0]['content']['parts'][0]['text']);
     }
 
     /**
@@ -148,3 +144,4 @@ class AIContentService
         return self::callApi($message);
     }
 }
+
