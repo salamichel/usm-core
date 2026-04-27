@@ -34,10 +34,26 @@
       <label class="block font-black mb-1" for="excerpt">Extrait</label>
       <textarea id="excerpt" name="excerpt" rows="3"
                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ post.excerpt ?? '' }}</textarea>
+      <p class="text-xs text-gray-600 mt-1">Laissez vide pour générer automatiquement via IA</p>
     </div>
 
     <div>
-      <label class="block font-black mb-1" for="content">Contenu</label>
+      <label class="block font-black mb-1" for="meta_description">Description SEO (méta)</label>
+      <input type="text" id="meta_description" name="meta_description" maxlength="160"
+             value="{{ post.meta_description ?? '' }}"
+             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown"
+             placeholder="Max. 160 caractères">
+      <p class="text-xs text-gray-600 mt-1">Laissez vide pour générer automatiquement via IA</p>
+    </div>
+
+    <div>
+      <div class="flex justify-between items-center mb-2">
+        <label class="block font-black" for="content">Contenu</label>
+        <button type="button" id="improve-content-btn"
+                class="border-2 border-black bg-yellow-300 text-black font-bold px-4 py-1 text-sm hover:bg-yellow-200 transition-all">
+          ✨ Améliorer le contenu
+        </button>
+      </div>
       <div id="editor" class="border-2 border-black min-h-[300px]">{{ post and post.content ? post.content|raw : '' }}</div>
       <input type="hidden" id="content" name="content" value="{{ post.content ?? '' }}">
     </div>
@@ -89,8 +105,49 @@
       ]
     }
   });
+
   document.querySelector('form').addEventListener('submit', () => {
     document.getElementById('content').value = quill.root.innerHTML;
+  });
+
+  // Improve content button handler
+  document.getElementById('improve-content-btn')?.addEventListener('click', async function(e) {
+    e.preventDefault();
+
+    const text = quill.getText();
+    if (!text.trim()) {
+      alert('Veuillez remplir le contenu avant de demander une amélioration');
+      return;
+    }
+
+    const btn = this;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Génération...';
+
+    try {
+      const response = await fetch('{{ url("admin/api/improve-content") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'text=' + encodeURIComponent(text)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const confirmed = confirm('Voici la version améliorée :\n\n' + data.improved_text.substring(0, 200) + '...\n\nRemplacer le contenu ?');
+        if (confirmed) {
+          quill.setContents(quill.clipboard.convert(data.improved_text));
+        }
+      } else {
+        alert('Erreur : ' + (data.error || 'Impossible de générer'));
+      }
+    } catch (error) {
+      alert('Erreur réseau : ' + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 </script>
 {% endblock %}

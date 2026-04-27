@@ -7,6 +7,7 @@ use App\Controllers\HomeController;
 use App\Controllers\BlogController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
+use App\Controllers\Admin\AdminApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\EquipeConfigController;
@@ -32,8 +33,8 @@ class App
         $method = $_SERVER['REQUEST_METHOD'];
         $uri    = $_SERVER['REQUEST_URI'];
 
-        // Validate CSRF token on POST requests (except login)
-        if ($method === 'POST' && !$this->isLoginRoute($uri) && !CsrfToken::validateFromPost()) {
+        // Validate CSRF token on POST requests (except login and API routes)
+        if ($method === 'POST' && !$this->isLoginRoute($uri) && !$this->isApiRoute($uri) && !CsrfToken::validateFromPost()) {
             http_response_code(403);
             View::render('error.twig', ['error' => 'Token CSRF invalide.']);
             return;
@@ -46,6 +47,12 @@ class App
     {
         $path = parse_url($uri, PHP_URL_PATH);
         return str_ends_with($path, '/admin/login');
+    }
+
+    private function isApiRoute(string $uri): bool
+    {
+        $path = parse_url($uri, PHP_URL_PATH);
+        return str_contains($path, '/admin/api/');
     }
 
     private function registerRoutes(): void
@@ -136,6 +143,9 @@ class App
         $r->post('/admin/home-blocks/{id}/delete',    [HomeBlockController::class, 'delete']);
         $r->post('/admin/home-blocks/{id}/move-up',   [HomeBlockController::class, 'moveUp']);
         $r->post('/admin/home-blocks/{id}/move-down', [HomeBlockController::class, 'moveDown']);
+
+        // ── Admin API (AI content) ────────────────────────────────────────────
+        $r->post('/admin/api/improve-content', [AdminApiController::class, 'improveContent']);
 
         // ── Admin photos (posts) ──────────────────────────────────────────────
         $r->post('/admin/posts/{id}/photos/upload',           [PostController::class, 'uploadPhoto']);

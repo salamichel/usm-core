@@ -53,10 +53,11 @@ class PageAdminController extends AdminCrudController
     {
         $title = trim($_POST['title'] ?? '');
         return [
-            'title'        => $title,
-            'slug'         => SlugManager::generate(trim($_POST['slug'] ?? '') ?: $title),
-            'content'      => $_POST['content'] ?? '',
-            'is_published' => isset($_POST['is_published']) ? 1 : 0,
+            'title'            => $title,
+            'slug'             => SlugManager::generate(trim($_POST['slug'] ?? '') ?: $title),
+            'meta_description' => trim($_POST['meta_description'] ?? ''),
+            'content'          => $_POST['content'] ?? '',
+            'is_published'     => isset($_POST['is_published']) ? 1 : 0,
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 
 use App\Core\Database;
 use App\Services\SlugManager;
+use App\Services\AIContentService;
 
 class Post
 {
@@ -45,17 +46,37 @@ class Post
     {
         $db   = Database::get();
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts');
+
+        // Generate excerpt via AI if empty
+        $excerpt = $data['excerpt'] ?? null;
+        if (empty($excerpt) && !empty($data['content'])) {
+            $generated = AIContentService::generateExcerpt($data['content']);
+            if ($generated) {
+                $excerpt = $generated;
+            }
+        }
+
+        // Generate meta_description via AI if empty
+        $metaDescription = $data['meta_description'] ?? null;
+        if (empty($metaDescription) && !empty($data['content'])) {
+            $generated = AIContentService::generateMetaDescription($data['title'], $data['content']);
+            if ($generated) {
+                $metaDescription = $generated;
+            }
+        }
+
         $stmt = $db->prepare(
-            "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at)
-             VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at)"
+            "INSERT INTO posts (title, slug, excerpt, content, meta_description, is_published, published_at)
+             VALUES (:title, :slug, :excerpt, :content, :meta_description, :is_published, :published_at)"
         );
         $stmt->execute([
-            ':title'        => $data['title'],
-            ':slug'         => $slug,
-            ':excerpt'      => $data['excerpt'] ?? null,
-            ':content'      => $data['content'] ?? '',
-            ':is_published' => (int)($data['is_published'] ?? 0),
-            ':published_at' => $data['published_at'] ?: null,
+            ':title'            => $data['title'],
+            ':slug'             => $slug,
+            ':excerpt'          => $excerpt,
+            ':content'          => $data['content'] ?? '',
+            ':meta_description' => $metaDescription,
+            ':is_published'     => (int)($data['is_published'] ?? 0),
+            ':published_at'     => $data['published_at'] ?: null,
         ]);
         return (int)$db->lastInsertId();
     }
@@ -63,18 +84,38 @@ class Post
     public static function update(int $id, array $data): void
     {
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts', 'id', $id);
+
+        // Generate excerpt via AI if empty
+        $excerpt = $data['excerpt'] ?? null;
+        if (empty($excerpt) && !empty($data['content'])) {
+            $generated = AIContentService::generateExcerpt($data['content']);
+            if ($generated) {
+                $excerpt = $generated;
+            }
+        }
+
+        // Generate meta_description via AI if empty
+        $metaDescription = $data['meta_description'] ?? null;
+        if (empty($metaDescription) && !empty($data['content'])) {
+            $generated = AIContentService::generateMetaDescription($data['title'], $data['content']);
+            if ($generated) {
+                $metaDescription = $generated;
+            }
+        }
+
         Database::get()->prepare(
             "UPDATE posts SET title=:title, slug=:slug, excerpt=:excerpt, content=:content,
-             is_published=:is_published, published_at=:published_at, updated_at=NOW()
+             meta_description=:meta_description, is_published=:is_published, published_at=:published_at, updated_at=NOW()
              WHERE id=:id"
         )->execute([
-            ':title'        => $data['title'],
-            ':slug'         => $slug,
-            ':excerpt'      => $data['excerpt'] ?? null,
-            ':content'      => $data['content'] ?? '',
-            ':is_published' => (int)($data['is_published'] ?? 0),
-            ':published_at' => $data['published_at'] ?: null,
-            ':id'           => $id,
+            ':title'            => $data['title'],
+            ':slug'             => $slug,
+            ':excerpt'          => $excerpt,
+            ':content'          => $data['content'] ?? '',
+            ':meta_description' => $metaDescription,
+            ':is_published'     => (int)($data['is_published'] ?? 0),
+            ':published_at'     => $data['published_at'] ?: null,
+            ':id'               => $id,
         ]);
     }
 
