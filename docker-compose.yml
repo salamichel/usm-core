@@ -25,7 +25,7 @@ services:
       BASE_URL: "https://usm.moka-web.net"
 
   db:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_DATABASE: usm_volley
@@ -37,7 +37,7 @@ services:
     ports:
       - "3308:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "usm", "-pusm_password"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -46,7 +46,7 @@ services:
   # Tourne à chaque "docker compose up", applique tous les fichiers SQL dans l'ordre.
   # Idempotent : CREATE TABLE IF NOT EXISTS + INSERT IGNORE.
   migrate:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     depends_on:
       db:
         condition: service_healthy
@@ -76,7 +76,7 @@ services:
 
   # ── Base externe simulée ────────────────────────────────────────────────────
   db_external:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_DATABASE: usm_external
@@ -88,14 +88,14 @@ services:
     ports:
       - "3307:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "usm_ext", "-pusm_ext_password"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   # ── Migrations base externe ─────────────────────────────────────────────────
   migrate_external:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     depends_on:
       db_external:
         condition: service_healthy
