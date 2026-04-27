@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}USM Volley{% endblock %}</title>
-  {% if meta_description %}<meta name="description" content="{{ meta_description|truncate(160, '...') }}">{% endif %}
+  {% if meta_description %}<meta name="description" content="{{ meta_description[:160] }}">{% endif %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
