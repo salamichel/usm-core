@@ -60,13 +60,25 @@ class ArticleApiController
             $slug = SlugManager::generate($slugInput);
             $coverImage = $data['cover_image'] ?? null;
 
+            // Convert ISO 8601 date to MySQL format
+            $publishedAt = null;
+            if (!empty($data['published_at'])) {
+                try {
+                    $dt = new \DateTime($data['published_at']);
+                    $publishedAt = $dt->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    error_log('Date parsing error: ' . $e->getMessage());
+                    $publishedAt = null;
+                }
+            }
+
             $postData = [
                 'title'        => $title,
                 'slug'         => $slug,
                 'excerpt'      => null,
                 'content'      => $data['content'],
                 'is_published' => 1,
-                'published_at' => trim((string)$data['published_at']),
+                'published_at' => $publishedAt,
                 'canalblog_id' => $canalblogId,
             ];
 
