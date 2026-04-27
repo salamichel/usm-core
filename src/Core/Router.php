@@ -17,6 +17,11 @@ class Router
         $this->routes[] = ['POST', $pattern, $handler];
     }
 
+    public function options(string $pattern, callable|array $handler): void
+    {
+        $this->routes[] = ['OPTIONS', $pattern, $handler];
+    }
+
     public function dispatch(string $method, string $uri): void
     {
         // Strip query string and decode

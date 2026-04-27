@@ -64,7 +64,8 @@ class App
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
 
         // ── API ───────────────────────────────────────────────────────────────
-        $r->post('/api/articles', [ArticleApiController::class, 'create']);
+        $r->options('/api/articles', [ArticleApiController::class, 'create']);
+        $r->post('/api/articles',   [ArticleApiController::class, 'create']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
         $r->get('/admin/login',   [AuthController::class, 'showLogin']);
