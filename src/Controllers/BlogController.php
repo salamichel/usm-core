@@ -20,8 +20,17 @@ class BlogController
         $posts = Post::allPublished();
         $selectedTag = null;
 
+        // Si pas de tag en paramètre, mais peut-être en query string pour débug
+        if (!$tagSlug && isset($_GET['debug_tag'])) {
+            error_log('DEBUG: tag parameter not found. Available params: ' . json_encode($params));
+        }
+
         if ($tagSlug) {
+            error_log('Searching for tag slug: ' . $tagSlug);
             $selectedTag = Tag::findBySlug($tagSlug);
+            if (!$selectedTag) {
+                error_log('Tag not found with slug: ' . $tagSlug);
+            }
             if ($selectedTag) {
                 $posts = $this->filterPostsByTag($posts, $selectedTag['id']);
             }
@@ -34,9 +43,9 @@ class BlogController
         }
 
         View::render('blog/list.twig', [
-            'posts'       => $posts,
-            'all_tags'    => $allTags,
-            'tag_counts'  => $tagCounts,
+            'posts'        => $posts,
+            'all_tags'     => $allTags,
+            'tag_counts'   => $tagCounts,
             'selected_tag' => $selectedTag,
         ]);
     }
