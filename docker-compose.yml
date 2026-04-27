@@ -12,32 +12,22 @@ services:
         condition: service_completed_successfully
       migrate_external:
         condition: service_completed_successfully
-    environment:
-      DB_HOST: db
-      DB_NAME: usm_volley
-      DB_USER: usm
-      DB_PASS: usm_password
-      EXT_DB_HOST: db_external
-      EXT_DB_NAME: usm_external
-      EXT_DB_USER: usm_ext
-      EXT_DB_PASS: usm_ext_password
-      APP_DEBUG: "true"
-      BASE_URL: "https://usm.moka-web.net"
+    env_file: .env
 
   db:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_DATABASE: usm_volley
-      MYSQL_USER: usm
-      MYSQL_PASSWORD: usm_password
-      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./data/mysql:/var/lib/mysql
     ports:
       - "3308:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "usm", "-pusm_password"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -46,71 +36,49 @@ services:
   # Tourne à chaque "docker compose up", applique tous les fichiers SQL dans l'ordre.
   # Idempotent : CREATE TABLE IF NOT EXISTS + INSERT IGNORE.
   migrate:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     depends_on:
       db:
         condition: service_healthy
     environment:
-      MYSQL_PWD: usm_password
-    command: >
-      sh -c "
-        echo '→ schema.sql' &&
-        mysql -h db -u usm usm_volley < /sql/schema.sql &&
-        echo '→ seed.sql (INSERT IGNORE)' &&
-        mysql -h db -u usm usm_volley < /sql/seed.sql &&
-        echo '→ add_photos.sql' &&
-        mysql -h db -u usm usm_volley < /sql/add_photos.sql &&
-        echo '→ migrations/001_saisons.sql' &&
-        mysql -h db -u usm usm_volley < /sql/migrations/001_saisons.sql &&
-        echo '→ migrations/002_equipes_config.sql' &&
-        mysql -h db -u usm usm_volley < /sql/migrations/002_equipes_config.sql &&
-        echo '→ migrations/003_home_blocks.sql' &&
-        mysql -h db -u usm usm_volley < /sql/migrations/003_home_blocks.sql &&
-        echo '→ migrations/004_site_config.sql' &&
-        mysql -h db -u usm usm_volley < /sql/migrations/004_site_config.sql &&
-        echo '✓ Migrations base locale terminées'
-      "
+      MYSQL_PWD: ${DB_PASS}
+    command: sh /scripts/migrate.sh db ${DB_USER} ${DB_NAME}
     volumes:
       - ./database:/sql:ro
+      - ./docker:/scripts:ro
     restart: "no"
 
   # ── Base externe simulée ────────────────────────────────────────────────────
   db_external:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_DATABASE: usm_external
-      MYSQL_USER: usm_ext
-      MYSQL_PASSWORD: usm_ext_password
-      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: ${EXT_DB_NAME}
+      MYSQL_USER: ${EXT_DB_USER}
+      MYSQL_PASSWORD: ${EXT_DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./data/mysql_external:/var/lib/mysql
     ports:
       - "3307:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "usm_ext", "-pusm_ext_password"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   # ── Migrations base externe ─────────────────────────────────────────────────
   migrate_external:
-    image: mysql:8.0
+    image: mariadb:11.4.10
     depends_on:
       db_external:
         condition: service_healthy
     environment:
-      MYSQL_PWD: usm_ext_password
-    command: >
-      sh -c "
-        echo '→ external_schema.sql' &&
-        mysql -h db_external -u usm_ext usm_external < /sql/external_schema.sql &&
-        echo '→ external_seed.sql' &&
-        mysql -h db_external -u usm_ext usm_external < /sql/external_seed.sql &&
-        echo '✓ Base externe prête'
-      "
+      MYSQL_PWD: ${EXT_DB_PASS}
+    command: sh /scripts/migrate_external.sh db_external ${EXT_DB_USER} ${EXT_DB_NAME}
     volumes:
       - ./database:/sql:ro
+      - ./docker:/scripts:ro
     restart: "no"
 
   phpmyadmin:
@@ -121,7 +89,7 @@ services:
       PMA_ARBITRARY: 1
       PMA_HOSTS: db,db_external
       PMA_USER: root
-      PMA_PASSWORD: root_password
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
       - db
       - db_external
