@@ -20,6 +20,41 @@ class PostController extends AdminCrudController
         ];
     }
 
+    public function index(array $params): void
+    {
+        \App\Core\Auth::require();
+
+        $filters = [];
+
+        if (!empty($_GET['month']) && preg_match('/^\d{4}-\d{2}$/', $_GET['month'])) {
+            $filters['month'] = $_GET['month'];
+        }
+
+        if (!empty($_GET['tag'])) {
+            $tag = Tag::findBySlug($_GET['tag']);
+            if ($tag) {
+                $filters['tag_id'] = $tag['id'];
+            }
+        }
+
+        if (isset($_GET['status']) && in_array($_GET['status'], ['published', 'draft'], true)) {
+            $filters['status'] = $_GET['status'];
+        }
+
+        $posts   = $filters ? Post::filtered($filters) : Post::all();
+        $allTags = Tag::all();
+        $months  = Post::getAvailableMonths(false);
+
+        \App\Core\View::render($this->getListTemplate(), [
+            'posts'          => $posts,
+            'all_tags'       => $allTags,
+            'months'         => $months,
+            'selected_tag'   => $_GET['tag'] ?? '',
+            'selected_month' => $_GET['month'] ?? '',
+            'selected_status'=> $_GET['status'] ?? '',
+        ]);
+    }
+
     protected function getModel(): string
     {
         return Post::class;

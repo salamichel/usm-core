@@ -16,52 +16,40 @@ class BlogController
 
     public function list(array $params): void
     {
-        $tagSlug = $params['tag'] ?? null;
-        $posts = Post::allPublished();
+        // Tag via route param (/blog/tag/{tag}) ou query string (?tag=slug)
+        $tagSlug     = $params['tag'] ?? ($_GET['tag'] ?? null);
+        $selectedMonth = preg_match('/^\d{4}-\d{2}$/', $_GET['month'] ?? '') ? $_GET['month'] : null;
         $selectedTag = null;
 
-        // Si pas de tag en paramètre, mais peut-être en query string pour débug
-        if (!$tagSlug && isset($_GET['debug_tag'])) {
-            error_log('DEBUG: tag parameter not found. Available params: ' . json_encode($params));
-        }
+        $filters = ['published_only' => true];
 
         if ($tagSlug) {
-            error_log('Searching for tag slug: ' . $tagSlug);
             $selectedTag = Tag::findBySlug($tagSlug);
-            if (!$selectedTag) {
-                error_log('Tag not found with slug: ' . $tagSlug);
-            }
             if ($selectedTag) {
-                $posts = $this->filterPostsByTag($posts, $selectedTag['id']);
+                $filters['tag_id'] = $selectedTag['id'];
             }
         }
 
+        if ($selectedMonth) {
+            $filters['month'] = $selectedMonth;
+        }
+
+        $posts   = Post::filtered($filters);
         $allTags = Tag::all();
+
         $tagCounts = [];
         foreach ($allTags as $tag) {
             $tagCounts[$tag['id']] = Tag::getPostCount($tag['id']);
         }
 
         View::render('blog/list.twig', [
-            'posts'        => $posts,
-            'all_tags'     => $allTags,
-            'tag_counts'   => $tagCounts,
-            'selected_tag' => $selectedTag,
+            'posts'          => $posts,
+            'all_tags'       => $allTags,
+            'tag_counts'     => $tagCounts,
+            'selected_tag'   => $selectedTag,
+            'selected_month' => $selectedMonth,
+            'months'         => Post::getAvailableMonths(true),
         ]);
-    }
-
-    private function filterPostsByTag(array $posts, int $tagId): array
-    {
-        $postIds = [];
-        $stmt = \App\Core\Database::get()->prepare(
-            "SELECT post_id FROM post_tags WHERE tag_id = ?"
-        );
-        $stmt->execute([$tagId]);
-        while ($row = $stmt->fetch()) {
-            $postIds[] = $row['post_id'];
-        }
-
-        return array_filter($posts, fn($post) => in_array($post['id'], $postIds, true));
     }
 
     public function show(array $params): void

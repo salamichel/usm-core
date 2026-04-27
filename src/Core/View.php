@@ -37,6 +37,14 @@ class View
                 return date($format, strtotime($date));
             }));
 
+            // |month_fr filter — 'YYYY-MM' → 'Janvier 2026'
+            $twig->addFilter(new TwigFilter('month_fr', function (string $ym): string {
+                $months = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                           'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+                [$y, $m] = explode('-', $ym);
+                return ($months[(int)$m - 1] ?? $ym) . ' ' . $y;
+            }));
+
             // url() function
             $twig->addFunction(new TwigFunction('url', function (string $path): string {
                 return BASE_URL . '/' . ltrim($path, '/');
