@@ -3,12 +3,18 @@ namespace App\Services;
 
 class AIContentService
 {
-    private const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    private const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
     private const TIMEOUT = 10;
 
     private static function getApiKey(): ?string
     {
         return $_ENV['GEMINI_API_KEY'] ?? null;
+    }
+
+    private static function getApiUrl(): string
+    {
+        $model = defined('GEMINI_MODEL') ? GEMINI_MODEL : 'gemini-1.5-flash';
+        return self::API_BASE . '/' . $model . ':generateContent';
     }
 
     private static function callApi(string $userMessage): ?string
@@ -29,7 +35,7 @@ class AIContentService
             ],
         ]);
 
-        $url = self::API_URL . '?key=' . urlencode($apiKey);
+        $url = self::getApiUrl() . '?key=' . urlencode($apiKey);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
