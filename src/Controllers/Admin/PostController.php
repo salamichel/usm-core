@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Models\Post;
 use App\Models\Tag;
+use App\Services\FacebookService;
 use App\Services\SlugManager;
 
 class PostController extends AdminCrudController
@@ -145,6 +146,7 @@ class PostController extends AdminCrudController
         $id = $this->createEntity($data);
         $this->handlePhotoUploads($id);
         $this->saveTags($id);
+        $this->maybeShareToFacebook($id);
 
         \App\Core\View::flash('success', ucfirst($this->itemName) . ' créé(e) avec succès.');
         header('Location: ' . BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit');
@@ -183,6 +185,7 @@ class PostController extends AdminCrudController
         $this->updateEntity($id, $data);
         $error = $this->handlePhotoUploads($id);
         $this->saveTags($id);
+        $this->maybeShareToFacebook($id);
 
         if ($error) {
             \App\Core\View::flash('error', $error);
@@ -213,6 +216,39 @@ class PostController extends AdminCrudController
             ? array_map('intval', $_POST['tags'])
             : [];
         Tag::setPostTags($postId, $tagIds);
+    }
+
+    /**
+     * Partage l'article sur Facebook si la checkbox est cochée et que l'article
+     * n'a pas déjà été partagé. Échec silencieux : le formulaire reste utilisable
+     * même si Facebook est inaccessible ou non configuré.
+     */
+    private function maybeShareToFacebook(int $postId): void
+    {
+        if (empty($_POST['share_to_facebook'])) {
+            return;
+        }
+        if (!FacebookService::isConfigured()) {
+            \App\Core\View::flash('error', 'Facebook non configuré (FB_PAGE_ID / FB_PAGE_ACCESS_TOKEN absents).');
+            return;
+        }
+
+        $post = Post::find($postId);
+        if (!$post || !empty($post['facebook_post_id'])) {
+            return;
+        }
+        if (empty($post['is_published'])) {
+            \App\Core\View::flash('error', 'L\'article doit être publié pour être partagé sur Facebook.');
+            return;
+        }
+
+        $fbId = FacebookService::shareArticle($post);
+        if ($fbId !== null) {
+            Post::setFacebookPostId($postId, $fbId);
+            \App\Core\View::flash('success', 'Article partagé sur Facebook.');
+        } else {
+            \App\Core\View::flash('error', 'Échec du partage Facebook (voir logs/errors.log).');
+        }
     }
 
     protected function notFound(): void

@@ -10,6 +10,7 @@ use App\Models\Photo;
 use App\Models\Post;
 use App\Models\Saison;
 use App\Services\AgendaService;
+use App\Services\FacebookService;
 
 class HomeController
 {
@@ -47,12 +48,13 @@ class HomeController
         }
 
         View::render('home.twig', [
-            'slides'       => $slides,
-            'stats'        => $stats,
-            'home_blocks'  => HomeBlock::allActive(),
-            'latest_posts' => $latestPosts,
-            'matches'      => $matches,
-            'trainings'    => $trainings,
+            'slides'         => $slides,
+            'stats'          => $stats,
+            'home_blocks'    => HomeBlock::allActive(),
+            'latest_posts'   => $latestPosts,
+            'matches'        => $matches,
+            'trainings'      => $trainings,
+            'facebook_posts' => FacebookService::getPagePosts(4),
         ]);
     }
 }

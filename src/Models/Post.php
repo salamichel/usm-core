@@ -144,4 +144,10 @@ class Post
         Database::get()->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
     }
 
+    public static function setFacebookPostId(int $id, string $fbPostId): void
+    {
+        Database::get()->prepare(
+            "UPDATE posts SET facebook_post_id = ? WHERE id = ?"
+        )->execute([$fbPostId, $id]);
+    }
 }
