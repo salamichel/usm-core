@@ -49,8 +49,7 @@
       <div class="space-y-0.5">
         {% set links = [
           [url('admin/home-blocks'), '🏠 Accueil',       '/admin/home-blocks'],
-          [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],
-          [url('admin/locations'),   '📍 Emplacements',  '/admin/locations'],
+          [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],          
           [url('admin/site-config'), '⚙️ Configuration',  '/admin/site-config'],
         ] %}
         {% for link in links %}
@@ -68,9 +67,10 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Club</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/saisons'),         '📅 Saisons',  '/admin/saisons'],
-          [url('admin/saisons/joueurs'), '👥 Joueurs',  '/admin/saisons/joueurs'],
-          [url('admin/equipes-config'),  '⚽ Équipes',  '/admin/equipes-config'],
+          [url('admin/locations'),       '📍 Emplacements',  '/admin/locations'],
+          [url('admin/saisons'),         '📅 Saisons',       '/admin/saisons'],
+          [url('admin/saisons/joueurs'), '👥 Joueurs',       '/admin/saisons/joueurs'],
+          [url('admin/equipes-config'),  '⚽ Équipes',       '/admin/equipes-config'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -87,19 +87,14 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Support</div>
       <div class="space-y-0.5">
         {% set support_links = [
-          [url('admin/contacts'), '💬 Messages Brevo', '/admin/contacts', 'contact_stats'],
-          [url('admin/contact-messages'), '📬 Messages stockés', '/admin/contact-messages', 'unread_contact_messages'],
+          [url('admin/contacts'), '💬 Messages Brevo', '/admin/contacts', 'contact_stats'],          
         ] %}
         {% for link in support_links %}
           <a href="{{ link[0] }}"
              class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
                     {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
             <span>{{ link[1] }}</span>
-            {% if link[3] == 'contact_stats' and contact_stats and contact_stats.new > 0 %}
-              <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>
-            {% elseif link[3] == 'unread_contact_messages' and unread_contact_messages > 0 %}
-              <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ unread_contact_messages }}</span>
-            {% endif %}
+            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>            
           </a>
         {% endfor %}
       </div>
