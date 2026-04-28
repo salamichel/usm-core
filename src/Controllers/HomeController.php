@@ -52,11 +52,18 @@ class HomeController
             $stats['equipes']   = EquipeSaison::countWithMembersForSaison((int)$saisonActive['id']);
         }
 
+        // Load cover photos for latest posts
+        $postCovers = [];
+        foreach ($latestPosts as $post) {
+            $postCovers[$post['id']] = Photo::getEntityCover('post', (int)$post['id']);
+        }
+
         View::render('home.twig', [
             'slides'       => $slides,
             'stats'        => $stats,
             'home_blocks'  => HomeBlock::allActive(),
             'latest_posts' => $latestPosts,
+            'post_covers'  => $postCovers,
             'matches'      => $matches,
             'trainings'    => $trainings,
         ]);
