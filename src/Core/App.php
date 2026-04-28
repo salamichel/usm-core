@@ -18,6 +18,8 @@ use App\Controllers\Admin\PageAdminController;
 use App\Controllers\Admin\PostController;
 use App\Controllers\Admin\SaisonController;
 use App\Controllers\Admin\SiteConfigController;
+use App\Controllers\Admin\LocationController;
+use App\Controllers\ContactController;
 
 class App
 {
@@ -62,6 +64,7 @@ class App
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
+        $r->get('/contact',       [ContactController::class, 'index']);
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
@@ -136,6 +139,14 @@ class App
             [EquipeConfigController::class, 'addJoueur']);
         $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/remove',
             [EquipeConfigController::class, 'removeJoueur']);
+
+        // ── Admin locations ──────────────────────────────────────────────────
+        $r->get('/admin/locations',             [LocationController::class, 'index']);
+        $r->get('/admin/locations/create',      [LocationController::class, 'create']);
+        $r->post('/admin/locations/create',     [LocationController::class, 'store']);
+        $r->get('/admin/locations/{id}/edit',   [LocationController::class, 'edit']);
+        $r->post('/admin/locations/{id}/edit',  [LocationController::class, 'update']);
+        $r->post('/admin/locations/{id}/delete',[LocationController::class, 'delete']);
 
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);

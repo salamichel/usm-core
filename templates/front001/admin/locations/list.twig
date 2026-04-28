@@ -1,0 +1,40 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Emplacements{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-3xl font-black">Emplacements</h1>
+  <a href="{{ url('admin/locations/create') }}" class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    + Ajouter
+  </a>
+</div>
+
+{% if locations|length %}
+  <div class="space-y-3">
+    {% for location in locations %}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div>
+          <span class="font-black">{{ location.name }}</span>
+          <span class="ml-3 text-xs text-gray-500">{{ location.address }}</span>
+          {% if location.latitude and location.longitude %}
+            <span class="ml-2 text-xs bg-green-100 border border-green-300 px-1 py-0.5 rounded">✓ Géolocalisé</span>
+          {% else %}
+            <span class="ml-2 text-xs bg-yellow-100 border border-yellow-300 px-1 py-0.5 rounded">⚠ Sans coordonnées</span>
+          {% endif %}
+        </div>
+        <div class="flex gap-2">
+          <a href="{{ url('admin/locations/' ~ location.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+          <form method="POST" action="{{ url('admin/locations/' ~ location.id ~ '/delete') }}" onsubmit="return confirm('Supprimer cet emplacement ?')">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-gray-500 italic">Aucun emplacement défini.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.twig' %}
+{% block title %}Contact — USM Volley{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  #map {
+    height: 500px;
+    border: 4px solid black;
+    box-shadow: 6px 6px 0 #000;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-12">
+  <h1 class="text-4xl font-black mb-2">Contact</h1>
+  <p class="text-lg text-gray-600 mb-8">Trouvez nos gymnases et lieux d'entraînement</p>
+
+  {% if locations|length %}
+    {# Carte #}
+    <div class="mb-12">
+      <div id="map"></div>
+    </div>
+
+    {# Liste des emplacements #}
+    <div class="grid gap-6 sm:grid-cols-2">
+      {% for location in locations %}
+      <div class="border-4 border-black bg-white p-6 shadow-[4px_4px_0_#000]">
+        <h2 class="text-xl font-black mb-2">{{ location.name }}</h2>
+        <address class="not-italic text-sm text-gray-700 whitespace-pre-line leading-relaxed mb-4">
+          {{ location.address }}
+        </address>
+        {% if location.latitude and location.longitude %}
+          <p class="text-xs text-gray-500">
+            <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">✓ Géolocalisé</span>
+          </p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="border-4 border-black bg-amber-100 p-6 shadow-[4px_4px_0_#000] text-center">
+      <p class="text-gray-700 font-semibold">Aucun emplacement défini pour le moment.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% if locations|length %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function() {
+  const locations = {{ locations|json_encode|raw }};
+  const validLocations = locations.filter(loc => loc.latitude && loc.longitude);
+
+  if (validLocations.length === 0) {
+    document.getElementById('map').innerHTML = '<p class="p-4 text-gray-500">Aucun emplacement géolocalisé.</p>';
+    return;
+  }
+
+  const map = L.map('map').setView([validLocations[0].latitude, validLocations[0].longitude], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  const markers = [];
+  validLocations.forEach(function(location) {
+    const marker = L.marker([location.latitude, location.longitude])
+      .bindPopup('<strong>' + location.name + '</strong><br>' + location.address)
+      .addTo(map);
+    markers.push(marker);
+  });
+
+  if (markers.length > 1) {
+    const group = new L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.1));
+  }
+})();
+</script>
+{% endif %}
+
+{% endblock %}
