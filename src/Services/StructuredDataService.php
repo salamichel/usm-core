@@ -110,7 +110,8 @@ class StructuredDataService
     }
 
     /**
-     * BreadcrumbList — list of [label, url] tuples.
+     * BreadcrumbList — list of [name, url] tuples.
+     * Returns null if items is empty (safe for Twig {% if %}).
      *
      * @param array $items Each item: ['name' => string, 'url' => string]
      */

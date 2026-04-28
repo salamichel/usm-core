@@ -34,6 +34,18 @@ class EquipesController
         }
 
         // SEO metadata
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+        ];
+        $jsonLd = [
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
+
         $meta = new PageMetadata(
             title: SeoService::title('Équipes'),
             description: SeoService::description(
@@ -43,13 +55,8 @@ class EquipesController
             ),
             canonical: SeoService::absoluteUrl('/equipes'),
             ogType: 'website',
-            jsonLd: [
-                StructuredDataService::sportsClub(),
-            ],
-            breadcrumbs: [
-                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
-                ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
-            ],
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
         );
 
         View::render('equipes/index.twig', [
@@ -75,6 +82,19 @@ class EquipesController
         // SEO metadata
         $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
         $url = SeoService::absoluteUrl('/equipes/' . $equipe['id']);
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+            ['name' => $equipe['libelle'], 'url' => $url],
+        ];
+        $jsonLd = [
+            StructuredDataService::sportsTeam($equipe, $ogImage, $url),
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
 
         $meta = new PageMetadata(
             title: SeoService::title($equipe['libelle']),
@@ -86,15 +106,8 @@ class EquipesController
             canonical: $url,
             ogImage: $ogImage,
             ogType: 'website',
-            jsonLd: [
-                StructuredDataService::sportsTeam($equipe, $ogImage, $url),
-                StructuredDataService::sportsClub(),
-            ],
-            breadcrumbs: [
-                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
-                ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
-                ['name' => $equipe['libelle'], 'url' => $url],
-            ],
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
         );
 
         View::render('equipes/detail.twig', [

@@ -70,27 +70,6 @@
     {% endfor %}
   {% endif %}
 
-  {# BreadcrumbList #}
-  {% if meta and meta.breadcrumbs %}
-    {% set breadcrumb_schema = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      'itemListElement': []
-    } %}
-    {% set position = 1 %}
-    {% for crumb in meta.breadcrumbs %}
-    {% set _ = breadcrumb_schema.itemListElement|push({
-      '@type': 'ListItem',
-      'position': position,
-      'name': crumb.name,
-      'item': crumb.url
-    }) %}
-    {% set position = position + 1 %}
-    {% endfor %}
-    <script type="application/ld+json">
-      {{ json_encode_pretty(breadcrumb_schema) }}
-    </script>
-  {% endif %}
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>

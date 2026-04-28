@@ -26,19 +26,26 @@ class PageController
 
         // SEO metadata
         $ogImage = SeoService::pickOgImage(null, $photos);
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => $page['title'], 'url' => SeoService::absoluteUrl('/p/' . $page['slug'])],
+        ];
+        $jsonLd = [
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
+
         $meta = new PageMetadata(
             title: SeoService::title($page['title']),
             description: SeoService::description(null, $page['content']),
             canonical: SeoService::absoluteUrl('/p/' . $page['slug']),
             ogImage: $ogImage,
             ogType: 'website',
-            jsonLd: [
-                StructuredDataService::sportsClub(),
-            ],
-            breadcrumbs: [
-                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
-                ['name' => $page['title'], 'url' => SeoService::absoluteUrl('/p/' . $page['slug'])],
-            ],
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
         );
 
         View::render('pages/detail.twig', [

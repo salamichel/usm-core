@@ -107,21 +107,28 @@ class BlogController
 
         // SEO metadata
         $ogImage = SeoService::pickOgImage(null, $photos);
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => 'Actualités', 'url' => SeoService::absoluteUrl('/blog')],
+            ['name' => $post['title'], 'url' => SeoService::absoluteUrl('/blog/' . $post['slug'])],
+        ];
+        $jsonLd = [
+            StructuredDataService::blogPosting($post, $ogImage),
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
+
         $meta = new PageMetadata(
             title: SeoService::title($post['title']),
             description: SeoService::description($post['excerpt'], $post['content']),
             canonical: SeoService::absoluteUrl('/blog/' . $post['slug']),
             ogImage: $ogImage,
             ogType: 'article',
-            jsonLd: [
-                StructuredDataService::blogPosting($post, $ogImage),
-                StructuredDataService::sportsClub(),
-            ],
-            breadcrumbs: [
-                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
-                ['name' => 'Actualités', 'url' => SeoService::absoluteUrl('/blog')],
-                ['name' => $post['title'], 'url' => SeoService::absoluteUrl('/blog/' . $post['slug'])],
-            ],
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
             articlePublishedAt: !empty($post['published_at']) ? date('c', strtotime($post['published_at'])) : null,
             articleModifiedAt: !empty($post['updated_at']) ? date('c', strtotime($post['updated_at'])) : null,
         );
