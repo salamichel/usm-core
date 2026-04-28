@@ -43,7 +43,8 @@ class Post
 
     /**
      * Filtered query for both admin and front.
-     * $filters keys: tag_id, month (YYYY-MM), status ('published'|'draft'), published_only (bool)
+     * $filters keys: tag_id, month (YYYY-MM), status ('published'|'draft'), published_only (bool),
+     *                limit, offset
      */
     public static function filtered(array $filters = []): array
     {
@@ -75,9 +76,49 @@ class Post
         }
         $sql .= ' ORDER BY published_at DESC, created_at DESC';
 
+        if (isset($filters['limit']) && isset($filters['offset'])) {
+            $sql .= ' LIMIT ' . (int)$filters['limit'] . ' OFFSET ' . (int)$filters['offset'];
+        }
+
         $stmt = Database::get()->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+
+    /** Count filtered posts (without limit/offset). */
+    public static function countFiltered(array $filters = []): int
+    {
+        $where  = [];
+        $params = [];
+
+        if ($filters['published_only'] ?? false) {
+            $where[] = 'is_published = 1 AND (published_at IS NULL OR published_at <= NOW())';
+        }
+
+        if (isset($filters['status'])) {
+            $where[] = 'is_published = :status';
+            $params[':status'] = $filters['status'] === 'published' ? 1 : 0;
+        }
+
+        if (!empty($filters['month'])) {
+            $where[] = "DATE_FORMAT(published_at, '%Y-%m') = :month";
+            $params[':month'] = $filters['month'];
+        }
+
+        if (!empty($filters['tag_id'])) {
+            $where[] = 'id IN (SELECT post_id FROM post_tags WHERE tag_id = :tag_id)';
+            $params[':tag_id'] = (int)$filters['tag_id'];
+        }
+
+        $sql = 'SELECT COUNT(*) as cnt FROM posts';
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $stmt = Database::get()->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch();
+        return (int)($result['cnt'] ?? 0);
     }
 
     /** Returns distinct months (YYYY-MM) that have articles. */

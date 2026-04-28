@@ -75,5 +75,44 @@
     <p class="text-gray-500 italic">Aucun article pour ces filtres.</p>
   {% endif %}
 
+  {# ── Pagination ── #}
+  {% if pagination.totalPages > 1 %}
+  <div class="flex flex-wrap items-center justify-center gap-2 mt-10 pt-8 border-t-2 border-gray-300">
+    {% set qs = (selected_tag ? '&tag=' ~ selected_tag.slug : '') ~ (selected_month ? '&month=' ~ selected_month : '') %}
+
+    {# Previous button #}
+    {% if pagination.hasPrevious() %}
+      <a href="{{ url('blog') ~ '?page=' ~ pagination.previousPage() ~ qs }}"
+         class="px-4 py-2 border-2 border-black font-bold hover:bg-black hover:text-white transition">← Précédent</a>
+    {% else %}
+      <span class="px-4 py-2 border-2 border-gray-300 text-gray-400 font-bold">← Précédent</span>
+    {% endif %}
+
+    {# Page numbers #}
+    <div class="flex gap-1">
+      {% for page in pagination.getPageRange(7) %}
+        {% if page == pagination.currentPage %}
+          <span class="px-3 py-2 border-4 border-black bg-black text-white font-bold">{{ page }}</span>
+        {% else %}
+          <a href="{{ url('blog') ~ '?page=' ~ page ~ qs }}"
+             class="px-3 py-2 border-2 border-black hover:bg-black hover:text-white transition font-bold">{{ page }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {# Next button #}
+    {% if pagination.hasNext() %}
+      <a href="{{ url('blog') ~ '?page=' ~ pagination.nextPage() ~ qs }}"
+         class="px-4 py-2 border-2 border-black font-bold hover:bg-black hover:text-white transition">Suivant →</a>
+    {% else %}
+      <span class="px-4 py-2 border-2 border-gray-300 text-gray-400 font-bold">Suivant →</span>
+    {% endif %}
+  </div>
+
+  <div class="text-center text-sm text-gray-600 mt-4">
+    Page {{ pagination.currentPage }} / {{ pagination.totalPages }}
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

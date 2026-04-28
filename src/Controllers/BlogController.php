@@ -9,6 +9,8 @@ use App\Core\Database;
 use App\Models\Photo;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Models\SiteConfig;
+use App\Services\Pagination;
 
 class BlogController
 {
@@ -34,6 +36,17 @@ class BlogController
             $filters['month'] = $selectedMonth;
         }
 
+        // Pagination
+        $perPage = (int)(SiteConfig::get('posts_per_page') ?? 10);
+        $perPage = max(1, $perPage);
+        $currentPage = max(1, (int)($_GET['page'] ?? 1));
+
+        $totalPosts = Post::countFiltered($filters);
+        $pagination = new Pagination($totalPosts, $perPage, $currentPage);
+
+        $filters['limit'] = $pagination->limit;
+        $filters['offset'] = $pagination->offset;
+
         $posts   = Post::filtered($filters);
         $allTags = Tag::all();
 
@@ -55,6 +68,7 @@ class BlogController
             'selected_tag'   => $selectedTag,
             'selected_month' => $selectedMonth,
             'months'         => Post::getAvailableMonths(true),
+            'pagination'     => $pagination,
         ]);
     }
 
