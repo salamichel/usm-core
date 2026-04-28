@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\ExternalDatabase;
 use App\Core\View;
 use App\Models\Saison;
+use App\Models\Contact;
 
 class DashboardController
 {
@@ -22,6 +23,13 @@ class DashboardController
             'pages'       => (int)$db->query("SELECT COUNT(*) FROM pages")->fetchColumn(),
             'menu'        => (int)$db->query("SELECT COUNT(*) FROM menu_items")->fetchColumn(),
             'home_blocks' => (int)$db->query("SELECT COUNT(*) FROM home_blocks")->fetchColumn(),
+        ];
+
+        // ── Stats Support (Contacts) ───────────────────────────────────────────
+        $supportStats = [
+            'contacts_new'     => Contact::countByStatus('new'),
+            'contacts_replied' => Contact::countByStatus('replied'),
+            'contacts_total'   => (int)$db->query("SELECT COUNT(*) FROM contacts")->fetchColumn(),
         ];
 
         // ── Stats club (base locale) ───────────────────────────────────────────
@@ -67,9 +75,10 @@ class DashboardController
         }
 
         View::render('admin/dashboard.twig', [
-            'stats'      => $stats,
-            'clubStats'  => $clubStats,
-            'extStats'   => $extStats,
+            'stats'         => $stats,
+            'clubStats'     => $clubStats,
+            'extStats'      => $extStats,
+            'supportStats'  => $supportStats,
         ]);
     }
 }

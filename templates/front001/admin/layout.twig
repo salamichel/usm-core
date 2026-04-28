@@ -85,16 +85,14 @@
     <div>
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Support</div>
       <div class="space-y-0.5">
-        {% set links = [
-          [url('admin/contacts'), 'Messages de contact', '/admin/contacts'],
-        ] %}
-        {% for link in links %}
-          <a href="{{ link[0] }}"
-             class="flex items-center px-3 py-2 rounded font-semibold transition
-                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-            {{ link[1] }}
-          </a>
-        {% endfor %}
+        <a href="{{ url('admin/contacts') }}"
+           class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
+                  {{ p starts with '/admin/contacts' ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+          <span>Messages de contact</span>
+          {% if contact_stats and contact_stats.new > 0 %}
+            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>
+          {% endif %}
+        </a>
       </div>
     </div>
 
