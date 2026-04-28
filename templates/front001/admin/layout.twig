@@ -29,9 +29,9 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Contenu</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/posts'), 'Articles',  '/admin/posts'],
-          [url('admin/tags'),  'Tags',       '/admin/tags'],
-          [url('admin/pages'), 'Pages',      '/admin/pages'],
+          [url('admin/posts'), '📰 Articles',  '/admin/posts'],
+          [url('admin/tags'),  '🏷️ Tags',       '/admin/tags'],
+          [url('admin/pages'), '📄 Pages',      '/admin/pages'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -48,11 +48,10 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Site</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/home-blocks'),      'Accueil',           '/admin/home-blocks', false],
-          [url('admin/menu'),             'Menu nav',          '/admin/menu', false],
-          [url('admin/locations'),        'Emplacements',      '/admin/locations', false],
-          [url('admin/contact-messages'), 'Messages contact',  '/admin/contact-messages', unread_contact_messages],
-          [url('admin/site-config'),      'Configuration',     '/admin/site-config', false],
+          [url('admin/home-blocks'), '🏠 Accueil',       '/admin/home-blocks'],
+          [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],
+          [url('admin/locations'),   '📍 Emplacements',  '/admin/locations'],
+          [url('admin/site-config'), '⚙️ Configuration',  '/admin/site-config'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -72,9 +71,9 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Club</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/saisons'),         'Saisons',  '/admin/saisons'],
-          [url('admin/saisons/joueurs'), 'Joueurs',  '/admin/saisons/joueurs'],
-          [url('admin/equipes-config'),  'Équipes',  '/admin/equipes-config'],
+          [url('admin/saisons'),         '📅 Saisons',  '/admin/saisons'],
+          [url('admin/saisons/joueurs'), '👥 Joueurs',  '/admin/saisons/joueurs'],
+          [url('admin/equipes-config'),  '⚽ Équipes',  '/admin/equipes-config'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -83,6 +82,29 @@
             {{ link[1] }}
           </a>
         {% endfor %}
+      </div>
+    </div>
+
+    {# ── Support ── #}
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Support</div>
+      <div class="space-y-0.5">
+        <a href="{{ url('admin/contacts') }}"
+           class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
+                  {{ p starts with '/admin/contacts' ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+          <span>💬 Messages Brevo</span>
+          {% if contact_stats and contact_stats.new > 0 %}
+            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url('admin/contact-messages') }}"
+           class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
+                  {{ p starts with '/admin/contact-messages' ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+          <span>📬 Messages stockés</span>
+          {% if unread_contact_messages > 0 %}
+            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ unread_contact_messages }}</span>
+          {% endif %}
+        </a>
       </div>
     </div>
 
@@ -122,34 +144,45 @@
     <div>
       <div class="text-xs font-black text-gray-500 uppercase mb-2">Contenu</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/posts') }}" class="block py-1 hover:text-amber-400">Articles</a>
-        <a href="{{ url('admin/tags') }}"  class="block py-1 hover:text-amber-400">Tags</a>
-        <a href="{{ url('admin/pages') }}" class="block py-1 hover:text-amber-400">Pages</a>
+        <a href="{{ url('admin/posts') }}" class="block py-1 hover:text-amber-400">📰 Articles</a>
+        <a href="{{ url('admin/tags') }}"  class="block py-1 hover:text-amber-400">🏷️ Tags</a>
+        <a href="{{ url('admin/pages') }}" class="block py-1 hover:text-amber-400">📄 Pages</a>
       </div>
     </div>
 
     <div>
       <div class="text-xs font-black text-gray-500 uppercase mb-2">Site</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/home-blocks') }}"      class="block py-1 hover:text-amber-400">Accueil</a>
-        <a href="{{ url('admin/menu') }}"             class="block py-1 hover:text-amber-400">Menu nav</a>
-        <a href="{{ url('admin/locations') }}"        class="block py-1 hover:text-amber-400">Emplacements</a>
+        <a href="{{ url('admin/home-blocks') }}"      class="block py-1 hover:text-amber-400">🏠 Accueil</a>
+        <a href="{{ url('admin/menu') }}"             class="block py-1 hover:text-amber-400">📜 Menu nav</a>
+        <a href="{{ url('admin/locations') }}"        class="block py-1 hover:text-amber-400">📍 Emplacements</a>
         <a href="{{ url('admin/contact-messages') }}" class="flex items-center justify-between py-1 hover:text-amber-400">
-          <span>Messages contact</span>
+          <span>✉️ Messages contact</span>
           {% if unread_contact_messages %}
             <span class="ml-2 bg-red-600 text-white text-xs font-black px-2 rounded-full">{{ unread_contact_messages }}</span>
           {% endif %}
         </a>
-        <a href="{{ url('admin/site-config') }}"      class="block py-1 hover:text-amber-400">Configuration</a>
+       </div>
+ href="{{ url('admin/site-config') }}"      class="block py-1 hover:text-amber-400">Configuration</a>
+        <a href="{{ url('admin/home-blocks') }}" class="block py-1 hover:text-amber-400">🏠 Accueil</a>
+        <a href="{{ url('admin/menu') }}"        class="block py-1 hover:text-amber-400">≡ Menu nav</a>
+        <a href="{{ url('admin/site-config') }}" class="block py-1 hover:text-amber-400">⚙️ Configuration</a>
       </div>
     </div>
 
     <div>
       <div class="text-xs font-black text-gray-500 uppercase mb-2">Club</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/saisons') }}"         class="block py-1 hover:text-amber-400">Saisons</a>
-        <a href="{{ url('admin/saisons/joueurs') }}" class="block py-1 hover:text-amber-400">Joueurs</a>
-        <a href="{{ url('admin/equipes-config') }}"  class="block py-1 hover:text-amber-400">Équipes</a>
+        <a href="{{ url('admin/saisons') }}"         class="block py-1 hover:text-amber-400">📅 Saisons</a>
+        <a href="{{ url('admin/saisons/joueurs') }}" class="block py-1 hover:text-amber-400">👥 Joueurs</a>
+        <a href="{{ url('admin/equipes-config') }}"  class="block py-1 hover:text-amber-400">⚽ Équipes</a>
+      </div>
+    </div>
+
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase mb-2">Support</div>
+      <div class="space-y-1 pl-2">
+        <a href="{{ url('admin/contacts') }}" class="block py-1 hover:text-amber-400">💬 Messages de contact</a>
       </div>
     </div>
 
