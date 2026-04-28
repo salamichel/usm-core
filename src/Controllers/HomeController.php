@@ -9,21 +9,27 @@ use App\Models\HomeBlock;
 use App\Models\Photo;
 use App\Models\Post;
 use App\Models\Saison;
+use App\Models\SiteConfig;
 use App\Services\AgendaService;
 
 class HomeController
 {
     public function index(array $params): void
     {
-        $latestPosts = array_slice(Post::allPublished(), 0, 3);
+        $sliderCount = (int)SiteConfig::get('home_slider_posts_count', '3');
+        $latestPostsCount = (int)SiteConfig::get('home_latest_posts_count', '3');
+
+        $allPublished = Post::allPublished();
+        $sliderPosts = array_slice($allPublished, 0, $sliderCount);
+        $latestPosts = array_slice($allPublished, 0, $latestPostsCount);
 
         // Fetch agenda — silently returns [] on API failure
         $matches   = AgendaService::getUpcomingMatches(5);
         $trainings = AgendaService::getUpcomingTrainings(7);
 
-        // Slides hero = 3 dernières actus avec leur 1ère photo (si dispo)
+        // Slides hero — construits à partir des posts du slider avec leur 1ère photo
         $slides = [];
-        foreach ($latestPosts as $post) {
+        foreach ($sliderPosts as $post) {
             $photos    = Photo::forEntity('post', (int)$post['id']);
             $slides[]  = [
                 'title'      => $post['title'],

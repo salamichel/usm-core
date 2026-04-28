@@ -12,6 +12,7 @@ class SiteConfigController
     private const FIELDS = [
         'club_name', 'club_tagline', 'address', 'email', 'phone',
         'facebook_url', 'instagram_url', 'legal_text',
+        'home_slider_posts_count', 'home_latest_posts_count',
     ];
 
     public function edit(array $params): void
@@ -27,7 +28,12 @@ class SiteConfigController
         Auth::require();
         $data = [];
         foreach (self::FIELDS as $key) {
-            $data[$key] = trim($_POST[$key] ?? '');
+            $val = trim($_POST[$key] ?? '');
+            // Validate numeric fields
+            if (in_array($key, ['home_slider_posts_count', 'home_latest_posts_count'])) {
+                $val = max(1, (int)$val);
+            }
+            $data[$key] = (string)$val;
         }
         SiteConfig::setMany($data);
         View::flash('success', 'Configuration enregistrée.');
