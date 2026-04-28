@@ -95,6 +95,32 @@
     </div>
   </div>
 
+  {# ── Affichage home page ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Affichage page d'accueil</h2>
+    <p class="text-xs text-gray-500">Configuration du nombre d'articles affichés sur la page d'accueil.</p>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-black mb-1" for="home_slider_posts_count">Posts dans le slider héro</label>
+        <input type="number" id="home_slider_posts_count" name="home_slider_posts_count"
+               value="{{ config.home_slider_posts_count|default('3') }}"
+               min="1" max="10"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <div class="text-xs text-gray-500 mt-1">Nombre d'articles dans le slider d'accueil (1-10).</div>
+      </div>
+
+      <div>
+        <label class="block font-black mb-1" for="home_latest_posts_count">Posts en bas de page</label>
+        <input type="number" id="home_latest_posts_count" name="home_latest_posts_count"
+               value="{{ config.home_latest_posts_count|default('3') }}"
+               min="1" max="12"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <div class="text-xs text-gray-500 mt-1">Nombre d'articles "Dernières actualités" (1-12).</div>
+      </div>
+    </div>
+  </div>
+
   <button type="submit"
           class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
     Enregistrer
