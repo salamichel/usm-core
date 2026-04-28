@@ -7,7 +7,9 @@ use App\Controllers\HomeController;
 use App\Controllers\BlogController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
+use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
+use App\Controllers\Admin\TagController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\EquipeConfigController;
 use App\Controllers\Admin\HomeBlockController;
@@ -45,7 +47,7 @@ class App
     private function isLoginRoute(string $uri): bool
     {
         $path = parse_url($uri, PHP_URL_PATH);
-        return str_ends_with($path, '/admin/login');
+        return str_ends_with($path, '/admin/login') || str_starts_with($path, '/api/');
     }
 
     private function registerRoutes(): void
@@ -55,10 +57,15 @@ class App
         // ── Public ────────────────────────────────────────────────────────────
         $r->get('/',              [HomeController::class, 'index']);
         $r->get('/blog',          [BlogController::class, 'list']);
-        $r->get('/blog/{slug}',   [BlogController::class, 'show']);
+        $r->get('/blog/tag/{tag}', [BlogController::class, 'list']);
+        $r->get('/blog/{slug+}',  [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
+
+        // ── API ───────────────────────────────────────────────────────────────
+        $r->options('/api/articles', [ArticleApiController::class, 'create']);
+        $r->post('/api/articles',   [ArticleApiController::class, 'create']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
         $r->get('/admin/login',   [AuthController::class, 'showLogin']);
@@ -67,6 +74,14 @@ class App
 
         // ── Admin dashboard ───────────────────────────────────────────────────
         $r->get('/admin',         [DashboardController::class, 'index']);
+
+        // ── Admin tags ─────────────────────────────────────────────────────
+        $r->get('/admin/tags',             [TagController::class, 'index']);
+        $r->get('/admin/tags/create',      [TagController::class, 'create']);
+        $r->post('/admin/tags/create',     [TagController::class, 'store']);
+        $r->get('/admin/tags/{id}/edit',   [TagController::class, 'edit']);
+        $r->post('/admin/tags/{id}/edit',  [TagController::class, 'update']);
+        $r->post('/admin/tags/{id}/delete',[TagController::class, 'delete']);
 
         // ── Admin posts ───────────────────────────────────────────────────────
         $r->get('/admin/posts',             [PostController::class, 'index']);

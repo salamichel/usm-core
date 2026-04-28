@@ -15,6 +15,13 @@
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
 
+    {% if post and post.canalblog_id %}
+    <div class="bg-blue-50 border-2 border-blue-300 p-3 rounded">
+      <div class="text-xs text-blue-600 font-bold mb-1">Importé via API CanalBlog</div>
+      <div class="font-mono text-sm text-blue-900">ID: {{ post.canalblog_id }}</div>
+    </div>
+    {% endif %}
+
     <div>
       <label class="block font-black mb-1" for="title">Titre *</label>
       <input type="text" id="title" name="title" required
@@ -46,7 +53,7 @@
       <div>
         <label class="block font-black mb-1" for="published_at">Date de publication</label>
         <input type="datetime-local" id="published_at" name="published_at"
-               value="{{ post.published_at ?? '' }}"
+               value="{{ post.published_at ?? default_date ?? '' }}"
                class="border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
       </div>
       <div class="flex items-center gap-3 pt-7">
@@ -55,6 +62,26 @@
                class="w-5 h-5 border-2 border-black">
         <label class="font-black" for="is_published">Publié</label>
       </div>
+    </div>
+
+    <div>
+      <label class="block font-black mb-3">Tags</label>
+      {% if all_tags|length %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {% for tag in all_tags %}
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="tags[]" value="{{ tag.id }}"
+                 {% if tag.id in tag_ids %}checked{% endif %}
+                 class="w-4 h-4 border-2 border-black">
+          <span class="text-sm">{{ tag.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="bg-amber-50 border-2 border-amber-300 p-3 rounded text-sm text-amber-800">
+        <strong>Aucun tag disponible.</strong> Les tags seront créés automatiquement lors de l'import d'articles CanalBlog ou peuvent être ajoutés via l'API.
+      </div>
+      {% endif %}
     </div>
   </div>
 

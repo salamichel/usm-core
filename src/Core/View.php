@@ -30,11 +30,20 @@ class View
             $twig->addGlobal('flash', self::getFlash());
             $twig->addGlobal('site_config', SiteConfig::all());
             $twig->addGlobal('csrf_token', CsrfToken::generate());
+            $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
 
             // |date_fr filter
             $twig->addFilter(new TwigFilter('date_fr', function (?string $date, string $format = 'd/m/Y'): string {
                 if (!$date) return '';
                 return date($format, strtotime($date));
+            }));
+
+            // |month_fr filter — 'YYYY-MM' → 'Janvier 2026'
+            $twig->addFilter(new TwigFilter('month_fr', function (string $ym): string {
+                $months = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                           'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+                [$y, $m] = explode('-', $ym);
+                return ($months[(int)$m - 1] ?? $ym) . ' ' . $y;
             }));
 
             // url() function

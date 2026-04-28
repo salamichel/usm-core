@@ -7,74 +7,172 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-900 min-h-screen">
 
-  {# ── Top bar ── #}
-  <header class="bg-black text-white border-b-4 border-usm-brown">
-    <div class="flex items-center justify-between px-6 py-3">
-      <div class="flex items-center gap-6">
-        <a href="{{ url('admin') }}" class="font-black text-lg tracking-tight">⚙ USM Admin</a>
-        <nav class="hidden sm:flex items-center gap-4 text-sm font-semibold">
-          <a href="{{ url('admin/posts') }}"           class="hover:text-amber-400 transition">Articles</a>
-          <a href="{{ url('admin/pages') }}"           class="hover:text-amber-400 transition">Pages</a>
-          <a href="{{ url('admin/menu') }}"            class="hover:text-amber-400 transition">Menu</a>
-          <a href="{{ url('admin/home-blocks') }}"     class="hover:text-amber-400 transition">Accueil</a>
-          <a href="{{ url('admin/saisons') }}"         class="hover:text-amber-400 transition">Saisons</a>
-          <a href="{{ url('admin/saisons/joueurs') }}" class="hover:text-amber-400 transition">Joueurs</a>
-          <a href="{{ url('admin/equipes-config') }}"  class="hover:text-amber-400 transition">Équipes</a>
-          <a href="{{ url('admin/site-config') }}"     class="hover:text-amber-400 transition">Config</a>
-        </nav>
-      </div>
-      <div class="flex items-center gap-3 text-sm">
-        <a href="{{ url('/') }}" class="hidden sm:inline hover:underline opacity-70">← Site public</a>
-        <a href="{{ url('admin/logout') }}" class="hidden sm:inline border-2 border-white px-3 py-1 hover:bg-white hover:text-black transition font-bold">Déconnexion</a>
-        {# Burger mobile #}
-        <button id="burger" aria-label="Menu" aria-expanded="false"
-                class="sm:hidden flex flex-col justify-center gap-1.5 w-9 h-9 p-1.5">
-          <span class="block h-0.5 bg-white transition-all duration-200"></span>
-          <span class="block h-0.5 bg-white transition-all duration-200"></span>
-          <span class="block h-0.5 bg-white transition-all duration-200"></span>
-        </button>
+{# ═══════════════════════════════════════════════════════════════
+   Sidebar (desktop) — fixed left column
+═══════════════════════════════════════════════════════════════ #}
+{% set p = current_path %}
+<aside class="hidden lg:flex fixed inset-y-0 left-0 w-52 flex-col bg-black text-white z-30">
+
+  {# Logo / home #}
+  <a href="{{ url('admin') }}"
+     class="flex items-center gap-2 px-5 py-4 font-black text-base border-b-4 border-usm-brown hover:bg-gray-900 transition">
+    ⚙ USM Admin
+  </a>
+
+  {# Navigation groupée #}
+  <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6 text-sm">
+
+    {# ── Contenu ── #}
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Contenu</div>
+      <div class="space-y-0.5">
+        {% set links = [
+          [url('admin/posts'), 'Articles',  '/admin/posts'],
+          [url('admin/tags'),  'Tags',       '/admin/tags'],
+          [url('admin/pages'), 'Pages',      '/admin/pages'],
+        ] %}
+        {% for link in links %}
+          <a href="{{ link[0] }}"
+             class="flex items-center px-3 py-2 rounded font-semibold transition
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            {{ link[1] }}
+          </a>
+        {% endfor %}
       </div>
     </div>
 
-    {# ── Menu mobile (drawer) ── #}
-    <nav id="mobile-menu" class="sm:hidden hidden border-t-2 border-usm-brown px-6 py-4 flex flex-col gap-3 text-sm font-semibold">
-      <a href="{{ url('admin/posts') }}"           class="hover:text-amber-400 transition">Articles</a>
-      <a href="{{ url('admin/pages') }}"           class="hover:text-amber-400 transition">Pages</a>
-      <a href="{{ url('admin/menu') }}"            class="hover:text-amber-400 transition">Menu</a>
-      <a href="{{ url('admin/home-blocks') }}"     class="hover:text-amber-400 transition">Accueil</a>
-      <a href="{{ url('admin/saisons') }}"         class="hover:text-amber-400 transition">Saisons</a>
-      <a href="{{ url('admin/saisons/joueurs') }}" class="hover:text-amber-400 transition">Joueurs</a>
-      <a href="{{ url('admin/equipes-config') }}"  class="hover:text-amber-400 transition">Équipes</a>
-      <a href="{{ url('admin/site-config') }}"     class="hover:text-amber-400 transition">Config</a>
-      <hr class="border-gray-700">
-      <a href="{{ url('/') }}"            class="hover:text-amber-400 transition opacity-70">← Site public</a>
-      <a href="{{ url('admin/logout') }}" class="hover:text-amber-400 transition">Déconnexion</a>
-    </nav>
-  </header>
+    {# ── Site ── #}
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Site</div>
+      <div class="space-y-0.5">
+        {% set links = [
+          [url('admin/home-blocks'), 'Accueil',       '/admin/home-blocks'],
+          [url('admin/menu'),        'Menu nav',       '/admin/menu'],
+          [url('admin/site-config'), 'Configuration',  '/admin/site-config'],
+        ] %}
+        {% for link in links %}
+          <a href="{{ link[0] }}"
+             class="flex items-center px-3 py-2 rounded font-semibold transition
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            {{ link[1] }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
 
-  <script>
-    (function () {
-      var btn  = document.getElementById('burger');
-      var menu = document.getElementById('mobile-menu');
-      var bars = btn.querySelectorAll('span');
-      btn.addEventListener('click', function () {
-        var open = menu.classList.toggle('hidden');
-        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
-        // Croix / burger animation
-        if (!open) {
-          bars[0].style.cssText = 'transform:translateY(8px) rotate(45deg)';
-          bars[1].style.cssText = 'opacity:0';
-          bars[2].style.cssText = 'transform:translateY(-8px) rotate(-45deg)';
-        } else {
-          bars[0].style.cssText = bars[1].style.cssText = bars[2].style.cssText = '';
-        }
-      });
-    })();
-  </script>
+    {# ── Club ── #}
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Club</div>
+      <div class="space-y-0.5">
+        {% set links = [
+          [url('admin/saisons'),         'Saisons',  '/admin/saisons'],
+          [url('admin/saisons/joueurs'), 'Joueurs',  '/admin/saisons/joueurs'],
+          [url('admin/equipes-config'),  'Équipes',  '/admin/equipes-config'],
+        ] %}
+        {% for link in links %}
+          <a href="{{ link[0] }}"
+             class="flex items-center px-3 py-2 rounded font-semibold transition
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            {{ link[1] }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
 
-  {# ── Flash ── #}
+  </nav>
+
+  {# Footer sidebar #}
+  <div class="px-3 py-4 border-t border-gray-800 space-y-0.5 text-sm">
+    <a href="{{ url('/') }}"
+       class="flex items-center px-3 py-2 rounded font-semibold text-gray-400 hover:bg-gray-800 hover:text-white transition">
+      ← Site public
+    </a>
+    <a href="{{ url('admin/logout') }}"
+       class="flex items-center px-3 py-2 rounded font-semibold text-gray-400 hover:bg-gray-800 hover:text-white transition">
+      Déconnexion
+    </a>
+  </div>
+
+</aside>
+
+{# ═══════════════════════════════════════════════════════════════
+   Top bar (mobile + tablet)
+═══════════════════════════════════════════════════════════════ #}
+<header class="lg:hidden sticky top-0 z-20 bg-black text-white border-b-4 border-usm-brown">
+  <div class="flex items-center justify-between px-4 py-3">
+    <a href="{{ url('admin') }}" class="font-black text-base">⚙ USM Admin</a>
+    <button id="burger" aria-label="Menu" aria-expanded="false"
+            class="flex flex-col justify-center gap-1.5 w-9 h-9 p-1.5">
+      <span class="block h-0.5 bg-white transition-all duration-200"></span>
+      <span class="block h-0.5 bg-white transition-all duration-200"></span>
+      <span class="block h-0.5 bg-white transition-all duration-200"></span>
+    </button>
+  </div>
+
+  {# Drawer mobile — mêmes groupes #}
+  <nav id="mobile-menu" class="hidden border-t-2 border-usm-brown px-4 py-4 text-sm font-semibold space-y-4">
+
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase mb-2">Contenu</div>
+      <div class="space-y-1 pl-2">
+        <a href="{{ url('admin/posts') }}" class="block py-1 hover:text-amber-400">Articles</a>
+        <a href="{{ url('admin/tags') }}"  class="block py-1 hover:text-amber-400">Tags</a>
+        <a href="{{ url('admin/pages') }}" class="block py-1 hover:text-amber-400">Pages</a>
+      </div>
+    </div>
+
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase mb-2">Site</div>
+      <div class="space-y-1 pl-2">
+        <a href="{{ url('admin/home-blocks') }}" class="block py-1 hover:text-amber-400">Accueil</a>
+        <a href="{{ url('admin/menu') }}"        class="block py-1 hover:text-amber-400">Menu nav</a>
+        <a href="{{ url('admin/site-config') }}" class="block py-1 hover:text-amber-400">Configuration</a>
+      </div>
+    </div>
+
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase mb-2">Club</div>
+      <div class="space-y-1 pl-2">
+        <a href="{{ url('admin/saisons') }}"         class="block py-1 hover:text-amber-400">Saisons</a>
+        <a href="{{ url('admin/saisons/joueurs') }}" class="block py-1 hover:text-amber-400">Joueurs</a>
+        <a href="{{ url('admin/equipes-config') }}"  class="block py-1 hover:text-amber-400">Équipes</a>
+      </div>
+    </div>
+
+    <hr class="border-gray-700">
+    <a href="{{ url('/') }}"            class="block py-1 hover:text-amber-400 opacity-70">← Site public</a>
+    <a href="{{ url('admin/logout') }}" class="block py-1 hover:text-amber-400">Déconnexion</a>
+  </nav>
+</header>
+
+<script>
+  (function () {
+    var btn  = document.getElementById('burger');
+    var menu = document.getElementById('mobile-menu');
+    if (!btn) return;
+    var bars = btn.querySelectorAll('span');
+    btn.addEventListener('click', function () {
+      var open = menu.classList.toggle('hidden');
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      if (!open) {
+        bars[0].style.cssText = 'transform:translateY(8px) rotate(45deg)';
+        bars[1].style.cssText = 'opacity:0';
+        bars[2].style.cssText = 'transform:translateY(-8px) rotate(-45deg)';
+      } else {
+        bars[0].style.cssText = bars[1].style.cssText = bars[2].style.cssText = '';
+      }
+    });
+  })();
+</script>
+
+{# ═══════════════════════════════════════════════════════════════
+   Main content — décalé de la largeur de la sidebar sur desktop
+═══════════════════════════════════════════════════════════════ #}
+<div class="lg:ml-52 flex flex-col min-h-screen">
+
+  {# Flash #}
   {% if flash %}
     <div class="px-6 pt-4">
       <div class="border-2 border-black p-3 shadow-[3px_3px_0_#000] font-semibold max-w-5xl mx-auto
@@ -88,6 +186,8 @@
     {% block content %}{% endblock %}
   </main>
 
-  {% block scripts %}{% endblock %}
+</div>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>
