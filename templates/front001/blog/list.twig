@@ -50,17 +50,24 @@
   {% if posts|length %}
     <div class="space-y-6">
       {% for post in posts %}
-      <article class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
-        <h2 class="text-xl font-black mb-1">
-          <a href="{{ url('blog/' ~ post.slug) }}" class="hover:underline">{{ post.title }}</a>
-        </h2>
-        {% if post.published_at %}
-          <time class="text-xs text-gray-500 mb-3 block">{{ post.published_at|date_fr }}</time>
+      <article class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+        {% if post.cover %}
+          <a href="{{ url('blog/' ~ post.slug) }}" class="block h-48 overflow-hidden bg-gray-200">
+            <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}" class="w-full h-full object-cover hover:scale-105 transition-transform">
+          </a>
         {% endif %}
-        {% if post.excerpt %}
-          <p class="text-gray-700">{{ post.excerpt }}</p>
-        {% endif %}
-        <a href="{{ url('blog/' ~ post.slug) }}" class="inline-block mt-3 text-sm font-bold underline hover:no-underline">Lire la suite →</a>
+        <div class="p-6">
+          <h2 class="text-xl font-black mb-1">
+            <a href="{{ url('blog/' ~ post.slug) }}" class="hover:underline">{{ post.title }}</a>
+          </h2>
+          {% if post.published_at %}
+            <time class="text-xs text-gray-500 mb-3 block">{{ post.published_at|date_fr }}</time>
+          {% endif %}
+          {% if post.excerpt %}
+            <p class="text-gray-700">{{ post.excerpt }}</p>
+          {% endif %}
+          <a href="{{ url('blog/' ~ post.slug) }}" class="inline-block mt-3 text-sm font-bold underline hover:no-underline">Lire la suite →</a>
+        </div>
       </article>
       {% endfor %}
     </div>

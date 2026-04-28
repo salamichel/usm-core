@@ -37,6 +37,12 @@ class BlogController
         $posts   = Post::filtered($filters);
         $allTags = Tag::all();
 
+        // Add cover photo for each post
+        foreach ($posts as &$post) {
+            $post['cover'] = Photo::getEntityCover('post', $post['id']);
+        }
+        unset($post);
+
         $tagCounts = [];
         foreach ($allTags as $tag) {
             $tagCounts[$tag['id']] = Tag::getPostCount($tag['id']);
