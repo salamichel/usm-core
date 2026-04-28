@@ -76,7 +76,7 @@
                             {% endif %}
                         </span>
                     </div>
-                    <p class="text-gray-700 mb-3">{{ contact.message|truncate(150) }}</p>
+                    <p class="text-gray-700 mb-3">{{ contact.message[:150] }}{% if contact.message|length > 150 %}...{% endif %}</p>
                     <p class="text-gray-500 text-xs">
                         Reçu le {{ contact.created_at|date_fr }}
                     </p>
