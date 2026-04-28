@@ -33,7 +33,7 @@
                 placeholder="12 Rue de la Paix&#10;33380 Mios"
                 class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
                 rows="3">{{ location.address ?? '' }}</textarea>
-      <div class="text-xs text-gray-500 mt-1">Adresse complète. Sera géolocalisée automatiquement pour la carte.</div>
+      <div class="text-xs text-gray-500 mt-1">Adresse complète. Tentative de géolocalisation automatique pour afficher sur la carte. Si ça échoue, un lien Google Maps s'affichera à la place.</div>
     </div>
 
     {% if location and location.latitude and location.longitude %}
