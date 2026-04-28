@@ -31,6 +31,11 @@ if (getenv('BASE_URL')) {
 define('THEME',     getenv('THEME') ?: 'front001');
 define('APP_DEBUG', (bool)(getenv('APP_DEBUG') ?: true));
 
+// ── Brevo (Email service) ─────────────────────────────────────────────────────
+define('BREVO_API_KEY', getenv('BREVO_API_KEY') ?: '');
+define('BREVO_FROM_EMAIL', getenv('BREVO_FROM_EMAIL') ?: 'noreply@usm-volley.fr');
+define('BREVO_FROM_NAME', getenv('BREVO_FROM_NAME') ?: 'USM Volley');
+
 // ── Upload ────────────────────────────────────────────────────────────────────
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');
 define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024); // 10 MB

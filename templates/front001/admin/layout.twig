@@ -81,6 +81,23 @@
       </div>
     </div>
 
+    {# ── Support ── #}
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Support</div>
+      <div class="space-y-0.5">
+        {% set links = [
+          [url('admin/contacts'), 'Messages de contact', '/admin/contacts'],
+        ] %}
+        {% for link in links %}
+          <a href="{{ link[0] }}"
+             class="flex items-center px-3 py-2 rounded font-semibold transition
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+            {{ link[1] }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
   </nav>
 
   {# Footer sidebar #}
@@ -138,6 +155,13 @@
         <a href="{{ url('admin/saisons') }}"         class="block py-1 hover:text-amber-400">Saisons</a>
         <a href="{{ url('admin/saisons/joueurs') }}" class="block py-1 hover:text-amber-400">Joueurs</a>
         <a href="{{ url('admin/equipes-config') }}"  class="block py-1 hover:text-amber-400">Équipes</a>
+      </div>
+    </div>
+
+    <div>
+      <div class="text-xs font-black text-gray-500 uppercase mb-2">Support</div>
+      <div class="space-y-1 pl-2">
+        <a href="{{ url('admin/contacts') }}" class="block py-1 hover:text-amber-400">Messages de contact</a>
       </div>
     </div>
 

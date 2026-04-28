@@ -31,6 +31,7 @@ class View
             $twig->addGlobal('site_config', SiteConfig::all());
             $twig->addGlobal('csrf_token', CsrfToken::generate());
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+            $twig->addGlobal('_POST', $_POST);
 
             // |date_fr filter
             $twig->addFilter(new TwigFilter('date_fr', function (?string $date, string $format = 'd/m/Y'): string {
