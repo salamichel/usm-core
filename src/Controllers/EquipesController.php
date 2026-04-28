@@ -10,6 +10,9 @@ use App\Models\EquipeSaison;
 use App\Models\EquipeSaisonJoueur;
 use App\Models\Photo;
 use App\Models\Saison;
+use App\Services\SeoService;
+use App\Services\StructuredDataService;
+use App\ValueObjects\PageMetadata;
 
 class EquipesController
 {
@@ -30,7 +33,30 @@ class EquipesController
             }
         }
 
-        View::render('equipes/index.twig', ['grouped' => $result, 'saison' => $saison]);
+        // SEO metadata
+        $meta = new PageMetadata(
+            title: SeoService::title('Équipes'),
+            description: SeoService::description(
+                null,
+                null,
+                'Découvrez les équipes du club USM Volley-Ball : compositions, joueurs, matchs et entraînements.'
+            ),
+            canonical: SeoService::absoluteUrl('/equipes'),
+            ogType: 'website',
+            jsonLd: [
+                StructuredDataService::sportsClub(),
+            ],
+            breadcrumbs: [
+                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+                ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+            ],
+        );
+
+        View::render('equipes/index.twig', [
+            'meta'   => $meta,
+            'grouped' => $result,
+            'saison' => $saison,
+        ]);
     }
 
     public function show(array $params): void
@@ -46,7 +72,33 @@ class EquipesController
         $photos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
         $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
 
+        // SEO metadata
+        $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
+        $url = SeoService::absoluteUrl('/equipes/' . $equipe['id']);
+
+        $meta = new PageMetadata(
+            title: SeoService::title($equipe['libelle']),
+            description: SeoService::description(
+                null,
+                null,
+                'Équipe ' . $equipe['libelle'] . ' du club USM Volley-Ball : joueurs, matchs et entraînements.'
+            ),
+            canonical: $url,
+            ogImage: $ogImage,
+            ogType: 'website',
+            jsonLd: [
+                StructuredDataService::sportsTeam($equipe, $ogImage, $url),
+                StructuredDataService::sportsClub(),
+            ],
+            breadcrumbs: [
+                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+                ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+                ['name' => $equipe['libelle'], 'url' => $url],
+            ],
+        );
+
         View::render('equipes/detail.twig', [
+            'meta'    => $meta,
             'equipe'  => $equipe,
             'photos'  => $photos,
             'joueurs' => $joueurs,

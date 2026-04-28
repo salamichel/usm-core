@@ -11,6 +11,9 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\SiteConfig;
 use App\Services\Pagination;
+use App\Services\SeoService;
+use App\Services\StructuredDataService;
+use App\ValueObjects\PageMetadata;
 
 class BlogController
 {
@@ -61,7 +64,27 @@ class BlogController
             $tagCounts[$tag['id']] = Tag::getPostCount($tag['id']);
         }
 
+        // SEO metadata
+        $blogTitle = 'Actualités';
+        if ($selectedTag) {
+            $blogTitle = $selectedTag['name'] . ' — Actualités';
+        }
+
+        $meta = new PageMetadata(
+            title: SeoService::title($blogTitle),
+            description: SeoService::description(
+                null,
+                null,
+                'Retrouvez les dernières actualités du club USM Volley-Ball : matchs, entraînements, événements et news.'
+            ),
+            ogType: 'website',
+            jsonLd: [
+                StructuredDataService::sportsClub(),
+            ],
+        );
+
         View::render('blog/list.twig', [
+            'meta'           => $meta,
             'posts'          => $posts,
             'all_tags'       => $allTags,
             'tag_counts'     => $tagCounts,
@@ -80,9 +103,33 @@ class BlogController
             return;
         }
         $tags = Tag::findByPost($post['id']);
+        $photos = Photo::forEntity('post', $post['id']);
+
+        // SEO metadata
+        $ogImage = SeoService::pickOgImage(null, $photos);
+        $meta = new PageMetadata(
+            title: SeoService::title($post['title']),
+            description: SeoService::description($post['excerpt'], $post['content']),
+            canonical: SeoService::absoluteUrl('/blog/' . $post['slug']),
+            ogImage: $ogImage,
+            ogType: 'article',
+            jsonLd: [
+                StructuredDataService::blogPosting($post, $ogImage),
+                StructuredDataService::sportsClub(),
+            ],
+            breadcrumbs: [
+                ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+                ['name' => 'Actualités', 'url' => SeoService::absoluteUrl('/blog')],
+                ['name' => $post['title'], 'url' => SeoService::absoluteUrl('/blog/' . $post['slug'])],
+            ],
+            articlePublishedAt: !empty($post['published_at']) ? date('c', strtotime($post['published_at'])) : null,
+            articleModifiedAt: !empty($post['updated_at']) ? date('c', strtotime($post['updated_at'])) : null,
+        );
+
         View::render('blog/detail.twig', [
+            'meta'   => $meta,
             'post'   => $post,
-            'photos' => Photo::forEntity('post', $post['id']),
+            'photos' => $photos,
             'tags'   => $tags,
         ]);
     }

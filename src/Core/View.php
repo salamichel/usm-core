@@ -68,7 +68,14 @@ class View
 
     public static function render(string $template, array $data = []): void
     {
-        echo self::getInstance()->render($template, $data);
+        $twig = self::getInstance();
+
+        // If no 'meta' provided in $data, add a default empty one
+        if (!isset($data['meta'])) {
+            $data['meta'] = null;
+        }
+
+        echo $twig->render($template, $data);
     }
 
     public static function flash(string $type, string $message): void

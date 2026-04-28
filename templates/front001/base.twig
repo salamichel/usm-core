@@ -3,7 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}USM Volley{% endblock %}</title>
+
+  {# Title #}
+  {% set page_title = block('title')|trim %}
+  <title>{{ page_title ?: 'USM Volley' }}</title>
+
+  {# SEO: Meta description & robots #}
+  {% if meta %}
+    <meta name="description" content="{{ meta.description|truncate(160) }}">
+    <meta name="robots" content="{{ meta.robots }}">
+    {% if meta.canonical %}
+      <link rel="canonical" href="{{ meta.canonical }}">
+    {% else %}
+      <link rel="canonical" href="{{ base_url ~ current_path }}">
+    {% endif %}
+  {% else %}
+    <meta name="description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ base_url ~ current_path }}">
+  {% endif %}
+
+  {# Open Graph #}
+  {% if meta %}
+    <meta property="og:title" content="{{ meta.title }}">
+    <meta property="og:description" content="{{ meta.description|truncate(160) }}">
+    <meta property="og:type" content="{{ meta.ogType|default('website') }}">
+    <meta property="og:url" content="{{ meta.canonical|default(base_url ~ current_path) }}">
+    {% if meta.ogImage %}
+      <meta property="og:image" content="{{ meta.ogImage }}">
+      <meta property="og:image:width" content="1200">
+      <meta property="og:image:height" content="630">
+      <meta property="og:image:type" content="image/jpeg">
+    {% endif %}
+    {% if meta.articlePublishedAt %}
+      <meta property="article:published_time" content="{{ meta.articlePublishedAt }}">
+    {% endif %}
+    {% if meta.articleModifiedAt %}
+      <meta property="article:modified_time" content="{{ meta.articleModifiedAt }}">
+    {% endif %}
+  {% else %}
+    <meta property="og:title" content="{{ page_title ?: 'USM Volley' }}">
+    <meta property="og:description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ base_url ~ current_path }}">
+  {% endif %}
+
+  {# Twitter Card #}
+  <meta name="twitter:card" content="summary_large_image">
+  {% if meta %}
+    <meta name="twitter:title" content="{{ meta.title }}">
+    <meta name="twitter:description" content="{{ meta.description|truncate(160) }}">
+    {% if meta.ogImage %}
+      <meta name="twitter:image" content="{{ meta.ogImage }}">
+    {% endif %}
+  {% else %}
+    <meta name="twitter:title" content="{{ page_title ?: 'USM Volley' }}">
+    <meta name="twitter:description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+  {% endif %}
+
+  {# JSON-LD Structured Data #}
+  {% if meta and meta.jsonLd %}
+    {% for schema in meta.jsonLd %}
+    <script type="application/ld+json">
+      {{ schema|json_encode(constant('JSON_PRETTY_PRINT') + constant('JSON_UNESCAPED_SLASHES') + constant('JSON_UNESCAPED_UNICODE')) }}
+    </script>
+    {% endfor %}
+  {% endif %}
+
+  {# BreadcrumbList #}
+  {% if meta and meta.breadcrumbs %}
+    {% set breadcrumb_schema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': []
+    } %}
+    {% set position = 1 %}
+    {% for crumb in meta.breadcrumbs %}
+    {% set _ = breadcrumb_schema.itemListElement|push({
+      '@type': 'ListItem',
+      'position': position,
+      'name': crumb.name,
+      'item': crumb.url
+    }) %}
+    {% set position = position + 1 %}
+    {% endfor %}
+    <script type="application/ld+json">
+      {{ breadcrumb_schema|json_encode(constant('JSON_PRETTY_PRINT') + constant('JSON_UNESCAPED_SLASHES') + constant('JSON_UNESCAPED_UNICODE')) }}
+    </script>
+  {% endif %}
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {

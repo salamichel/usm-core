@@ -7,6 +7,7 @@ use App\Controllers\HomeController;
 use App\Controllers\BlogController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
+use App\Controllers\SitemapController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\TagController;
@@ -53,6 +54,10 @@ class App
     private function registerRoutes(): void
     {
         $r = $this->router;
+
+        // ── SEO ───────────────────────────────────────────────────────────────
+        $r->get('/robots.txt',   [SitemapController::class, 'robots']);
+        $r->get('/sitemap.xml',  [SitemapController::class, 'sitemap']);
 
         // ── Public ────────────────────────────────────────────────────────────
         $r->get('/',              [HomeController::class, 'index']);
