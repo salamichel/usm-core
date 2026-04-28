@@ -19,6 +19,12 @@
             {% endif %}
         {% endif %}
 
+        {% if error %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+                Erreur : {{ error }}
+            </div>
+        {% endif %}
+
         <form method="POST" action="{{ url('contact') }}" class="bg-gray-100 p-8 rounded-lg">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
@@ -28,7 +34,7 @@
                     type="text"
                     id="name"
                     name="name"
-                    value="{{ _POST.name ?? '' }}"
+                    value="{{ form_data.name ?? _POST.name ?? '' }}"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 >
@@ -40,7 +46,7 @@
                     type="email"
                     id="email"
                     name="email"
-                    value="{{ _POST.email ?? '' }}"
+                    value="{{ form_data.email ?? _POST.email ?? '' }}"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 >
@@ -52,7 +58,7 @@
                     type="text"
                     id="subject"
                     name="subject"
-                    value="{{ _POST.subject ?? '' }}"
+                    value="{{ form_data.subject ?? _POST.subject ?? '' }}"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                 >
@@ -66,7 +72,7 @@
                     rows="8"
                     required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                >{{ _POST.message ?? '' }}</textarea>
+                >{{ form_data.message ?? _POST.message ?? '' }}</textarea>
             </div>
 
             <div class="text-right">

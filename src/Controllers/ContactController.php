@@ -33,9 +33,16 @@ class ContactController
             ->minLength('message', 10);
 
         if ($v->fails()) {
-            View::flash('error', 'Erreur : ' . $v->firstError());
-            header('Location: ' . BASE_URL . '/contact');
-            exit;
+            View::render('contact/form.twig', [
+                'error' => $v->firstError(),
+                'form_data' => [
+                    'name' => $_POST['name'] ?? '',
+                    'email' => $_POST['email'] ?? '',
+                    'subject' => $_POST['subject'] ?? '',
+                    'message' => $_POST['message'] ?? '',
+                ],
+            ]);
+            return;
         }
 
         $data = $v->getCleanData(['name', 'email', 'subject', 'message']);
@@ -57,9 +64,15 @@ class ContactController
             header('Location: ' . BASE_URL . '/contact');
             exit;
         } catch (\Exception $e) {
-            View::flash('error', 'Une erreur est survenue. Veuillez réessayer.');
-            header('Location: ' . BASE_URL . '/contact');
-            exit;
+            View::render('contact/form.twig', [
+                'error' => 'Une erreur est survenue. Veuillez réessayer.',
+                'form_data' => [
+                    'name' => $_POST['name'] ?? '',
+                    'email' => $_POST['email'] ?? '',
+                    'subject' => $_POST['subject'] ?? '',
+                    'message' => $_POST['message'] ?? '',
+                ],
+            ]);
         }
     }
 }
