@@ -19,6 +19,14 @@ define('EXT_DB_PASS', getenv('EXT_DB_PASS') ?: 'usm_ext_password');
 define('ADMIN_EMAIL',         getenv('ADMIN_EMAIL')         ?: 'admin@usm-volley.fr');
 define('ADMIN_PASSWORD_HASH', getenv('ADMIN_PASSWORD_HASH') ?: '$2y$10$uVxk4vTrkDTHilRZXcoJaOzdifgkr8Y.dTm2WEMPlPpJnzQkYXZtG');
 
+// ── Facebook Graph API ────────────────────────────────────────────────────────
+// Page Access Token (long-lived) — généré via developers.facebook.com
+// Voir FACEBOOK_API_FEASIBILITY.md pour la procédure de configuration
+define('FB_PAGE_ID',            getenv('FB_PAGE_ID')            ?: '');
+define('FB_PAGE_ACCESS_TOKEN',  getenv('FB_PAGE_ACCESS_TOKEN')  ?: '');
+define('FB_GRAPH_VERSION',      getenv('FB_GRAPH_VERSION')      ?: 'v21.0');
+define('FB_CACHE_TTL',          (int)(getenv('FB_CACHE_TTL')    ?: 3600)); // 1h
+
 // ── App ────────────────────────────────────────────────────────────────────────
 if (getenv('BASE_URL')) {
     define('BASE_URL', rtrim(getenv('BASE_URL'), '/'));

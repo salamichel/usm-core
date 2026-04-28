@@ -64,6 +64,24 @@
       </div>
     </div>
 
+    {# ── Partage Facebook ── #}
+    {% if facebook_configured %}
+      {% if post and post.facebook_post_id %}
+      <div class="bg-blue-50 border-2 border-blue-300 p-3 rounded text-sm">
+        <span class="text-blue-700 font-bold">✓ Partagé sur Facebook</span>
+        <span class="font-mono text-xs text-blue-900 ml-2">{{ post.facebook_post_id }}</span>
+      </div>
+      {% else %}
+      <div class="flex items-center gap-3 border-2 border-blue-300 bg-blue-50 p-3">
+        <input type="checkbox" id="share_to_facebook" name="share_to_facebook" value="1"
+               class="w-5 h-5 border-2 border-black">
+        <label class="font-black text-blue-900" for="share_to_facebook">
+          Partager sur Facebook à l'enregistrement
+        </label>
+      </div>
+      {% endif %}
+    {% endif %}
+
     <div>
       <label class="block font-black mb-3">Tags</label>
       {% if all_tags|length %}
