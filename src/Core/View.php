@@ -5,6 +5,7 @@ namespace App\Core;
 
 use App\Models\MenuItem;
 use App\Models\SiteConfig;
+use App\Models\ContactMessage;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
@@ -39,9 +40,13 @@ class View
                     $twig->addGlobal('contact_stats', [
                         'new' => \App\Models\Contact::countByStatus('new'),
                     ]);
+                    $twig->addGlobal('unread_contact_messages', ContactMessage::countUnread());
                 } catch (\Throwable) {
                     // Table might not exist yet during migration
+                    $twig->addGlobal('unread_contact_messages', 0);
                 }
+            } else {
+                $twig->addGlobal('unread_contact_messages', 0);
             }
 
             // |date_fr filter

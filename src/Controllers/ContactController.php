@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Core\View;
 use App\Models\Contact;
+use App\Models\Location;
 use App\Services\BrevoService;
 use App\Services\Validator;
 
@@ -12,7 +13,9 @@ class ContactController
 {
     public function show(array $params): void
     {
-        View::render('contact/form.twig');
+        View::render('contact.twig', [
+            'locations' => Location::all(),
+        ]);
     }
 
     public function submit(array $params): void
@@ -33,9 +36,10 @@ class ContactController
             ->minLength('message', 10);
 
         if ($v->fails()) {
-            View::render('contact/form.twig', [
+            View::render('contact.twig', [
+                'locations' => Location::all(),
                 'error' => $v->firstError(),
-                'form_data' => [
+                'form' => [
                     'name' => $_POST['name'] ?? '',
                     'email' => $_POST['email'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
@@ -64,9 +68,10 @@ class ContactController
             header('Location: ' . BASE_URL . '/contact');
             exit;
         } catch (\Exception $e) {
-            View::render('contact/form.twig', [
+            View::render('contact.twig', [
+                'locations' => Location::all(),
                 'error' => 'Une erreur est survenue. Veuillez réessayer.',
-                'form_data' => [
+                'form' => [
                     'name' => $_POST['name'] ?? '',
                     'email' => $_POST['email'] ?? '',
                     'subject' => $_POST['subject'] ?? '',

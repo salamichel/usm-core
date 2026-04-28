@@ -50,6 +50,7 @@
         {% set links = [
           [url('admin/home-blocks'), '🏠 Accueil',       '/admin/home-blocks'],
           [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],
+          [url('admin/locations'),   '📍 Emplacements',  '/admin/locations'],
           [url('admin/site-config'), '⚙️ Configuration',  '/admin/site-config'],
         ] %}
         {% for link in links %}
@@ -88,9 +89,17 @@
         <a href="{{ url('admin/contacts') }}"
            class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
                   {{ p starts with '/admin/contacts' ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-          <span>💬 Messages de contact</span>
+          <span>💬 Messages Brevo</span>
           {% if contact_stats and contact_stats.new > 0 %}
             <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url('admin/contact-messages') }}"
+           class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
+                  {{ p starts with '/admin/contact-messages' ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+          <span>📬 Messages stockés</span>
+          {% if unread_contact_messages > 0 %}
+            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ unread_contact_messages }}</span>
           {% endif %}
         </a>
       </div>
