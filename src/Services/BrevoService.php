@@ -51,20 +51,7 @@ class BrevoService
         $adminEmail = \App\Models\SiteConfig::get('email') ?: ADMIN_EMAIL;
         $subject = 'Nouveau message de contact : ' . $contact['subject'];
 
-        $htmlContent = sprintf(
-            '<h2>Nouveau message de contact</h2>' .
-            '<p><strong>De :</strong> %s (%s)</p>' .
-            '<p><strong>Sujet :</strong> %s</p>' .
-            '<p><strong>Message :</strong></p>' .
-            '<p>%s</p>' .
-            '<p><a href="%s/admin/contacts/%d">Voir et répondre</a></p>',
-            htmlspecialchars($contact['name']),
-            htmlspecialchars($contact['email']),
-            htmlspecialchars($contact['subject']),
-            nl2br(htmlspecialchars($contact['message'])),
-            BASE_URL,
-            $contact['id']
-        );
+        $htmlContent = $this->renderContactNotificationTemplate($contact);
 
         return $this->sendEmail(
             $adminEmail,
@@ -78,14 +65,7 @@ class BrevoService
     {
         $subject = 'Réponse à votre message';
 
-        $htmlContent = sprintf(
-            '<p>Bonjour %s,</p>' .
-            '<p>Merci de nous avoir contacté. Voici notre réponse :</p>' .
-            '<p>%s</p>' .
-            '<p>Cordialement,<br>USM Volley</p>',
-            htmlspecialchars($visitorName),
-            nl2br(htmlspecialchars($replyText))
-        );
+        $htmlContent = $this->renderReplyTemplate($visitorName, $replyText);
 
         return $this->sendEmail(
             $visitorEmail,
@@ -93,6 +73,134 @@ class BrevoService
             $subject,
             $htmlContent
         );
+    }
+
+    private function escapeHtml(string $text): string
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+
+    private function nl2brHtml(string $text): string
+    {
+        return nl2br($this->escapeHtml($text));
+    }
+
+    private function renderContactNotificationTemplate(array $contact): string
+    {
+        $template = <<<'HTML'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #94674d; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .message-box { background: #f3f4f6; padding: 16px; border-left: 4px solid #94674d; margin: 16px 0; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 12px; color: #666; margin-top: 16px; margin-bottom: 4px; }
+        .field-value { font-size: 16px; color: #111; }
+        .sender-info { background: #fef3c7; padding: 12px; border: 2px solid #000; margin: 16px 0; }
+        .cta-button { display: inline-block; background: #94674d; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📬 NOUVEAU MESSAGE</h1>
+        </div>
+
+        <div class="content">
+            <div class="sender-info">
+                <div class="field-label">💬 Message de</div>
+                <div class="field-value"><strong>{{SENDER_NAME}}</strong></div>
+                <div class="field-label">📧 Email</div>
+                <div class="field-value"><a href="mailto:{{SENDER_EMAIL}}" style="color: #94674d; text-decoration: none; font-weight: 900;">{{SENDER_EMAIL}}</a></div>
+            </div>
+
+            <div class="field-label">🏷️ Sujet</div>
+            <div class="field-value" style="font-size: 20px; font-weight: 900; margin-bottom: 20px;">{{SUBJECT}}</div>
+
+            <div class="field-label">💭 Message</div>
+            <div class="message-box">{{MESSAGE}}</div>
+
+            <a href="{{REPLY_URL}}" class="cta-button">👉 Lire et répondre</a>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Ne pas répondre à cet email, utilisez le lien ci-dessus
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        return strtr($template, [
+            '{{SENDER_NAME}}' => $this->escapeHtml($contact['name']),
+            '{{SENDER_EMAIL}}' => $this->escapeHtml($contact['email']),
+            '{{SUBJECT}}' => $this->escapeHtml($contact['subject']),
+            '{{MESSAGE}}' => $this->nl2brHtml($contact['message']),
+            '{{REPLY_URL}}' => BASE_URL . '/admin/contacts/' . (int)$contact['id'],
+        ]);
+    }
+
+    private function renderReplyTemplate(string $visitorName, string $replyText): string
+    {
+        $template = <<<'HTML'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #94674d; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .greeting { font-size: 18px; margin-bottom: 24px; }
+        .greeting strong { font-weight: 900; }
+        .message-box { background: #f3f4f6; padding: 20px; border-left: 4px solid #94674d; margin: 20px 0; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .signature { margin-top: 24px; font-weight: 900; color: #94674d; font-size: 18px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+        p { line-height: 1.6; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✉️ RÉPONSE</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Bonjour <strong>{{VISITOR_NAME}}</strong>,</p>
+
+            <p>Merci de nous avoir contacté. Voici notre réponse à votre message :</p>
+
+            <div class="message-box">{{REPLY_TEXT}}</div>
+
+            <p>Si vous avez d'autres questions, n'hésitez pas à nous recontacter.</p>
+
+            <div class="signature">⚽ USM VOLLEY</div>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Union Sportive Miosienne Volley-Ball
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        return strtr($template, [
+            '{{VISITOR_NAME}}' => $this->escapeHtml($visitorName),
+            '{{REPLY_TEXT}}' => $this->nl2brHtml($replyText),
+        ]);
     }
 
     private function makeRequest(array $payload): bool
