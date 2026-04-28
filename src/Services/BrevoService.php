@@ -65,7 +65,8 @@ class BrevoService
     {
         $subject = 'Réponse à votre message';
 
-        $htmlContent = $this->renderReplyTemplate($visitorName, $replyText);
+        $config = \App\Models\SiteConfig::all();
+        $htmlContent = $this->renderReplyTemplate($visitorName, $replyText, $config);
 
         return $this->sendEmail(
             $visitorEmail,
@@ -148,8 +149,26 @@ HTML;
         ]);
     }
 
-    private function renderReplyTemplate(string $visitorName, string $replyText): string
+    private function renderReplyTemplate(string $visitorName, string $replyText, array $config = []): string
     {
+        $clubName = $config['club_name'] ?? 'USM VOLLEY';
+        $address = $config['address'] ?? '';
+        $phone = $config['phone'] ?? '';
+        $email = $config['email'] ?? '';
+
+        $signatureHtml = '<div class="signature">⚽ ' . $this->escapeHtml($clubName) . '</div>';
+
+        $contactInfo = '';
+        if ($address) {
+            $contactInfo .= '<div class="contact-line">' . nl2br($this->escapeHtml($address)) . '</div>';
+        }
+        if ($phone) {
+            $contactInfo .= '<div class="contact-line">📱 <a href="tel:' . str_replace(' ', '', $phone) . '" style="color: #94674d; text-decoration: none;">' . $this->escapeHtml($phone) . '</a></div>';
+        }
+        if ($email) {
+            $contactInfo .= '<div class="contact-line">📧 <a href="mailto:' . $this->escapeHtml($email) . '" style="color: #94674d; text-decoration: none;">' . $this->escapeHtml($email) . '</a></div>';
+        }
+
         $template = <<<'HTML'
 <!DOCTYPE html>
 <html lang="fr">
@@ -166,7 +185,9 @@ HTML;
         .greeting { font-size: 18px; margin-bottom: 24px; }
         .greeting strong { font-weight: 900; }
         .message-box { background: #f3f4f6; padding: 20px; border-left: 4px solid #94674d; margin: 20px 0; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
-        .signature { margin-top: 24px; font-weight: 900; color: #94674d; font-size: 18px; }
+        .signature { margin-top: 24px; font-weight: 900; color: #94674d; font-size: 18px; margin-bottom: 16px; }
+        .signature-box { background: #fef3c7; padding: 16px; border: 2px solid #000; margin-top: 20px; }
+        .contact-line { font-size: 13px; color: #555; margin: 6px 0; line-height: 1.4; }
         .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
         p { line-height: 1.6; margin-bottom: 16px; }
     </style>
@@ -186,11 +207,14 @@ HTML;
 
             <p>Si vous avez d'autres questions, n'hésitez pas à nous recontacter.</p>
 
-            <div class="signature">⚽ USM VOLLEY</div>
+            <div class="signature-box">
+                {{SIGNATURE_HTML}}
+                {{CONTACT_INFO}}
+            </div>
         </div>
 
         <div class="footer">
-            © USM Volley — Union Sportive Miosienne Volley-Ball
+            © {{CLUB_NAME}}
         </div>
     </div>
 </body>
@@ -200,6 +224,9 @@ HTML;
         return strtr($template, [
             '{{VISITOR_NAME}}' => $this->escapeHtml($visitorName),
             '{{REPLY_TEXT}}' => $this->nl2brHtml($replyText),
+            '{{SIGNATURE_HTML}}' => $signatureHtml,
+            '{{CONTACT_INFO}}' => $contactInfo,
+            '{{CLUB_NAME}}' => $this->escapeHtml($clubName),
         ]);
     }
 
