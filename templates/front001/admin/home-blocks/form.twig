@@ -24,8 +24,7 @@
 
     <div>
       <label class="block font-black mb-1" for="contenu">Contenu</label>
-      <div id="editor" class="border-2 border-black min-h-[220px] bg-white">{{ block and block.contenu ? block.contenu|raw : '' }}</div>
-      <input type="hidden" id="contenu" name="contenu" value="{{ block.contenu ?? '' }}">
+      <textarea id="contenu" name="contenu">{{ block.contenu ?? '' }}</textarea>
     </div>
 
     <div class="grid sm:grid-cols-2 gap-4">
@@ -100,26 +99,22 @@
 {% endblock %}
 
 {% block scripts %}
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
 <script>
-  // ── Quill ───────────────────────────────────────────────────────────────────
-  const quill = new Quill('#editor', {
-    theme: 'snow',
-    modules: {
-      toolbar: [
-        [{ header: [1,2,3,false] }],
-        ['bold','italic','underline','strike'],
-        [{ list: 'ordered' },{ list: 'bullet' }],
-        ['link'],
-        ['clean']
-      ]
-    }
-  });
-  document.querySelector('form').addEventListener('submit', () => {
-    document.getElementById('contenu').value = quill.root.innerHTML;
+  // ── CKEditor ────────────────────────────────────────────────────────────────
+  CKEDITOR.replace('contenu', {
+    height: 220,
+    allowedContent: true,
+    toolbar: [
+      ['Format'],
+      ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
+      ['NumberedList', 'BulletedList'],
+      ['Link', 'Unlink'],
+      ['Table', 'HorizontalRule'],
+      ['Source']
+    ]
   });
 
   // ── Dropzone image unique ───────────────────────────────────────────────────
