@@ -48,17 +48,20 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Site</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/home-blocks'),      'Accueil',           '/admin/home-blocks'],
-          [url('admin/menu'),             'Menu nav',          '/admin/menu'],
-          [url('admin/locations'),        'Emplacements',      '/admin/locations'],
-          [url('admin/contact-messages'), 'Messages contact',  '/admin/contact-messages'],
-          [url('admin/site-config'),      'Configuration',     '/admin/site-config'],
+          [url('admin/home-blocks'),      'Accueil',           '/admin/home-blocks', false],
+          [url('admin/menu'),             'Menu nav',          '/admin/menu', false],
+          [url('admin/locations'),        'Emplacements',      '/admin/locations', false],
+          [url('admin/contact-messages'), 'Messages contact',  '/admin/contact-messages', unread_contact_messages],
+          [url('admin/site-config'),      'Configuration',     '/admin/site-config', false],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
-             class="flex items-center px-3 py-2 rounded font-semibold transition
+             class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
                     {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-            {{ link[1] }}
+            <span>{{ link[1] }}</span>
+            {% if link[3] %}
+              <span class="ml-2 bg-red-600 text-white text-xs font-black px-2 py-0.5 rounded-full">{{ link[3] }}</span>
+            {% endif %}
           </a>
         {% endfor %}
       </div>
@@ -131,7 +134,12 @@
         <a href="{{ url('admin/home-blocks') }}"      class="block py-1 hover:text-amber-400">Accueil</a>
         <a href="{{ url('admin/menu') }}"             class="block py-1 hover:text-amber-400">Menu nav</a>
         <a href="{{ url('admin/locations') }}"        class="block py-1 hover:text-amber-400">Emplacements</a>
-        <a href="{{ url('admin/contact-messages') }}" class="block py-1 hover:text-amber-400">Messages contact</a>
+        <a href="{{ url('admin/contact-messages') }}" class="flex items-center justify-between py-1 hover:text-amber-400">
+          <span>Messages contact</span>
+          {% if unread_contact_messages %}
+            <span class="ml-2 bg-red-600 text-white text-xs font-black px-2 rounded-full">{{ unread_contact_messages }}</span>
+          {% endif %}
+        </a>
         <a href="{{ url('admin/site-config') }}"      class="block py-1 hover:text-amber-400">Configuration</a>
       </div>
     </div>

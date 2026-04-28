@@ -21,6 +21,13 @@ class ContactMessage
             ->fetchAll();
     }
 
+    public static function countUnread(): int
+    {
+        $stmt = Database::get()->query("SELECT COUNT(*) as count FROM contact_messages WHERE read_at IS NULL");
+        $result = $stmt->fetch();
+        return $result['count'] ?? 0;
+    }
+
     public static function find(int $id): ?array
     {
         $stmt = Database::get()->prepare("SELECT * FROM contact_messages WHERE id = ? LIMIT 1");
