@@ -48,10 +48,11 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Site</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/home-blocks'), 'Accueil',       '/admin/home-blocks'],
-          [url('admin/menu'),        'Menu nav',       '/admin/menu'],
-          [url('admin/locations'),   'Emplacements',   '/admin/locations'],
-          [url('admin/site-config'), 'Configuration',  '/admin/site-config'],
+          [url('admin/home-blocks'),      'Accueil',           '/admin/home-blocks'],
+          [url('admin/menu'),             'Menu nav',          '/admin/menu'],
+          [url('admin/locations'),        'Emplacements',      '/admin/locations'],
+          [url('admin/contact-messages'), 'Messages contact',  '/admin/contact-messages'],
+          [url('admin/site-config'),      'Configuration',     '/admin/site-config'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -127,10 +128,11 @@
     <div>
       <div class="text-xs font-black text-gray-500 uppercase mb-2">Site</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/home-blocks') }}" class="block py-1 hover:text-amber-400">Accueil</a>
-        <a href="{{ url('admin/menu') }}"        class="block py-1 hover:text-amber-400">Menu nav</a>
-        <a href="{{ url('admin/locations') }}"   class="block py-1 hover:text-amber-400">Emplacements</a>
-        <a href="{{ url('admin/site-config') }}" class="block py-1 hover:text-amber-400">Configuration</a>
+        <a href="{{ url('admin/home-blocks') }}"      class="block py-1 hover:text-amber-400">Accueil</a>
+        <a href="{{ url('admin/menu') }}"             class="block py-1 hover:text-amber-400">Menu nav</a>
+        <a href="{{ url('admin/locations') }}"        class="block py-1 hover:text-amber-400">Emplacements</a>
+        <a href="{{ url('admin/contact-messages') }}" class="block py-1 hover:text-amber-400">Messages contact</a>
+        <a href="{{ url('admin/site-config') }}"      class="block py-1 hover:text-amber-400">Configuration</a>
       </div>
     </div>
 

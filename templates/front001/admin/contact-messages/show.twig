@@ -1,0 +1,65 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Message de contact — {{ message.name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <a href="{{ url('admin/contact-messages') }}" class="font-bold hover:underline text-sm">← Retour</a>
+  <h1 class="text-3xl font-black">Message de contact</h1>
+</div>
+
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] divide-y-4 divide-black">
+  {# En-tête #}
+  <div class="p-6 bg-amber-50">
+    <div class="space-y-2 mb-4">
+      <h2 class="text-2xl font-black">{{ message.name }}</h2>
+      <p class="text-lg text-gray-700 font-semibold">{{ message.subject }}</p>
+    </div>
+
+    <div class="flex flex-wrap gap-4 text-sm">
+      <div>
+        <span class="text-xs font-black text-gray-600 uppercase">Email</span>
+        <p><a href="mailto:{{ message.email }}" class="text-usm-brown font-semibold hover:underline">{{ message.email }}</a></p>
+      </div>
+
+      {% if message.phone %}
+      <div>
+        <span class="text-xs font-black text-gray-600 uppercase">Téléphone</span>
+        <p><a href="tel:{{ message.phone|replace({' ': ''}) }}" class="text-usm-brown font-semibold hover:underline">{{ message.phone }}</a></p>
+      </div>
+      {% endif %}
+
+      <div>
+        <span class="text-xs font-black text-gray-600 uppercase">Date</span>
+        <p class="font-semibold">{{ message.created_at|date_fr }} à {{ message.created_at|date('H:i') }}</p>
+      </div>
+
+      {% if message.read_at %}
+      <div>
+        <span class="text-xs font-black text-gray-600 uppercase">Lu</span>
+        <p class="font-semibold">{{ message.read_at|date_fr }} à {{ message.read_at|date('H:i') }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Message #}
+  <div class="p-6">
+    <div class="prose prose-sm max-w-none">
+      <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">{{ message.message }}</p>
+    </div>
+  </div>
+
+  {# Actions #}
+  <div class="p-6 bg-gray-50 flex gap-2">
+    <a href="mailto:{{ message.email }}" class="border-4 border-black bg-usm-brown text-white font-black px-6 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      Répondre par email
+    </a>
+    <form method="POST" action="{{ url('admin/contact-messages/' ~ message.id ~ '/delete') }}" onsubmit="return confirm('Supprimer ce message ?')">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="border-2 border-red-600 text-red-600 px-4 py-2 font-bold hover:bg-red-600 hover:text-white transition">
+        Supprimer
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
