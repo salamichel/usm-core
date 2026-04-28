@@ -119,12 +119,12 @@ class BrevoService
             }
 
             $data = json_decode($response, true);
-            if (!isset($data['id'])) {
+            if (!isset($data['messageId'])) {
                 Logger::errors()->error('Brevo API invalid response', ['response' => $response]);
                 return false;
             }
 
-            Logger::app()->info('Email sent via Brevo', ['message_id' => $data['id']]);
+            Logger::app()->info('Email sent via Brevo', ['message_id' => $data['messageId']]);
             return true;
         } catch (\Exception $e) {
             Logger::errors()->error('Brevo API exception', ['error' => $e->getMessage()]);
