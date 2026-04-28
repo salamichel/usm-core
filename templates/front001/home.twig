@@ -227,10 +227,9 @@
       <table class="w-full">
         <thead>
           <tr class="bg-usm-brown text-white border-b-4 border-black">
-            <th class="text-left font-black px-4 py-3 w-20">Cover</th>
-            <th class="text-left font-black px-4 py-3">Titre</th>
-            <th class="text-left font-black px-4 py-3 w-32">Date</th>
-            <th class="text-center font-black px-4 py-3 w-20">Lien</th>
+            <th class="text-center font-black px-4 py-3 w-20"></th>
+            <th class="text-left font-black px-4 py-3">Actualité</th>
+            <th class="text-center font-black px-4 py-3 w-16"></th>
           </tr>
         </thead>
         <tbody>
@@ -248,18 +247,13 @@
                 </div>
               {% endif %}
             </td>
-            {# Titre #}
+            {# Titre + Date #}
             <td class="px-4 py-3">
-              <a href="{{ url('blog/' ~ post.slug) }}" class="font-black text-usm-brown hover:underline">
+              <a href="{{ url('blog/' ~ post.slug) }}" class="font-black text-usm-brown hover:underline block">
                 {{ post.title }}
               </a>
-            </td>
-            {# Date #}
-            <td class="px-4 py-3 text-sm text-gray-600">
               {% if post.published_at %}
-                {{ post.published_at|date_fr }}
-              {% else %}
-                —
+                <time class="text-xs text-gray-500 mt-1 block">{{ post.published_at|date_fr }}</time>
               {% endif %}
             </td>
             {# Lien #}
