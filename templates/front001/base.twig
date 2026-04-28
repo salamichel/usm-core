@@ -66,11 +66,11 @@
   </main>
 
   {# ── Footer ── #}
-  <footer class="border-t-4 border-black bg-usm-brown text-white mt-12">
-    <div class="max-w-5xl mx-auto px-4 py-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+  <footer class="border-t-4 border-black bg-usm-brown text-white mt-8 sm:mt-12">
+    <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-0 sm:gap-8">
 
-      {# Col 1 — Identité club #}
-      <div>
+      {# Col 1 — Identité club (pleine largeur sur mobile) #}
+      <div class="col-span-2 lg:col-span-1 border-b-2 border-white/20 pb-5 mb-1 lg:border-b-0 lg:pb-0 lg:mb-0">
         <h3 class="text-lg font-black border-b-2 border-white/40 pb-2 mb-3">
           {{ site_config.club_name|default('USM Volley') }}
         </h3>
@@ -83,8 +83,8 @@
       </div>
 
       {# Col 2 — Navigation #}
-      <div>
-        <h3 class="text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Navigation</h3>
+      <div class="pt-4 lg:pt-0 border-r border-white/10 lg:border-r-0 pr-4 lg:pr-0">
+        <h3 class="text-base lg:text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Navigation</h3>
         <ul class="space-y-1.5 text-sm">
           <li><a href="{{ url('/') }}" class="hover:underline hover:text-amber-300 transition">Accueil</a></li>
           {% for item in menu_items %}
@@ -96,8 +96,8 @@
       </div>
 
       {# Col 3 — Contact #}
-      <div>
-        <h3 class="text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Contact</h3>
+      <div class="pt-4 lg:pt-0">
+        <h3 class="text-base lg:text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Contact</h3>
         <ul class="space-y-2 text-sm">
           {% if site_config.email %}
             <li class="flex items-start gap-2">
@@ -114,9 +114,9 @@
         </ul>
       </div>
 
-      {# Col 4 — Réseaux sociaux #}
-      <div>
-        <h3 class="text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Suivez-nous</h3>
+      {# Col 4 — Réseaux sociaux (pleine largeur sur mobile) #}
+      <div class="col-span-2 lg:col-span-1 border-t-2 border-white/20 pt-5 mt-1 lg:border-t-0 lg:pt-0 lg:mt-0">
+        <h3 class="text-base lg:text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Suivez-nous</h3>
         <div class="flex gap-3">
           {% if site_config.facebook_url %}
             <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener"
@@ -145,8 +145,8 @@
 
     {# ── Bandeau bas ── #}
     <div class="border-t-2 border-white/30 bg-black/20">
-      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-2 text-xs">
-        <div class="text-white/80">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center sm:justify-between gap-1 sm:gap-2 text-xs">
+        <div class="text-white/80 text-center sm:text-left">
           © {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}.
           {% if site_config.legal_text %}<span class="hidden sm:inline">— {{ site_config.legal_text }}</span>{% endif %}
         </div>
