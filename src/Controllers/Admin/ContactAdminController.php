@@ -80,12 +80,13 @@ class ContactAdminController
         $replyText = trim($_POST['reply']);
 
         try {
-            ContactReply::create((int)$params['id'], ADMIN_EMAIL, $replyText);
+            $fromEmail = \App\Models\SiteConfig::get('email') ?: ADMIN_EMAIL;
+            ContactReply::create((int)$params['id'], $fromEmail, $replyText);
             Contact::updateStatus((int)$params['id'], 'replied');
 
             try {
                 $brevo = new BrevoService();
-                $brevo->sendReplyToVisitor($contact['email'], $contact['name'], $replyText);
+                $brevo->sendReplyToVisitor($contact['email'], $contact['name'], $replyText, $fromEmail);
             } catch (\Exception $e) {
                 \App\Services\Logger::errors()->error('Failed to send reply email', ['error' => $e->getMessage()]);
             }

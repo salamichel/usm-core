@@ -48,7 +48,7 @@ class BrevoService
 
     public function sendContactNotification(array $contact): bool
     {
-        $adminEmail = ADMIN_EMAIL;
+        $adminEmail = \App\Models\SiteConfig::get('email') ?: ADMIN_EMAIL;
         $subject = 'Nouveau message de contact : ' . $contact['subject'];
 
         $htmlContent = sprintf(
@@ -74,7 +74,7 @@ class BrevoService
         );
     }
 
-    public function sendReplyToVisitor(string $visitorEmail, string $visitorName, string $replyText): bool
+    public function sendReplyToVisitor(string $visitorEmail, string $visitorName, string $replyText, ?string $fromEmail = null): bool
     {
         $subject = 'Réponse à votre message';
 
