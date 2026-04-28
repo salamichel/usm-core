@@ -51,10 +51,10 @@ class View
                 return \App\Services\SeoService::truncate($text, $maxLength);
             }));
 
-            // json_encode_pretty() function — JSON with pretty printing + unicode
+            // json_encode_pretty() function — JSON with pretty printing + unicode (marked safe)
             $twig->addFunction(new TwigFunction('json_encode_pretty', function ($data): string {
                 return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}';
-            }));
+            }, ['is_safe' => ['html']]));
 
             // url() function
             $twig->addFunction(new TwigFunction('url', function (string $path): string {
