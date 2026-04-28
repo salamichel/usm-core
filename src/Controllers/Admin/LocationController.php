@@ -53,10 +53,19 @@ class LocationController
         if ($coords) {
             $data['latitude']  = $coords['latitude'];
             $data['longitude'] = $coords['longitude'];
+            $geocoded = true;
+        } else {
+            $geocoded = false;
         }
 
         $id = Location::create($data);
-        View::flash('success', 'Emplacement créé avec succès.');
+
+        if ($geocoded) {
+            View::flash('success', 'Emplacement créé et géolocalisé avec succès.');
+        } else {
+            View::flash('success', 'Emplacement créé. ⚠️ La géolocalisation a échoué - vérifiez l\'adresse.');
+        }
+
         header('Location: ' . BASE_URL . '/admin/locations/' . $id . '/edit');
         exit;
     }
@@ -111,10 +120,19 @@ class LocationController
         if ($coords) {
             $data['latitude']  = $coords['latitude'];
             $data['longitude'] = $coords['longitude'];
+            $geocoded = true;
+        } else {
+            $geocoded = false;
         }
 
         Location::update($id, $data);
-        View::flash('success', 'Emplacement mis à jour avec succès.');
+
+        if ($geocoded) {
+            View::flash('success', 'Emplacement mis à jour et géolocalisé avec succès.');
+        } else {
+            View::flash('success', 'Emplacement mis à jour. ⚠️ La géolocalisation a échoué - vérifiez l\'adresse.');
+        }
+
         header('Location: ' . BASE_URL . '/admin/locations');
         exit;
     }
@@ -138,30 +156,52 @@ class LocationController
 
     private function geocode(string $address): ?array
     {
+        if (empty(trim($address))) {
+            return null;
+        }
+
         $query = urlencode($address);
-        $url   = "https://nominatim.openstreetmap.org/search?format=json&q={$query}&limit=1";
+        $url   = "https://nominatim.openstreetmap.org/search?format=json&q={$query}&limit=1&timeout=10";
 
         $ctx = stream_context_create([
             'http' => [
-                'timeout'      => 5,
-                'user_agent'   => 'USMVolley (contact@example.com)',
+                'timeout'      => 10,
+                'user_agent'   => 'USMVolley/1.0 (+http://localhost)',
+                'header'       => 'Accept: application/json',
             ],
         ]);
 
-        $response = @file_get_contents($url, false, $ctx);
-        if (!$response) {
+        try {
+            $response = @file_get_contents($url, false, $ctx);
+            if ($response === false) {
+                error_log("Geocoding failed for address: $address (network error)");
+                return null;
+            }
+
+            $data = json_decode($response, true);
+            if (!is_array($data) || count($data) === 0) {
+                error_log("Geocoding failed for address: $address (no results)");
+                return null;
+            }
+
+            $lat = (float)($data[0]['lat'] ?? null);
+            $lon = (float)($data[0]['lon'] ?? null);
+
+            if ($lat === 0.0 || $lon === 0.0) {
+                error_log("Geocoding failed for address: $address (invalid coordinates)");
+                return null;
+            }
+
+            error_log("Successfully geocoded: $address -> $lat, $lon");
+
+            return [
+                'latitude'  => $lat,
+                'longitude' => $lon,
+            ];
+        } catch (\Exception $e) {
+            error_log("Geocoding exception for address: $address - " . $e->getMessage());
             return null;
         }
-
-        $data = json_decode($response, true);
-        if (!$data || count($data) === 0) {
-            return null;
-        }
-
-        return [
-            'latitude'  => (float)$data[0]['lat'],
-            'longitude' => (float)$data[0]['lon'],
-        ];
     }
 
     private function notFound(): void
