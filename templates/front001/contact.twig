@@ -152,16 +152,21 @@
     {# Liste des emplacements #}
     <div class="grid gap-6 sm:grid-cols-2">
       {% for location in locations %}
-      <div class="border-4 border-black bg-white p-6 shadow-[4px_4px_0_#000]">
-        <h3 class="text-xl font-black mb-2">{{ location.name }}</h3>
-        <address class="not-italic text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-          {{ location.address }}
-        </address>
+      <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000] overflow-hidden flex flex-col">
         {% if location.latitude and location.longitude %}
-          <p class="text-xs mt-3">
-            <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded font-semibold text-xs">✓ Sur la carte</span>
-          </p>
+        <div class="map-mini" id="map-{{ location.id }}" style="height: 250px; border-bottom: 4px solid black;"></div>
         {% endif %}
+        <div class="p-6 flex-1 flex flex-col">
+          <h3 class="text-xl font-black mb-2">{{ location.name }}</h3>
+          <address class="not-italic text-sm text-gray-700 whitespace-pre-line leading-relaxed mb-4">
+            {{ location.address }}
+          </address>
+          {% if location.latitude and location.longitude %}
+            <p class="text-xs mt-auto">
+              <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded font-semibold text-xs">✓ Sur la carte</span>
+            </p>
+          {% endif %}
+        </div>
       </div>
       {% endfor %}
     </div>
@@ -181,6 +186,7 @@
     return;
   }
 
+  // Grande carte avec tous les emplacements
   const map = L.map('map').setView([validLocations[0].latitude, validLocations[0].longitude], 13);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -200,6 +206,25 @@
     const group = new L.featureGroup(markers);
     map.fitBounds(group.getBounds().pad(0.1));
   }
+
+  // Petites cartes pour chaque emplacement
+  validLocations.forEach(function(location) {
+    const mapId = 'map-' + location.id;
+    const mapElement = document.getElementById(mapId);
+    if (!mapElement) return;
+
+    const miniMap = L.map(mapId).setView([location.latitude, location.longitude], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 19
+    }).addTo(miniMap);
+
+    L.marker([location.latitude, location.longitude])
+      .bindPopup('<strong>' + location.name + '</strong>')
+      .addTo(miniMap)
+      .openPopup();
+  });
 })();
 </script>
 {% endif %}
