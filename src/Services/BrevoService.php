@@ -156,7 +156,7 @@ HTML;
         $phone = $config['phone'] ?? '';
         $email = $config['email'] ?? '';
 
-        $signatureHtml = '<div class="signature">⚽ ' . $this->escapeHtml($clubName) . '</div>';
+        $signatureHtml = '<div class="signature">🏐 ' . $this->escapeHtml($clubName) . '</div>';
 
         $contactInfo = '';
         if ($address) {
