@@ -99,22 +99,28 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.ckeditor.com/4.25.1-lts/full/ckeditor.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
 <script>
-  // ── CKEditor ────────────────────────────────────────────────────────────────
-  CKEDITOR.replace('contenu', {
+  // ── Summernote ──────────────────────────────────────────────────────────────
+  $('#contenu').summernote({
     height: 220,
-    allowedContent: true,
+    lang: 'fr-FR',
     toolbar: [
-      ['Format'],
-      ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
-      ['NumberedList', 'BulletedList'],
-      ['Link', 'Unlink'],
-      ['Table', 'HorizontalRule'],
-      ['Source']
+      ['style',  ['style']],
+      ['font',   ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
+      ['para',   ['ul', 'ol']],
+      ['table',  ['table']],
+      ['insert', ['link']],
+      ['view',   ['codeview']]
     ]
+  });
+  $('form').on('submit', function () {
+    document.getElementById('contenu').value = $('#contenu').summernote('code');
   });
 
   // ── Dropzone image unique ───────────────────────────────────────────────────
