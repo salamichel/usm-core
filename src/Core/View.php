@@ -31,6 +31,18 @@ class View
             $twig->addGlobal('site_config', SiteConfig::all());
             $twig->addGlobal('csrf_token', CsrfToken::generate());
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+            $twig->addGlobal('_POST', $_POST);
+
+            // Contact stats for admin menu badge
+            if (Auth::check()) {
+                try {
+                    $twig->addGlobal('contact_stats', [
+                        'new' => \App\Models\Contact::countByStatus('new'),
+                    ]);
+                } catch (\Throwable) {
+                    // Table might not exist yet during migration
+                }
+            }
 
             // |date_fr filter
             $twig->addFilter(new TwigFilter('date_fr', function (?string $date, string $format = 'd/m/Y'): string {

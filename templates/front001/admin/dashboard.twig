@@ -97,6 +97,28 @@
 
 </div>
 
+{# ── Support (Contacts) ── #}
+<h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Support</h2>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
+  <a href="{{ url('admin/contacts?status=new') }}"
+     class="border-4 border-black {% if supportStats.contacts_new > 0 %}bg-red-100{% else %}bg-white{% endif %} p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black {% if supportStats.contacts_new > 0 %}text-red-700{% endif %}">{{ supportStats.contacts_new }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Messages neufs</div>
+  </a>
+
+  <a href="{{ url('admin/contacts?status=replied') }}"
+     class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black">{{ supportStats.contacts_replied }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Répondus</div>
+  </a>
+
+  <a href="{{ url('admin/contacts') }}"
+     class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center block">
+    <div class="text-3xl font-black">{{ supportStats.contacts_total }}</div>
+    <div class="font-semibold text-xs mt-1 text-gray-600">Total messages</div>
+  </a>
+</div>
+
 {# ── Actions rapides ── #}
 <h2 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Actions rapides</h2>
 <div class="grid sm:grid-cols-2 gap-4">

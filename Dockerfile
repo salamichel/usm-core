@@ -23,7 +23,7 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN mkdir -p public/assets/uploads && \
-    chown -R www-data:www-data public/assets/uploads
+RUN mkdir -p public/assets/uploads logs && \
+    chown -R www-data:www-data public/assets/uploads logs
 
 EXPOSE 80

@@ -5,6 +5,7 @@ namespace App\Core;
 
 use App\Controllers\HomeController;
 use App\Controllers\BlogController;
+use App\Controllers\ContactController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\Api\ArticleApiController;
@@ -18,6 +19,7 @@ use App\Controllers\Admin\PageAdminController;
 use App\Controllers\Admin\PostController;
 use App\Controllers\Admin\SaisonController;
 use App\Controllers\Admin\SiteConfigController;
+use App\Controllers\Admin\ContactAdminController;
 
 class App
 {
@@ -62,6 +64,8 @@ class App
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
+        $r->get('/contact',       [ContactController::class, 'show']);
+        $r->post('/contact',      [ContactController::class, 'submit']);
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
@@ -140,6 +144,14 @@ class App
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);
         $r->post('/admin/site-config', [SiteConfigController::class, 'update']);
+
+        // ── Admin contacts ────────────────────────────────────────────────────
+        $r->get('/admin/contacts',                   [ContactAdminController::class, 'index']);
+        $r->get('/admin/contacts/{id}',              [ContactAdminController::class, 'show']);
+        $r->post('/admin/contacts/{id}/reply',       [ContactAdminController::class, 'reply']);
+        $r->post('/admin/contacts/{id}/status',      [ContactAdminController::class, 'updateStatus']);
+        $r->post('/admin/contacts/{id}/delete',      [ContactAdminController::class, 'delete']);
+        $r->post('/admin/contacts/bulk-action',      [ContactAdminController::class, 'bulkAction']);
 
         // ── Admin home blocks ─────────────────────────────────────────────────
         $r->get('/admin/home-blocks',                 [HomeBlockController::class, 'index']);
