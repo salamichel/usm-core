@@ -49,21 +49,28 @@ class LocationController
             return;
         }
 
-        $coords = $this->geocode($data['address']);
-        if ($coords) {
-            $data['latitude']  = $coords['latitude'];
-            $data['longitude'] = $coords['longitude'];
-            $geocoded = true;
+        // Utiliser les coordonnées manuelles si fournies, sinon tenter la géolocalisation
+        if (!$data['latitude'] || !$data['longitude']) {
+            $coords = $this->geocode($data['address']);
+            if ($coords) {
+                $data['latitude']  = $coords['latitude'];
+                $data['longitude'] = $coords['longitude'];
+                $method = 'geoloc';
+            } else {
+                $method = 'none';
+            }
         } else {
-            $geocoded = false;
+            $method = 'manual';
         }
 
         $id = Location::create($data);
 
-        if ($geocoded) {
-            View::flash('success', 'Emplacement créé et géolocalisé avec succès.');
+        if ($method === 'manual') {
+            View::flash('success', 'Emplacement créé avec coordonnées manuelles.');
+        } elseif ($method === 'geoloc') {
+            View::flash('success', 'Emplacement créé et géolocalisé automatiquement.');
         } else {
-            View::flash('success', 'Emplacement créé. ⚠️ La géolocalisation a échoué - vérifiez l\'adresse.');
+            View::flash('success', 'Emplacement créé. Vous pouvez ajouter les coordonnées GPS manuellement en éditant.');
         }
 
         header('Location: ' . BASE_URL . '/admin/locations/' . $id . '/edit');
@@ -116,21 +123,28 @@ class LocationController
             return;
         }
 
-        $coords = $this->geocode($data['address']);
-        if ($coords) {
-            $data['latitude']  = $coords['latitude'];
-            $data['longitude'] = $coords['longitude'];
-            $geocoded = true;
+        // Utiliser les coordonnées manuelles si fournies, sinon tenter la géolocalisation
+        if (!$data['latitude'] || !$data['longitude']) {
+            $coords = $this->geocode($data['address']);
+            if ($coords) {
+                $data['latitude']  = $coords['latitude'];
+                $data['longitude'] = $coords['longitude'];
+                $method = 'geoloc';
+            } else {
+                $method = 'none';
+            }
         } else {
-            $geocoded = false;
+            $method = 'manual';
         }
 
         Location::update($id, $data);
 
-        if ($geocoded) {
-            View::flash('success', 'Emplacement mis à jour et géolocalisé avec succès.');
+        if ($method === 'manual') {
+            View::flash('success', 'Emplacement mis à jour avec coordonnées manuelles.');
+        } elseif ($method === 'geoloc') {
+            View::flash('success', 'Emplacement mis à jour et géolocalisé automatiquement.');
         } else {
-            View::flash('success', 'Emplacement mis à jour. ⚠️ La géolocalisation a échoué - vérifiez l\'adresse.');
+            View::flash('success', 'Emplacement mis à jour.');
         }
 
         header('Location: ' . BASE_URL . '/admin/locations');
@@ -149,8 +163,10 @@ class LocationController
     private function formData(): array
     {
         return [
-            'name'    => trim($_POST['name'] ?? ''),
-            'address' => trim($_POST['address'] ?? ''),
+            'name'      => trim($_POST['name'] ?? ''),
+            'address'   => trim($_POST['address'] ?? ''),
+            'latitude'  => $_POST['latitude'] !== '' ? (float)($_POST['latitude'] ?? 0) : null,
+            'longitude' => $_POST['longitude'] !== '' ? (float)($_POST['longitude'] ?? 0) : null,
         ];
     }
 
