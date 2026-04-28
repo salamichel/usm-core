@@ -65,7 +65,7 @@
   {% if meta and meta.jsonLd %}
     {% for schema in meta.jsonLd %}
     <script type="application/ld+json">
-      {{ schema|json_encode(constant('JSON_PRETTY_PRINT') + constant('JSON_UNESCAPED_SLASHES') + constant('JSON_UNESCAPED_UNICODE')) }}
+      {{ json_encode_pretty(schema) }}
     </script>
     {% endfor %}
   {% endif %}
@@ -88,7 +88,7 @@
     {% set position = position + 1 %}
     {% endfor %}
     <script type="application/ld+json">
-      {{ breadcrumb_schema|json_encode(constant('JSON_PRETTY_PRINT') + constant('JSON_UNESCAPED_SLASHES') + constant('JSON_UNESCAPED_UNICODE')) }}
+      {{ json_encode_pretty(breadcrumb_schema) }}
     </script>
   {% endif %}
 

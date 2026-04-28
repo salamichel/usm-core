@@ -104,7 +104,6 @@ class SitemapService
 
             $entries[] = [
                 'loc'        => SeoService::absoluteUrl('/equipes/' . $eq['id']),
-                'lastmod'    => isset($es['updated_at']) ? self::formatDate($es['updated_at']) : self::formatDate($es['created_at']),
                 'changefreq' => 'monthly',
                 'priority'   => '0.6',
             ];

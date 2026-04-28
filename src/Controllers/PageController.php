@@ -27,8 +27,8 @@ class PageController
         // SEO metadata
         $ogImage = SeoService::pickOgImage(null, $photos);
         $meta = new PageMetadata(
-            title: SeoService::title($page['titre']),
-            description: SeoService::description(null, $page['contenu']),
+            title: SeoService::title($page['title']),
+            description: SeoService::description(null, $page['content']),
             canonical: SeoService::absoluteUrl('/p/' . $page['slug']),
             ogImage: $ogImage,
             ogType: 'website',
@@ -37,7 +37,7 @@ class PageController
             ],
             breadcrumbs: [
                 ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
-                ['name' => $page['titre'], 'url' => SeoService::absoluteUrl('/p/' . $page['slug'])],
+                ['name' => $page['title'], 'url' => SeoService::absoluteUrl('/p/' . $page['slug'])],
             ],
         );
 

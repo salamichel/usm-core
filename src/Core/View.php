@@ -46,6 +46,16 @@ class View
                 return ($months[(int)$m - 1] ?? $ym) . ' ' . $y;
             }));
 
+            // |truncate filter — truncate text at word boundary
+            $twig->addFilter(new TwigFilter('truncate', function (string $text, int $maxLength = 160): string {
+                return \App\Services\SeoService::truncate($text, $maxLength);
+            }));
+
+            // json_encode_pretty() function — JSON with pretty printing + unicode
+            $twig->addFunction(new TwigFunction('json_encode_pretty', function ($data): string {
+                return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}';
+            }));
+
             // url() function
             $twig->addFunction(new TwigFunction('url', function (string $path): string {
                 return BASE_URL . '/' . ltrim($path, '/');
