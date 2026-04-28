@@ -103,7 +103,7 @@
       {% set tiles = [
         {value: stats.licencies,      label: 'Licenciés',       suffix: ''},
         {value: stats.equipes,        label: 'Équipes',         suffix: '', url: url('equipes')},
-        {value: stats.matchs_a_venir, label: 'Matchs à venir',  suffix: ''},
+        {value: stats.matchs_a_venir, label: 'Matchs à venir',  suffix: '', url: '#agenda'},
         {value: stats.saison,         label: 'Saison en cours', suffix: '', is_text: true}
       ] %}
       {% for tile in tiles %}
@@ -173,7 +173,7 @@
 {# AGENDA                                                                     #}
 {# ────────────────────────────────────────────────────────────────────────── #}
 {% if matches|length or trainings|length %}
-<section class="bg-white border-b-4 border-black">
+<section id="agenda" class="bg-white border-b-4 border-black scroll-mt-20">
   <div class="max-w-5xl mx-auto px-4 py-14">
     <h2 class="text-3xl font-black mb-8 text-center">Agenda</h2>
     <div class="grid gap-8 lg:grid-cols-2">
