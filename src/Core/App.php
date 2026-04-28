@@ -151,6 +151,7 @@ class App
         $r->post('/admin/contacts/{id}/reply',       [ContactAdminController::class, 'reply']);
         $r->post('/admin/contacts/{id}/status',      [ContactAdminController::class, 'updateStatus']);
         $r->post('/admin/contacts/{id}/delete',      [ContactAdminController::class, 'delete']);
+        $r->post('/admin/contacts/bulk-action',      [ContactAdminController::class, 'bulkAction']);
 
         // ── Admin home blocks ─────────────────────────────────────────────────
         $r->get('/admin/home-blocks',                 [HomeBlockController::class, 'index']);

@@ -141,4 +141,55 @@ class ContactAdminController
         header('Location: ' . BASE_URL . '/admin/contacts');
         exit;
     }
+
+    public function bulkAction(array $params): void
+    {
+        Auth::require();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/admin/contacts');
+            exit;
+        }
+
+        $action = $_POST['action'] ?? '';
+        $contactIds = $_POST['contact_ids'] ?? [];
+
+        if (!in_array($action, ['archive', 'delete']) || empty($contactIds)) {
+            View::flash('error', 'Action invalide ou aucun message sélectionné.');
+            header('Location: ' . BASE_URL . '/admin/contacts');
+            exit;
+        }
+
+        $contactIds = array_filter(array_map(function($id) {
+            $id = (int)$id;
+            return $id > 0 ? $id : null;
+        }, $contactIds));
+
+        if (empty($contactIds)) {
+            View::flash('error', 'IDs de messages invalides.');
+            header('Location: ' . BASE_URL . '/admin/contacts');
+            exit;
+        }
+
+        try {
+            $count = 0;
+            foreach ($contactIds as $id) {
+                if ($action === 'archive') {
+                    Contact::updateStatus($id, 'archived');
+                } else {
+                    Contact::delete($id);
+                }
+                $count++;
+            }
+
+            $actionLabel = $action === 'archive' ? 'archivé' : 'supprimé';
+            View::flash('success', "$count message" . ($count > 1 ? 's' : '') . " $actionLabel" . ($count > 1 ? 's' : '') . '.');
+            header('Location: ' . BASE_URL . '/admin/contacts');
+            exit;
+        } catch (\Exception $e) {
+            View::flash('error', 'Une erreur est survenue lors du traitement.');
+            header('Location: ' . BASE_URL . '/admin/contacts');
+            exit;
+        }
+    }
 }
