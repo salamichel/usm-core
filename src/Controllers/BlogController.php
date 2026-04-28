@@ -79,6 +79,7 @@ class BlogController
             $this->notFound();
             return;
         }
+        $post['cover'] = Photo::getEntityCover('post', $post['id']);
         $tags = Tag::findByPost($post['id']);
         View::render('blog/detail.twig', [
             'post'   => $post,
