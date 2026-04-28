@@ -229,7 +229,6 @@
           <tr class="bg-usm-brown text-white border-b-4 border-black">
             <th class="text-center font-black px-4 py-3 w-20"></th>
             <th class="text-left font-black px-4 py-3">Actualité</th>
-            <th class="text-center font-black px-4 py-3 w-16"></th>
           </tr>
         </thead>
         <tbody>
@@ -255,13 +254,6 @@
               {% if post.published_at %}
                 <time class="text-xs text-gray-500 mt-1 block">{{ post.published_at|date_fr }}</time>
               {% endif %}
-            </td>
-            {# Lien #}
-            <td class="px-4 py-3 text-center">
-              <a href="{{ url('blog/' ~ post.slug) }}"
-                 class="inline-block border-2 border-usm-brown text-usm-brown hover:bg-usm-brown hover:text-white px-3 py-1 text-sm font-black transition-colors">
-                →
-              </a>
             </td>
           </tr>
           {% endfor %}
