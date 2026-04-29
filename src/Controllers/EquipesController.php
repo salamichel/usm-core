@@ -76,7 +76,9 @@ class EquipesController
 
         $saison  = Saison::getActive();
         $es      = $saison ? EquipeSaison::findBySaisonAndEquipe($saison['id'], $equipe['id']) : null;
-        $photos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
+        $allPhotos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
+        $cover   = $es ? Photo::getEntityCover('equipe_saison', $es['id']) : null;
+        $photos  = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
         $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
 
         // SEO metadata
@@ -113,6 +115,7 @@ class EquipesController
         View::render('equipes/detail.twig', [
             'meta'    => $meta,
             'equipe'  => $equipe,
+            'cover'   => $cover,
             'photos'  => $photos,
             'joueurs' => $joueurs,
             'saison'  => $saison,

@@ -23,7 +23,24 @@
     {% endif %}
   </div>
 
-  {# Galerie #}
+  {# Photo de couverture en vedette #}
+  {% if cover %}
+  <section class="mb-10">
+    <a href="{{ asset('uploads/' ~ cover.filename) }}"
+       class="glightbox block border-4 border-black shadow-[6px_6px_0_#000] overflow-hidden
+              hover:shadow-[3px_3px_0_#000] hover:translate-x-1.5 hover:translate-y-1.5 transition-all"
+       {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
+       data-gallery="gallery-equipe_saison-cover">
+      <img src="{{ asset('uploads/' ~ cover.filename) }}"
+           alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
+           loading="eager"
+           decoding="async"
+           class="w-full h-96 object-cover">
+    </a>
+  </section>
+  {% endif %}
+
+  {# Galerie des autres photos #}
   {{ components.gallery(photos) }}
 
   {# Liste des joueurs #}
