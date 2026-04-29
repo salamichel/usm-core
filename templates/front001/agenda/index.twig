@@ -1,0 +1,183 @@
+{% extends "base.twig" %}
+
+{% block title %}Agenda - USM Volley{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-12">
+  <h1 class="text-4xl font-bold mb-8">Agenda</h1>
+
+  {# Filters #}
+  <div class="bg-gray-100 p-6 rounded-lg mb-8">
+    <form method="GET" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {# Location filter #}
+        <div>
+          <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Lieu</label>
+          <select id="location" name="location" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            <option value="">-- Tous les lieux --</option>
+            {% for loc in availableFilters.locations %}
+              <option value="{{ loc }}" {% if filters.location == loc %}selected{% endif %}>
+                {{ loc }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {# Type filter #}
+        <div>
+          <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+          <select id="type" name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            <option value="">-- Tous les types --</option>
+            {% for typ in availableFilters.types %}
+              <option value="{{ typ }}" {% if filters.type == typ %}selected{% endif %}>
+                {{ typ }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {# Date range filter #}
+        <div>
+          <label for="date_from" class="block text-sm font-medium text-gray-700 mb-2">À partir du</label>
+          <input type="date" id="date_from" name="date_from"
+                 value="{{ filters.date_from }}"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg font-medium">
+          Filtrer
+        </button>
+        <a href="/agenda" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-medium inline-block">
+          Réinitialiser
+        </a>
+      </div>
+    </form>
+  </div>
+
+  {# Events list #}
+  {% if events %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {% for event in events %}
+        {{ event_card(event) }}
+      {% endfor %}
+    </div>
+
+    {# Pagination #}
+    {% if pagination.totalPages > 1 %}
+      <div class="flex justify-center items-center gap-2 mt-8 flex-wrap">
+        {% set query_params = "?page=" %}
+        {% if filters.location %}
+          {% set query_params = query_params ~ "&location=" ~ filters.location %}
+        {% endif %}
+        {% if filters.type %}
+          {% set query_params = query_params ~ "&type=" ~ filters.type %}
+        {% endif %}
+        {% if filters.date_from %}
+          {% set query_params = query_params ~ "&date_from=" ~ filters.date_from %}
+        {% endif %}
+
+        {% if currentPage > 1 %}
+          <a href="/agenda{{ query_params }}1"
+             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+            « Première
+          </a>
+          <a href="/agenda{{ query_params }}{{ currentPage - 1 }}"
+             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+            ← Précédente
+          </a>
+        {% endif %}
+
+        <div class="flex items-center gap-1">
+          {% for i in 1..pagination.totalPages %}
+            {% if i == currentPage %}
+              <span class="px-3 py-2 bg-amber-600 text-white rounded-lg font-medium">{{ i }}</span>
+            {% else %}
+              <a href="/agenda{{ query_params }}{{ i }}"
+                 class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+                {{ i }}
+              </a>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if currentPage < pagination.totalPages %}
+          <a href="/agenda{{ query_params }}{{ currentPage + 1 }}"
+             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+            Suivante →
+          </a>
+          <a href="/agenda{{ query_params }}{{ pagination.totalPages }}"
+             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+            Dernière »
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-6 py-4 rounded-lg">
+      <p>Aucun événement ne correspond à vos filtres.</p>
+      <a href="/agenda" class="text-amber-600 hover:underline mt-2 inline-block">Réinitialiser les filtres</a>
+    </div>
+  {% endif %}
+
+  <div class="mt-12">
+    <a href="/" class="text-amber-600 hover:underline font-medium">← Retour à l'accueil</a>
+  </div>
+</div>
+
+{% macro event_card(event) %}
+  <div class="border-2 border-black rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+    <div class="bg-amber-900 text-white p-4 flex items-center gap-4">
+      <div class="text-center">
+        <div class="text-3xl font-bold">{{ event.date_display|split(' ')[1] }}</div>
+        <div class="text-sm uppercase">{{ event.date_display|split(' ')[2] }}</div>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold">{{ event.title }}</h3>
+        {% if event.time_display %}
+          <div class="text-sm">🕐 {{ event.time_display }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="p-4 space-y-3">
+      {% if event.status == 'Annulé' %}
+        <div class="inline-block bg-red-600 text-white px-3 py-1 rounded text-sm font-bold">
+          ANNULÉ
+        </div>
+      {% elseif event.is_soon %}
+        <div class="inline-block bg-amber-500 text-white px-3 py-1 rounded text-sm font-bold">
+          BIENTÔT
+        </div>
+      {% endif %}
+
+      {% if event.location %}
+        <div>📍 <strong>{{ event.location }}</strong></div>
+      {% endif %}
+
+      {% if event.type %}
+        <div class="text-sm text-gray-600">
+          Type: <strong>{{ event.type }}</strong>
+        </div>
+      {% endif %}
+
+      {% if event.duration %}
+        <div class="text-sm text-gray-600">
+          Durée: <strong>{{ event.duration }}</strong>
+        </div>
+      {% endif %}
+
+      {% if event.comment %}
+        <div class="text-sm italic text-gray-700 border-t pt-2">
+          {{ event.comment }}
+        </div>
+      {% endif %}
+
+      <a href="/agenda/{{ event.id }}" class="block mt-4 w-full text-center bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-medium">
+        Détails
+      </a>
+    </div>
+  </div>
+{% endmacro %}
+{% endblock %}

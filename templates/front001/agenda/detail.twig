@@ -1,0 +1,109 @@
+{% extends "base.twig" %}
+
+{% block title %}{{ event.title }} - Agenda - USM Volley{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl px-4 py-12">
+  <a href="/agenda" class="text-amber-600 hover:underline font-medium mb-6 inline-block">
+    ← Retour à l'agenda
+  </a>
+
+  <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+    {# Header #}
+    <div class="bg-amber-900 text-white p-8">
+      <h1 class="text-4xl font-bold mb-4">{{ event.title }}</h1>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <div class="text-sm opacity-75">Date</div>
+          <div class="font-bold">{{ event.date_display }}</div>
+        </div>
+
+        {% if event.time_display %}
+          <div>
+            <div class="text-sm opacity-75">Heure</div>
+            <div class="font-bold">{{ event.time_display }}</div>
+          </div>
+        {% endif %}
+
+        {% if event.duration %}
+          <div>
+            <div class="text-sm opacity-75">Durée</div>
+            <div class="font-bold">{{ event.duration }}</div>
+          </div>
+        {% endif %}
+
+        {% if event.nb_courts %}
+          <div>
+            <div class="text-sm opacity-75">Terrains</div>
+            <div class="font-bold">{{ event.nb_courts }}</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Content #}
+    <div class="p-8 space-y-6">
+      {# Status #}
+      {% if event.status == 'Annulé' %}
+        <div class="bg-red-100 border-2 border-red-600 text-red-800 px-4 py-3 rounded-lg font-bold">
+          ⚠️ Cet événement a été ANNULÉ
+        </div>
+      {% elseif event.status == 'Provisoire' %}
+        <div class="bg-yellow-100 border-2 border-yellow-600 text-yellow-800 px-4 py-3 rounded-lg font-bold">
+          ⚠️ Cet événement est PROVISOIRE
+        </div>
+      {% else %}
+        <div class="bg-green-100 border-2 border-green-600 text-green-800 px-4 py-3 rounded-lg font-bold">
+          ✓ Cet événement est confirmé
+        </div>
+      {% endif %}
+
+      {# Location #}
+      {% if event.location %}
+        <div class="border-b pb-4">
+          <h2 class="text-2xl font-bold mb-2">📍 Lieu</h2>
+          <p class="text-lg text-gray-700">{{ event.location }}</p>
+        </div>
+      {% endif %}
+
+      {# Type #}
+      {% if event.type %}
+        <div class="border-b pb-4">
+          <h2 class="text-2xl font-bold mb-2">🏐 Type</h2>
+          <p class="text-lg text-gray-700">{{ event.type }}</p>
+        </div>
+      {% endif %}
+
+      {# Comment #}
+      {% if event.comment %}
+        <div class="border-b pb-4">
+          <h2 class="text-2xl font-bold mb-2">📝 Informations</h2>
+          <p class="text-gray-700 whitespace-pre-wrap">{{ event.comment }}</p>
+        </div>
+      {% endif %}
+
+      {# Event status badge #}
+      <div class="flex gap-2 flex-wrap">
+        {% if event.is_soon %}
+          <span class="bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+            Événement imminent
+          </span>
+        {% endif %}
+        <span class="bg-gray-300 text-gray-800 px-4 py-2 rounded-full text-sm">
+          Statut: {{ event.status }}
+        </span>
+      </div>
+    </div>
+  </article>
+
+  <div class="mt-8 space-y-4">
+    <a href="/agenda" class="block text-center bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-medium">
+      ← Retour à l'agenda
+    </a>
+    <a href="/" class="block text-center bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-lg font-medium">
+      Retour à l'accueil
+    </a>
+  </div>
+</div>
+{% endblock %}

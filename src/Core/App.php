@@ -9,6 +9,7 @@ use App\Controllers\ContactController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\SitemapController;
+use App\Controllers\AgendaController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\TagController;
@@ -71,6 +72,8 @@ class App
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{slug}', [EquipesController::class, 'show']);
+        $r->get('/agenda',        [AgendaController::class, 'index']);
+        $r->get('/agenda/{id}',   [AgendaController::class, 'show']);
         $r->get('/contact',       [ContactController::class, 'show']);
         $r->post('/contact',      [ContactController::class, 'submit']);
 
