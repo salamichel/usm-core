@@ -70,6 +70,13 @@ class ArticleApiController
             $customSlug = trim((string)($data['slug'] ?? ''));
             $coverImage = $data['cover_image'] ?? null;
 
+            // Debug: check if cover_image is received
+            if ($coverImage) {
+                error_log("DEBUG: Cover image URL received: " . substr($coverImage, 0, 100));
+            } else {
+                error_log("DEBUG: No cover_image in payload");
+            }
+
             // Convert ISO 8601 date to MySQL format
             $publishedAtForStorage = null;
             if (!empty($data['published_at'])) {
@@ -150,7 +157,7 @@ class ArticleApiController
     private function downloadImage(string $url, int $postId): ?string
     {
         try {
-            Logger::app()->info('Starting cover image download', ['url' => $url, 'post_id' => $postId]);
+            error_log("DEBUG: Downloading cover image from: " . substr($url, 0, 100));
 
             // Try with context first
             $context = stream_context_create([
@@ -164,39 +171,46 @@ class ArticleApiController
 
             // Fallback: try without context if first attempt failed
             if (!$imageContent) {
-                Logger::app()->info('First download attempt failed, retrying without context', ['url' => $url, 'post_id' => $postId]);
+                error_log("DEBUG: Context download failed, retrying without context");
                 $imageContent = @file_get_contents($url);
             }
 
             if (!$imageContent) {
-                Logger::errors()->error('Failed to download cover image (empty content)', ['url' => $url, 'post_id' => $postId]);
+                error_log("DEBUG: Failed to download - empty content");
                 return null;
             }
 
+            error_log("DEBUG: Downloaded " . strlen($imageContent) . " bytes");
+
             if (strlen($imageContent) > 10 * 1024 * 1024) {
-                Logger::errors()->error('Cover image too large', ['url' => $url, 'size' => strlen($imageContent), 'post_id' => $postId]);
+                error_log("DEBUG: Image too large: " . strlen($imageContent) . " bytes");
                 return null;
             }
 
             $ext = $this->getImageExtension($url, $imageContent);
             if (!$ext) {
-                Logger::errors()->error('Invalid image extension for cover', ['url' => $url, 'post_id' => $postId]);
+                error_log("DEBUG: Invalid image extension");
                 return null;
             }
+
+            error_log("DEBUG: Image extension detected: " . $ext);
 
             $filename = 'api-post-' . $postId . '-' . time() . '.' . $ext;
             $uploadPath = UploadPathManager::getUploadPath('post');
             $path = $uploadPath . '/' . $filename;
 
+            error_log("DEBUG: Saving to path: " . $path);
+
             if (!file_put_contents($path, $imageContent)) {
-                Logger::errors()->error('Failed to write cover image to disk', ['path' => $path, 'post_id' => $postId]);
+                error_log("DEBUG: Failed to write file to disk");
                 return null;
             }
 
-            Logger::app()->info('Cover image downloaded successfully', ['url' => $url, 'path' => $filename, 'post_id' => $postId]);
-            return UploadPathManager::getRelativeUploadPath('post', $filename);
+            $relativePath = UploadPathManager::getRelativeUploadPath('post', $filename);
+            error_log("DEBUG: Cover image saved successfully: " . $relativePath);
+            return $relativePath;
         } catch (\Exception $e) {
-            Logger::errors()->error('Exception downloading cover image', ['url' => $url, 'post_id' => $postId, 'error' => $e->getMessage()]);
+            error_log("DEBUG: Exception: " . $e->getMessage());
             return null;
         }
     }
