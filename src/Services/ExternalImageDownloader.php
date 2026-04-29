@@ -83,13 +83,14 @@ class ExternalImageDownloader
             }
 
             $filename = 'external-' . time() . '-' . uniqid() . '.' . $ext;
-            $path = UPLOAD_DIR . '/' . $filename;
+            $uploadPath = UploadPathManager::getUploadPath('external');
+            $path = $uploadPath . '/' . $filename;
 
             if (!file_put_contents($path, $imageContent)) {
                 return null;
             }
 
-            return $filename;
+            return 'external/' . (new \DateTime('now', new \DateTimeZone('Europe/Paris')))->format('Y/m') . '/' . $filename;
         } catch (\Exception $e) {
             Logger::errors()->error('Failed to download external image', ['url' => $url, 'error' => $e->getMessage()]);
             return null;

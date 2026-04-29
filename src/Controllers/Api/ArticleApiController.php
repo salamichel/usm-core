@@ -9,6 +9,7 @@ use App\Models\Tag;
 use App\Services\Validator;
 use App\Services\SlugManager;
 use App\Services\ExternalImageDownloader;
+use App\Services\UploadPathManager;
 
 class ArticleApiController
 {
@@ -146,13 +147,14 @@ class ArticleApiController
             }
 
             $filename = 'api-post-' . $postId . '-' . time() . '.' . $ext;
-            $path = UPLOAD_DIR . '/' . $filename;
+            $uploadPath = UploadPathManager::getUploadPath('post');
+            $path = $uploadPath . '/' . $filename;
 
             if (!file_put_contents($path, $imageContent)) {
                 return null;
             }
 
-            return $filename;
+            return UploadPathManager::getRelativeUploadPath('post', $filename);
         } catch (\Exception $e) {
             return null;
         }

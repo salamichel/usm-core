@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Services\UploadPathManager;
 
 class Photo
 {
@@ -77,9 +78,9 @@ class Photo
 
     /**
      * Upload a single file (from Dropzone: $_FILES['file']).
-     * Returns the saved filename.
+     * Returns the relative path to the saved file.
      */
-    public static function uploadSingle(?array $file): string
+    public static function uploadSingle(?array $file, string $entityType = 'post'): string
     {
         if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
             throw new \RuntimeException('Aucun fichier reçu.');
@@ -98,10 +99,11 @@ class Photo
         }
         $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $filename = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], UPLOAD_DIR . '/' . $filename)) {
+        $uploadPath = UploadPathManager::getUploadPath($entityType);
+        if (!move_uploaded_file($file['tmp_name'], $uploadPath . '/' . $filename)) {
             throw new \RuntimeException('Impossible de sauvegarder le fichier.');
         }
-        return $filename;
+        return UploadPathManager::getRelativeUploadPath($entityType, $filename);
     }
 
     private static function uploadErrorMessage(int $code): string
@@ -119,13 +121,14 @@ class Photo
 
     /**
      * Process a multi-file upload ($_FILES['photos']).
-     * Returns array of saved filenames.
+     * Returns array of relative paths to saved files.
      */
-    public static function uploadFiles(array $filesInput): array
+    public static function uploadFiles(array $filesInput, string $entityType = 'post'): array
     {
         $saved = [];
         // Normalize the $_FILES multi-upload structure
         $files = self::normalizeFilesArray($filesInput);
+        $uploadPath = UploadPathManager::getUploadPath($entityType);
         foreach ($files as $file) {
             if ($file['error'] === UPLOAD_ERR_NO_FILE) continue;
             if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -142,10 +145,10 @@ class Photo
             }
             $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             $filename = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
-            if (!move_uploaded_file($file['tmp_name'], UPLOAD_DIR . '/' . $filename)) {
+            if (!move_uploaded_file($file['tmp_name'], $uploadPath . '/' . $filename)) {
                 throw new \RuntimeException("Impossible de sauvegarder « {$file['name']} ».");
             }
-            $saved[] = $filename;
+            $saved[] = UploadPathManager::getRelativeUploadPath($entityType, $filename);
         }
         return $saved;
     }

@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\HomeBlock;
 use App\Models\Photo;
+use App\Services\UploadPathManager;
 
 class HomeBlockController
 {
@@ -73,7 +74,7 @@ class HomeBlockController
         }
         // Si l'admin a remplacé l'image et qu'une ancienne existait, supprimer le fichier
         if (!empty($block['image']) && $block['image'] !== $data['image']) {
-            $oldPath = UPLOAD_DIR . '/' . $block['image'];
+            $oldPath = UploadPathManager::getFullPath($block['image']);
             if (file_exists($oldPath)) {
                 unlink($oldPath);
             }
@@ -117,7 +118,7 @@ class HomeBlockController
     {
         Auth::require();
         try {
-            $filename = Photo::uploadSingle($_FILES['file'] ?? null);
+            $filename = Photo::uploadSingle($_FILES['file'] ?? null, 'home_block');
             header('Content-Type: application/json');
             echo json_encode([
                 'ok'       => true,

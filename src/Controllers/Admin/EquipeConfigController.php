@@ -131,7 +131,7 @@ class EquipeConfigController
             $this->jsonError('Équipe ou saison introuvable.', 404); return;
         }
         try {
-            $filename = Photo::uploadSingle($_FILES['file'] ?? null);
+            $filename = Photo::uploadSingle($_FILES['file'] ?? null, 'equipe_saison');
             $pid      = Photo::create('equipe_saison', $es['id'], $filename);
             $deleteUrl = BASE_URL . '/admin/equipes-config/' . $equipe['id']
                          . '/saisons/' . $saison['id'] . '/photos/' . $pid . '/delete-xhr';
