@@ -50,6 +50,22 @@
   {# Galerie des autres photos #}
   {{ components.gallery(photos) }}
 
+  {# Liste des joueurs #}
+  {% if joueurs|length %}
+  <section class="mt-10">
+    <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">Joueurs</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      {% for j in joueurs %}
+      {%- set isFemale = j.data.Sexe|default('F') == 'F' -%}
+      {%- set borderColor = isFemale ? 'border-pink-500' : 'border-blue-500' -%}
+      <div class="border-4 {{ borderColor }} bg-white p-4 shadow-[4px_4px_0_#000]">
+        <p class="font-black text-base leading-tight">{{ j.prenom }} {{ j.nom }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   {# Autres équipes de la même catégorie #}
   {% if otherEquipes|length %}
   <section class="mt-12 mb-12">
@@ -77,22 +93,6 @@
           </div>
         </div>
       </a>
-      {% endfor %}
-    </div>
-  </section>
-  {% endif %}
-
-  {# Liste des joueurs #}
-  {% if joueurs|length %}
-  <section class="mt-10">
-    <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">Joueurs</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      {% for j in joueurs %}
-      {%- set isFemale = j.data.Sexe|default('F') == 'F' -%}
-      {%- set borderColor = isFemale ? 'border-pink-500' : 'border-blue-500' -%}
-      <div class="border-4 {{ borderColor }} bg-white p-4 shadow-[4px_4px_0_#000]">
-        <p class="font-black text-base leading-tight">{{ j.prenom }} {{ j.nom }}</p>
-      </div>
       {% endfor %}
     </div>
   </section>
