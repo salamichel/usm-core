@@ -15,33 +15,37 @@
     <span class="font-semibold text-gray-800">{{ equipe.libelle }}</span>
   </nav>
 
-  <div class="flex items-baseline gap-4 mb-8">
-    <h1 class="text-4xl font-black">{{ equipe.libelle }}</h1>
-    <span class="border-2 border-black px-2 py-0.5 text-sm font-bold bg-amber-100">{{ equipe.categorie }}</span>
-    {% if saison %}
-      <span class="text-gray-400 text-sm font-semibold">{{ saison.libelle }}</span>
-    {% endif %}
-  </div>
-
-  {# Photo de couverture en vedette avec parallax #}
-  {% if cover %}
-  <section class="mb-10">
+  {# Hero section avec photo et infos côte à côte #}
+  <section class="mb-12 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+    {% if cover %}
     <a href="{{ asset('uploads/' ~ cover.filename) }}"
        class="glightbox block border-4 border-black shadow-[6px_6px_0_#000] overflow-hidden
-              hover:shadow-[3px_3px_0_#000] transition-all group"
+              hover:shadow-[3px_3px_0_#000] transition-all group order-2 md:order-1"
        {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
        data-gallery="gallery-equipe_saison-cover">
-      <div class="relative h-96 overflow-hidden">
-        <img src="{{ asset('uploads/' ~ cover.filename) }}"
-             alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
-             loading="eager"
-             decoding="async"
-             class="w-full h-full object-cover parallax-img transition-transform duration-300 group-hover:scale-105"
-             data-parallax>
-      </div>
+      <img src="{{ asset('uploads/' ~ cover.filename) }}"
+           alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
+           loading="eager"
+           decoding="async"
+           class="w-full h-80 md:h-96 object-cover transition-transform duration-300 group-hover:scale-105">
     </a>
+    {% endif %}
+
+    <div class="order-1 md:order-2">
+      <h1 class="text-5xl font-black mb-4">{{ equipe.libelle }}</h1>
+      <div class="flex flex-wrap gap-3 items-center mb-6">
+        <span class="border-4 border-black px-3 py-1.5 text-base font-black bg-amber-100">{{ equipe.categorie }}</span>
+        {% if saison %}
+          <span class="text-lg font-bold text-gray-600">{{ saison.libelle }}</span>
+        {% endif %}
+      </div>
+      {% if joueurs|length %}
+      <p class="text-gray-700 font-semibold text-lg">
+        <span class="font-black">{{ joueurs|length }}</span> joueur{{ joueurs|length > 1 ? 's' : '' }}
+      </p>
+      {% endif %}
+    </div>
   </section>
-  {% endif %}
 
   {# Galerie des autres photos #}
   {{ components.gallery(photos) }}
@@ -73,19 +77,5 @@
 {% if photos|length or cover %}
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>GLightbox({ selector: '.glightbox' });</script>
-{% endif %}
-{% if cover %}
-<script>
-  const parallaxImg = document.querySelector('[data-parallax]');
-  if (parallaxImg) {
-    window.addEventListener('scroll', () => {
-      const rect = parallaxImg.getBoundingClientRect();
-      const scrolled = window.pageYOffset;
-      const elementOffset = rect.top + scrolled;
-      const parallax = (scrolled - elementOffset + window.innerHeight) * 0.5;
-      parallaxImg.style.transform = `translateY(${parallax}px)`;
-    });
-  }
-</script>
 {% endif %}
 {% endblock %}
