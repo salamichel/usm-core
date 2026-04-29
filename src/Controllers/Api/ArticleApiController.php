@@ -97,12 +97,20 @@ class ArticleApiController
 
             $postId = Post::create($postData);
 
+            $coverImageStatus = null;
+            $coverImageError = null;
+
             // Download cover image if provided
             if ($coverImage) {
                 $filename = $this->downloadImage($coverImage, $postId);
                 if ($filename) {
                     Photo::create('post', $postId, $filename);
+                    $coverImageStatus = 'downloaded';
+                } else {
+                    $coverImageError = 'Failed to download or process cover image';
                 }
+            } else {
+                $coverImageStatus = 'not_provided';
             }
 
             // Download external images in content and update URLs
@@ -124,10 +132,15 @@ class ArticleApiController
             }
 
             http_response_code(201);
-            echo json_encode([
+            $response = [
                 'message' => 'Article created successfully',
                 'id'      => $postId,
-            ]);
+                'cover_image' => [
+                    'status' => $coverImageStatus,
+                    'error'  => $coverImageError,
+                ]
+            ];
+            echo json_encode($response);
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
