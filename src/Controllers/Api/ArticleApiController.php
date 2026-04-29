@@ -150,14 +150,24 @@ class ArticleApiController
     private function downloadImage(string $url, int $postId): ?string
     {
         try {
+            Logger::app()->info('Starting cover image download', ['url' => $url, 'post_id' => $postId]);
+
+            // Try with context first
             $context = stream_context_create([
                 'http' => [
-                    'timeout' => 10,
+                    'timeout' => 30,
                     'user_agent' => 'USM-Volley/1.0',
                 ]
             ]);
 
             $imageContent = @file_get_contents($url, false, $context);
+
+            // Fallback: try without context if first attempt failed
+            if (!$imageContent) {
+                Logger::app()->info('First download attempt failed, retrying without context', ['url' => $url, 'post_id' => $postId]);
+                $imageContent = @file_get_contents($url);
+            }
+
             if (!$imageContent) {
                 Logger::errors()->error('Failed to download cover image (empty content)', ['url' => $url, 'post_id' => $postId]);
                 return null;
