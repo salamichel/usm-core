@@ -10,6 +10,7 @@ use App\Services\Validator;
 use App\Services\SlugManager;
 use App\Services\ExternalImageDownloader;
 use App\Services\UploadPathManager;
+use App\Services\Logger;
 
 class ArticleApiController
 {
@@ -136,13 +137,27 @@ class ArticleApiController
     private function downloadImage(string $url, int $postId): ?string
     {
         try {
-            $imageContent = @file_get_contents($url);
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 10,
+                    'user_agent' => 'USM-Volley/1.0',
+                ]
+            ]);
+
+            $imageContent = @file_get_contents($url, false, $context);
             if (!$imageContent) {
+                Logger::errors()->error('Failed to download cover image (empty content)', ['url' => $url, 'post_id' => $postId]);
+                return null;
+            }
+
+            if (strlen($imageContent) > 10 * 1024 * 1024) {
+                Logger::errors()->error('Cover image too large', ['url' => $url, 'size' => strlen($imageContent), 'post_id' => $postId]);
                 return null;
             }
 
             $ext = $this->getImageExtension($url, $imageContent);
             if (!$ext) {
+                Logger::errors()->error('Invalid image extension for cover', ['url' => $url, 'post_id' => $postId]);
                 return null;
             }
 
@@ -151,11 +166,14 @@ class ArticleApiController
             $path = $uploadPath . '/' . $filename;
 
             if (!file_put_contents($path, $imageContent)) {
+                Logger::errors()->error('Failed to write cover image to disk', ['path' => $path, 'post_id' => $postId]);
                 return null;
             }
 
+            Logger::app()->info('Cover image downloaded successfully', ['url' => $url, 'path' => $filename, 'post_id' => $postId]);
             return UploadPathManager::getRelativeUploadPath('post', $filename);
         } catch (\Exception $e) {
+            Logger::errors()->error('Exception downloading cover image', ['url' => $url, 'post_id' => $postId, 'error' => $e->getMessage()]);
             return null;
         }
     }

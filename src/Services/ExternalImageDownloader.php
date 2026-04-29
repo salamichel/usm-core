@@ -11,39 +11,43 @@ class ExternalImageDownloader
 
     public function processContent(string $html, int $entityId, string $entityType = 'post'): string
     {
-        $dom = new \DOMDocument();
-        $internalErrors = libxml_use_internal_errors(true);
-
-        if (!$dom->loadHTML($html, LIBXML_HTML_NOREWIND)) {
-            libxml_use_internal_errors($internalErrors);
-            return $html;
-        }
-        libxml_use_internal_errors($internalErrors);
-
         $changed = false;
-        $images = $dom->getElementsByTagName('img');
 
-        foreach ($images as $img) {
-            $src = $img->getAttribute('src');
-            if (empty($src)) {
-                continue;
-            }
-
-            if ($this->isExternalUrl($src)) {
-                $localFilename = $this->downloadImage($src);
-                if ($localFilename) {
-                    $localUrl = BASE_URL . '/assets/uploads/' . $localFilename;
-                    $img->setAttribute('src', $localUrl);
-                    $changed = true;
+        // Remplacer les URLs des attributs src
+        $html = preg_replace_callback(
+            '/\bsrc=["\']([^"\']+)["\']/',
+            function ($matches) use (&$changed) {
+                $url = $matches[1];
+                if ($this->isExternalUrl($url)) {
+                    $localPath = $this->downloadImage($url);
+                    if ($localPath) {
+                        $changed = true;
+                        return 'src="' . BASE_URL . '/assets/uploads/' . $localPath . '"';
+                    }
                 }
-            }
-        }
+                return $matches[0];
+            },
+            $html
+        );
 
-        if (!$changed) {
-            return $html;
-        }
+        // Remplacer aussi les URLs des attributs data-cke-saved-src (CKEditor)
+        $html = preg_replace_callback(
+            '/\bdata-cke-saved-src=["\']([^"\']+)["\']/',
+            function ($matches) use (&$changed) {
+                $url = $matches[1];
+                if ($this->isExternalUrl($url)) {
+                    $localPath = $this->downloadImage($url);
+                    if ($localPath) {
+                        $changed = true;
+                        return 'data-cke-saved-src="' . BASE_URL . '/assets/uploads/' . $localPath . '"';
+                    }
+                }
+                return $matches[0];
+            },
+            $html
+        );
 
-        return $dom->saveHTML();
+        return $html;
     }
 
     private function isExternalUrl(string $url): bool
