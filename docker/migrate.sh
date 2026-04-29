@@ -11,7 +11,7 @@ run() {
 }
 
 # Fichiers de base dans l'ordre fixe
-for f in /sql/schema.sql /sql/seed.sql /sql/add_photos.sql; do
+for f in /sql/schema.sql /sql/add_photos.sql; do
     [ -f "$f" ] && run "$f"
 done
 
