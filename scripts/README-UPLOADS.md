@@ -18,7 +18,11 @@ Scripts pour réorganiser et gérer les fichiers uploadés.
 ### Réorganiser les uploads existants
 
 ```bash
+# En local
 php scripts/organize-uploads.php
+
+# Ou dans Docker
+docker compose exec app php scripts/organize-uploads.php
 ```
 
 **Que fait ce script?**

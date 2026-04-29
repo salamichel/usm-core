@@ -40,10 +40,14 @@ class UploadOrganizer
     private function organizePhotos(): void
     {
         echo "Réorganisation des photos...\n";
-        $db = Database::get();
-
-        $stmt = $db->query("SELECT * FROM photos ORDER BY id ASC");
-        $photos = $stmt->fetchAll();
+        try {
+            $db = Database::get();
+            $stmt = $db->query("SELECT * FROM photos ORDER BY id ASC");
+            $photos = $stmt->fetchAll();
+        } catch (Exception $e) {
+            $this->errors[] = "Erreur BD photos: " . $e->getMessage();
+            return;
+        }
 
         foreach ($photos as $photo) {
             $filename = $photo['filename'];
@@ -94,10 +98,14 @@ class UploadOrganizer
     private function organizeHomeBlocks(): void
     {
         echo "\nRéorganisation des images HomeBlock...\n";
-        $db = Database::get();
-
-        $stmt = $db->query("SELECT * FROM home_blocks WHERE image IS NOT NULL AND image != ''");
-        $blocks = $stmt->fetchAll();
+        try {
+            $db = Database::get();
+            $stmt = $db->query("SELECT * FROM home_blocks WHERE image IS NOT NULL AND image != ''");
+            $blocks = $stmt->fetchAll();
+        } catch (Exception $e) {
+            $this->errors[] = "Erreur BD home_blocks: " . $e->getMessage();
+            return;
+        }
 
         foreach ($blocks as $block) {
             $filename = $block['image'];
@@ -146,5 +154,12 @@ class UploadOrganizer
     }
 }
 
-$organizer = new UploadOrganizer();
-$organizer->run();
+try {
+    $organizer = new UploadOrganizer();
+    $organizer->run();
+} catch (Exception $e) {
+    echo "ERREUR: " . $e->getMessage() . "\n";
+    echo "Stack trace:\n";
+    echo $e->getTraceAsString() . "\n";
+    exit(1);
+}
