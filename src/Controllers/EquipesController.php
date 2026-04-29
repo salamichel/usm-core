@@ -76,8 +76,24 @@ class EquipesController
 
         $saison  = Saison::getActive();
         $es      = $saison ? EquipeSaison::findBySaisonAndEquipe($saison['id'], $equipe['id']) : null;
-        $photos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
+        $allPhotos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
+        $cover   = $es ? Photo::getEntityCover('equipe_saison', $es['id']) : null;
+        $photos  = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
         $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
+
+        // Autres équipes de la même catégorie
+        $otherEquipes = [];
+        if ($saison) {
+            $allByCategory = EquipeConfig::groupedByCategorie();
+            $categoryEquipes = $allByCategory[$equipe['categorie']] ?? [];
+            foreach ($categoryEquipes as $eq) {
+                if ($eq['id'] === $equipe['id']) continue;
+                $esSaison = EquipeSaison::findBySaisonAndEquipe($saison['id'], $eq['id']);
+                if (!$esSaison || EquipeSaisonJoueur::countByEquipeSaison($esSaison['id']) === 0) continue;
+                $eq['cover'] = Photo::getEntityCover('equipe_saison', $esSaison['id']);
+                $otherEquipes[] = $eq;
+            }
+        }
 
         // SEO metadata
         $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
@@ -111,11 +127,13 @@ class EquipesController
         );
 
         View::render('equipes/detail.twig', [
-            'meta'    => $meta,
-            'equipe'  => $equipe,
-            'photos'  => $photos,
-            'joueurs' => $joueurs,
-            'saison'  => $saison,
+            'meta'         => $meta,
+            'equipe'       => $equipe,
+            'cover'        => $cover,
+            'photos'       => $photos,
+            'joueurs'      => $joueurs,
+            'saison'       => $saison,
+            'otherEquipes' => $otherEquipes,
         ]);
     }
 }
