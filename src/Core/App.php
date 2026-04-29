@@ -7,6 +7,7 @@ use App\Controllers\HomeController;
 use App\Controllers\BlogController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
+use App\Controllers\RedirectController;
 use App\Controllers\SitemapController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
@@ -63,6 +64,10 @@ class App
         $r->get('/',              [HomeController::class, 'index']);
         $r->get('/blog',          [BlogController::class, 'list']);
         $r->get('/blog/tag/{tag}', [BlogController::class, 'list']);
+
+        // Old blog URL redirect (archives/YYYY/MM/DD/ID.html → new slug)
+        $r->get('/blog/archives/{path+}', [RedirectController::class, 'handleOldBlogUrl']);
+
         $r->get('/blog/{slug+}',  [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
