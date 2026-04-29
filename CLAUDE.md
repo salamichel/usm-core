@@ -49,18 +49,27 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 │   │   ├── JoueurSnapshot.php ← flash depuis base externe + rebuild équipes
 │   │   ├── EquipeConfig.php   ← config permanente des équipes
 │   │   ├── EquipeSaison.php   ← liaison équipe × saison (findOrCreate)
-│   │   └── EquipeSaisonJoueur.php ← membres d'une équipe pour une saison
+│   │   ├── EquipeSaisonJoueur.php ← membres d'une équipe pour une saison
+│   │   ├── Contact.php        ← messages de contact (create, find, all, updateStatus, delete)
+│   │   └── ContactReply.php   ← réponses aux contacts
 │   ├── Controllers/
 │   │   ├── HomeController.php, BlogController.php, PageController.php
+│   │   ├── ContactController.php       ← formulaire public /contact
 │   │   ├── EquipesController.php  ← /equipes + /equipes/{id}
 │   │   └── Admin/
 │   │       ├── AuthController.php, DashboardController.php
 │   │       ├── PostController.php, PageAdminController.php
 │   │       ├── MenuController.php, DocumentController.php
 │   │       ├── SaisonController.php       ← admin saisons + flash
-│   │       └── EquipeConfigController.php ← admin équipes + photos + joueurs
+│   │       ├── EquipeConfigController.php ← admin équipes + photos + joueurs
+│   │       └── ContactAdminController.php ← gestion messages de contact
 │   └── Services/
-│       └── AgendaService.php  ← lit Manifestation via ExternalDatabase
+│       ├── AgendaService.php  ← lit Manifestation via ExternalDatabase
+│       ├── BrevoService.php   ← emails via API Brevo
+│       ├── Validator.php      ← validation centralisée
+│       ├── Logger.php         ← logging multi-canal
+│       ├── SlugManager.php    ← génération slugs
+│       └── Pagination.php     ← pagination
 ├── config/config.php      ← constantes DB_*, EXT_DB_*, BASE_URL, etc.
 ├── database/
 │   ├── schema.sql, seed.sql, add_photos.sql  ← base locale initiale
@@ -81,10 +90,15 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
         ├── posts/, pages/, menu/, documents/
         ├── saisons/
         │   ├── list.twig, create.twig, snapshots.twig, joueurs.twig
-        └── equipes-config/
-            ├── list.twig, form.twig
-            ├── saison_photos.twig   ← Dropzone dédié équipe×saison
-            └── saison_joueurs.twig  ← ajout/retrait joueurs post-flash
+        ├── equipes-config/
+        │   ├── list.twig, form.twig
+        │   ├── saison_photos.twig   ← Dropzone dédié équipe×saison
+        │   └── saison_joueurs.twig  ← ajout/retrait joueurs post-flash
+        └── contacts/
+            ├── list.twig   ← liste messages avec filtres + actions de masse
+            └── detail.twig ← détail + historique + formulaire réponse
+    └── contact/
+        └── form.twig   ← formulaire public de contact
 ```
 
 ---
@@ -261,6 +275,56 @@ $unique = SlugManager::makeUnique($slug, 'posts'); // → 'mon-article-2' si exi
 
 Utilisé par Post et PageStatique (évite duplication).
 
+### BrevoService
+
+Intégration avec l'API Brevo pour l'envoi d'emails :
+
+```php
+use App\Services\BrevoService;
+
+$brevo = new BrevoService();
+$brevo->sendEmail($email, $name, $subject, $htmlContent, $textContent);
+$brevo->sendContactNotification($contact); // notif admin
+$brevo->sendReplyToVisitor($email, $name, $replyText); // réponse visiteur
+```
+
+**Configuration** : Variables d'env `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`.
+
+Templates HTML stylisés en néo-brutalisme (même design que le site).
+Signature inclut les infos du club depuis `site_config`.
+
+---
+
+## Formulaire de contact & gestion des messages
+
+### Public : `/contact`
+
+- Formulaire de contact avec validation (nom, email, sujet, message)
+- Préservation des données en cas d'erreur
+- Notification auto à l'admin via Brevo (email stylisé)
+
+### Admin : `/admin/contacts`
+
+Tableau de bord complet pour gérer les messages :
+
+- **Filtrage** : Nouveaux / Répondus / Archivés / Tous
+- **Sélection en masse** : checkboxes + "Sélectionner tous"
+- **Actions groupées** : Archiver ou Supprimer plusieurs messages
+- **Détail message** : `/admin/contacts/{id}`
+  - Historique des réponses
+  - Formulaire de réponse (envoie email au visiteur via Brevo)
+  - Changement de statut individuel
+  - Suppression individuelle
+
+**Models** :
+- `Contact` : messages entrants (create, find, all, updateStatus, delete, countByStatus)
+- `ContactReply` : historique des réponses (create, findByContact, getLatest)
+
+**Métriques au dashboard** :
+- Nombre de messages neufs (badge rouge dans le menu si > 0)
+- Nombre de messages répondus
+- Total de messages
+
 ---
 
 ## Contrôleurs CRUD admin
@@ -368,6 +432,9 @@ $cover = Photo::getEntityCover('equipe_saison', $es['id']);
 | `APP_DEBUG` | `true` | Désactive cache Twig, affiche PDOException |
 | `ADMIN_EMAIL` | — | Email admin |
 | `ADMIN_PASSWORD_HASH` | — | `password_hash(..., PASSWORD_BCRYPT)` |
+| `BREVO_API_KEY` | — | Clé API Brevo pour envoyer les emails |
+| `BREVO_FROM_EMAIL` | `noreply@usm-volley.fr` | Email "De" pour les notifications |
+| `BREVO_FROM_NAME` | `USM Volley` | Nom "De" pour les notifications |
 
 ---
 
@@ -382,5 +449,13 @@ Les fichiers SQL sont **idempotents** (`IF NOT EXISTS`, `INSERT IGNORE`,
 Ordre d'application au démarrage :
 ```
 schema.sql → seed.sql → add_photos.sql
-→ 001_saisons.sql → 002_equipes_config.sql
+→ 001_saisons.sql → 002_equipes_config.sql → ... → 008_contacts.sql
 ```
+
+**Migrations récentes** :
+- `003_home_blocks.sql` — blocs accueil (contenu + position)
+- `004_site_config.sql` — config du site (nom, email, phone, réseaux)
+- `005_joueur_snapshots_nlicence.sql` — ajout colonne n_licence
+- `006_article_api.sql` — table pour intégration API article
+- `007_tags.sql` — table tags pour catégorisation articles
+- `008_contacts.sql` — messages de contact + réponses (Brevo)

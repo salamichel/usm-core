@@ -24,8 +24,7 @@
 
     <div>
       <label class="block font-black mb-1" for="contenu">Contenu</label>
-      <div id="editor" class="border-2 border-black min-h-[220px] bg-white">{{ block and block.contenu ? block.contenu|raw : '' }}</div>
-      <input type="hidden" id="contenu" name="contenu" value="{{ block.contenu ?? '' }}">
+      <textarea id="contenu" name="contenu">{{ block.contenu ?? '' }}</textarea>
     </div>
 
     <div class="grid sm:grid-cols-2 gap-4">
@@ -100,26 +99,28 @@
 {% endblock %}
 
 {% block scripts %}
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
 <script>
-  // ── Quill ───────────────────────────────────────────────────────────────────
-  const quill = new Quill('#editor', {
-    theme: 'snow',
-    modules: {
-      toolbar: [
-        [{ header: [1,2,3,false] }],
-        ['bold','italic','underline','strike'],
-        [{ list: 'ordered' },{ list: 'bullet' }],
-        ['link'],
-        ['clean']
-      ]
-    }
+  // ── Summernote ──────────────────────────────────────────────────────────────
+  $('#contenu').summernote({
+    height: 220,
+    lang: 'fr-FR',
+    toolbar: [
+      ['style',  ['style']],
+      ['font',   ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
+      ['para',   ['ul', 'ol']],
+      ['table',  ['table']],
+      ['insert', ['link']],
+      ['view',   ['codeview']]
+    ]
   });
-  document.querySelector('form').addEventListener('submit', () => {
-    document.getElementById('contenu').value = quill.root.innerHTML;
+  $('form').on('submit', function () {
+    document.getElementById('contenu').value = $('#contenu').summernote('code');
   });
 
   // ── Dropzone image unique ───────────────────────────────────────────────────

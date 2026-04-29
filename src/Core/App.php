@@ -5,6 +5,7 @@ namespace App\Core;
 
 use App\Controllers\HomeController;
 use App\Controllers\BlogController;
+use App\Controllers\ContactController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\SitemapController;
@@ -19,6 +20,9 @@ use App\Controllers\Admin\PageAdminController;
 use App\Controllers\Admin\PostController;
 use App\Controllers\Admin\SaisonController;
 use App\Controllers\Admin\SiteConfigController;
+use App\Controllers\Admin\ContactAdminController;
+use App\Controllers\Admin\LocationController;
+use App\Controllers\Admin\ContactMessageController;
 
 class App
 {
@@ -67,6 +71,8 @@ class App
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
         $r->get('/equipes/{slug}', [EquipesController::class, 'show']);
+        $r->get('/contact',       [ContactController::class, 'show']);
+        $r->post('/contact',      [ContactController::class, 'submit']);
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
@@ -145,6 +151,27 @@ class App
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);
         $r->post('/admin/site-config', [SiteConfigController::class, 'update']);
+
+        // ── Admin contacts ────────────────────────────────────────────────────
+        $r->get('/admin/contacts',                   [ContactAdminController::class, 'index']);
+        $r->get('/admin/contacts/{id}',              [ContactAdminController::class, 'show']);
+        $r->post('/admin/contacts/{id}/reply',       [ContactAdminController::class, 'reply']);
+        $r->post('/admin/contacts/{id}/status',      [ContactAdminController::class, 'updateStatus']);
+        $r->post('/admin/contacts/{id}/delete',      [ContactAdminController::class, 'delete']);
+        $r->post('/admin/contacts/bulk-action',      [ContactAdminController::class, 'bulkAction']);
+
+        // ── Admin locations ──────────────────────────────────────────────
+        $r->get('/admin/locations',             [LocationController::class, 'index']);
+        $r->get('/admin/locations/create',      [LocationController::class, 'create']);
+        $r->post('/admin/locations/create',     [LocationController::class, 'store']);
+        $r->get('/admin/locations/{id}/edit',   [LocationController::class, 'edit']);
+        $r->post('/admin/locations/{id}/edit',  [LocationController::class, 'update']);
+        $r->post('/admin/locations/{id}/delete',[LocationController::class, 'delete']);
+
+        // ── Admin contact messages ────────────────────────────────────────────
+        $r->get('/admin/contact-messages',         [ContactMessageController::class, 'index']);
+        $r->get('/admin/contact-messages/{id}',    [ContactMessageController::class, 'show']);
+        $r->post('/admin/contact-messages/{id}/delete', [ContactMessageController::class, 'delete']);
 
         // ── Admin home blocks ─────────────────────────────────────────────────
         $r->get('/admin/home-blocks',                 [HomeBlockController::class, 'index']);

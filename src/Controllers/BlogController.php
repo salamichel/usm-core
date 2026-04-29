@@ -102,6 +102,7 @@ class BlogController
             $this->notFound();
             return;
         }
+        $post['cover'] = Photo::getEntityCover('post', $post['id']);
         $tags = Tag::findByPost($post['id']);
         $photos = Photo::forEntity('post', $post['id']);
 
