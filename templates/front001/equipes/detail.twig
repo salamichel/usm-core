@@ -56,11 +56,8 @@
     <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">Autres équipes — {{ equipe.categorie }}</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for eq in otherEquipes %}
-      {%- set isFemale = 'féminin' in eq.libelle|lower or 'f' == eq.libelle|slice(-1)|lower -%}
-      {%- set borderColor = isFemale ? 'border-pink-500' : 'border-blue-500' -%}
-      {%- set bgColor = isFemale ? 'bg-pink-50' : 'bg-blue-50' -%}
       <a href="{{ url('equipes/' ~ eq.slug) }}" class="group">
-        <div class="relative overflow-hidden border-4 {{ borderColor }} shadow-[4px_4px_0_#000] {{ bgColor }}
+        <div class="relative overflow-hidden border-4 border-black shadow-[4px_4px_0_#000]
                     hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
           {% if eq.cover %}
           <div class="relative h-48 overflow-hidden">
@@ -71,16 +68,12 @@
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
           </div>
           {% else %}
-          <div class="h-48 {{ bgColor }} flex items-center justify-center">
+          <div class="h-48 bg-gray-100 flex items-center justify-center">
             <span class="text-gray-400 text-center px-4">Pas de photo</span>
           </div>
           {% endif %}
           <div class="p-4">
             <h3 class="font-black text-lg leading-tight">{{ eq.libelle }}</h3>
-            <p class="text-sm text-gray-600 mt-1">
-              {% if isFemale %}<span class="text-pink-600 font-bold">♀ Féminin</span>
-              {% else %}<span class="text-blue-600 font-bold">♂ Masculin</span>{% endif %}
-            </p>
           </div>
         </div>
       </a>
@@ -95,7 +88,9 @@
     <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">Joueurs</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
       {% for j in joueurs %}
-      <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+      {%- set isFemale = j.data.Sexe|default('F') == 'F' -%}
+      {%- set borderColor = isFemale ? 'border-pink-500' : 'border-blue-500' -%}
+      <div class="border-4 {{ borderColor }} bg-white p-4 shadow-[4px_4px_0_#000]">
         <p class="font-black text-base leading-tight">{{ j.prenom }} {{ j.nom }}</p>
       </div>
       {% endfor %}
