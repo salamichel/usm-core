@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Services\UploadPathManager;
 
 class HomeBlock
 {
@@ -73,7 +74,7 @@ class HomeBlock
     {
         $block = self::find($id);
         if ($block && !empty($block['image'])) {
-            $path = UPLOAD_DIR . '/' . $block['image'];
+            $path = UploadPathManager::getFullPath($block['image']);
             if (file_exists($path)) {
                 unlink($path);
             }

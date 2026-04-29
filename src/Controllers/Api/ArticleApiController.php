@@ -8,6 +8,9 @@ use App\Models\Photo;
 use App\Models\Tag;
 use App\Services\Validator;
 use App\Services\SlugManager;
+use App\Services\ExternalImageDownloader;
+use App\Services\UploadPathManager;
+use App\Services\Logger;
 
 class ArticleApiController
 {
@@ -67,6 +70,13 @@ class ArticleApiController
             $customSlug = trim((string)($data['slug'] ?? ''));
             $coverImage = $data['cover_image'] ?? null;
 
+            // Debug: check if cover_image is received
+            if ($coverImage) {
+                error_log("DEBUG: Cover image URL received: " . substr($coverImage, 0, 100));
+            } else {
+                error_log("DEBUG: No cover_image in payload");
+            }
+
             // Convert ISO 8601 date to MySQL format
             $publishedAtForStorage = null;
             if (!empty($data['published_at'])) {
@@ -94,11 +104,27 @@ class ArticleApiController
 
             $postId = Post::create($postData);
 
+            $coverImageStatus = null;
+            $coverImageError = null;
+
+            // Download cover image if provided
             if ($coverImage) {
                 $filename = $this->downloadImage($coverImage, $postId);
                 if ($filename) {
                     Photo::create('post', $postId, $filename);
+                    $coverImageStatus = 'downloaded';
+                } else {
+                    $coverImageError = 'Failed to download or process cover image';
                 }
+            } else {
+                $coverImageStatus = 'not_provided';
+            }
+
+            // Download external images in content and update URLs
+            $downloader = new ExternalImageDownloader();
+            $processedContent = $downloader->processContent($postData['content'], $postId, 'post');
+            if ($processedContent !== $postData['content']) {
+                Post::updateContent($postId, $processedContent);
             }
 
             $tags = $data['tags'] ?? [];
@@ -113,10 +139,15 @@ class ArticleApiController
             }
 
             http_response_code(201);
-            echo json_encode([
+            $response = [
                 'message' => 'Article created successfully',
                 'id'      => $postId,
-            ]);
+                'cover_image' => [
+                    'status' => $coverImageStatus,
+                    'error'  => $coverImageError,
+                ]
+            ];
+            echo json_encode($response);
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
@@ -126,25 +157,70 @@ class ArticleApiController
     private function downloadImage(string $url, int $postId): ?string
     {
         try {
-            $imageContent = @file_get_contents($url);
+            error_log("DEBUG: Downloading cover image from: " . substr($url, 0, 100));
+
+            // Try with context first
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 30,
+                    'user_agent' => 'USM-Volley/1.0',
+                ]
+            ]);
+
+            $imageContent = @file_get_contents($url, false, $context);
+
+            // Fallback: try without context if first attempt failed
             if (!$imageContent) {
+                error_log("DEBUG: Context download failed, retrying without context");
+                $imageContent = @file_get_contents($url);
+            }
+
+            if (!$imageContent) {
+                error_log("DEBUG: Failed to download - empty content");
+                return null;
+            }
+
+            error_log("DEBUG: Downloaded " . strlen($imageContent) . " bytes");
+
+            if (strlen($imageContent) > 10 * 1024 * 1024) {
+                error_log("DEBUG: Image too large: " . strlen($imageContent) . " bytes");
                 return null;
             }
 
             $ext = $this->getImageExtension($url, $imageContent);
             if (!$ext) {
+                error_log("DEBUG: Invalid image extension");
                 return null;
             }
+
+            error_log("DEBUG: Image extension detected: " . $ext);
 
             $filename = 'api-post-' . $postId . '-' . time() . '.' . $ext;
-            $path = UPLOAD_DIR . '/' . $filename;
+            $uploadPath = UploadPathManager::getUploadPath('post');
+
+            error_log("DEBUG: Upload path: " . $uploadPath);
+            error_log("DEBUG: Is dir: " . (is_dir($uploadPath) ? 'yes' : 'no'));
+            error_log("DEBUG: Is writable: " . (is_writable($uploadPath) ? 'yes' : 'no'));
+
+            $path = $uploadPath . '/' . $filename;
+
+            error_log("DEBUG: Saving to path: " . $path);
 
             if (!file_put_contents($path, $imageContent)) {
-                return null;
+                error_log("DEBUG: Failed to write file to disk - trying with chmod");
+                @chmod($uploadPath, 0777);
+                if (!file_put_contents($path, $imageContent)) {
+                    error_log("DEBUG: Still failed after chmod");
+                    return null;
+                }
+                error_log("DEBUG: Succeeded after chmod");
             }
 
-            return $filename;
+            $relativePath = UploadPathManager::getRelativeUploadPath('post', $filename);
+            error_log("DEBUG: Cover image saved successfully: " . $relativePath);
+            return $relativePath;
         } catch (\Exception $e) {
+            error_log("DEBUG: Exception: " . $e->getMessage());
             return null;
         }
     }

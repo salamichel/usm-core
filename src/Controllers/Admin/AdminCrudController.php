@@ -147,7 +147,7 @@ abstract class AdminCrudController
         }
 
         try {
-            $filename = Photo::uploadSingle($_FILES['file'] ?? null);
+            $filename = Photo::uploadSingle($_FILES['file'] ?? null, $this->entityType);
             $pid = Photo::create($this->entityType, $id, $filename);
             $this->jsonSuccess($id, $pid, $filename);
         } catch (\RuntimeException $e) {
@@ -197,7 +197,7 @@ abstract class AdminCrudController
         }
 
         try {
-            $filenames = Photo::uploadFiles($_FILES['photos']);
+            $filenames = Photo::uploadFiles($_FILES['photos'], $this->entityType);
             foreach ($filenames as $i => $filename) {
                 Photo::create($this->entityType, $id, $filename, null, $i);
             }
