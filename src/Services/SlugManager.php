@@ -22,9 +22,9 @@ class SlugManager
     {
         $basePath = '';
         if ($date !== null) {
-            $basePath = '/' . $date->format('Y/m/d');
+            $basePath = $date->format('Y/m/d') . '/';
         }
-        return $basePath . '/' . self::generate($text);
+        return $basePath . self::generate($text);
     }
 
     private static function removeAccents(string $text): string
