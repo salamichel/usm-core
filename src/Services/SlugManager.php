@@ -11,8 +11,7 @@ class SlugManager
     {
         $text = strtolower($text);
         $text = self::removeAccents($text);
-        // Preserve / and . (e.g. CanalBlog paths like "2025/09/article.html")
-        $text = preg_replace('/[^a-z0-9\s\-\/\.]/', '', $text) ?? $text;
+        $text = preg_replace('/[^a-z0-9\s]/', '-', $text) ?? $text;
         $text = preg_replace('/\s+/', '-', trim($text)) ?? $text;
         $text = preg_replace('/-+/', '-', $text) ?? $text;
         return trim($text, '-');
