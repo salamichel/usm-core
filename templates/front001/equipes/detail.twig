@@ -23,19 +23,22 @@
     {% endif %}
   </div>
 
-  {# Photo de couverture en vedette #}
+  {# Photo de couverture en vedette avec parallax #}
   {% if cover %}
   <section class="mb-10">
     <a href="{{ asset('uploads/' ~ cover.filename) }}"
        class="glightbox block border-4 border-black shadow-[6px_6px_0_#000] overflow-hidden
-              hover:shadow-[3px_3px_0_#000] hover:translate-x-1.5 hover:translate-y-1.5 transition-all"
+              hover:shadow-[3px_3px_0_#000] transition-all group"
        {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
        data-gallery="gallery-equipe_saison-cover">
-      <img src="{{ asset('uploads/' ~ cover.filename) }}"
-           alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
-           loading="eager"
-           decoding="async"
-           class="w-full h-96 object-cover">
+      <div class="relative h-96 overflow-hidden">
+        <img src="{{ asset('uploads/' ~ cover.filename) }}"
+             alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
+             loading="eager"
+             decoding="async"
+             class="w-full h-full object-cover parallax-img transition-transform duration-300 group-hover:scale-105"
+             data-parallax>
+      </div>
     </a>
   </section>
   {% endif %}
@@ -67,8 +70,22 @@
 {% endblock %}
 
 {% block scripts %}
-{% if photos|length %}
+{% if photos|length or cover %}
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>GLightbox({ selector: '.glightbox' });</script>
+{% endif %}
+{% if cover %}
+<script>
+  const parallaxImg = document.querySelector('[data-parallax]');
+  if (parallaxImg) {
+    window.addEventListener('scroll', () => {
+      const rect = parallaxImg.getBoundingClientRect();
+      const scrolled = window.pageYOffset;
+      const elementOffset = rect.top + scrolled;
+      const parallax = (scrolled - elementOffset + window.innerHeight) * 0.5;
+      parallaxImg.style.transform = `translateY(${parallax}px)`;
+    });
+  }
+</script>
 {% endif %}
 {% endblock %}
