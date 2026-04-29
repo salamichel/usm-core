@@ -12,7 +12,15 @@ class UploadPathManager
         $path = UPLOAD_DIR . '/' . $entityType . '/' . $subdir;
 
         if (!is_dir($path)) {
-            @mkdir($path, 0755, true);
+            if (!@mkdir($path, 0777, true)) {
+                // Fallback: try to create with different permissions
+                @mkdir($path, 0755, true);
+            }
+        }
+
+        // Ensure directory is writable
+        if (!is_writable($path)) {
+            @chmod($path, 0777);
         }
 
         return $path;

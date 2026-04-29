@@ -197,13 +197,23 @@ class ArticleApiController
 
             $filename = 'api-post-' . $postId . '-' . time() . '.' . $ext;
             $uploadPath = UploadPathManager::getUploadPath('post');
+
+            error_log("DEBUG: Upload path: " . $uploadPath);
+            error_log("DEBUG: Is dir: " . (is_dir($uploadPath) ? 'yes' : 'no'));
+            error_log("DEBUG: Is writable: " . (is_writable($uploadPath) ? 'yes' : 'no'));
+
             $path = $uploadPath . '/' . $filename;
 
             error_log("DEBUG: Saving to path: " . $path);
 
             if (!file_put_contents($path, $imageContent)) {
-                error_log("DEBUG: Failed to write file to disk");
-                return null;
+                error_log("DEBUG: Failed to write file to disk - trying with chmod");
+                @chmod($uploadPath, 0777);
+                if (!file_put_contents($path, $imageContent)) {
+                    error_log("DEBUG: Still failed after chmod");
+                    return null;
+                }
+                error_log("DEBUG: Succeeded after chmod");
             }
 
             $relativePath = UploadPathManager::getRelativeUploadPath('post', $filename);
