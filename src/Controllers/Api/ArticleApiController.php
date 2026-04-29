@@ -8,6 +8,7 @@ use App\Models\Photo;
 use App\Models\Tag;
 use App\Services\Validator;
 use App\Services\SlugManager;
+use App\Services\ExternalImageDownloader;
 
 class ArticleApiController
 {
@@ -94,11 +95,19 @@ class ArticleApiController
 
             $postId = Post::create($postData);
 
+            // Download cover image if provided
             if ($coverImage) {
                 $filename = $this->downloadImage($coverImage, $postId);
                 if ($filename) {
                     Photo::create('post', $postId, $filename);
                 }
+            }
+
+            // Download external images in content and update URLs
+            $downloader = new ExternalImageDownloader();
+            $processedContent = $downloader->processContent($postData['content'], $postId, 'post');
+            if ($processedContent !== $postData['content']) {
+                Post::updateContent($postId, $processedContent);
             }
 
             $tags = $data['tags'] ?? [];

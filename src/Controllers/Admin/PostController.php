@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Services\SlugManager;
+use App\Services\ExternalImageDownloader;
 
 class PostController extends AdminCrudController
 {
@@ -143,6 +144,14 @@ class PostController extends AdminCrudController
         }
 
         $id = $this->createEntity($data);
+
+        // Download external images in content
+        $downloader = new ExternalImageDownloader();
+        $processedContent = $downloader->processContent($data['content'], $id, $this->entityType);
+        if ($processedContent !== $data['content']) {
+            Post::updateContent($id, $processedContent);
+        }
+
         $this->handlePhotoUploads($id);
         $this->saveTags($id);
 
@@ -181,6 +190,14 @@ class PostController extends AdminCrudController
         }
 
         $this->updateEntity($id, $data);
+
+        // Download external images in content
+        $downloader = new ExternalImageDownloader();
+        $processedContent = $downloader->processContent($data['content'], $id, $this->entityType);
+        if ($processedContent !== $data['content']) {
+            Post::updateContent($id, $processedContent);
+        }
+
         $error = $this->handlePhotoUploads($id);
         $this->saveTags($id);
 

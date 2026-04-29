@@ -213,6 +213,12 @@ class Post
         ]);
     }
 
+    public static function updateContent(int $id, string $content): void
+    {
+        Database::get()->prepare("UPDATE posts SET content = ?, updated_at = NOW() WHERE id = ?")
+            ->execute([$content, $id]);
+    }
+
     public static function delete(int $id): void
     {
         Database::get()->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
