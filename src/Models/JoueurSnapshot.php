@@ -28,19 +28,17 @@ class JoueurSnapshot
 
         $db->beginTransaction();
         try {
-            // 1. Upsert joueur_snapshots
-            $upsert = $db->prepare(
+            // 1. Remplacer les snapshots : supprimer les anciens puis réinsérer
+            $db->prepare(
+                "DELETE FROM joueur_snapshots WHERE saison_id = ?"
+            )->execute([$saisonId]);
+
+            $insert = $db->prepare(
                 "INSERT INTO joueur_snapshots (saison_id, id_joueur, nom, prenom, nlicence, data)
-                 VALUES (:saison_id, :id_joueur, :nom, :prenom, :nlicence, :data)
-                 ON DUPLICATE KEY UPDATE
-                   nom        = VALUES(nom),
-                   prenom     = VALUES(prenom),
-                   nlicence   = VALUES(nlicence),
-                   data       = VALUES(data),
-                   snapped_at = CURRENT_TIMESTAMP"
+                 VALUES (:saison_id, :id_joueur, :nom, :prenom, :nlicence, :data)"
             );
             foreach ($joueurs as $j) {
-                $upsert->execute([
+                $insert->execute([
                     ':saison_id' => $saisonId,
                     ':id_joueur' => $j['id_joueur'],
                     ':nom'       => $j['Nom'],
