@@ -63,6 +63,16 @@ class View
                 return ($months[(int)$m - 1] ?? $ym) . ' ' . $y;
             }));
 
+            // |truncate filter — truncate text at word boundary
+            $twig->addFilter(new TwigFilter('truncate', function (string $text, int $maxLength = 160): string {
+                return \App\Services\SeoService::truncate($text, $maxLength);
+            }));
+
+            // json_encode_pretty() function — JSON with pretty printing + unicode (marked safe)
+            $twig->addFunction(new TwigFunction('json_encode_pretty', function ($data): string {
+                return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}';
+            }, ['is_safe' => ['html']]));
+
             // url() function
             $twig->addFunction(new TwigFunction('url', function (string $path): string {
                 return BASE_URL . '/' . ltrim($path, '/');
@@ -85,7 +95,14 @@ class View
 
     public static function render(string $template, array $data = []): void
     {
-        echo self::getInstance()->render($template, $data);
+        $twig = self::getInstance();
+
+        // If no 'meta' provided in $data, add a default empty one
+        if (!isset($data['meta'])) {
+            $data['meta'] = null;
+        }
+
+        echo $twig->render($template, $data);
     }
 
     public static function flash(string $type, string $message): void

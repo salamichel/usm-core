@@ -10,6 +10,9 @@ use App\Models\EquipeSaison;
 use App\Models\EquipeSaisonJoueur;
 use App\Models\Photo;
 use App\Models\Saison;
+use App\Services\SeoService;
+use App\Services\StructuredDataService;
+use App\ValueObjects\PageMetadata;
 
 class EquipesController
 {
@@ -30,13 +33,43 @@ class EquipesController
             }
         }
 
-        View::render('equipes/index.twig', ['grouped' => $result, 'saison' => $saison]);
+        // SEO metadata
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+        ];
+        $jsonLd = [
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
+
+        $meta = new PageMetadata(
+            title: SeoService::title('Équipes'),
+            description: SeoService::description(
+                null,
+                null,
+                'Découvrez les équipes du club USM Volley-Ball : compositions, joueurs, matchs et entraînements.'
+            ),
+            canonical: SeoService::absoluteUrl('/equipes'),
+            ogType: 'website',
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
+        );
+
+        View::render('equipes/index.twig', [
+            'meta'   => $meta,
+            'grouped' => $result,
+            'saison' => $saison,
+        ]);
     }
 
     public function show(array $params): void
     {
-        $equipe = EquipeConfig::find((int)$params['id']);
-        if (!$equipe || !$equipe['is_active']) {
+        $equipe = EquipeConfig::findBySlug($params['slug']);
+        if (!$equipe) {
             $this->notFound();
             return;
         }
@@ -46,7 +79,39 @@ class EquipesController
         $photos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
         $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
 
+        // SEO metadata
+        $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
+        $url = SeoService::absoluteUrl('/equipes/' . $equipe['slug']);
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+            ['name' => $equipe['libelle'], 'url' => $url],
+        ];
+        $jsonLd = [
+            StructuredDataService::sportsTeam($equipe, $ogImage, $url),
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
+
+        $meta = new PageMetadata(
+            title: SeoService::title($equipe['libelle']),
+            description: SeoService::description(
+                null,
+                null,
+                'Équipe ' . $equipe['libelle'] . ' du club USM Volley-Ball : joueurs, matchs et entraînements.'
+            ),
+            canonical: $url,
+            ogImage: $ogImage,
+            ogType: 'website',
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
+        );
+
         View::render('equipes/detail.twig', [
+            'meta'    => $meta,
             'equipe'  => $equipe,
             'photos'  => $photos,
             'joueurs' => $joueurs,

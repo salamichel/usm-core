@@ -8,6 +8,7 @@ use App\Controllers\BlogController;
 use App\Controllers\ContactController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
+use App\Controllers\SitemapController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\TagController;
@@ -58,6 +59,10 @@ class App
     {
         $r = $this->router;
 
+        // ── SEO ───────────────────────────────────────────────────────────────
+        $r->get('/robots.txt',   [SitemapController::class, 'robots']);
+        $r->get('/sitemap.xml',  [SitemapController::class, 'sitemap']);
+
         // ── Public ────────────────────────────────────────────────────────────
         $r->get('/',              [HomeController::class, 'index']);
         $r->get('/blog',          [BlogController::class, 'list']);
@@ -65,7 +70,7 @@ class App
         $r->get('/blog/{slug+}',  [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
-        $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
+        $r->get('/equipes/{slug}', [EquipesController::class, 'show']);
         $r->get('/contact',       [ContactController::class, 'show']);
         $r->post('/contact',      [ContactController::class, 'submit']);
 

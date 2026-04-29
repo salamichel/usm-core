@@ -11,6 +11,9 @@ use App\Models\Post;
 use App\Models\Saison;
 use App\Models\SiteConfig;
 use App\Services\AgendaService;
+use App\Services\SeoService;
+use App\Services\StructuredDataService;
+use App\ValueObjects\PageMetadata;
 
 class HomeController
 {
@@ -58,7 +61,29 @@ class HomeController
             $postCovers[$post['id']] = Photo::getEntityCover('post', (int)$post['id']);
         }
 
+        // SEO metadata
+        $ogImage = null;
+        if (!empty($slides) && !empty($slides[0]['image'])) {
+            $ogImage = SeoService::uploadUrl($slides[0]['image']);
+        }
+
+        $meta = new PageMetadata(
+            title: SiteConfig::get('club_name') ?? 'USM Volley',
+            description: SeoService::description(
+                SiteConfig::get('club_tagline'),
+                null,
+                'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'
+            ),
+            ogImage: $ogImage,
+            ogType: 'website',
+            jsonLd: [
+                StructuredDataService::website(),
+                StructuredDataService::sportsClub(),
+            ],
+        );
+
         View::render('home.twig', [
+            'meta'         => $meta,
             'slides'       => $slides,
             'stats'        => $stats,
             'home_blocks'  => HomeBlock::allActive(),

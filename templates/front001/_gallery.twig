@@ -11,7 +11,9 @@
        {% if photo.caption %}data-glightbox="description: {{ photo.caption }}"{% endif %}
        data-gallery="gallery-{{ photo.entity_type }}-{{ photo.entity_id }}">
       <img src="{{ asset('uploads/' ~ photo.filename) }}"
-           alt="{{ photo.caption ?? 'Photo' }}"
+           alt="{{ photo.caption ? photo.caption|truncate(125) : 'Photo' }}"
+           loading="lazy"
+           decoding="async"
            class="w-full h-40 object-cover">
     </a>
     {% endfor %}

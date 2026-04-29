@@ -64,31 +64,33 @@ class ArticleApiController
             }
 
             $title = trim((string)$data['title']);
-            $slugInput = trim((string)($data['slug'] ?? $title));
-            $slug = SlugManager::generate($slugInput);
+            $customSlug = trim((string)($data['slug'] ?? ''));
             $coverImage = $data['cover_image'] ?? null;
 
             // Convert ISO 8601 date to MySQL format
-            $publishedAt = null;
+            $publishedAtForStorage = null;
             if (!empty($data['published_at'])) {
                 try {
                     $dt = new \DateTime($data['published_at']);
-                    $publishedAt = $dt->format('Y-m-d H:i:s');
+                    $publishedAtForStorage = $dt->format('Y-m-d H:i:s');
                 } catch (\Exception $e) {
                     error_log('Date parsing error: ' . $e->getMessage());
-                    $publishedAt = null;
+                    $publishedAtForStorage = null;
                 }
             }
 
             $postData = [
                 'title'        => $title,
-                'slug'         => $slug,
                 'excerpt'      => null,
                 'content'      => $data['content'],
                 'is_published' => 1,
-                'published_at' => $publishedAt,
+                'published_at' => $publishedAtForStorage,
                 'canalblog_id' => $canalblogId,
             ];
+
+            if ($customSlug) {
+                $postData['slug'] = $customSlug;
+            }
 
             $postId = Post::create($postData);
 

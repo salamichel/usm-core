@@ -10,7 +10,7 @@ run() {
     mariadb -h "$HOST" -u "$USER" "$DB" < "$1"
 }
 
-for f in /sql/external_schema.sql /sql/external_seed.sql; do
+for f in /sql/external_schema.sql ; do
     [ -f "$f" ] && run "$f"
 done
 

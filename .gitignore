@@ -4,3 +4,4 @@ public/assets/uploads/*
 cache/twig/
 cache/agenda/*.json
 data/
+logs/

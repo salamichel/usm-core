@@ -53,7 +53,7 @@
       {% for slide in slides %}
       <div class="swiper-slide relative">
         {% if slide.image %}
-          <img src="{{ asset('uploads/' ~ slide.image) }}" alt=""
+          <img src="{{ asset('uploads/' ~ slide.image) }}" alt="{{ slide.title }}"
                class="absolute inset-0 w-full h-full object-cover">
           <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20"></div>
         {% else %}
@@ -141,7 +141,9 @@
       {# Image #}
       <div>
         {% if block.image %}
-          <img src="{{ asset('uploads/' ~ block.image) }}" alt=""
+          <img src="{{ asset('uploads/' ~ block.image) }}" alt="{{ block.titre }}"
+               loading="lazy"
+               decoding="async"
                class="w-full h-64 sm:h-80 object-cover border-4 border-black shadow-[8px_8px_0_#000]">
         {% else %}
           <div class="w-full h-64 sm:h-80 border-4 border-black shadow-[8px_8px_0_#000]
@@ -249,6 +251,8 @@
               {% set cover = post_covers[post.id] %}
               {% if cover %}
                 <img src="{{ asset('uploads/' ~ cover.filename) }}" alt="{{ post.title }}"
+                     loading="lazy"
+                     decoding="async"
                      class="w-16 h-16 object-cover border-2 border-black">
               {% else %}
                 <div class="w-16 h-16 bg-gradient-to-br from-usm-brown to-black border-2 border-black flex items-center justify-center">
