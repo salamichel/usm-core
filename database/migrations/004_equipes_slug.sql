@@ -1,6 +1,6 @@
 -- Add slug column to equipes_config for SEO-friendly URLs
 ALTER TABLE equipes_config
-ADD COLUMN slug VARCHAR(100) DEFAULT '';
+ADD COLUMN IF EXISTS slug VARCHAR(100) DEFAULT '';
 
 -- Populate existing slugs from libelle (auto-generate from team names)
 UPDATE equipes_config
@@ -17,5 +17,5 @@ ALTER TABLE equipes_config
 MODIFY COLUMN slug VARCHAR(100) NOT NULL UNIQUE;
 
 -- Add index for faster lookups
-CREATE INDEX idx_equipes_slug ON equipes_config(slug);
+CREATE INDEX IF EXISTS idx_equipes_slug ON equipes_config(slug);
 
