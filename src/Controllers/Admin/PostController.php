@@ -197,9 +197,11 @@ class PostController extends AdminCrudController
     protected function getFormData(): array
     {
         $title = trim($_POST['title'] ?? '');
+        $customSlug = trim($_POST['slug'] ?? '');
+
         return [
             'title'        => $title,
-            'slug'         => SlugManager::generate(trim($_POST['slug'] ?? '') ?: $title),
+            'slug'         => $customSlug ?: '',
             'excerpt'      => trim($_POST['excerpt'] ?? ''),
             'content'      => $_POST['content'] ?? '',
             'is_published' => isset($_POST['is_published']) ? 1 : 0,

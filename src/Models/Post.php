@@ -145,7 +145,24 @@ class Post
     public static function create(array $data): int
     {
         $db   = Database::get();
-        $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts');
+
+        $publishedAt = null;
+        if (!empty($data['published_at'])) {
+            try {
+                $publishedAt = new \DateTime($data['published_at']);
+            } catch (\Exception $e) {
+                // Invalid date, leave as null
+            }
+        }
+
+        $customSlug = !empty($data['slug']) ? trim($data['slug']) : '';
+        if ($customSlug) {
+            $baseSlug = SlugManager::generate($customSlug);
+        } else {
+            $baseSlug = SlugManager::generateWithDate($data['title'], $publishedAt);
+        }
+        $slug = SlugManager::makeUnique($baseSlug, 'posts');
+
         $stmt = $db->prepare(
             "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at, canalblog_id)
              VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at, :canalblog_id)"
@@ -164,7 +181,23 @@ class Post
 
     public static function update(int $id, array $data): void
     {
-        $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'posts', 'id', $id);
+        $publishedAt = null;
+        if (!empty($data['published_at'])) {
+            try {
+                $publishedAt = new \DateTime($data['published_at']);
+            } catch (\Exception $e) {
+                // Invalid date, leave as null
+            }
+        }
+
+        $customSlug = !empty($data['slug']) ? trim($data['slug']) : '';
+        if ($customSlug) {
+            $baseSlug = SlugManager::generate($customSlug);
+        } else {
+            $baseSlug = SlugManager::generateWithDate($data['title'], $publishedAt);
+        }
+        $slug = SlugManager::makeUnique($baseSlug, 'posts', 'id', $id);
+
         Database::get()->prepare(
             "UPDATE posts SET title=:title, slug=:slug, excerpt=:excerpt, content=:content,
              is_published=:is_published, published_at=:published_at, updated_at=NOW()

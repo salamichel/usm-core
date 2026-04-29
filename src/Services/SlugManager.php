@@ -18,6 +18,15 @@ class SlugManager
         return trim($text, '-');
     }
 
+    public static function generateWithDate(string $text, ?\DateTime $date = null): string
+    {
+        $basePath = '';
+        if ($date !== null) {
+            $basePath = '/' . $date->format('Y/m/d');
+        }
+        return $basePath . '/' . self::generate($text);
+    }
+
     private static function removeAccents(string $text): string
     {
         if (function_exists('transliterator_transliterate')) {
