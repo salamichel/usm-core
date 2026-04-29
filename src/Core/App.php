@@ -66,7 +66,7 @@ class App
         $r->get('/blog/{slug+}',  [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
         $r->get('/equipes',       [EquipesController::class, 'index']);
-        $r->get('/equipes/{id}',  [EquipesController::class, 'show']);
+        $r->get('/equipes/{slug}', [EquipesController::class, 'show']);
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->options('/api/articles', [ArticleApiController::class, 'create']);

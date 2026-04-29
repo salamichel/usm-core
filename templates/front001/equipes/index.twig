@@ -14,7 +14,7 @@
       <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">{{ cat }}</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
         {% for eq in equipes %}
-        <a href="{{ url('equipes/' ~ eq.id) }}"
+        <a href="{{ url('equipes/' ~ eq.slug) }}"
            class="border-4 border-black bg-white shadow-[4px_4px_0_#000]
                   hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1
                   transition-all block overflow-hidden">

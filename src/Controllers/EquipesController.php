@@ -68,8 +68,8 @@ class EquipesController
 
     public function show(array $params): void
     {
-        $equipe = EquipeConfig::find((int)$params['id']);
-        if (!$equipe || !$equipe['is_active']) {
+        $equipe = EquipeConfig::findBySlug($params['slug']);
+        if (!$equipe) {
             $this->notFound();
             return;
         }
@@ -81,7 +81,7 @@ class EquipesController
 
         // SEO metadata
         $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
-        $url = SeoService::absoluteUrl('/equipes/' . $equipe['id']);
+        $url = SeoService::absoluteUrl('/equipes/' . $equipe['slug']);
         $breadcrumbs = [
             ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
             ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],

@@ -103,7 +103,7 @@ class SitemapService
             if ($memberCount === 0) continue;
 
             $entries[] = [
-                'loc'        => SeoService::absoluteUrl('/equipes/' . $eq['id']),
+                'loc'        => SeoService::absoluteUrl('/equipes/' . $eq['slug']),
                 'changefreq' => 'monthly',
                 'priority'   => '0.6',
             ];
