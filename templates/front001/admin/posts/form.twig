@@ -139,7 +139,13 @@
     for (let char in replacements) {
       text = text.replaceAll(char, replacements[char]);
     }
-    return text.replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+    // Replace special characters with hyphens, keep alphanumeric and hyphens
+    text = text.replace(/[^a-z0-9\-\s]/g, '-').trim();
+    // Convert spaces to hyphens
+    text = text.replace(/\s+/g, '-');
+    // Remove duplicate hyphens
+    text = text.replace(/-+/g, '-');
+    return text.replace(/^-+|-+$/g, '');
   }
 
   function updateSlugPreview() {
