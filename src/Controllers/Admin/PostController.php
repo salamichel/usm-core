@@ -46,10 +46,16 @@ class PostController extends AdminCrudController
         $allTags = Tag::all();
         $months  = Post::getAvailableMonths(false);
 
+        $postCovers = [];
+        foreach ($posts as $post) {
+            $postCovers[$post['id']] = \App\Models\Photo::getEntityCover('post', $post['id']);
+        }
+
         \App\Core\View::render($this->getListTemplate(), [
             'posts'          => $posts,
             'all_tags'       => $allTags,
             'months'         => $months,
+            'post_covers'    => $postCovers,
             'selected_tag'   => $_GET['tag'] ?? '',
             'selected_month' => $_GET['month'] ?? '',
             'selected_status'=> $_GET['status'] ?? '',

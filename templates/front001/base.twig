@@ -72,6 +72,7 @@
 
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -80,6 +81,24 @@
         }
       }
     }
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggle = document.getElementById('mobile-menu-toggle');
+      const menu = document.getElementById('mobile-menu');
+
+      toggle.addEventListener('click', function() {
+        menu.classList.toggle('hidden');
+      });
+
+      // Close menu when clicking on a link
+      const menuLinks = menu.querySelectorAll('a');
+      menuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          menu.classList.add('hidden');
+        });
+      });
+    });
   </script>
   <style>
     /* Fix list styles: replace bullet points with volleyball emoji */
@@ -141,9 +160,11 @@
 
   {# ── Header ── #}
   <header class="sticky top-0 z-50 border-b-4 border-black bg-usm-brown text-white">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-4">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
       <a href="{{ url('/') }}" class="text-2xl font-black tracking-tight hover:opacity-80">USM VOLLEY</a>
-      <nav class="flex items-center gap-2 flex-wrap text-sm font-semibold">
+
+      {# Desktop menu #}
+      <nav class="hidden sm:flex items-center gap-2 flex-wrap text-sm font-semibold">
         {% for item in menu_items %}
           {% if item.children|length %}
             <div class="relative group">
@@ -168,7 +189,44 @@
           <a href="{{ url('admin') }}" class="px-3 py-1 bg-black text-white border-2 border-black hover:bg-gray-800 rounded transition">⚙ Admin</a>
         {% endif %}
       </nav>
+
+      {# Mobile burger button #}
+      <button id="mobile-menu-toggle" class="sm:hidden border-2 border-white px-3 py-2 rounded hover:bg-black/20 transition" aria-label="Menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
     </div>
+
+    {# Mobile menu dropdown #}
+    <nav id="mobile-menu" class="hidden sm:hidden bg-usm-brown border-t-2 border-white/20">
+      <div class="px-4 py-3 space-y-2">
+        {% for item in menu_items %}
+          {% if item.children|length %}
+            <div x-data="{ open: false }">
+              <button @click="open = !open" class="w-full text-left px-3 py-2 border-2 border-white/40 hover:border-white rounded transition flex items-center justify-between font-semibold text-sm">
+                {{ item.label }}
+                <span class="text-xs" :class="{ 'rotate-180': open }">▾</span>
+              </button>
+              <div x-show="open" class="ml-4 mt-1 space-y-1 border-l-2 border-white/20">
+                {% for child in item.children %}
+                  <a href="{{ item_url(child) }}" class="block px-3 py-2 hover:bg-black/20 rounded transition text-sm">
+                    {{ child.label }}
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% else %}
+            <a href="{{ item_url(item) }}" class="block px-3 py-2 border-2 border-white/40 hover:border-white rounded transition font-semibold text-sm">
+              {{ item.label }}
+            </a>
+          {% endif %}
+        {% endfor %}
+        {% if admin_logged_in %}
+          <a href="{{ url('admin') }}" class="block px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-800 rounded transition font-semibold text-sm">⚙ Admin</a>
+        {% endif %}
+      </div>
+    </nav>
   </header>
 
   {# ── Flash message ── #}
