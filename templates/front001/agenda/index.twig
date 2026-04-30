@@ -2,9 +2,7 @@
 
 {% block title %}Agenda - USM Volley{% endblock %}
 
-{% block content %}
-
-{# Define macro first, before use #}
+{# Define macro at file level, not inside block #}
 {% macro event_card(event) %}
   <div class="border-2 border-black rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
     <div class="bg-amber-900 text-white p-4 flex items-center gap-4">
@@ -95,6 +93,7 @@
   </div>
 {% endmacro %}
 
+{% block content %}
 <div class="mx-auto max-w-7xl px-4 py-12">
   <h1 class="text-4xl font-bold mb-8">Agenda</h1>
 
@@ -152,7 +151,7 @@
   {% if events %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       {% for event in events %}
-        {{ event_card(event) }}
+        {{ _self.event_card(event) }}
       {% endfor %}
     </div>
 
@@ -217,5 +216,4 @@
     <a href="/" class="text-amber-600 hover:underline font-medium">← Retour à l'accueil</a>
   </div>
 </div>
-
 {% endblock %}
