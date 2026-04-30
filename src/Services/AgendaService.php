@@ -135,14 +135,15 @@ class AgendaService
             while ($row = $stmt->fetch()) {
                 $jid  = (int) $row['id_joueur'];
                 $mid  = (int) $row['id_manifestation'];
-                $part = (string) ($row['participation'] ?? '');
+                $part = trim((string) ($row['participation'] ?? ''));
                 if (!isset($cross[$jid]) || !isset($manifestations[$mid])) {
                     continue;
                 }
 
                 $cross[$jid][$mid] = $part;
 
-                if ($part !== '') {
+                // Skip if participation is empty
+                if (!is_string($part) || $part === '') {
                     $cross[$jid]['nb_participation']++;
 
                     // Non-absence
@@ -177,11 +178,14 @@ class AgendaService
                         $manifestations[$mid]['nb_present']++;
                         $manifestations[$mid]['nb_pas_de_reponse']--;
                         // accompagnants
-                        foreach (['5' => 4, '4' => 3, '3' => 2, '2' => 1] as $digit => $extra) {
-                            if (strpos($part, $digit) !== false) {
-                                $manifestations[$mid]['nb_present'] += $extra;
-                                break;
-                            }
+                        if (strpos($part, '5') !== false) {
+                            $manifestations[$mid]['nb_present'] += 4;
+                        } elseif (strpos($part, '4') !== false) {
+                            $manifestations[$mid]['nb_present'] += 3;
+                        } elseif (strpos($part, '3') !== false) {
+                            $manifestations[$mid]['nb_present'] += 2;
+                        } elseif (strpos($part, '2') !== false) {
+                            $manifestations[$mid]['nb_present'] += 1;
                         }
                     } elseif (strpos($part, 'Ne sait pas encore') !== false || strpos($part, '?') !== false) {
                         $manifestations[$mid]['nb_ne_sait_pas']++;
