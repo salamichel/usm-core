@@ -825,10 +825,9 @@ class AgendaService
     /**
      * Get upcoming matches for a specific team with participation stats.
      *
-     * Fetches upcoming matches and filters by team's participation records.
+     * Fetches upcoming matches filtered by team's slug_colonne.
      * Optionally filters by manifestation name (e.g., "Match L2").
-     * Only returns matches where at least one team member has a participation record.
-     * Returns events with naming compatible with template: titre, date_display, time_range, lieu, etc.
+     * Returns matches with participation stats (may be zero if no records exist yet).
      *
      * @param string $teamCode Team identifier (e.g., 'Eq_L1')
      * @param int $limit Maximum number of matches to return
@@ -850,50 +849,28 @@ class AgendaService
                 return [];
             }
 
-            // Get players for this team
-            $teamCol = self::teamColumn($teamCode);
-            $playerStmt = $db->prepare(
-                "SELECT id_joueur FROM Joueurs WHERE `$teamCol` = 1 AND id_joueur > 0"
-            );
-            $playerStmt->execute();
-            $playerIds = [];
-            while ($row = $playerStmt->fetch()) {
-                $playerIds[] = (int) $row['id_joueur'];
-            }
-
-            error_log("getUpcomingMatchesForTeam: Team '$teamCode' has " . count($playerIds) . " players");
-
-            if (empty($playerIds)) {
-                error_log("getUpcomingMatchesForTeam: No players found for team '$teamCode'");
-                return [];
-            }
-
             // Build manifestation filter clause
             $manifestationClause = "m.ManifestationTypée LIKE '% - Match - %'";
+            $bindings = [];
+
             if (!empty($manifestationFilter)) {
                 $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
+                $bindings[] = '%' . $manifestationFilter;
             }
 
-            // Get upcoming matches with participation from team's players
-            $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
+            // Get ALL upcoming matches that match filters (no participation requirement)
             $stmt = $db->prepare(
-                "SELECT DISTINCT m.id_manifestation, m.ManifestationTypée, m.Date,
+                "SELECT m.id_manifestation, m.ManifestationTypée, m.Date,
                         m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
                  FROM Manifestation m
-                 INNER JOIN Participation p ON m.id_manifestation = p.id_manifestation
                  WHERE m.id_manifestation > 0 AND $manifestationClause
                    AND m.Date >= CURDATE()
-                   AND p.id_joueur IN ($playerPlaceholders)
                  ORDER BY m.Date ASC
                  LIMIT ?"
             );
-            $bindings = $playerIds;
-            if (!empty($manifestationFilter)) {
-                $bindings[] = '%' . $manifestationFilter;
-            }
             $bindings[] = $limit;
 
-            error_log("getUpcomingMatchesForTeam: Query bindings: " . json_encode($bindings));
+            error_log("getUpcomingMatchesForTeam: Query for team '$teamCode' with manifestation filter: " . (!empty($manifestationFilter) ? $manifestationFilter : 'none'));
 
             if (!$stmt->execute($bindings)) {
                 error_log('getUpcomingMatchesForTeam: Failed to query matches - ' . json_encode($db->errorInfo()));
@@ -943,11 +920,11 @@ class AgendaService
             error_log("getUpcomingMatchesForTeam: Found $rowCount matching events for team '$teamCode'");
 
             if (empty($events)) {
-                error_log("getUpcomingMatchesForTeam: No events found (total events queried, or empty result set)");
+                error_log("getUpcomingMatchesForTeam: No events found matching filters");
                 return [];
             }
 
-            // Fetch participation stats for these events
+            // Fetch participation stats for these events (may be empty if no participation records)
             $stats = self::getParticipationStatsBatch($manifestationIds);
             foreach ($events as &$event) {
                 if (isset($stats[$event['id']])) {
