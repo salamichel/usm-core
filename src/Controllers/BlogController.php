@@ -104,7 +104,9 @@ class BlogController
         }
         $post['cover'] = Photo::getEntityCover('post', $post['id']);
         $tags = Tag::findByPost($post['id']);
-        $photos = Photo::forEntity('post', $post['id']);
+        $allPhotos = Photo::forEntity('post', $post['id']);
+        // Exclure la photo de couverture de la galerie
+        $photos = array_filter($allPhotos, fn($p) => $post['cover'] === null || $p['id'] !== $post['cover']['id']);
 
         // SEO metadata
         $ogImage = SeoService::pickOgImage(null, $photos);

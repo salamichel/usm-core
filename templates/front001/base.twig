@@ -81,6 +81,45 @@
       }
     }
   </script>
+  <style>
+    /* Fix list styles: replace bullet points with volleyball emoji */
+    ul, ol {
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+    }
+    ul li {
+      margin-left: 2rem;
+      padding-left: 0.5rem;
+      padding-top: 0;
+      list-style: none;
+      position: relative;
+    }
+    ul li::before {
+      content: '🏐';
+      position: absolute;
+      left: -1.5rem;
+      width: 1.5rem;
+      text-align: center;
+    }
+    ol {
+      counter-reset: custom-counter;
+      margin-left: 0;
+      padding-left: 0;
+    }
+    ol li {
+      counter-increment: custom-counter;
+      margin-left: 2rem;
+      padding-left: 0.5rem;
+      list-style: none;
+    }
+    ol li::before {
+      content: counter(custom-counter) '.';
+      position: absolute;
+      left: -2rem;
+      width: 1.5rem;
+      text-align: right;
+    }
+  </style>
   {% block head %}{% endblock %}
 </head>
 <body class="bg-amber-50 text-gray-900 min-h-screen flex flex-col">
