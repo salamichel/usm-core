@@ -8,6 +8,13 @@
 
   {% include 'agenda/filters.twig' %}
 
+  {# Calendrier widget #}
+  {% if calendar %}
+  <div class="flex justify-center mb-8">
+    {% include '_calendar_widget.twig' %}
+  </div>
+  {% endif %}
+
   {% if manifestations is empty %}
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}
