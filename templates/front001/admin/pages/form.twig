@@ -63,6 +63,44 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
+<style>
+  .note-editor .note-editable ul li,
+  .note-editor .note-editable ol li {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+  .note-editor .note-editable ul li {
+    margin-left: 2rem;
+    padding-left: 0.5rem;
+    padding-top: 0;
+    list-style: none;
+    position: relative;
+  }
+  .note-editor .note-editable ul li::before {
+    content: '🏐';
+    position: absolute;
+    left: -1.5rem;
+    width: 1.5rem;
+    text-align: center;
+  }
+  .note-editor .note-editable ol {
+    counter-reset: custom-counter;
+  }
+  .note-editor .note-editable ol li {
+    counter-increment: custom-counter;
+    margin-left: 2rem;
+    padding-left: 0.5rem;
+    list-style: none;
+    position: relative;
+  }
+  .note-editor .note-editable ol li::before {
+    content: counter(custom-counter) '.';
+    position: absolute;
+    left: -2rem;
+    width: 1.5rem;
+    text-align: right;
+  }
+</style>
 <script>
   $('#content').summernote({
     height: 400,
