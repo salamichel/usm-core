@@ -88,7 +88,8 @@ class EquipesController
         if (!empty($equipe['slug_colonne'])) {
             $miniAgendaEvents = AgendaService::getUpcomingMatchesForTeam(
                 $equipe['slug_colonne'],
-                MINI_AGENDA_LIMIT
+                MINI_AGENDA_LIMIT,
+                $equipe['manifestation_filter'] ?? null
             );
 
             // Build agenda filter URL with team and manifestation filters

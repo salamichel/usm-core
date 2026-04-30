@@ -826,14 +826,16 @@ class AgendaService
      * Get upcoming matches for a specific team with participation stats.
      *
      * Fetches upcoming matches and filters by team's participation records.
+     * Optionally filters by manifestation name (e.g., "Match L2").
      * Only returns matches where at least one team member has a participation record.
      * Returns events with naming compatible with template: titre, date_display, time_range, lieu, etc.
      *
      * @param string $teamCode Team identifier (e.g., 'Eq_L1')
      * @param int $limit Maximum number of matches to return
+     * @param string|null $manifestationFilter Optional filter on ManifestationTypée (e.g., "Match L2")
      * @return array List of match events with participation stats
      */
-    public static function getUpcomingMatchesForTeam(string $teamCode, int $limit = 5): array
+    public static function getUpcomingMatchesForTeam(string $teamCode, int $limit = 5, ?string $manifestationFilter = null): array
     {
         try {
             $db = ExternalDatabase::get();
@@ -863,6 +865,12 @@ class AgendaService
                 return [];
             }
 
+            // Build manifestation filter clause
+            $manifestationClause = "m.ManifestationTypée LIKE '% - Match - %'";
+            if (!empty($manifestationFilter)) {
+                $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
+            }
+
             // Get upcoming matches with participation from team's players
             $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
             $stmt = $db->prepare(
@@ -870,13 +878,18 @@ class AgendaService
                         m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
                  FROM Manifestation m
                  INNER JOIN Participation p ON m.id_manifestation = p.id_manifestation
-                 WHERE m.id_manifestation > 0 AND m.ManifestationTypée LIKE '% - Match - %'
+                 WHERE m.id_manifestation > 0 AND $manifestationClause
                    AND m.Date >= CURDATE()
                    AND p.id_joueur IN ($playerPlaceholders)
                  ORDER BY m.Date ASC
                  LIMIT ?"
             );
-            $bindings = array_merge($playerIds, [$limit]);
+            $bindings = $playerIds;
+            if (!empty($manifestationFilter)) {
+                $bindings[] = '%' . $manifestationFilter;
+            }
+            $bindings[] = $limit;
+
             if (!$stmt->execute($bindings)) {
                 error_log('getUpcomingMatchesForTeam: Failed to query matches - ' . json_encode($db->errorInfo()));
                 return [];
