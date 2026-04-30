@@ -3,6 +3,63 @@
 {% block title %}Agenda - USM Volley{% endblock %}
 
 {% block content %}
+
+{# Define macro first, before use #}
+{% macro event_card(event) %}
+  <div class="border-2 border-black rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+    <div class="bg-amber-900 text-white p-4 flex items-center gap-4">
+      <div class="text-center">
+        <div class="text-3xl font-bold">{{ event.date_display|split(' ')[1] }}</div>
+        <div class="text-sm uppercase">{{ event.date_display|split(' ')[2] }}</div>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold">{{ event.title }}</h3>
+        {% if event.time_display %}
+          <div class="text-sm">🕐 {{ event.time_display }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="p-4 space-y-3">
+      {% if event.status == 'Annulé' %}
+        <div class="inline-block bg-red-600 text-white px-3 py-1 rounded text-sm font-bold">
+          ANNULÉ
+        </div>
+      {% elseif event.is_soon %}
+        <div class="inline-block bg-amber-500 text-white px-3 py-1 rounded text-sm font-bold">
+          BIENTÔT
+        </div>
+      {% endif %}
+
+      {% if event.location %}
+        <div>📍 <strong>{{ event.location }}</strong></div>
+      {% endif %}
+
+      {% if event.type %}
+        <div class="text-sm text-gray-600">
+          Type: <strong>{{ event.type }}</strong>
+        </div>
+      {% endif %}
+
+      {% if event.duration %}
+        <div class="text-sm text-gray-600">
+          Durée: <strong>{{ event.duration }}</strong>
+        </div>
+      {% endif %}
+
+      {% if event.comment %}
+        <div class="text-sm italic text-gray-700 border-t pt-2">
+          {{ event.comment }}
+        </div>
+      {% endif %}
+
+      <a href="/agenda/{{ event.id }}" class="block mt-4 w-full text-center bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-medium">
+        Détails
+      </a>
+    </div>
+  </div>
+{% endmacro %}
+
 <div class="mx-auto max-w-7xl px-4 py-12">
   <h1 class="text-4xl font-bold mb-8">Agenda</h1>
 
@@ -126,58 +183,4 @@
   </div>
 </div>
 
-{% macro event_card(event) %}
-  <div class="border-2 border-black rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-    <div class="bg-amber-900 text-white p-4 flex items-center gap-4">
-      <div class="text-center">
-        <div class="text-3xl font-bold">{{ event.date_display|split(' ')[1] }}</div>
-        <div class="text-sm uppercase">{{ event.date_display|split(' ')[2] }}</div>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold">{{ event.title }}</h3>
-        {% if event.time_display %}
-          <div class="text-sm">🕐 {{ event.time_display }}</div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="p-4 space-y-3">
-      {% if event.status == 'Annulé' %}
-        <div class="inline-block bg-red-600 text-white px-3 py-1 rounded text-sm font-bold">
-          ANNULÉ
-        </div>
-      {% elseif event.is_soon %}
-        <div class="inline-block bg-amber-500 text-white px-3 py-1 rounded text-sm font-bold">
-          BIENTÔT
-        </div>
-      {% endif %}
-
-      {% if event.location %}
-        <div>📍 <strong>{{ event.location }}</strong></div>
-      {% endif %}
-
-      {% if event.type %}
-        <div class="text-sm text-gray-600">
-          Type: <strong>{{ event.type }}</strong>
-        </div>
-      {% endif %}
-
-      {% if event.duration %}
-        <div class="text-sm text-gray-600">
-          Durée: <strong>{{ event.duration }}</strong>
-        </div>
-      {% endif %}
-
-      {% if event.comment %}
-        <div class="text-sm italic text-gray-700 border-t pt-2">
-          {{ event.comment }}
-        </div>
-      {% endif %}
-
-      <a href="/agenda/{{ event.id }}" class="block mt-4 w-full text-center bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-medium">
-        Détails
-      </a>
-    </div>
-  </div>
-{% endmacro %}
 {% endblock %}
