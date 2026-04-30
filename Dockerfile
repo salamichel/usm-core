@@ -21,8 +21,6 @@ RUN echo '<VirtualHost *:80>\n\
 
 WORKDIR /var/www/html
 
-COPY . .
-
 RUN rm -rf .git .gitignore && \
     mkdir -p public/assets/uploads logs && \
     chown -R www-data:www-data public/assets/uploads logs
