@@ -53,36 +53,45 @@
   @param status - Raw participation status string from database
 #}
 {% macro render_participation_cell(status) %}
-  {% set cell_data = {
-    'Sélectionné(e)': { icon: '★', label: 'Sélectionné', bg: 'bg-green-100', text: 'text-green-700' },
-    'Disponible': { icon: '◐', label: 'Disponible', bg: 'bg-amber-100', text: 'text-amber-700' },
-    'Indisponible': { icon: '✗', label: 'Indisponible', bg: 'bg-red-100', text: 'text-red-700' },
-    'Absent': { icon: '✗', label: 'Absent', bg: 'bg-red-100', text: 'text-red-700' },
-    'Présent': { icon: '✓', label: 'Présent', bg: 'bg-green-100', text: 'text-green-700' },
-    'Oui': { icon: '✓', label: 'Oui', bg: 'bg-green-100', text: 'text-green-700' },
-    'Ne sait pas': { icon: '?', label: 'Ne sait pas', bg: 'bg-gray-100', text: 'text-gray-700' },
-  } %}
-
   {% if status is empty %}
     <span class="text-gray-300">—</span>
+  {% elseif 'Sélectionné' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium" title="{{ status }}">
+      <span>★</span>
+      <span>Sélectionné</span>
+    </span>
+  {% elseif 'Disponible si' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-medium" title="{{ status }}">
+      <span>◐</span>
+      <span>Disponible</span>
+    </span>
+  {% elseif 'Disponible' in status or 'Joker' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-medium" title="{{ status }}">
+      <span>◐</span>
+      <span>Disponible</span>
+    </span>
+  {% elseif 'Indisponible' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-medium" title="{{ status }}">
+      <span>✗</span>
+      <span>Indisponible</span>
+    </span>
+  {% elseif 'Absent' in status or 'Non' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-medium" title="{{ status }}">
+      <span>✗</span>
+      <span>Absent</span>
+    </span>
+  {% elseif 'Oui' in status or 'Présent' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-medium" title="{{ status }}">
+      <span>✓</span>
+      <span>Présent</span>
+    </span>
+  {% elseif 'Ne sait pas' in status or '?' in status %}
+    <span class="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-medium" title="{{ status }}">
+      <span>?</span>
+      <span>Ne sait pas</span>
+    </span>
   {% else %}
-    {# Try to match the status string to one of the known statuses #}
-    {% set found = false %}
-    {% for key, data in cell_data %}
-      {% if key in status %}
-        <span class="inline-flex items-center gap-1 px-2 py-1 rounded {{ data.bg }} {{ data.text }} text-xs font-medium" title="{{ status }}">
-          <span>{{ data.icon }}</span>
-          <span>{{ data.label }}</span>
-        </span>
-        {% set found = true %}
-        {% break %}
-      {% endif %}
-    {% endfor %}
-
-    {# If no exact match found, show the raw status #}
-    {% if not found %}
-      <span class="text-gray-600 text-xs">{{ status }}</span>
-    {% endif %}
+    <span class="text-gray-600 text-xs">{{ status }}</span>
   {% endif %}
 {% endmacro %}
 
