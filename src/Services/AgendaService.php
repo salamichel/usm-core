@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\ExternalDatabase;
+use App\Helpers\ParticipationStatus;
 
 class AgendaService
 {
@@ -18,18 +19,55 @@ class AgendaService
         'Fri' => 'Ven', 'Sat' => 'Sam', 'Sun' => 'Dim',
     ];
 
+    /**
+     * Get upcoming matches (events with "Match" type).
+     *
+     * Queries the external database for future matches, ordered by date ascending.
+     * Returns normalized event data: title, date_display, time_display, location, etc.
+     *
+     * @param int $limit Maximum number of matches to return (default 5)
+     * @return array List of match events
+     */
     public static function getUpcomingMatches(int $limit = 5): array
     {
-        // "Disponibilités - Match - Match L2" → filtre sur le segment de type
         return self::queryByPattern('% - Match - %', $limit);
     }
 
+    /**
+     * Get upcoming trainings (events with "Entraînement" type).
+     *
+     * @param int $limit Maximum number of trainings to return (default 5)
+     * @return array List of training events
+     */
     public static function getUpcomingTrainings(int $limit = 5): array
     {
-        // "Disponibilités - Entraînement - …" → préfixe sans accent pour tolérance
         return self::queryByPattern('% - Entra%', $limit);
     }
 
+    /**
+     * Build a cross-table of players × events with participation data.
+     *
+     * Fetches all players, all upcoming manifestations, and their participation statuses,
+     * then builds a crosstab structure for display in agenda grids/tables.
+     *
+     * Supported filters:
+     * - team: Filter players by team (boolean column in Joueurs)
+     * - location: Filter events by Lieu
+     * - type: Filter events by ManifestationTypée (fuzzy match on segment 2)
+     * - manifestation: Filter events by name (fuzzy match on segment 3)
+     * - this_week: Boolean; if true, only show events within current week (Mon-Sun)
+     * - hide_empty_players: Boolean; filter out players with no participation responses
+     *
+     * Returns structure:
+     * [
+     *   'joueurs' => { id_joueur => 'Nom Prénom', ... },
+     *   'manifestations' => { id_manifestation => { id, type, titre, date_display, nb_present, ... }, ... },
+     *   'cross' => { id_joueur => { id_manifestation => 'status_string', nb_participation, ... }, ... }
+     * ]
+     *
+     * @param array $filters Optional filters (see above)
+     * @return array Cross-table structure with joueurs, manifestations, and participation data
+     */
     public static function getCrossTable(array $filters = []): array
     {
         try {
@@ -183,55 +221,22 @@ class AgendaService
 
                 $cross[$jid][$mid] = $part;
 
-                // Ne traiter que les participations non-vides
                 if ($part !== '') {
+                    $status = new ParticipationStatus($part);
                     $cross[$jid]['nb_participation']++;
 
-                    // Non-absence
-                    if (strpos($part, 'Absent') === false && strpos($part, 'Non') === false && strpos($part, 'Indisponible') === false) {
+                    if ($status->isNonAbsence()) {
                         $cross[$jid]['nb_non_absence']++;
                     }
-                    // Ne sait pas
-                    if (strpos($part, 'Ne sait pas encore') !== false) {
+
+                    if ($status->isUnknown()) {
                         $cross[$jid]['nb_ne_sait_pas']++;
                         if (strtotime($row['date2']) < $dateTropProche) {
                             $cross[$jid]['nb_ne_sait_pas_proche']++;
                         }
                     }
 
-                    // Stats manifestation — ordre strict pour éviter double comptage
-                    if (strpos($part, 'Sélectionné(e)') !== false) {
-                        $manifestations[$mid]['nb_selection']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                    } elseif (strpos($part, 'Disponible si n') !== false) {
-                        $manifestations[$mid]['nb_disponible_si_necessaire']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                    } elseif (strpos($part, 'Disponible') !== false || strpos($part, 'Joker') !== false) {
-                        $manifestations[$mid]['nb_disponible']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                    } elseif (strpos($part, 'Indisponible') !== false) {
-                        $manifestations[$mid]['nb_indisponible']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                    } elseif (strpos($part, 'Absent') !== false || strpos($part, 'Non') !== false) {
-                        $manifestations[$mid]['nb_absent']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                    } elseif (strpos($part, 'Oui') !== false || strpos($part, 'Présent') !== false) {
-                        $manifestations[$mid]['nb_present']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                        // accompagnants
-                        if (strpos($part, '5') !== false) {
-                            $manifestations[$mid]['nb_present'] += 4;
-                        } elseif (strpos($part, '4') !== false) {
-                            $manifestations[$mid]['nb_present'] += 3;
-                        } elseif (strpos($part, '3') !== false) {
-                            $manifestations[$mid]['nb_present'] += 2;
-                        } elseif (strpos($part, '2') !== false) {
-                            $manifestations[$mid]['nb_present'] += 1;
-                        }
-                    } elseif (strpos($part, 'Ne sait pas encore') !== false || strpos($part, '?') !== false) {
-                        $manifestations[$mid]['nb_ne_sait_pas']++;
-                        $manifestations[$mid]['nb_pas_de_reponse']--;
-                    }
+                    self::updateManifestationStats($manifestations[$mid], $status);
                 }
             }
 
@@ -243,6 +248,14 @@ class AgendaService
         return ['joueurs' => $joueurs, 'manifestations' => $manifestations, 'cross' => $cross];
     }
 
+    /**
+     * Fetch all manifestations with optional filters and pagination.
+     *
+     * @param array $filters Optional filters: type, location, date_from, date_to
+     * @param int $offset Pagination offset
+     * @param int $limit Pagination limit (default 50)
+     * @return array List of normalized event objects
+     */
     public static function getAllManifestations(array $filters = [], int $offset = 0, int $limit = 50): array
     {
         try {
@@ -298,6 +311,12 @@ class AgendaService
         return array_map([self::class, 'buildEventWithId'], $rows);
     }
 
+    /**
+     * Fetch a single event by ID.
+     *
+     * @param int $id Event ID (id_manifestation)
+     * @return array|null Normalized event object, or null if not found
+     */
     public static function getEventById(int $id): ?array
     {
         try {
@@ -313,6 +332,14 @@ class AgendaService
         return $row ? self::buildEventWithId($row) : null;
     }
 
+    /**
+     * Get available filter options for agenda views.
+     *
+     * Fetches distinct values from Manifestation and Mots_clef tables.
+     * Used by filter dropdowns.
+     *
+     * @return array Keys: types (array), locations (array)
+     */
     public static function getAvailableFilters(): array
     {
         try {
@@ -346,6 +373,14 @@ class AgendaService
         }
     }
 
+    /**
+     * Count manifestations matching the given filters.
+     *
+     * Used for pagination calculations.
+     *
+     * @param array $filters Optional filters: type, location, date_from, date_to
+     * @return int Total count
+     */
     public static function countManifestations(array $filters = []): int
     {
         try {
@@ -393,6 +428,15 @@ class AgendaService
         }
     }
 
+    /**
+     * Get participation statistics for a single event.
+     *
+     * Counts and categorizes all participation responses for the given manifestation.
+     * Categories: present, available, unavailable, selected, absent, unknown, no_response.
+     *
+     * @param int $manifestationId Event ID
+     * @return array Stats with counts per category and 'enough_players' flag (true if >= 6 available)
+     */
     public static function getParticipationStats(int $manifestationId): array
     {
         try {
@@ -406,29 +450,19 @@ class AgendaService
             $stmt->execute([$manifestationId]);
             $rows = $stmt->fetchAll();
         } catch (\Throwable) {
-            return ['present' => 0, 'available' => 0, 'unavailable' => 0, 'no_response' => 0, 'total_responses' => 0];
+            return self::defaultStats();
         }
 
-        $stats = ['present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0, 'absent' => 0, 'unknown' => 0];
+        $stats = self::emptyStats();
 
         foreach ($rows as $row) {
-            $status = $row['Participation'] ?? '';
+            $statusStr = $row['Participation'] ?? '';
             $count = (int) ($row['cnt'] ?? 0);
+            $status = new ParticipationStatus($statusStr);
+            $category = $status->getCategory();
 
-            if (strpos($status, 'Sélectionné(e)') !== false) {
-                $stats['selected'] += $count;
-            } elseif (strpos($status, 'Disponible si n') !== false) {
-                $stats['available'] += $count;
-            } elseif (strpos($status, 'Disponible') !== false || strpos($status, 'Joker') !== false) {
-                $stats['available'] += $count;
-            } elseif (strpos($status, 'Indisponible') !== false) {
-                $stats['unavailable'] += $count;
-            } elseif (strpos($status, 'Absent') !== false || strpos($status, 'Non') !== false) {
-                $stats['absent'] += $count;
-            } elseif (strpos($status, 'Oui') !== false || strpos($status, 'Présent') !== false) {
-                $stats['present'] += $count;
-            } elseif (strpos($status, 'Ne sait pas') !== false || strpos($status, '?') !== false) {
-                $stats['unknown'] += $count;
+            if (isset($stats[$category])) {
+                $stats[$category] += $count;
             }
         }
 
@@ -439,6 +473,12 @@ class AgendaService
         return $stats;
     }
 
+    /**
+     * Batch-fetch participation stats for multiple events (avoids N+1 queries).
+     *
+     * @param array $manifestationIds List of event IDs to fetch stats for
+     * @return array Associative array: manifestationId => stats_array
+     */
     public static function getParticipationStatsBatch(array $manifestationIds): array
     {
         if (empty($manifestationIds)) {
@@ -457,48 +497,47 @@ class AgendaService
             $stmt->execute($manifestationIds);
             $rows = $stmt->fetchAll();
         } catch (\Throwable) {
-            return array_fill_keys($manifestationIds, ['present' => 0, 'available' => 0, 'unavailable' => 0, 'no_response' => 0, 'total_responses' => 0, 'enough_players' => false]);
+            return array_fill_keys($manifestationIds, self::defaultStats());
         }
 
-        $result = array_fill_keys($manifestationIds, [
-            'present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0, 'absent' => 0, 'unknown' => 0,
-            'total_responses' => 0, 'enough_players' => false
-        ]);
+        $result = array_fill_keys($manifestationIds, self::emptyStats());
 
         foreach ($rows as $row) {
             $mid = (int) ($row['id_manifestation'] ?? 0);
             if (!isset($result[$mid])) {
-                $result[$mid] = ['present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0, 'absent' => 0, 'unknown' => 0];
+                $result[$mid] = self::emptyStats();
             }
 
-            $status = $row['Participation'] ?? '';
+            $statusStr = $row['Participation'] ?? '';
             $count = (int) ($row['cnt'] ?? 0);
+            $status = new ParticipationStatus($statusStr);
+            $category = $status->getCategory();
 
-            if (strpos($status, 'Sélectionné(e)') !== false) {
-                $result[$mid]['selected'] += $count;
-            } elseif (strpos($status, 'Disponible si n') !== false) {
-                $result[$mid]['available'] += $count;
-            } elseif (strpos($status, 'Disponible') !== false || strpos($status, 'Joker') !== false) {
-                $result[$mid]['available'] += $count;
-            } elseif (strpos($status, 'Indisponible') !== false) {
-                $result[$mid]['unavailable'] += $count;
-            } elseif (strpos($status, 'Absent') !== false || strpos($status, 'Non') !== false) {
-                $result[$mid]['absent'] += $count;
-            } elseif (strpos($status, 'Oui') !== false || strpos($status, 'Présent') !== false) {
-                $result[$mid]['present'] += $count;
-            } elseif (strpos($status, 'Ne sait pas') !== false || strpos($status, '?') !== false) {
-                $result[$mid]['unknown'] += $count;
+            if (isset($result[$mid][$category])) {
+                $result[$mid][$category] += $count;
             }
         }
 
-        foreach ($result as $mid => &$stats) {
-            $stats['total_responses'] = array_sum([$stats['present'], $stats['available'], $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown']]);
+        foreach ($result as &$stats) {
+            $stats['total_responses'] = array_sum([
+                $stats['present'], $stats['available'], $stats['unavailable'],
+                $stats['selected'], $stats['absent'], $stats['unknown']
+            ]);
             $stats['enough_players'] = ($stats['present'] + $stats['available'] + $stats['selected']) >= 6;
         }
 
         return $result;
     }
 
+    /**
+     * Query manifestations by ManifestationTypée pattern (SQL LIKE).
+     *
+     * Internal helper for getUpcomingMatches() and getUpcomingTrainings().
+     *
+     * @param string $pattern SQL LIKE pattern (e.g., '% - Match - %')
+     * @param int $limit Max results
+     * @return array List of normalized events
+     */
     private static function queryByPattern(string $pattern, int $limit): array
     {
         try {
@@ -520,6 +559,14 @@ class AgendaService
         return array_map([self::class, 'buildEvent'], $rows);
     }
 
+    /**
+     * Build a normalized event object from raw database row.
+     *
+     * Normalizes dates, extracts title and type, and computes derived fields (is_soon).
+     *
+     * @param array $row Raw database row from Manifestation
+     * @return array Normalized event structure
+     */
     private static function buildEvent(array $row): array
     {
         $today   = new \DateTimeImmutable('today');
@@ -544,6 +591,14 @@ class AgendaService
         ];
     }
 
+    /**
+     * Build a normalized event object with ID and type (extends buildEvent).
+     *
+     * Used by getAllManifestations() and getEventById().
+     *
+     * @param array $row Raw database row from Manifestation
+     * @return array Normalized event structure including id, type, duration, nb_courts
+     */
     private static function buildEventWithId(array $row): array
     {
         $event = self::buildEvent($row);
@@ -554,33 +609,65 @@ class AgendaService
         return $event;
     }
 
+    /**
+     * Extract the event title from ManifestationTypée field.
+     *
+     * Format: "Disponibilités - Type - Title"
+     * Example: "Disponibilités - Match - Match L2" → "Match L2"
+     *
+     * @param string $type ManifestationTypée from database
+     * @return string The title (segment 3), or entire string if format doesn't match
+     */
     private static function extractTitle(string $type): string
     {
-        // "Disponibilités - Match - Match L2" → "Match L2"
         $parts = explode(' - ', $type, 3);
         return count($parts) === 3 ? trim($parts[2]) : trim($type);
     }
 
+    /**
+     * Extract the event type from ManifestationTypée field.
+     *
+     * Format: "Disponibilités - Type - Title"
+     * Example: "Disponibilités - Match - Match L2" → "Match"
+     *
+     * @param string $typeStr ManifestationTypée from database
+     * @return string The type (segment 2), or empty string if format doesn't match
+     */
     private static function extractType(string $typeStr): string
     {
-        // "Disponibilités - Match - Match L2" → "Match"
         $parts = explode(' - ', $typeStr, 2);
         return count($parts) >= 2 ? trim($parts[1]) : '';
     }
 
+    /**
+     * Format a date for display in French.
+     *
+     * Converts English day/month abbreviations to French.
+     * Example: "Mon 24 Jan" → "Lun 24 Jan"
+     *
+     * @param \DateTimeImmutable $date
+     * @return string Formatted date (e.g., "Lun 24 Jan")
+     */
     private static function formatDateDisplay(\DateTimeImmutable $date): string
     {
-        $dayEn   = $date->format('D'); // Mon, Tue, …
+        $dayEn   = $date->format('D');
         $dayFr   = self::$DAYS_FR[$dayEn]  ?? $dayEn;
-        $monthEn = $date->format('M'); // Jan, Feb, …
+        $monthEn = $date->format('M');
         $monthFr = self::$MONTHS_FR[$monthEn] ?? $monthEn;
         return $dayFr . ' ' . $date->format('j') . ' ' . $monthFr;
     }
 
+    /**
+     * Map team name to the corresponding boolean column in Joueurs table.
+     *
+     * Uses a whitelist to prevent SQL injection via team filters.
+     * Valid values come from Mots_clef where Catégorie='EquipeParEquipe'.
+     *
+     * @param string $team Team name/column name
+     * @return string|null Sanitized column name, or null if not in whitelist
+     */
     private static function teamColumn(string $team): ?string
     {
-        // Les valeurs viennent de Mots_clef et sont directement les noms de colonnes
-        // Whitelist des colonnes booléennes autorisées pour éviter toute injection
         $allowed = [
             'Eq_L1', 'Eq_L2', 'Eq_L3', 'Eq_L4', 'Eq_Open',
             'CoupeLoisir', 'Eq_Heitz', 'Eq_Aico',
@@ -591,6 +678,80 @@ class AgendaService
         return in_array($team, $allowed, true) ? $team : null;
     }
 
+    /**
+     * Return an empty participation stats array with all categories set to 0.
+     *
+     * @return array Empty stats structure
+     */
+    private static function emptyStats(): array
+    {
+        return [
+            'present' => 0,
+            'available' => 0,
+            'unavailable' => 0,
+            'selected' => 0,
+            'absent' => 0,
+            'unknown' => 0,
+        ];
+    }
+
+    /**
+     * Return default stats for error cases.
+     *
+     * @return array Default empty stats with computed fields
+     */
+    private static function defaultStats(): array
+    {
+        $stats = self::emptyStats();
+        $stats['total_responses'] = 0;
+        $stats['no_response'] = 0;
+        $stats['enough_players'] = false;
+        return $stats;
+    }
+
+    /**
+     * Update manifestation stats based on a single player's participation status.
+     *
+     * Increments the appropriate counter (present, available, etc.) and decrements no_response.
+     *
+     * @param array $manifestationStats Reference to the manifestation's stats array
+     * @param ParticipationStatus $status Parsed participation status
+     */
+    private static function updateManifestationStats(array &$manifestationStats, ParticipationStatus $status): void
+    {
+        $category = $status->getCategory();
+
+        match ($category) {
+            'selected' => $manifestationStats['nb_selection']++,
+            'available' => $manifestationStats['nb_disponible']++,
+            'unavailable' => $manifestationStats['nb_indisponible']++,
+            'absent' => $manifestationStats['nb_absent']++,
+            'present' => (function () use ($status, &$manifestationStats) {
+                $manifestationStats['nb_present']++;
+                $manifestationStats['nb_present'] += $status->getCompanionCount();
+            })(),
+            'unknown' => $manifestationStats['nb_ne_sait_pas']++,
+            default => null,
+        };
+
+        if ($category !== 'no_response') {
+            $manifestationStats['nb_pas_de_reponse']--;
+        }
+    }
+
+    /**
+     * Get all filter options for the agenda filter form.
+     *
+     * Fetches distinct values for all four filter dropdowns:
+     * - types: From ManifestationTypée (segment 2 after first " - ")
+     * - locations: From Lieu
+     * - manifestationNames: From ManifestationTypée (segment 3, last part)
+     * - teams: From Mots_clef where Catégorie='EquipeParEquipe'
+     *
+     * Only returns events from current date onwards.
+     *
+     * @return array Keys: types, locations, manifestationNames, teams (each an array of strings)
+     */
     public static function getFilterOptions(): array
     {
         try {
