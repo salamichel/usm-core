@@ -93,8 +93,17 @@
             {% for mid, m in manifestations %}
               {% set part = row[mid] ?? '' %}
 
+              {# Parser le statut de participation #}
+              {% set is_selected = part matches '/Sélectionné/' %}
+              {% set is_present = part matches '/(Présent|Oui)/' %}
+              {% set is_available_if_needed = part matches '/Disponible si n/' %}
+              {% set is_available = part matches '/(Disponible|Joker)/' and not is_available_if_needed %}
+              {% set is_unavailable = part matches '/Indisponible/' %}
+              {% set is_absent = part matches '/(Absent|Non)/' %}
+              {% set is_unknown = part matches '/(Ne sait pas|\\?)/' %}
+
               {# Couleur de fond de la cellule #}
-              {% if part contains 'Sélectionné' %}
+              {% if is_selected %}
                 {% set cell_bg = 'bg-green-200' %}
               {% elseif m.annule %}
                 {% set cell_bg = 'bg-red-100' %}
@@ -107,25 +116,25 @@
               {% endif %}
 
               {# Icône + libellé selon statut #}
-              {% if part contains 'Présent' or part contains 'Oui' %}
-                {% set icone = '✅' %}
-                {% set libelle = part %}
-              {% elseif part contains 'Sélectionné' %}
+              {% if is_selected %}
                 {% set icone = '⭐' %}
                 {% set libelle = 'Sélectionné(e)' %}
-              {% elseif part contains 'Disponible si n' %}
+              {% elseif is_present %}
+                {% set icone = '✅' %}
+                {% set libelle = part %}
+              {% elseif is_available_if_needed %}
                 {% set icone = '👍' %}
-                {% set libelle = 'Disponible si ...' %}
-              {% elseif part contains 'Disponible' or part contains 'Joker' %}
+                {% set libelle = 'Dispo si ...' %}
+              {% elseif is_available %}
                 {% set icone = '👍' %}
                 {% set libelle = part %}
-              {% elseif part contains 'Indisponible' %}
+              {% elseif is_unavailable %}
                 {% set icone = '👎' %}
                 {% set libelle = part %}
-              {% elseif part contains 'Absent' or part contains 'Non' %}
+              {% elseif is_absent %}
                 {% set icone = '❌' %}
                 {% set libelle = part %}
-              {% elseif part contains 'Ne sait pas' or part contains '?' %}
+              {% elseif is_unknown %}
                 {% set icone = '❓' %}
                 {% set libelle = part %}
               {% else %}
