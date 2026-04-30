@@ -4,11 +4,8 @@
 docker-compose.yml
 Dockerfile
 .dockerignore
-README.md
 CLAUDE.md
-ADMIN_API_IMPROVEMENTS.md
-API_ARTICLES.md
-TAGS_SYSTEM.md
+docs/
 cache/
 node_modules/
 .DS_Store
