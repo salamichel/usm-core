@@ -30,6 +30,156 @@ class AgendaService
         return self::queryByPattern('% - Entra%', $limit);
     }
 
+    public static function getCrossTable(): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+
+            // 1. Joueurs triés par nom
+            $joueurs = [];
+            $stmt = $db->query("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 ORDER BY Nom");
+            while ($row = $stmt->fetch()) {
+                $id = (int) $row['id_joueur'];
+                $joueurs[$id] = $row['Nom'] . ' ' . $row['Prénom'];
+            }
+
+            // 2. Manifestations futures uniquement
+            $manifestations = [];
+            $stmt = $db->query(
+                "SELECT id_manifestation, `ManifestationTypée`, `Date`,
+                        DATE_FORMAT(`Date`, '%W %d %M') AS date_fr,
+                        `Durée_créneau`, Nombre_terrain, Lieu, Commentaire, Statut
+                 FROM Manifestation
+                 WHERE id_manifestation > 0 AND `Date` >= CURDATE()
+                 ORDER BY `Date` ASC"
+            );
+            while ($row = $stmt->fetch()) {
+                $id  = (int) $row['id_manifestation'];
+                $parts = explode(' - ', $row['ManifestationTypée'], 3);
+                $type  = $parts[1] ?? '';
+                $titre = $parts[2] ?? $row['ManifestationTypée'];
+
+                // Calcul de la plage horaire
+                $timeRange = '';
+                if (!empty($row['Durée_créneau'])) {
+                    $hm = explode('h', $row['Durée_créneau'], 2);
+                    $h  = (int) ($hm[0] ?? 0);
+                    $m  = isset($hm[1]) && $hm[1] !== '' ? (int) $hm[1] : 0;
+                    $ts = strtotime($row['Date']);
+                    $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
+                }
+
+                $manifestations[$id] = [
+                    'id'          => $id,
+                    'type'        => $type,
+                    'titre'       => $titre,
+                    'date_display'=> self::formatDateDisplay(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $row['Date'])),
+                    'time_range'  => $timeRange,
+                    'nb_terrains' => (int) $row['Nombre_terrain'],
+                    'lieu'        => $row['Lieu'],
+                    'commentaire' => $row['Commentaire'] ?? '',
+                    'statut'      => $row['Statut'] ?? '',
+                    'annule'      => str_contains($row['Statut'] ?? '', 'Annulé'),
+                    'provisoire'  => str_contains($row['Statut'] ?? '', 'Provisoire'),
+                    'nb_present'  => 0, 'nb_absent' => 0, 'nb_disponible' => 0,
+                    'nb_disponible_si_necessaire' => 0, 'nb_indisponible' => 0,
+                    'nb_ne_sait_pas' => 0, 'nb_selection' => 0,
+                    'nb_pas_de_reponse' => count($joueurs),
+                ];
+            }
+
+            if (empty($manifestations)) {
+                return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+            }
+
+            // 3. Table croisée via LEFT JOIN
+            $ids = implode(',', array_keys($manifestations));
+            $cross = [];
+            foreach ($joueurs as $jid => $nom) {
+                $cross[$jid] = ['nb_participation' => 0, 'nb_non_absence' => 0, 'nb_ne_sait_pas' => 0, 'nb_ne_sait_pas_proche' => 0];
+                foreach (array_keys($manifestations) as $mid) {
+                    $cross[$jid][$mid] = '';
+                }
+            }
+
+            $dateTropProche = time() + 3 * 24 * 3600;
+            $stmt = $db->query(
+                "SELECT j.id_joueur, m.id_manifestation,
+                        p.Participation AS participation,
+                        DATE_FORMAT(m.`Date`, '%Y-%m-%d %H:%i') AS date2
+                 FROM Joueurs j
+                 LEFT JOIN Participation p USING (id_joueur)
+                 LEFT JOIN Manifestation m USING (id_manifestation)
+                 WHERE m.id_manifestation IN ($ids)
+                   AND j.id_joueur > 0
+                 ORDER BY j.Nom, m.`Date`"
+            );
+
+            while ($row = $stmt->fetch()) {
+                $jid  = (int) $row['id_joueur'];
+                $mid  = (int) $row['id_manifestation'];
+                $part = (string) ($row['participation'] ?? '');
+                if (!isset($cross[$jid]) || !isset($manifestations[$mid])) {
+                    continue;
+                }
+
+                $cross[$jid][$mid] = $part;
+
+                if ($part !== '') {
+                    $cross[$jid]['nb_participation']++;
+
+                    // Non-absence
+                    if (strpos($part, 'Absent') === false && strpos($part, 'Non') === false && strpos($part, 'Indisponible') === false) {
+                        $cross[$jid]['nb_non_absence']++;
+                    }
+                    // Ne sait pas
+                    if (strpos($part, 'Ne sait pas encore') !== false) {
+                        $cross[$jid]['nb_ne_sait_pas']++;
+                        if (strtotime($row['date2']) < $dateTropProche) {
+                            $cross[$jid]['nb_ne_sait_pas_proche']++;
+                        }
+                    }
+
+                    // Stats manifestation — ordre strict pour éviter double comptage
+                    if (strpos($part, 'Sélectionné(e)') !== false) {
+                        $manifestations[$mid]['nb_selection']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                    } elseif (strpos($part, 'Disponible si n') !== false) {
+                        $manifestations[$mid]['nb_disponible_si_necessaire']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                    } elseif (strpos($part, 'Disponible') !== false || strpos($part, 'Joker') !== false) {
+                        $manifestations[$mid]['nb_disponible']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                    } elseif (strpos($part, 'Indisponible') !== false) {
+                        $manifestations[$mid]['nb_indisponible']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                    } elseif (strpos($part, 'Absent') !== false || strpos($part, 'Non') !== false) {
+                        $manifestations[$mid]['nb_absent']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                    } elseif (strpos($part, 'Oui') !== false || strpos($part, 'Présent') !== false) {
+                        $manifestations[$mid]['nb_present']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                        // accompagnants
+                        foreach (['5' => 4, '4' => 3, '3' => 2, '2' => 1] as $digit => $extra) {
+                            if (strpos($part, $digit) !== false) {
+                                $manifestations[$mid]['nb_present'] += $extra;
+                                break;
+                            }
+                        }
+                    } elseif (strpos($part, 'Ne sait pas encore') !== false || strpos($part, '?') !== false) {
+                        $manifestations[$mid]['nb_ne_sait_pas']++;
+                        $manifestations[$mid]['nb_pas_de_reponse']--;
+                    }
+                }
+            }
+
+        } catch (\Throwable) {
+            return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+        }
+
+        return ['joueurs' => $joueurs, 'manifestations' => $manifestations, 'cross' => $cross];
+    }
+
     public static function getAllManifestations(array $filters = [], int $offset = 0, int $limit = 50): array
     {
         try {

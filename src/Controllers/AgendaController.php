@@ -5,7 +5,6 @@ namespace App\Controllers;
 
 use App\Core\NotFoundHandler;
 use App\Services\AgendaService;
-use App\Services\Pagination;
 use App\Core\View;
 
 class AgendaController
@@ -16,34 +15,12 @@ class AgendaController
 
     public function index(array $params): void
     {
-        $filters = $this->extractFilters();
-        $page = (int) ($_GET['page'] ?? 1);
-        $offset = ($page - 1) * self::ITEMS_PER_PAGE;
-
-        $events = AgendaService::getAllManifestations($filters, $offset, self::ITEMS_PER_PAGE);
-        $totalCount = AgendaService::countManifestations($filters);
-
-        // Fetch participation stats for all events on this page
-        $eventIds = array_map(fn($e) => $e['id'], $events);
-        $participationStats = AgendaService::getParticipationStatsBatch($eventIds);
-
-        // Merge stats into event objects
-        foreach ($events as &$event) {
-            $event['participation'] = $participationStats[$event['id']] ?? [
-                'present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0,
-                'absent' => 0, 'unknown' => 0, 'total_responses' => 0, 'enough_players' => false
-            ];
-        }
-
-        $pagination = new Pagination($totalCount, self::ITEMS_PER_PAGE, $page);
-        $availableFilters = AgendaService::getAvailableFilters();
+        $data = AgendaService::getCrossTable();
 
         View::render('agenda/index.twig', [
-            'events' => $events,
-            'filters' => $filters,
-            'availableFilters' => $availableFilters,
-            'pagination' => $pagination,
-            'currentPage' => $page,
+            'joueurs'        => $data['joueurs'],
+            'manifestations' => $data['manifestations'],
+            'cross'          => $data['cross'],
         ]);
     }
 
