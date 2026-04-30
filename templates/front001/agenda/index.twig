@@ -14,15 +14,15 @@
 
   {# Tableau croisé avec sticky première colonne #}
   <div class="overflow-x-auto border border-gray-400 rounded" style="max-height:80vh; overflow-y:auto;">
-    <table class="border-collapse text-sm whitespace-nowrap">
+    <table class="border-collapse text-xs whitespace-nowrap">
 
       {# ── EN-TÊTE : une colonne par manifestation ── #}
       <thead class="sticky top-0 z-20 bg-white">
         <tr>
           {# Cellule coin haut-gauche #}
-          <th class="sticky left-0 z-30 bg-gradient-to-b from-gray-300 to-gray-200 border-2 border-gray-500 px-3 py-2 text-left font-bold min-w-[160px]">
-            <div class="text-center">👥</div>
-            <div>Joueurs</div>
+          <th class="sticky left-0 z-30 bg-gradient-to-b from-gray-300 to-gray-200 border-2 border-gray-500 px-2 py-1 text-left font-bold min-w-[140px]">
+            <div class="text-center text-lg">👥</div>
+            <div class="text-xs">Joueurs</div>
           </th>
 
           {% for mid, m in manifestations %}
@@ -42,51 +42,40 @@
             {% set stats_color = ok ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50' %}
             {% set status_icon = m.annule ? '❌' : (m.provisoire ? '⚠️' : '✅') %}
 
-            <th class="border-2 {{ col_border }} {{ col_bg }} px-2 py-1 text-center font-bold min-w-[140px] align-top relative">
+            <th class="border-2 {{ col_border }} {{ col_bg }} px-1 py-1 text-center font-bold min-w-[120px] align-top relative text-xs">
               {# Icône de statut #}
-              <div class="absolute top-1 right-1 text-lg">{{ status_icon }}</div>
+              <div class="absolute top-0 right-0 text-base">{{ status_icon }}</div>
 
-              <div class="font-bold text-sm text-gray-800">{{ m.type }}</div>
-              <div class="font-semibold text-xs text-gray-700 border-b border-gray-400 pb-1 mb-1">{{ m.titre }}</div>
-              <div class="text-xs text-gray-600">{{ m.date_display }}</div>
-              <div class="text-xs text-gray-600">{{ m.time_range }}</div>
-              <div class="text-xs font-medium text-gray-700">📍 {{ m.lieu|slice(0,16) }}</div>
+              <div class="font-bold text-xs text-gray-800">{{ m.type }}</div>
+              <div class="font-semibold text-xs text-gray-700 border-b border-gray-400 pb-0 mb-0">{{ m.titre }}</div>
+              <div class="text-xs text-gray-600 leading-tight">{{ m.date_display }}</div>
+              <div class="text-xs text-gray-600 leading-tight">{{ m.time_range }}</div>
+              <div class="text-xs font-medium text-gray-700 leading-tight">📍 {{ m.lieu|slice(0,14) }}</div>
 
               {# Alerte terrains : warning si nb_terrains n'est pas 0, 1 ou "." #}
               {% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
-              <div class="text-xs font-medium {% if terrain_alert %}text-red-700 font-bold{% else %}text-gray-700{% endif %}">
-                🏐
-                {% if terrain_alert %}
-                  <span title="Nombre de terrains anormal">⚠️</span>
-                {% endif %}
-                {{ m.nb_terrains }} terrain(s)
-              </div>
+              <div class="text-xs font-medium leading-tight {% if terrain_alert %}text-red-700 font-bold{% else %}text-gray-700{% endif %}">
+                🏐 {% if terrain_alert %}<span title="Nombre de terrains anormal">⚠️</span>{% endif %} {{ m.nb_terrains }}</div>
 
               {# Barre de statut avec couleur #}
-              <div class="mt-2 px-1 py-1 rounded {{ stats_color }} border border-gray-300">
-                <div class="font-bold text-xs">
-                  {% if ok %}
-                    ✓ Équipe OK
-                  {% else %}
-                    ⚠️ Sous-effectif
-                  {% endif %}
-                </div>
+              <div class="mt-1 px-1 py-0 rounded {{ stats_color }} border border-gray-300 text-xs font-bold leading-tight">
+                {% if ok %}✓ OK{% else %}⚠️ - 6{% endif %}
               </div>
 
               {# Stats détaillées #}
               <div class="mt-1 text-xs space-y-0 leading-tight">
-                {% if m.nb_selection > 0 %}<div class="text-amber-700 font-bold">⭐ {{ m.nb_selection }} sél.</div>{% endif %}
-                {% if m.nb_present > 0 %}<div class="text-green-700 font-semibold">✅ {{ m.nb_present }} prés.</div>{% endif %}
-                {% if m.nb_disponible > 0 %}<div class="text-blue-700">👍 {{ m.nb_disponible }} dispo</div>{% endif %}
-                {% if m.nb_disponible_si_necessaire > 0 %}<div class="text-blue-600">👋 {{ m.nb_disponible_si_necessaire }} si néc.</div>{% endif %}
-                {% if m.nb_indisponible > 0 %}<div class="text-red-700">👎 {{ m.nb_indisponible }} indispo</div>{% endif %}
-                {% if m.nb_absent > 0 %}<div class="text-red-700">❌ {{ m.nb_absent }} absent(s)</div>{% endif %}
-                {% if m.nb_ne_sait_pas > 0 %}<div class="text-orange-700">❓ {{ m.nb_ne_sait_pas }} ? </div>{% endif %}
-                {% if m.nb_pas_de_reponse > 0 %}<div class="text-purple-700 font-medium">😞 {{ m.nb_pas_de_reponse }} s.r.</div>{% endif %}
+                {% if m.nb_selection > 0 %}<div class="text-amber-700 font-bold text-xs">⭐ {{ m.nb_selection }}</div>{% endif %}
+                {% if m.nb_present > 0 %}<div class="text-green-700 font-semibold text-xs">✅ {{ m.nb_present }}</div>{% endif %}
+                {% if m.nb_disponible > 0 %}<div class="text-blue-700 text-xs">👍 {{ m.nb_disponible }}</div>{% endif %}
+                {% if m.nb_disponible_si_necessaire > 0 %}<div class="text-blue-600 text-xs">👋 {{ m.nb_disponible_si_necessaire }}</div>{% endif %}
+                {% if m.nb_indisponible > 0 %}<div class="text-red-700 text-xs">👎 {{ m.nb_indisponible }}</div>{% endif %}
+                {% if m.nb_absent > 0 %}<div class="text-red-700 text-xs">❌ {{ m.nb_absent }}</div>{% endif %}
+                {% if m.nb_ne_sait_pas > 0 %}<div class="text-orange-700 text-xs">❓ {{ m.nb_ne_sait_pas }}</div>{% endif %}
+                {% if m.nb_pas_de_reponse > 0 %}<div class="text-purple-700 text-xs">😞 {{ m.nb_pas_de_reponse }}</div>{% endif %}
               </div>
 
               {% if m.commentaire %}
-                <div class="text-xs italic bg-yellow-50 border-l-2 border-yellow-400 px-1 py-1 mt-1 text-gray-700">ℹ️ {{ m.commentaire|slice(0,20) }}</div>
+                <div class="text-xs italic bg-yellow-50 border-l-2 border-yellow-400 px-1 py-0 mt-1 text-gray-700">ℹ️ {{ m.commentaire|slice(0,18) }}</div>
               {% endif %}
             </th>
           {% endfor %}
@@ -102,25 +91,21 @@
           {% set nb_manif = manifestations|length %}
           {% set alerte = (row.nb_participation < nb_manif) or (row.nb_ne_sait_pas_proche > 0) or (row.nb_ne_sait_pas > 3) %}
 
-          <tr class="{{ loop.index is odd ? 'bg-white' : 'bg-gray-50' }} hover:bg-yellow-100">
+          <tr class="{{ loop.index is odd ? 'bg-white' : 'bg-gray-50' }} hover:bg-yellow-50">
 
             {# Nom joueur — sticky gauche #}
-            <td class="sticky left-0 z-10 border-2 border-gray-400 px-3 py-2 font-semibold bg-gradient-to-r from-gray-200 to-gray-100 min-w-[160px]">
+            <td class="sticky left-0 z-10 border-2 border-gray-400 px-2 py-0 font-semibold bg-gradient-to-r from-gray-200 to-gray-100 min-w-[140px] text-xs leading-tight">
               {# Smiley avec 3 niveaux selon l'alerte #}
               {% if row.nb_participation < nb_manif %}
-                {# Condition 1 : des participations manquantes #}
-                <span class="text-2xl" title="Participation incomplète">😒</span>
+                <span class="text-xl" title="Participation incomplète">😒</span>
               {% elseif row.nb_ne_sait_pas > 3 %}
-                {# Condition 3 : plus de 3 "Ne sait pas" #}
-                <span class="text-2xl" title="Trop d'hésitations">😕</span>
+                <span class="text-xl" title="Trop d'hésitations">😕</span>
               {% elseif row.nb_ne_sait_pas_proche > 0 %}
-                {# Condition 2 : "Ne sait pas" dans les 3 prochains jours #}
-                <span class="text-2xl" title="Réponse attendue bientôt">🤔</span>
+                <span class="text-xl" title="Réponse attendue bientôt">🤔</span>
               {% else %}
-                {# Pas d'alerte - tout va bien #}
-                <span class="text-2xl" title="Participation complète">😊</span>
+                <span class="text-xl" title="Participation complète">😊</span>
               {% endif %}
-              <span class="ml-1">{{ nom }}</span>
+              <span class="ml-1 text-xs">{{ nom }}</span>
             </td>
 
             {# Cellule par manifestation #}
@@ -204,15 +189,15 @@
                 {% set libelle = '?' %}
                 {% set special_style = '' %}
               {% else %}
-                {# Sans réponse - afficher plus en évidence #}
+                {# Sans réponse - pas de couleur spéciale #}
                 {% set icone = '😞' %}
                 {% set libelle = 'S.R.' %}
-                {% set special_style = 'bg-red-400 border-2 border-red-600 text-red-900' %}
+                {% set special_style = '' %}
               {% endif %}
 
-              <td class="border border-gray-300 px-2 py-1 text-center font-semibold {% if special_style %}{{ special_style }}{% else %}{{ cell_bg }}{% endif %}" title="{{ part }}">
-                <span class="text-lg block">{{ icone }}</span>
-                <span class="text-xs block {% if special_style %}font-bold{% else %}{{ text_color }}{% endif %}">{{ libelle }}</span>
+              <td class="border border-gray-300 px-1 py-0 text-center font-semibold text-xs {% if special_style %}{{ special_style }}{% else %}{{ cell_bg }}{% endif %}" title="{{ part }}">
+                <span class="text-base block leading-tight">{{ icone }}</span>
+                <span class="text-xs block leading-tight {% if special_style %}font-bold{% else %}{{ text_color }}{% endif %}">{{ libelle }}</span>
               </td>
             {% endfor %}
 
