@@ -26,7 +26,7 @@ class AgendaController
         $pagination = new Pagination($totalCount, self::ITEMS_PER_PAGE, $page);
         $availableFilters = AgendaService::getAvailableFilters();
 
-        View::render('agenda/index', [
+        View::render('agenda/index.twig', [
             'events' => $events,
             'filters' => $filters,
             'availableFilters' => $availableFilters,
@@ -45,7 +45,7 @@ class AgendaController
             return;
         }
 
-        View::render('agenda/detail', [
+        View::render('agenda/detail.twig', [
             'event' => $event,
         ]);
     }
