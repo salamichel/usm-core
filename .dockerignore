@@ -4,7 +4,6 @@
 docker-compose.yml
 Dockerfile
 .dockerignore
-CLAUDE.md
 docs/
 cache/
 node_modules/
