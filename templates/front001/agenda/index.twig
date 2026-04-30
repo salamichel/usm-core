@@ -108,8 +108,9 @@
                 <span class="text-xl" title="Participation complète">😊</span>
               {% endif %}
               {% set parts = nom|split(' ') %}
+              {% set nom_famille = parts[0] %}
               {% set prenom = parts|last %}
-              <span class="ml-1 text-xs">{{ prenom|slice(0, 3)|upper }}</span>
+              <span class="ml-1 text-xs">{{ nom_famille|slice(0, 3)|upper }}... {{ prenom }}</span>
             </td>
 
             {# Cellule par manifestation #}
