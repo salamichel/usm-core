@@ -1,0 +1,141 @@
+{# Reusable Twig macros for the agenda module #}
+
+{#
+  Render a filter dropdown.
+
+  Usage:
+    {{ render_filter_dropdown('team', 'Équipe', filterOptions.teams, filters.team) }}
+
+  @param name - HTML name attribute (used in form submission)
+  @param label - Display label above dropdown
+  @param options - Array of available options
+  @param selected - Currently selected value, or empty for "Tous"
+#}
+{% macro render_filter_dropdown(name, label, options, selected) %}
+  <div>
+    <label class="block text-sm font-semibold text-gray-700 mb-2">{{ label }}</label>
+    <select name="{{ name }}" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="this.form.submit()">
+      <option value="Tous">[Tous]</option>
+      {% for option in options %}
+        <option value="{{ option }}" {% if selected == option %}selected{% endif %}>{{ option }}</option>
+      {% endfor %}
+    </select>
+  </div>
+{% endmacro %}
+
+{#
+  Render a boolean filter checkbox.
+
+  Usage:
+    {{ render_filter_checkbox('this_week', 'Semaine en cours', filters.this_week) }}
+
+  @param name - HTML name attribute
+  @param label - Display label next to checkbox
+  @param checked - Boolean; whether to check the box
+#}
+{% macro render_filter_checkbox(name, label, checked) %}
+  <div class="flex items-end">
+    <label class="flex items-center text-sm">
+      <input type="checkbox" name="{{ name }}" value="1" {% if checked %}checked{% endif %} onchange="this.form.submit()" class="w-4 h-4 text-amber-600 border-gray-300 rounded">
+      <span class="ml-2 text-gray-700">{{ label }}</span>
+    </label>
+  </div>
+{% endmacro %}
+
+{#
+  Render a participation stats cell for the agenda table.
+
+  Displays the player's participation status with icon, label, and color.
+
+  Usage:
+    <td>{{ render_participation_cell(cross[player_id][event_id]) }}</td>
+
+  @param status - Raw participation status string from database
+#}
+{% macro render_participation_cell(status) %}
+  {% set cell_data = {
+    'Sélectionné(e)': { icon: '★', label: 'Sélectionné', bg: 'bg-green-100', text: 'text-green-700' },
+    'Disponible': { icon: '◐', label: 'Disponible', bg: 'bg-amber-100', text: 'text-amber-700' },
+    'Indisponible': { icon: '✗', label: 'Indisponible', bg: 'bg-red-100', text: 'text-red-700' },
+    'Absent': { icon: '✗', label: 'Absent', bg: 'bg-red-100', text: 'text-red-700' },
+    'Présent': { icon: '✓', label: 'Présent', bg: 'bg-green-100', text: 'text-green-700' },
+    'Oui': { icon: '✓', label: 'Oui', bg: 'bg-green-100', text: 'text-green-700' },
+    'Ne sait pas': { icon: '?', label: 'Ne sait pas', bg: 'bg-gray-100', text: 'text-gray-700' },
+  } %}
+
+  {% if status is empty %}
+    <span class="text-gray-300">—</span>
+  {% else %}
+    {# Try to match the status string to one of the known statuses #}
+    {% set found = false %}
+    {% for key, data in cell_data %}
+      {% if status contains key %}
+        <span class="inline-flex items-center gap-1 px-2 py-1 rounded {{ data.bg }} {{ data.text }} text-xs font-medium" title="{{ status }}">
+          <span>{{ data.icon }}</span>
+          <span>{{ data.label }}</span>
+        </span>
+        {% set found = true %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+
+    {# If no exact match found, show the raw status #}
+    {% if not found %}
+      <span class="text-gray-600 text-xs">{{ status }}</span>
+    {% endif %}
+  {% endif %}
+{% endmacro %}
+
+{#
+  Render a stats summary row for an event (used in detail view).
+
+  Usage:
+    {{ render_stats_row('✓', 'Présents', stats.present, 'text-green-700') }}
+
+  @param icon - Single character icon
+  @param label - Human-readable label
+  @param count - Numeric count to display
+  @param color - Tailwind text color class
+#}
+{% macro render_stats_row(icon, label, count, color) %}
+  <tr class="border-b border-gray-200 hover:bg-gray-50">
+    <td class="px-4 py-3 text-sm text-gray-600">
+      <span class="{{ color }} font-semibold">{{ icon }}</span>
+    </td>
+    <td class="px-4 py-3 text-sm text-gray-700">{{ label }}</td>
+    <td class="px-4 py-3 text-sm font-semibold text-gray-900">{{ count }}</td>
+  </tr>
+{% endmacro %}
+
+{#
+  Render a participation summary badge for event cards.
+
+  Shows total participants with status indicator (green/amber/red based on viability).
+
+  Usage:
+    {{ render_participation_badge(manifestation.nb_present, manifestation.nb_disponible, manifestation.nb_indisponible) }}
+
+  @param present - Count of present participants
+  @param available - Count of available participants
+  @param unavailable - Count of unavailable participants
+#}
+{% macro render_participation_badge(present, available, unavailable) %}
+  {% set total = present + available + unavailable %}
+  {% set viable = (present + available) >= 6 %}
+
+  {% if viable %}
+    {% set bg_class = 'bg-green-100 text-green-700' %}
+    {% set status_icon = '✓' %}
+  {% elseif present + available >= 3 %}
+    {% set bg_class = 'bg-amber-100 text-amber-700' %}
+    {% set status_icon = '◐' %}
+  {% else %}
+    {% set bg_class = 'bg-red-100 text-red-700' %}
+    {% set status_icon = '✗' %}
+  {% endif %}
+
+  <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold {{ bg_class }}">
+    <span>{{ status_icon }}</span>
+    <span>{{ present + available }}/{{ total }}</span>
+  </span>
+{% endmacro %}
