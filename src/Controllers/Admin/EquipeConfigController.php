@@ -226,11 +226,14 @@ class EquipeConfigController
     private function formData(): array
     {
         return [
-            'slug_colonne' => trim($_POST['slug_colonne'] ?? ''),
-            'libelle'      => trim($_POST['libelle'] ?? ''),
-            'categorie'    => trim($_POST['categorie'] ?? ''),
-            'ordre'        => (int)($_POST['ordre'] ?? 0),
-            'is_active'    => isset($_POST['is_active']) ? 1 : 0,
+            'slug_colonne'          => trim($_POST['slug_colonne'] ?? ''),
+            'libelle'               => trim($_POST['libelle'] ?? ''),
+            'categorie'             => trim($_POST['categorie'] ?? ''),
+            'ordre'                 => (int)($_POST['ordre'] ?? 0),
+            'is_active'             => isset($_POST['is_active']) ? 1 : 0,
+            'slug'                  => trim($_POST['slug'] ?? ''),
+            'team_filter'           => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
+            'manifestation_filter'  => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
         ];
     }
 
