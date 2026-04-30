@@ -84,11 +84,18 @@ class EquipesController
 
         // Mini agenda: upcoming matches for this team
         $miniAgendaEvents = [];
+        $agendaFilterUrl = '';
         if (!empty($equipe['slug_colonne'])) {
             $miniAgendaEvents = AgendaService::getUpcomingMatchesForTeam(
                 $equipe['slug_colonne'],
                 MINI_AGENDA_LIMIT
             );
+
+            // Build agenda filter URL with team and manifestation filters
+            $agendaFilterUrl = '/agenda?team=' . urlencode($equipe['slug_colonne']);
+            if (!empty($equipe['manifestation_filter'])) {
+                $agendaFilterUrl .= '&manifestation=' . urlencode($equipe['manifestation_filter']);
+            }
         }
 
         // Autres équipes de la même catégorie
@@ -145,6 +152,7 @@ class EquipesController
             'saison'            => $saison,
             'otherEquipes'      => $otherEquipes,
             'mini_agenda_events' => $miniAgendaEvents,
+            'agenda_filter_url' => $agendaFilterUrl,
         ]);
     }
 }
