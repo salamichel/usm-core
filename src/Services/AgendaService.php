@@ -39,9 +39,22 @@ class AgendaService
                 return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
             }
 
-            // 1. Joueurs triés par nom
+            // 1. Joueurs triés par nom, filtrés par équipe si demandé
             $joueurs = [];
-            $stmt = $db->query("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 ORDER BY Nom");
+            if (!empty($filters['team'])) {
+                $teamCol = self::teamColumn($filters['team']);
+                $joueurStmt = $teamCol
+                    ? $db->prepare("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 AND `$teamCol` = 1 ORDER BY Nom")
+                    : $db->prepare("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 AND Equipe = ? ORDER BY Nom");
+                if (!$teamCol) {
+                    $joueurStmt->execute([$filters['team']]);
+                } else {
+                    $joueurStmt->execute();
+                }
+                $stmt = $joueurStmt;
+            } else {
+                $stmt = $db->query("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 ORDER BY Nom");
+            }
             if (!$stmt) {
                 error_log('getCrossTable: Failed to query Joueurs - ' . json_encode($db->errorInfo()));
                 return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
@@ -564,6 +577,33 @@ class AgendaService
         return $dayFr . ' ' . $date->format('j') . ' ' . $monthFr;
     }
 
+    private static function teamColumn(string $team): ?string
+    {
+        $map = [
+            'L1'          => 'Eq_L1',
+            'L2'          => 'Eq_L2',
+            'L3'          => 'Eq_L3',
+            'L4'          => 'Eq_L4',
+            'Open'        => 'Eq_Open',
+            'Coupe Loisir'=> 'CoupeLoisir',
+            'Heitz'       => 'Eq_Heitz',
+            'Aico'        => 'Eq_Aico',
+            'UFOLEP 1'    => 'UFOLEP_1',
+            'UFOLEP 2'    => 'UFOLEP_2',
+            'UFOLEP 3'    => 'UFOLEP_3',
+            'DEP'         => 'DEP',
+            'Adulte'      => 'Adulte',
+            'Jeune'       => 'Jeune',
+            'M18F'        => 'M18F',
+            'M15F'        => 'M15F',
+            'R2F'         => 'R2F',
+            'Compétition' => 'Compétition',
+            'Loisir'      => 'Loisir',
+            'Débutant'    => 'Débutant',
+        ];
+        return $map[$team] ?? null;
+    }
+
     public static function getFilterOptions(): array
     {
         try {
@@ -612,10 +652,22 @@ class AgendaService
                 }
             }
 
+            // Get distinct teams from Joueurs
+            $teams = [];
+            $stmt = $db->query(
+                "SELECT DISTINCT Equipe FROM Joueurs
+                 WHERE id_joueur > 0 AND Equipe IS NOT NULL AND Equipe != ''
+                 ORDER BY Equipe"
+            );
+            while ($row = $stmt->fetch()) {
+                $teams[] = $row['Equipe'];
+            }
+
             return [
                 'types'              => $types,
                 'locations'          => $locations,
                 'manifestationNames' => $manifestationNames,
+                'teams'              => $teams,
             ];
         } catch (\Throwable) {
             return ['types' => [], 'locations' => []];

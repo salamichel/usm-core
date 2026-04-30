@@ -61,6 +61,10 @@ class AgendaController
             $filters['manifestation'] = (string) $_GET['manifestation'];
         }
 
+        if (!empty($_GET['team']) && $_GET['team'] !== 'Tous') {
+            $filters['team'] = (string) $_GET['team'];
+        }
+
         if (!empty($_GET['hide_empty_players'])) {
             $filters['hide_empty_players'] = true;
         }

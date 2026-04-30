@@ -1,7 +1,18 @@
 {# Agenda filter form #}
 <div class="bg-gray-100 p-4 rounded-lg mb-6">
   <form method="GET" action="/agenda" class="space-y-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      {# Team filter #}
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Équipe</label>
+        <select name="team" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="this.form.submit()">
+          <option value="Tous">[Tous]</option>
+          {% for team in filterOptions.teams %}
+            <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
       {# Type filter #}
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-2">Type</label>
