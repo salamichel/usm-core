@@ -861,7 +861,10 @@ class AgendaService
                 $playerIds[] = (int) $row['id_joueur'];
             }
 
+            error_log("getUpcomingMatchesForTeam: Team '$teamCode' has " . count($playerIds) . " players");
+
             if (empty($playerIds)) {
+                error_log("getUpcomingMatchesForTeam: No players found for team '$teamCode'");
                 return [];
             }
 
@@ -890,6 +893,8 @@ class AgendaService
             }
             $bindings[] = $limit;
 
+            error_log("getUpcomingMatchesForTeam: Query bindings: " . json_encode($bindings));
+
             if (!$stmt->execute($bindings)) {
                 error_log('getUpcomingMatchesForTeam: Failed to query matches - ' . json_encode($db->errorInfo()));
                 return [];
@@ -897,7 +902,9 @@ class AgendaService
 
             $events = [];
             $manifestationIds = [];
+            $rowCount = 0;
             while ($row = $stmt->fetch()) {
+                $rowCount++;
                 $id = (int) $row['id_manifestation'];
                 $manifestationIds[] = $id;
 
@@ -933,7 +940,10 @@ class AgendaService
                 ];
             }
 
+            error_log("getUpcomingMatchesForTeam: Found $rowCount matching events for team '$teamCode'");
+
             if (empty($events)) {
+                error_log("getUpcomingMatchesForTeam: No events found (total events queried, or empty result set)");
                 return [];
             }
 
