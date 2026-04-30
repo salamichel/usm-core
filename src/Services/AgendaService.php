@@ -146,14 +146,14 @@ class AgendaService
             $dateTropProche = time() + 3 * 24 * 3600;
             $stmt = $db->query(
                 "SELECT j.id_joueur, m.id_manifestation,
-                        p.Participation AS participation,
-                        DATE_FORMAT(m.`Date`, '%Y-%m-%d %H:%i') AS date2
+                        COALESCE(p.Participation, '') AS participation,
+                        DATE_FORMAT(m.\`Date\`, '%Y-%m-%d %H:%i') AS date2
                  FROM Joueurs j
-                 LEFT JOIN Participation p USING (id_joueur)
-                 LEFT JOIN Manifestation m USING (id_manifestation)
+                 CROSS JOIN Manifestation m
+                 LEFT JOIN Participation p ON j.id_joueur = p.id_joueur AND m.id_manifestation = p.id_manifestation
                  WHERE m.id_manifestation IN ($ids)
                    AND j.id_joueur > 0
-                 ORDER BY j.Nom, m.`Date`"
+                 ORDER BY j.Nom, m.\`Date\`"
             );
 
             while ($row = $stmt->fetch()) {
