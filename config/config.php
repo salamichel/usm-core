@@ -41,6 +41,8 @@ define('BREVO_FROM_NAME', getenv('BREVO_FROM_NAME') ?: 'USM Volley');
 
 // ── Google Analytics ──────────────────────────────────────────────────────────
 define('GA_MEASUREMENT_ID', getenv('GA_MEASUREMENT_ID') ?: '');
+define('GA_PROPERTY_ID', getenv('GA_PROPERTY_ID') ?: '');
+define('GA_CREDENTIALS_PATH', getenv('GA_CREDENTIALS_PATH') ?: '');
 
 // ── Upload ────────────────────────────────────────────────────────────────────
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');

@@ -525,6 +525,47 @@ $cover = Photo::getEntityCover('equipe_saison', $es['id']);
 | `BREVO_API_KEY` | — | Clé API Brevo pour envoyer les emails |
 | `BREVO_FROM_EMAIL` | `noreply@usm-volley.fr` | Email "De" pour les notifications |
 | `BREVO_FROM_NAME` | `USM Volley` | Nom "De" pour les notifications |
+| `GA_MEASUREMENT_ID` | — | ID de mesure Google Analytics (pour Gtag) |
+| `GA_PROPERTY_ID` | — | ID de propriété GA4 (pour API Data) |
+| `GA_CREDENTIALS_PATH` | — | Chemin vers `credentials.json` (API Google) |
+
+---
+
+## Google Analytics 4 Integration
+
+### Dashboard public (Gtag)
+
+Suivi automatique des actions via `GA_MEASUREMENT_ID` :
+- Page views, événements custom, form submissions, downloads, external links
+- Configuration : ajouter `GA_MEASUREMENT_ID=G-XXXXXXXXXX` aux variables
+
+**Fichiers** :
+- `templates/front001/base.twig` — script Gtag + tracking JS
+- `templates/front001/admin/layout.twig` — tracking admin actions
+
+### Dashboard admin (Google Analytics Data API)
+
+Affichage des statistiques dans `/admin/analytics` :
+
+**Configuration requise** :
+1. Créer un Service Account sur Google Cloud Platform
+2. Télécharger `credentials.json`
+3. Ajouter le service account à GA4 (rôle "Lecteur & Analyste")
+4. Configurer les variables :
+   - `GA_PROPERTY_ID=123456789`
+   - `GA_CREDENTIALS_PATH=/chemin/vers/credentials.json`
+
+**Métriques disponibles** :
+- Pageviews, utilisateurs actifs, taux de rebond
+- Pages populaires, sources de trafic
+- Événements (formulaires, téléchargements, etc.)
+
+**Fichiers** :
+- `src/Services/AnalyticsService.php` — API wrapper
+- `src/Controllers/Admin/AnalyticsController.php` — contrôleur
+- `templates/front001/admin/analytics.twig` — interface dashboard
+
+**Documentation complète** : voir `docs/GOOGLE_ANALYTICS_SETUP.md`
 
 ---
 

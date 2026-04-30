@@ -24,6 +24,7 @@ use App\Controllers\Admin\SiteConfigController;
 use App\Controllers\Admin\ContactAdminController;
 use App\Controllers\Admin\LocationController;
 use App\Controllers\Admin\ContactMessageController;
+use App\Controllers\Admin\AnalyticsController;
 
 class App
 {
@@ -87,7 +88,8 @@ class App
         $r->get('/admin/logout',  [AuthController::class, 'logout']);
 
         // ── Admin dashboard ───────────────────────────────────────────────────
-        $r->get('/admin',         [DashboardController::class, 'index']);
+        $r->get('/admin',                  [DashboardController::class, 'index']);
+        $r->get('/admin/analytics',        [AnalyticsController::class, 'dashboard']);
 
         // ── Admin tags ─────────────────────────────────────────────────────
         $r->get('/admin/tags',             [TagController::class, 'index']);
