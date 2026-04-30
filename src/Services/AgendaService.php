@@ -166,8 +166,8 @@ class AgendaService
 
                 $cross[$jid][$mid] = $part;
 
-                // Skip if participation is empty
-                if (!is_string($part) || $part === '') {
+                // Ne traiter que les participations non-vides
+                if ($part !== '') {
                     $cross[$jid]['nb_participation']++;
 
                     // Non-absence
