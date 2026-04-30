@@ -70,6 +70,10 @@ class AgendaService
                 $sql .= " AND ManifestationTypée LIKE ?";
                 $bindings[] = '%' . $filters['type'] . '%';
             }
+            if (!empty($filters['manifestation'])) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = '% - ' . $filters['manifestation'];
+            }
             if (!empty($filters['this_week'])) {
                 $weekStart = date('Y-m-d', strtotime('Monday this week'));
                 $weekEnd = date('Y-m-d', strtotime('Sunday this week'));
@@ -593,9 +597,25 @@ class AgendaService
                 }
             }
 
+            // Get unique manifestation names (3rd segment after 2nd " - ")
+            $manifestationNames = [];
+            $stmt = $db->query(
+                "SELECT DISTINCT TRIM(SUBSTRING_INDEX(ManifestationTypée, ' - ', -1)) AS manif_name
+                 FROM Manifestation
+                 WHERE id_manifestation > 0 AND Date >= CURDATE()
+                   AND ManifestationTypée LIKE '% - % - %'
+                 ORDER BY manif_name"
+            );
+            while ($row = $stmt->fetch()) {
+                if (!empty($row['manif_name'])) {
+                    $manifestationNames[] = $row['manif_name'];
+                }
+            }
+
             return [
-                'types'     => $types,
-                'locations' => $locations,
+                'types'              => $types,
+                'locations'          => $locations,
+                'manifestationNames' => $manifestationNames,
             ];
         } catch (\Throwable) {
             return ['types' => [], 'locations' => []];
