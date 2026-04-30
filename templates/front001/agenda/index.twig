@@ -58,7 +58,7 @@
                 🏐 {% if terrain_alert %}<span title="Nombre de terrains anormal">⚠️</span>{% endif %} {{ m.nb_terrains }}</div>
 
               {# Barre de statut avec couleur (seulement pour les matchs) #}
-              {% if m.type contains 'Match' %}
+              {% if 'Match' in m.type %}
                 <div class="mt-1 px-1 py-1 rounded {{ stats_color }} border border-gray-300 text-xs font-bold">
                   {% if ok %}✓ Équipe OK{% else %}⚠️ Sous-effectif{% endif %}
                 </div>
