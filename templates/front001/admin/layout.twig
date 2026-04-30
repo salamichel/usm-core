@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Admin{% endblock %} — USM Volley</title>
+  {% set page_title = block('title')|trim %}
+  <title>{{ page_title ?: 'Admin' }} — USM Volley</title>
 
   {# Google Analytics #}
   {% if ga_measurement_id %}
@@ -14,13 +15,16 @@
     gtag('js', new Date());
     gtag('config', '{{ ga_measurement_id }}', {
       'page_path': '{{ current_path }}',
-      'page_title': '{% block title %}Admin{% endblock %}'
+      'page_title': '{{ page_title|default("Admin")|replace({"'": "\'"}) }}'
     });
   </script>
   {% endif %}
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
+  {% block head %}
+    {% block title %}Admin{% endblock %}
+  {% endblock %}
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen">
 
