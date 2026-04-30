@@ -86,12 +86,20 @@
     ul, ol {
       margin-left: 0 !important;
       padding-left: 0 !important;
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    ul {
+      counter-reset: none !important;
     }
     ul li {
-      margin-left: 2rem;
-      padding-left: 0.5rem;
-      padding-top: 0;
-      list-style: none;
+      margin-left: 2rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      padding-left: 0.5rem !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      list-style: none !important;
       position: relative;
     }
     ul li::before {
@@ -103,14 +111,20 @@
     }
     ol {
       counter-reset: custom-counter;
-      margin-left: 0;
-      padding-left: 0;
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
     }
     ol li {
       counter-increment: custom-counter;
-      margin-left: 2rem;
-      padding-left: 0.5rem;
-      list-style: none;
+      margin-left: 2rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      padding-left: 0.5rem !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      list-style: none !important;
       position: relative;
     }
     ol li::before {
