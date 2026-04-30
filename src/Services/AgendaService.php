@@ -180,6 +180,112 @@ class AgendaService
         }
     }
 
+    public static function getParticipationStats(int $manifestationId): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+            $stmt = $db->prepare(
+                "SELECT Participation, COUNT(*) as cnt
+                 FROM Participation
+                 WHERE id_manifestation = ?
+                 GROUP BY Participation"
+            );
+            $stmt->execute([$manifestationId]);
+            $rows = $stmt->fetchAll();
+        } catch (\Throwable) {
+            return ['present' => 0, 'available' => 0, 'unavailable' => 0, 'no_response' => 0, 'total_responses' => 0];
+        }
+
+        $stats = ['present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0, 'absent' => 0, 'unknown' => 0];
+
+        foreach ($rows as $row) {
+            $status = $row['Participation'] ?? '';
+            $count = (int) ($row['cnt'] ?? 0);
+
+            if (strpos($status, 'Sélectionné(e)') !== false) {
+                $stats['selected'] += $count;
+            } elseif (strpos($status, 'Disponible si n') !== false) {
+                $stats['available'] += $count;
+            } elseif (strpos($status, 'Disponible') !== false || strpos($status, 'Joker') !== false) {
+                $stats['available'] += $count;
+            } elseif (strpos($status, 'Indisponible') !== false) {
+                $stats['unavailable'] += $count;
+            } elseif (strpos($status, 'Absent') !== false || strpos($status, 'Non') !== false) {
+                $stats['absent'] += $count;
+            } elseif (strpos($status, 'Oui') !== false || strpos($status, 'Présent') !== false) {
+                $stats['present'] += $count;
+            } elseif (strpos($status, 'Ne sait pas') !== false || strpos($status, '?') !== false) {
+                $stats['unknown'] += $count;
+            }
+        }
+
+        $total_responses = array_sum($stats);
+        $stats['total_responses'] = $total_responses;
+        $stats['enough_players'] = ($stats['present'] + $stats['available'] + $stats['selected']) >= 6;
+
+        return $stats;
+    }
+
+    public static function getParticipationStatsBatch(array $manifestationIds): array
+    {
+        if (empty($manifestationIds)) {
+            return [];
+        }
+
+        try {
+            $db = ExternalDatabase::get();
+            $placeholders = implode(',', array_fill(0, count($manifestationIds), '?'));
+            $stmt = $db->prepare(
+                "SELECT id_manifestation, Participation, COUNT(*) as cnt
+                 FROM Participation
+                 WHERE id_manifestation IN ($placeholders)
+                 GROUP BY id_manifestation, Participation"
+            );
+            $stmt->execute($manifestationIds);
+            $rows = $stmt->fetchAll();
+        } catch (\Throwable) {
+            return array_fill_keys($manifestationIds, ['present' => 0, 'available' => 0, 'unavailable' => 0, 'no_response' => 0, 'total_responses' => 0, 'enough_players' => false]);
+        }
+
+        $result = array_fill_keys($manifestationIds, [
+            'present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0, 'absent' => 0, 'unknown' => 0,
+            'total_responses' => 0, 'enough_players' => false
+        ]);
+
+        foreach ($rows as $row) {
+            $mid = (int) ($row['id_manifestation'] ?? 0);
+            if (!isset($result[$mid])) {
+                $result[$mid] = ['present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0, 'absent' => 0, 'unknown' => 0];
+            }
+
+            $status = $row['Participation'] ?? '';
+            $count = (int) ($row['cnt'] ?? 0);
+
+            if (strpos($status, 'Sélectionné(e)') !== false) {
+                $result[$mid]['selected'] += $count;
+            } elseif (strpos($status, 'Disponible si n') !== false) {
+                $result[$mid]['available'] += $count;
+            } elseif (strpos($status, 'Disponible') !== false || strpos($status, 'Joker') !== false) {
+                $result[$mid]['available'] += $count;
+            } elseif (strpos($status, 'Indisponible') !== false) {
+                $result[$mid]['unavailable'] += $count;
+            } elseif (strpos($status, 'Absent') !== false || strpos($status, 'Non') !== false) {
+                $result[$mid]['absent'] += $count;
+            } elseif (strpos($status, 'Oui') !== false || strpos($status, 'Présent') !== false) {
+                $result[$mid]['present'] += $count;
+            } elseif (strpos($status, 'Ne sait pas') !== false || strpos($status, '?') !== false) {
+                $result[$mid]['unknown'] += $count;
+            }
+        }
+
+        foreach ($result as $mid => &$stats) {
+            $stats['total_responses'] = array_sum([$stats['present'], $stats['available'], $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown']]);
+            $stats['enough_players'] = ($stats['present'] + $stats['available'] + $stats['selected']) >= 6;
+        }
+
+        return $result;
+    }
+
     private static function queryByPattern(string $pattern, int $limit): array
     {
         try {

@@ -47,6 +47,41 @@
         </div>
       {% endif %}
 
+      {# Participation stats #}
+      {% set part = event.participation %}
+      <div class="border-t pt-3">
+        <div class="text-sm font-semibold mb-2">Disponibilités</div>
+
+        {# Progress bar #}
+        {% set total_committed = part.present + part.available + part.selected %}
+        {% set bar_color = part.enough_players ? 'bg-green-500' : 'bg-red-500' %}
+        <div class="w-full bg-gray-300 rounded-full h-2 mb-2 overflow-hidden">
+          <div class="{{ bar_color }} h-full" style="width: {{ (total_committed / 15 * 100)|round }}%"></div>
+        </div>
+
+        {# Stats summary #}
+        <div class="text-xs text-gray-700 space-y-1">
+          {% if part.present > 0 %}
+            <div>✓ <strong>{{ part.present }}</strong> présent(s)</div>
+          {% endif %}
+          {% if part.available > 0 %}
+            <div>◐ <strong>{{ part.available }}</strong> disponible(s)</div>
+          {% endif %}
+          {% if part.selected > 0 %}
+            <div>★ <strong>{{ part.selected }}</strong> sélectionné(s)</div>
+          {% endif %}
+          {% if part.unavailable > 0 %}
+            <div>✗ <strong>{{ part.unavailable }}</strong> indisponible(s)</div>
+          {% endif %}
+        </div>
+
+        {% if part.enough_players %}
+          <div class="text-xs text-green-700 font-bold mt-2">✓ Équipe complète</div>
+        {% else %}
+          <div class="text-xs text-red-700 font-bold mt-2">⚠️ Besoin de joueurs</div>
+        {% endif %}
+      </div>
+
       {% if event.comment %}
         <div class="text-sm italic text-gray-700 border-t pt-2">
           {{ event.comment }}

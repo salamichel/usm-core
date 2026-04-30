@@ -23,6 +23,18 @@ class AgendaController
         $events = AgendaService::getAllManifestations($filters, $offset, self::ITEMS_PER_PAGE);
         $totalCount = AgendaService::countManifestations($filters);
 
+        // Fetch participation stats for all events on this page
+        $eventIds = array_map(fn($e) => $e['id'], $events);
+        $participationStats = AgendaService::getParticipationStatsBatch($eventIds);
+
+        // Merge stats into event objects
+        foreach ($events as &$event) {
+            $event['participation'] = $participationStats[$event['id']] ?? [
+                'present' => 0, 'available' => 0, 'unavailable' => 0, 'selected' => 0,
+                'absent' => 0, 'unknown' => 0, 'total_responses' => 0, 'enough_players' => false
+            ];
+        }
+
         $pagination = new Pagination($totalCount, self::ITEMS_PER_PAGE, $page);
         $availableFilters = AgendaService::getAvailableFilters();
 
@@ -44,6 +56,9 @@ class AgendaController
             $this->notFound();
             return;
         }
+
+        $participationStats = AgendaService::getParticipationStats($id);
+        $event['participation'] = $participationStats;
 
         View::render('agenda/detail.twig', [
             'event' => $event,
