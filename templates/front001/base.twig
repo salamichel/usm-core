@@ -81,6 +81,60 @@
       }
     }
   </script>
+  <style>
+    /* Fix list styles: replace bullet points with volleyball emoji */
+    ul, ol {
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    ul {
+      counter-reset: none !important;
+    }
+    ul li {
+      margin-left: 2rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      padding-left: 0.5rem !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      list-style: none !important;
+      position: relative;
+    }
+    ul li::before {
+      content: '🏐';
+      position: absolute;
+      left: -1.5rem;
+      width: 1.5rem;
+      text-align: center;
+    }
+    ol {
+      counter-reset: custom-counter;
+      margin-left: 0 !important;
+      padding-left: 0 !important;
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    ol li {
+      counter-increment: custom-counter;
+      margin-left: 2rem !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      padding-left: 0.5rem !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      list-style: none !important;
+      position: relative;
+    }
+    ol li::before {
+      content: counter(custom-counter) '.';
+      position: absolute;
+      left: -2rem;
+      width: 1.5rem;
+      text-align: right;
+    }
+  </style>
   {% block head %}{% endblock %}
 </head>
 <body class="bg-amber-50 text-gray-900 min-h-screen flex flex-col">

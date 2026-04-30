@@ -105,6 +105,58 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
+<style>
+  .note-editor .note-editable ul,
+  .note-editor .note-editable ol {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .note-editor .note-editable ul {
+    counter-reset: none !important;
+  }
+  .note-editor .note-editable ul li {
+    margin-left: 2rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-left: 0.5rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    list-style: none !important;
+    position: relative;
+  }
+  .note-editor .note-editable ul li::before {
+    content: '🏐';
+    position: absolute;
+    left: -1.5rem;
+    width: 1.5rem;
+    text-align: center;
+  }
+  .note-editor .note-editable ol {
+    counter-reset: custom-counter;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+  .note-editor .note-editable ol li {
+    counter-increment: custom-counter;
+    margin-left: 2rem !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-left: 0.5rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    list-style: none !important;
+    position: relative;
+  }
+  .note-editor .note-editable ol li::before {
+    content: counter(custom-counter) '.';
+    position: absolute;
+    left: -2rem;
+    width: 1.5rem;
+    text-align: right;
+  }
+</style>
 <script>
   $('#content').summernote({
     height: 300,
