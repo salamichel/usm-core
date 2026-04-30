@@ -96,9 +96,8 @@
     {# Prochains événements du mois #}
     {% set upcomingEvents = [] %}
     {% for date, events in calendar.eventsByDate %}
-      {% if date > calendar.today and events|length > 0 %}
+      {% if date > calendar.today and events|length > 0 and upcomingEvents|length < 2 %}
         {% set upcomingEvents = upcomingEvents|merge(events[:1]) %}
-        {% if upcomingEvents|length >= 2 %}{% break %}{% endif %}
       {% endif %}
     {% endfor %}
 
