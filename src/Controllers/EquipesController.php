@@ -10,6 +10,7 @@ use App\Models\EquipeSaison;
 use App\Models\EquipeSaisonJoueur;
 use App\Models\Photo;
 use App\Models\Saison;
+use App\Services\AgendaService;
 use App\Services\SeoService;
 use App\Services\StructuredDataService;
 use App\ValueObjects\PageMetadata;
@@ -81,6 +82,23 @@ class EquipesController
         $photos  = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
         $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
 
+        // Mini agenda: upcoming matches for this team
+        $miniAgendaEvents = [];
+        $agendaFilterUrl = '';
+        if (!empty($equipe['slug_colonne'])) {
+            $miniAgendaEvents = AgendaService::getUpcomingMatchesForTeam(
+                $equipe['slug_colonne'],
+                MINI_AGENDA_LIMIT,
+                $equipe['manifestation_filter'] ?? null
+            );
+
+            // Build agenda filter URL with team and manifestation filters
+            $agendaFilterUrl = '/agenda?team=' . urlencode($equipe['slug_colonne']);
+            if (!empty($equipe['manifestation_filter'])) {
+                $agendaFilterUrl .= '&manifestation=' . urlencode($equipe['manifestation_filter']);
+            }
+        }
+
         // Autres équipes de la même catégorie
         $otherEquipes = [];
         if ($saison) {
@@ -127,13 +145,15 @@ class EquipesController
         );
 
         View::render('equipes/detail.twig', [
-            'meta'         => $meta,
-            'equipe'       => $equipe,
-            'cover'        => $cover,
-            'photos'       => $photos,
-            'joueurs'      => $joueurs,
-            'saison'       => $saison,
-            'otherEquipes' => $otherEquipes,
+            'meta'              => $meta,
+            'equipe'            => $equipe,
+            'cover'             => $cover,
+            'photos'            => $photos,
+            'joueurs'           => $joueurs,
+            'saison'            => $saison,
+            'otherEquipes'      => $otherEquipes,
+            'mini_agenda_events' => $miniAgendaEvents,
+            'agenda_filter_url' => $agendaFilterUrl,
         ]);
     }
 }

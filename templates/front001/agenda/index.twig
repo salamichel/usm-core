@@ -1,0 +1,333 @@
+{% extends "base.twig" %}
+
+{% block title %}Agenda{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6">
+  <h1 class="text-3xl font-bold mb-6">Agenda — événements à venir</h1>
+
+  {% include 'agenda/filters.twig' %}
+
+  {% if manifestations is empty %}
+    <p class="text-gray-600">Aucun événement à venir.</p>
+  {% else %}
+
+  {# Tableau croisé avec sticky première colonne #}
+  <div class="overflow-x-auto border border-gray-400 rounded" style="max-height:80vh; overflow-y:auto;">
+    <table class="border-collapse text-sm whitespace-nowrap">
+
+      {# ── EN-TÊTE : une colonne par manifestation ── #}
+      <thead class="sticky top-0 z-20 bg-white">
+        <tr>
+          {# Cellule coin haut-gauche #}
+          <th class="sticky left-0 z-30 bg-gradient-to-b from-gray-300 to-gray-200 border-2 border-gray-500 px-3 py-2 text-left font-bold min-w-[160px]">
+            <div class="text-center">👥</div>
+            <div>Joueurs</div>
+          </th>
+
+          {% for mid, m in manifestations %}
+            {% if m.annule %}
+              {% set col_bg = 'bg-red-200' %}
+              {% set col_border = 'border-red-600' %}
+            {% elseif m.provisoire %}
+              {% set col_bg = 'bg-amber-200' %}
+              {% set col_border = 'border-amber-500' %}
+            {% else %}
+              {% set col_bg = loop.index is odd ? 'bg-blue-100' : 'bg-cyan-100' %}
+              {% set col_border = loop.index is odd ? 'border-blue-400' : 'border-cyan-400' %}
+            {% endif %}
+
+            {# Seuil 6 joueurs : vert si au moins une catégorie >= 6 #}
+            {% set ok = (m.nb_present >= 6) or (m.nb_disponible >= 6) or (m.nb_selection >= 6) %}
+            {% set stats_color = ok ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50' %}
+            {% set status_icon = m.annule ? '❌' : (m.provisoire ? '⚠️' : '✅') %}
+
+            <th class="border-2 {{ col_border }} {{ col_bg }} px-2 py-1 text-center font-bold min-w-[130px] align-top relative">
+              {# Icône de statut #}
+              <div class="absolute top-0 right-0 text-base">{{ status_icon }}</div>
+
+              <div class="font-bold text-xs text-gray-800">{{ m.type }}</div>
+              <div class="font-semibold text-xs text-gray-700 border-b border-gray-400 pb-0 mb-0">{{ m.titre }}</div>
+              <div class="text-xs text-gray-600 leading-tight">{{ m.date_display }}</div>
+              <div class="text-xs text-gray-600 leading-tight">{{ m.time_range }}</div>
+              <div class="text-xs font-medium text-gray-700 leading-tight">📍 {{ m.lieu|slice(0,14) }}</div>
+
+              {# Alerte terrains : warning si nb_terrains n'est pas 0, 1 ou "." #}
+              {% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
+              <div class="text-xs font-medium leading-tight {% if terrain_alert %}text-red-700 font-bold{% else %}text-gray-700{% endif %}">
+                🏐 {% if terrain_alert %}<span title="Nombre de terrains anormal">⚠️</span>{% endif %} {{ m.nb_terrains }}</div>
+
+              {# Barre de statut avec couleur (seulement pour les matchs) #}
+              {% if 'Match' in m.type %}
+                <div class="mt-1 px-1 py-1 rounded {{ stats_color }} border border-gray-300 text-xs font-bold">
+                  {% if ok %}✓ Équipe OK{% else %}⚠️ Sous-effectif{% endif %}
+                </div>
+              {% endif %}
+
+              {# Stats détaillées en toutes lettres #}
+              <div class="mt-1 text-xs leading-tight">
+                {% if m.nb_selection > 0 %}<div class="text-amber-700 font-bold">⭐ {{ m.nb_selection }} sélectionné(s)</div>{% endif %}
+                {% if m.nb_present > 0 %}<div class="text-green-700 font-semibold">✅ {{ m.nb_present }} présent(s)</div>{% endif %}
+                {% if m.nb_disponible > 0 %}<div class="text-blue-700">👍 {{ m.nb_disponible }} disponible(s)</div>{% endif %}
+                {% if m.nb_disponible_si_necessaire > 0 %}<div class="text-blue-600">👋 {{ m.nb_disponible_si_necessaire }} dispo si néc.</div>{% endif %}
+                {% if m.nb_indisponible > 0 %}<div class="text-red-700">👎 {{ m.nb_indisponible }} indisponible(s)</div>{% endif %}
+                {% if m.nb_absent > 0 %}<div class="text-red-700">❌ {{ m.nb_absent }} absent(s)</div>{% endif %}
+                {% if m.nb_ne_sait_pas > 0 %}<div class="text-orange-700">❓ {{ m.nb_ne_sait_pas }} ne sait pas</div>{% endif %}
+                {% if m.nb_pas_de_reponse > 0 %}<div class="text-purple-700">😞 {{ m.nb_pas_de_reponse }} sans réponse</div>{% endif %}
+              </div>
+
+              {% if m.commentaire %}
+                <div class="text-xs italic bg-yellow-50 border-l-2 border-yellow-400 px-1 py-1 mt-1 text-gray-700">ℹ️ {{ m.commentaire|slice(0,25) }}</div>
+              {% endif %}
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+
+      {# ── LIGNES : un joueur par ligne ── #}
+      <tbody>
+        {% for jid, nom in joueurs %}
+          {% set row = cross[jid] %}
+
+          {# Alerte joueur : pas tout rempli ou "ne sait pas encore" proche #}
+          {% set nb_manif = manifestations|length %}
+          {% set alerte = (row.nb_participation < nb_manif) or (row.nb_ne_sait_pas_proche > 0) or (row.nb_ne_sait_pas > 3) %}
+
+          <tr class="{{ loop.index is odd ? 'bg-white' : 'bg-gray-50' }} hover:bg-yellow-50">
+
+            {# Nom joueur — sticky gauche #}
+            <td class="sticky left-0 z-10 border-2 border-gray-400 px-2 py-1 font-semibold bg-gradient-to-r from-gray-200 to-gray-100 min-w-[160px]">
+              {# Smiley avec 3 niveaux selon l'alerte #}
+              {% if row.nb_participation < nb_manif %}
+                <span class="text-xl" title="Participation incomplète">😒</span>
+              {% elseif row.nb_ne_sait_pas > 3 %}
+                <span class="text-xl" title="Trop d'hésitations">😕</span>
+              {% elseif row.nb_ne_sait_pas_proche > 0 %}
+                <span class="text-xl" title="Réponse attendue bientôt">🤔</span>
+              {% else %}
+                <span class="text-xl" title="Participation complète">😊</span>
+              {% endif %}
+              <span class="ml-1 text-xs">{{ nom }}</span>
+            </td>
+
+            {# Cellule par manifestation #}
+            {% for mid, m in manifestations %}
+              {% set part = row[mid] ?? '' %}
+
+              {# Parser le statut de participation #}
+              {% set is_selected = part matches '/Sélectionné/' %}
+              {% set is_present = part matches '/(Présent|Oui)/' %}
+              {% set is_available_if_needed = part matches '/Disponible si n/' %}
+              {% set is_available = part matches '/(Disponible|Joker)/' and not is_available_if_needed %}
+              {% set is_unavailable = part matches '/Indisponible/' %}
+              {% set is_absent = part matches '/(Absent|Non)/' %}
+              {% set is_unknown = part matches '/(Ne sait pas|\\?)/' %}
+
+              {# Couleur de fond et bordure de la cellule #}
+              {% if is_selected %}
+                {% set cell_bg = 'bg-amber-300 border-l-4 border-amber-600' %}
+                {% set text_color = 'text-amber-900' %}
+              {% elseif is_present %}
+                {% set cell_bg = 'bg-green-200 border-l-4 border-green-600' %}
+                {% set text_color = 'text-green-900' %}
+              {% elseif is_available %}
+                {% set cell_bg = 'bg-blue-200 border-l-4 border-blue-500' %}
+                {% set text_color = 'text-blue-900' %}
+              {% elseif is_available_if_needed %}
+                {% set cell_bg = 'bg-cyan-200 border-l-4 border-cyan-500' %}
+                {% set text_color = 'text-cyan-900' %}
+              {% elseif is_unavailable %}
+                {% set cell_bg = 'bg-red-200 border-l-4 border-red-600' %}
+                {% set text_color = 'text-red-900' %}
+              {% elseif is_absent %}
+                {% set cell_bg = 'bg-red-300 border-l-4 border-red-700' %}
+                {% set text_color = 'text-red-950 font-bold' %}
+              {% elseif is_unknown %}
+                {% set cell_bg = 'bg-orange-200 border-l-4 border-orange-500' %}
+                {% set text_color = 'text-orange-900' %}
+              {% else %}
+                {% set cell_bg = 'bg-gray-200 border-l-4 border-gray-400' %}
+                {% set text_color = 'text-gray-600' %}
+              {% endif %}
+
+              {# Appliquer la couleur de fond du type de manifestation par-dessus #}
+              {% if m.annule %}
+                {% set cell_bg = 'bg-red-400 border-l-4 border-red-700' %}
+                {% set text_color = 'text-red-900 font-bold' %}
+              {% elseif m.provisoire %}
+                {% set cell_bg = 'bg-amber-300 border-l-4 border-amber-600' %}
+                {% set text_color = 'text-amber-900 font-semibold' %}
+              {% endif %}
+
+              {# Icône + libellé selon statut #}
+              {% set is_no_response = not is_selected and not is_present and not is_available_if_needed and not is_available and not is_unavailable and not is_absent and not is_unknown %}
+
+              {% if is_selected %}
+                {% set icone = '⭐' %}
+                {% set libelle = 'Sél.' %}
+                {% set special_style = '' %}
+              {% elseif is_present %}
+                {% set icone = '✅' %}
+                {% set libelle = 'Prés.' %}
+                {% set special_style = '' %}
+              {% elseif is_available_if_needed %}
+                {% set icone = '👋' %}
+                {% set libelle = 'Si néc.' %}
+                {% set special_style = '' %}
+              {% elseif is_available %}
+                {% set icone = '👍' %}
+                {% set libelle = 'Dispo' %}
+                {% set special_style = '' %}
+              {% elseif is_unavailable %}
+                {% set icone = '👎' %}
+                {% set libelle = 'Indispo' %}
+                {% set special_style = '' %}
+              {% elseif is_absent %}
+                {% set icone = '❌' %}
+                {% set libelle = 'Absent' %}
+                {% set special_style = '' %}
+              {% elseif is_unknown %}
+                {% set icone = '❓' %}
+                {% set libelle = '?' %}
+                {% set special_style = '' %}
+              {% else %}
+                {# Sans réponse - pas de couleur spéciale #}
+                {% set icone = '😞' %}
+                {% set libelle = 'S.R.' %}
+                {% set special_style = '' %}
+              {% endif %}
+
+              <td class="border border-gray-300 px-2 py-1 text-center font-semibold {% if special_style %}{{ special_style }}{% else %}{{ cell_bg }}{% endif %}" title="{{ part }}">
+                <span class="text-sm">{{ icone }}</span> <span class="text-xs {% if special_style %}font-bold{% else %}{{ text_color }}{% endif %}">{{ libelle }}</span>
+              </td>
+            {% endfor %}
+
+          </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+  </div>
+
+  {# Légende #}
+  <div class="mt-8 space-y-4">
+    <h2 class="text-lg font-bold text-gray-800">Légende</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div class="flex items-center gap-2 bg-green-200 px-3 py-2 rounded border-l-4 border-green-600">
+        <span class="text-xl">✅</span>
+        <div>
+          <div class="text-xs font-bold text-green-900">Présent</div>
+          <div class="text-xs text-green-700">Confirmé</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-amber-300 px-3 py-2 rounded border-l-4 border-amber-600">
+        <span class="text-xl">⭐</span>
+        <div>
+          <div class="text-xs font-bold text-amber-900">Sélectionné</div>
+          <div class="text-xs text-amber-700">Important</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-blue-200 px-3 py-2 rounded border-l-4 border-blue-500">
+        <span class="text-xl">👍</span>
+        <div>
+          <div class="text-xs font-bold text-blue-900">Disponible</div>
+          <div class="text-xs text-blue-700">En réserve</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-cyan-200 px-3 py-2 rounded border-l-4 border-cyan-500">
+        <span class="text-xl">👋</span>
+        <div>
+          <div class="text-xs font-bold text-cyan-900">Si nécessaire</div>
+          <div class="text-xs text-cyan-700">En dernier recours</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-red-200 px-3 py-2 rounded border-l-4 border-red-600">
+        <span class="text-xl">👎</span>
+        <div>
+          <div class="text-xs font-bold text-red-900">Indisponible</div>
+          <div class="text-xs text-red-700">Empêchement</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-red-300 px-3 py-2 rounded border-l-4 border-red-700">
+        <span class="text-xl">❌</span>
+        <div>
+          <div class="text-xs font-bold text-red-950">Absent</div>
+          <div class="text-xs text-red-800">Confirmé</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-orange-200 px-3 py-2 rounded border-l-4 border-orange-500">
+        <span class="text-xl">❓</span>
+        <div>
+          <div class="text-xs font-bold text-orange-900">Ne sait pas</div>
+          <div class="text-xs text-orange-700">À confirmer</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-gray-200 px-3 py-2 rounded border-l-4 border-gray-400">
+        <span class="text-xl">😞</span>
+        <div>
+          <div class="text-xs font-bold text-gray-700">Sans réponse</div>
+          <div class="text-xs text-gray-600">À remplir</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 pt-4 border-t-2 border-gray-300">
+      <h3 class="font-bold text-gray-800 mb-3">État des joueurs (smileys)</h3>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        <div class="text-center">
+          <div class="text-2xl">😊</div>
+          <div class="text-xs text-gray-700">Complet</div>
+          <div class="text-xs text-gray-500">Tout rempli</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl">🤔</div>
+          <div class="text-xs text-gray-700">En attente</div>
+          <div class="text-xs text-gray-500">Réponse < 3j</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl">😕</div>
+          <div class="text-xs text-gray-700">Hésitant</div>
+          <div class="text-xs text-gray-500">> 3 "?"</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl">😒</div>
+          <div class="text-xs text-gray-700">Incomplet</div>
+          <div class="text-xs text-gray-500">Manque réponse</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 pt-4 border-t-2 border-gray-300 space-y-2">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">✓</span>
+        <span class="text-xs text-gray-700"><strong>En-tête vert :</strong> Au moins 6 joueurs dans Présents OU Disponibles OU Sélectionnés</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg">⚠️</span>
+        <span class="text-xs text-gray-700"><strong>En-tête rouge :</strong> Moins de 6 joueurs dans toutes les catégories (sous-effectif)</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg">⚠️</span>
+        <span class="text-xs text-gray-700"><strong>Alerte terrains :</strong> Nombre de terrains anormal (pas 0, 1 ou ".")</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-lg" style="background: rgb(244 63 94); color: white; padding: 0 4px; border-radius: 2px;">😞</span>
+        <span class="text-xs text-gray-700"><strong>Cellule rouge :</strong> Pas de réponse du joueur pour cet événement</span>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <div class="mt-8">
+    <a href="/" class="text-amber-600 hover:underline">← Retour à l'accueil</a>
+  </div>
+</div>
+{% endblock %}

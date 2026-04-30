@@ -30,6 +30,13 @@
                placeholder="Loisir 1" required>
       </div>
       <div>
+        <label class="block font-black mb-1 text-sm" for="slug">Slug SEO</label>
+        <input id="slug" name="slug" type="text"
+               value="{{ equipe.slug ?? '' }}"
+               class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+               placeholder="loisir-1">
+      </div>
+      <div>
         <label class="block font-black mb-1 text-sm" for="categorie">Catégorie</label>
         <input id="categorie" name="categorie" type="text"
                value="{{ equipe.categorie ?? '' }}"
@@ -43,6 +50,29 @@
                class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
       </div>
     </div>
+
+    {# Agenda Filter Mapping #}
+    <fieldset class="border-2 border-gray-300 p-4 mb-4 rounded">
+      <legend class="font-black text-sm px-2">Filtres Agenda</legend>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black mb-1 text-sm" for="team_filter">Code équipe (Team Filter)</label>
+          <input id="team_filter" name="team_filter" type="text"
+                 value="{{ equipe.team_filter ?? equipe.slug_colonne ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="Ex: Eq_L2">
+          <p class="text-xs text-gray-600 mt-1">Code équipe pour filtrer l'agenda (auto-rempli depuis colonne DB)</p>
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="manifestation_filter">Filtre manifestation</label>
+          <input id="manifestation_filter" name="manifestation_filter" type="text"
+                 value="{{ equipe.manifestation_filter ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="Ex: Match L2">
+          <p class="text-xs text-gray-600 mt-1">Filtre supplémentaire pour l'agenda (optionnel)</p>
+        </div>
+      </div>
+    </fieldset>
     <label class="flex items-center gap-2 mb-4 cursor-pointer">
       <input type="checkbox" name="is_active" value="1"
              {% if equipe is null or equipe.is_active %}checked{% endif %}
