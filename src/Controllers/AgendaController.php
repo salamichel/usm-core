@@ -11,8 +11,19 @@ class AgendaController
 {
     use NotFoundHandler;
 
-    private const ITEMS_PER_PAGE = 20;
-
+    /**
+     * Display the agenda cross-table (players × events with participation).
+     *
+     * Supports filtering by team, type, manifestation, location, and special filters
+     * (this_week, hide_empty_players). All filters are optional and applied server-side.
+     *
+     * Template variables:
+     * - joueurs: Associative array (id_joueur => "Nom Prénom")
+     * - manifestations: Associative array of events with stats
+     * - cross: Cross-table (id_joueur => {id_manifestation => status_string})
+     * - filters: Applied filters (subset of available filters)
+     * - filterOptions: All available filter options (for dropdown rendering)
+     */
     public function index(array $params): void
     {
         $filters = $this->extractFilters();
@@ -27,6 +38,15 @@ class AgendaController
         ]);
     }
 
+    /**
+     * Display detailed view of a single event.
+     *
+     * Shows full event details including participation breakdown and statistics.
+     * If event not found, renders 404 page.
+     *
+     * Template variables:
+     * - event: Full event object including participation stats
+     */
     public function show(array $params): void
     {
         $id = (int) ($params['id'] ?? 0);
@@ -45,36 +65,37 @@ class AgendaController
         ]);
     }
 
+    /**
+     * Extract and validate filters from $_GET parameters.
+     *
+     * String filters (location, type, manifestation, team) are:
+     * - Only included if non-empty and not equal to "Tous"
+     * - Cast to string for safety
+     *
+     * Boolean filters (hide_empty_players, hide_absent_unavailable, this_week) are:
+     * - Included as true if their key exists in $_GET
+     *
+     * Invalid or "Tous" values are silently dropped, so the returned
+     * array only contains active filters.
+     *
+     * @return array Associative array of active filters
+     */
     private function extractFilters(): array
     {
         $filters = [];
 
-        if (!empty($_GET['location']) && $_GET['location'] !== 'Tous') {
-            $filters['location'] = (string) $_GET['location'];
+        // String filters: only include if non-empty and not "Tous"
+        foreach (['location', 'type', 'manifestation', 'team'] as $key) {
+            if (!empty($_GET[$key]) && $_GET[$key] !== 'Tous') {
+                $filters[$key] = (string) $_GET[$key];
+            }
         }
 
-        if (!empty($_GET['type']) && $_GET['type'] !== 'Tous') {
-            $filters['type'] = (string) $_GET['type'];
-        }
-
-        if (!empty($_GET['manifestation']) && $_GET['manifestation'] !== 'Tous') {
-            $filters['manifestation'] = (string) $_GET['manifestation'];
-        }
-
-        if (!empty($_GET['team']) && $_GET['team'] !== 'Tous') {
-            $filters['team'] = (string) $_GET['team'];
-        }
-
-        if (!empty($_GET['hide_empty_players'])) {
-            $filters['hide_empty_players'] = true;
-        }
-
-        if (!empty($_GET['hide_absent_unavailable'])) {
-            $filters['hide_absent_unavailable'] = true;
-        }
-
-        if (!empty($_GET['this_week'])) {
-            $filters['this_week'] = true;
+        // Boolean filters: include as true if key exists
+        foreach (['hide_empty_players', 'hide_absent_unavailable', 'this_week'] as $key) {
+            if (!empty($_GET[$key])) {
+                $filters[$key] = true;
+            }
         }
 
         return $filters;
