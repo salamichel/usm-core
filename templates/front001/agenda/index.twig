@@ -58,24 +58,24 @@
                 🏐 {% if terrain_alert %}<span title="Nombre de terrains anormal">⚠️</span>{% endif %} {{ m.nb_terrains }}</div>
 
               {# Barre de statut avec couleur #}
-              <div class="mt-1 px-1 py-0 rounded {{ stats_color }} border border-gray-300 text-xs font-bold leading-tight">
-                {% if ok %}✓ OK{% else %}⚠️ - 6{% endif %}
+              <div class="mt-1 px-1 py-1 rounded {{ stats_color }} border border-gray-300 text-xs font-bold">
+                {% if ok %}✓ Équipe OK{% else %}⚠️ Sous-effectif{% endif %}
               </div>
 
-              {# Stats détaillées #}
-              <div class="mt-1 text-xs space-y-0 leading-tight">
-                {% if m.nb_selection > 0 %}<div class="text-amber-700 font-bold text-xs">⭐ {{ m.nb_selection }}</div>{% endif %}
-                {% if m.nb_present > 0 %}<div class="text-green-700 font-semibold text-xs">✅ {{ m.nb_present }}</div>{% endif %}
-                {% if m.nb_disponible > 0 %}<div class="text-blue-700 text-xs">👍 {{ m.nb_disponible }}</div>{% endif %}
-                {% if m.nb_disponible_si_necessaire > 0 %}<div class="text-blue-600 text-xs">👋 {{ m.nb_disponible_si_necessaire }}</div>{% endif %}
-                {% if m.nb_indisponible > 0 %}<div class="text-red-700 text-xs">👎 {{ m.nb_indisponible }}</div>{% endif %}
-                {% if m.nb_absent > 0 %}<div class="text-red-700 text-xs">❌ {{ m.nb_absent }}</div>{% endif %}
-                {% if m.nb_ne_sait_pas > 0 %}<div class="text-orange-700 text-xs">❓ {{ m.nb_ne_sait_pas }}</div>{% endif %}
-                {% if m.nb_pas_de_reponse > 0 %}<div class="text-purple-700 text-xs">😞 {{ m.nb_pas_de_reponse }}</div>{% endif %}
+              {# Stats détaillées en toutes lettres #}
+              <div class="mt-1 text-xs leading-tight">
+                {% if m.nb_selection > 0 %}<div class="text-amber-700 font-bold">⭐ {{ m.nb_selection }} sélectionné(s)</div>{% endif %}
+                {% if m.nb_present > 0 %}<div class="text-green-700 font-semibold">✅ {{ m.nb_present }} présent(s)</div>{% endif %}
+                {% if m.nb_disponible > 0 %}<div class="text-blue-700">👍 {{ m.nb_disponible }} disponible(s)</div>{% endif %}
+                {% if m.nb_disponible_si_necessaire > 0 %}<div class="text-blue-600">👋 {{ m.nb_disponible_si_necessaire }} dispo si néc.</div>{% endif %}
+                {% if m.nb_indisponible > 0 %}<div class="text-red-700">👎 {{ m.nb_indisponible }} indisponible(s)</div>{% endif %}
+                {% if m.nb_absent > 0 %}<div class="text-red-700">❌ {{ m.nb_absent }} absent(s)</div>{% endif %}
+                {% if m.nb_ne_sait_pas > 0 %}<div class="text-orange-700">❓ {{ m.nb_ne_sait_pas }} ne sait pas</div>{% endif %}
+                {% if m.nb_pas_de_reponse > 0 %}<div class="text-purple-700">😞 {{ m.nb_pas_de_reponse }} sans réponse</div>{% endif %}
               </div>
 
               {% if m.commentaire %}
-                <div class="text-xs italic bg-yellow-50 border-l-2 border-yellow-400 px-1 py-0 mt-1 text-gray-700">ℹ️ {{ m.commentaire|slice(0,18) }}</div>
+                <div class="text-xs italic bg-yellow-50 border-l-2 border-yellow-400 px-1 py-1 mt-1 text-gray-700">ℹ️ {{ m.commentaire|slice(0,25) }}</div>
               {% endif %}
             </th>
           {% endfor %}
