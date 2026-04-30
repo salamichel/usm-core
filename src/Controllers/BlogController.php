@@ -106,7 +106,7 @@ class BlogController
         $tags = Tag::findByPost($post['id']);
         $allPhotos = Photo::forEntity('post', $post['id']);
         // Exclure la photo de couverture de la galerie
-        $photos = array_filter($allPhotos, fn($p) => $post['cover'] === null || $p['id'] !== $post['cover']['id']);
+        $photos = array_values(array_filter($allPhotos, fn($p) => $post['cover'] === null || $p['id'] !== $post['cover']['id']));
 
         // SEO metadata
         $ogImage = SeoService::pickOgImage(null, $photos);
