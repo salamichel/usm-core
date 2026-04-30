@@ -107,7 +107,7 @@
               {% else %}
                 <span class="text-xl" title="Participation complète">😊</span>
               {% endif %}
-              <span class="ml-1 text-xs">{{ nom }}</span>
+              <span class="ml-1 text-xs" title="{{ nom }}">{{ nom|slice(0, 3)|upper }}</span>
             </td>
 
             {# Cellule par manifestation #}
