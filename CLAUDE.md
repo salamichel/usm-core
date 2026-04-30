@@ -53,6 +53,7 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 │   │   ├── Contact.php        ← messages de contact (create, find, all, updateStatus, delete)
 │   │   └── ContactReply.php   ← réponses aux contacts
 │   ├── Controllers/
+│   │   ├── AgendaController.php      ← /agenda (crosstable) + /agenda/{id} (détail)
 │   │   ├── HomeController.php, BlogController.php, PageController.php
 │   │   ├── ContactController.php       ← formulaire public /contact
 │   │   ├── EquipesController.php  ← /equipes + /equipes/{id}
@@ -63,8 +64,10 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 │   │       ├── SaisonController.php       ← admin saisons + flash
 │   │       ├── EquipeConfigController.php ← admin équipes + photos + joueurs
 │   │       └── ContactAdminController.php ← gestion messages de contact
+│   ├── Helpers/
+│   │   └── ParticipationStatus.php  ← parsing centralisé des statuts de participation
 │   └── Services/
-│       ├── AgendaService.php  ← lit Manifestation via ExternalDatabase
+│       ├── AgendaService.php  ← crosstable, stats participation, manifestations
 │       ├── BrevoService.php   ← emails via API Brevo
 │       ├── Validator.php      ← validation centralisée
 │       ├── Logger.php         ← logging multi-canal
@@ -81,6 +84,11 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 └── templates/front001/
     ├── base.twig, home.twig, 404.twig, _gallery.twig
     ├── blog/, pages/, documents/
+    ├── agenda/
+    │   ├── index.twig         ← tableau croisé joueurs × manifestations
+    │   ├── detail.twig        ← détail manifestation + participation
+    │   ├── filters.twig       ← formulaire filtres (équipe, type, lieu, etc.)
+    │   └── _macros.twig       ← macros réutilisables (filtres, stats, cellules)
     ├── equipes/
     │   ├── index.twig   ← cards groupées par catégorie (saison active)
     │   └── detail.twig  ← galerie + liste joueurs
@@ -210,18 +218,100 @@ Ajustements post-flash : `/admin/equipes-config/{id}/saisons/{sid}/joueurs`
 
 ---
 
-## AgendaService
+## Agenda (Manifestations)
 
-Lit la table `Manifestation` de la base externe via `ExternalDatabase::get()`.
-`getUpcomingMatches(int $limit)` et `getUpcomingTrainings(int $limit)` renvoient
-un tableau d'événements normalisés :
+### Vue d'ensemble
 
+Affiche les événements (matchs et entraînements) avec participation des joueurs en temps réel.
+Lit la table `Manifestation` et `Participation` de la base externe via `ExternalDatabase::get()`.
+
+Routes :
+- `GET /agenda` — tableau croisé (joueurs × événements) avec filtres
+- `GET /agenda/{id}` — détail d'un événement + stats de participation
+
+### AgendaService
+
+Service métier pour la gestion de l'agenda :
+
+**Méthodes principales** :
+- `getCrossTable(array $filters = [])` — crosstable joueurs × manifestations
+  - Retourne : `joueurs`, `manifestations`, `cross` (matrix participation)
+  - Filtres supportés : `team`, `location`, `type`, `manifestation`, `this_week`, `hide_empty_players`
+  
+- `getParticipationStats(int $manifestationId)` — stats participation pour UN événement
+  - Retourne : counts par catégorie + `enough_players` (bool : >= 6 joueurs dispo)
+  
+- `getParticipationStatsBatch(array $manifestationIds)` — stats en batch (évite N+1)
+  
+- `getFilterOptions()` — options pour les dropdowns filtres
+  - Types (Match, Entraînement, etc.)
+  - Locations (Lieu)
+  - ManifestationNames (segment 3 de ManifestationTypée)
+  - Teams (depuis Mots_clef où Catégorie='EquipeParEquipe')
+
+**Événements rapides** :
+- `getUpcomingMatches(int $limit = 5)` — matchs à venir
+- `getUpcomingTrainings(int $limit = 5)` — entraînements à venir
+
+### ParticipationStatus (Helper)
+
+Centralise le parsing des statuts de participation. Élimine duplication across 3 services methods.
+
+**Catégories** :
+- `present` — "Présent", "Oui"
+- `available` — "Disponible", "Joker", "Disponible si nécessaire"
+- `unavailable` — "Indisponible"
+- `absent` — "Absent", "Non"
+- `selected` — "Sélectionné(e)"
+- `unknown` — "Ne sait pas encore", "?"
+- `no_response` — vide
+
+**API** :
+```php
+use App\Helpers\ParticipationStatus;
+
+$status = new ParticipationStatus($dbValue);
+$status->getCategory();        // → 'present', 'available', etc.
+$status->isPresent();          // → bool
+$status->getCompanionCount();  // → int (0-4 pour accompagnants)
+$status->getIcon();            // → '✓', '◐', '✗', etc.
+$status->getBackgroundColor(); // → 'bg-green-100', etc.
 ```
-title, date_display (fr : "Ven 24 Avr"), time_display (HH:MM),
-location, comment, status, is_soon (bool : dans les 3 jours)
+
+### Règle métier : "Équipe OK"
+
+Un événement a **assez de joueurs** si :
+```
+(présents + disponibles + sélectionnés) >= 6
 ```
 
-En cas d'échec de connexion à la base externe, retourne `[]` silencieusement.
+Affichage : "✓ Équipe OK" (vert) ou "⚠️ Sous-effectif" (rouge)
+
+**Important** : Ce statut s'affiche **uniquement pour les matchs**, pas les entraînements.
+
+### Filtres agenda
+
+Implémentés via `extractFilters()` en AgendaController.
+
+| Filtre | Type | Effet |
+|--------|------|-------|
+| `team` | string | Restreint joueurs à une équipe |
+| `type` | string | Filtre événements par type (Match, Entraînement, etc.) |
+| `location` | string | Filtre par Lieu |
+| `manifestation` | string | Filtre par nom d'événement (segment 3) |
+| `this_week` | bool | Seulement événements cette semaine (Lun-Dim) |
+| `hide_empty_players` | bool | Masque joueurs sans participation |
+
+Les filtres "Tous" sont ignorés et supprimés du tableau retourné.
+
+### Templates et Macros
+
+**_macros.twig** fournit 5 macros réutilisables :
+- `render_filter_dropdown()` — sélecteur filtre
+- `render_filter_checkbox()` — case à cocher filtre
+- `render_participation_cell()` — badge statut participation (icon + label + couleur)
+- `render_stats_row()` — ligne table stats (icône, label, count)
+- `render_participation_badge()` — badge viabilité événement
 
 ---
 
