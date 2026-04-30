@@ -189,8 +189,7 @@ Toutes les dépendances (`vendor/`) sont versionnées dans le repository.
 **Processus de déploiement** :
 1. Pousser les changements vers le remote
 2. FTP sur le serveur InfinityFree
-3. Copier les fichiers (sauf `.git`)
-4. Configurer les variables d'environnement
+3. Configurer les variables d'environnement
 
 ## 📝 Contribution
 
