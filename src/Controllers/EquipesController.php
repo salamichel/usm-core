@@ -11,6 +11,7 @@ use App\Models\EquipeSaisonJoueur;
 use App\Models\Photo;
 use App\Models\Saison;
 use App\Services\AgendaService;
+use App\Services\CalendarWidgetService;
 use App\Services\SeoService;
 use App\Services\StructuredDataService;
 use App\ValueObjects\PageMetadata;
@@ -61,9 +62,10 @@ class EquipesController
         );
 
         View::render('equipes/index.twig', [
-            'meta'   => $meta,
-            'grouped' => $result,
-            'saison' => $saison,
+            'meta'     => $meta,
+            'grouped'  => $result,
+            'saison'   => $saison,
+            'calendar' => CalendarWidgetService::getCalendarData(),
         ]);
     }
 
@@ -154,6 +156,7 @@ class EquipesController
             'otherEquipes'      => $otherEquipes,
             'mini_agenda_events' => $miniAgendaEvents,
             'agenda_filter_url' => $agendaFilterUrl,
+            'calendar'          => CalendarWidgetService::getCalendarData(),
         ]);
     }
 }

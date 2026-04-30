@@ -84,6 +84,13 @@
   </section>
   {% endif %}
 
+  {# Calendrier widget #}
+  {% if calendar %}
+  <section class="mt-12 mb-12 flex justify-center">
+    {% include '_calendar_widget.twig' %}
+  </section>
+  {% endif %}
+
   {# Galerie des autres photos #}
   {{ components.gallery(photos) }}
 

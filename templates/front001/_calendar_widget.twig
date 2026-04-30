@@ -1,0 +1,94 @@
+<div class="calendar-widget border-4 border-black bg-white shadow-[4px_4px_0_#000] inline-block">
+  {# Titre du mois #}
+  <div class="border-b-4 border-black px-4 py-3 bg-gray-100">
+    <h3 class="text-center font-black text-lg">{{ calendar.monthName|upper }} {{ calendar.year }}</h3>
+  </div>
+
+  {# Tableau du calendrier #}
+  <table class="w-full text-xs border-collapse">
+    {# En-têtes jours #}
+    <thead>
+      <tr>
+        {% for dayName in calendar.dayHeaders %}
+          <th class="border-b-2 border-gray-300 px-2 py-1 text-center font-bold text-gray-700 w-8">
+            {{ dayName }}
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+
+    {# Corps du calendrier #}
+    <tbody>
+      {% for week in calendar.weeks %}
+        <tr>
+          {% for day in week %}
+            <td class="border border-gray-300 h-12 align-top relative cursor-pointer hover:bg-gray-50 transition"
+                {% if day %}
+                  data-date="{{ day.date }}"
+                  data-events="{{ calendar.eventsByDate[day.date]|length }}"
+                {% endif %}>
+              {% if day %}
+                {# Jour actuel : surlignage spécial #}
+                {% if day.isToday %}
+                  <div class="absolute inset-0 bg-blue-200 border-2 border-blue-600"></div>
+                {% endif %}
+
+                {# Jour avec événements : point indicateur #}
+                {% if calendar.eventsByDate[day.date]|length > 0 %}
+                  <div class="absolute top-0 right-0 w-2 h-2 bg-red-600 rounded-full"></div>
+                {% endif %}
+
+                <div class="relative z-10 p-1 text-right">
+                  <span class="font-bold text-gray-800">{{ day.day }}</span>
+                </div>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {# Légende et événements actuels #}
+  <div class="border-t-4 border-black px-4 py-3 bg-gray-50 text-xs">
+    <div class="mb-2 pb-2 border-b border-gray-300">
+      <div class="flex items-center gap-2 text-gray-600">
+        <span class="inline-block w-3 h-3 bg-blue-200 border-2 border-blue-600"></span>
+        <span>Aujourd'hui</span>
+      </div>
+      <div class="flex items-center gap-2 text-gray-600 mt-1">
+        <span class="inline-block w-2 h-2 bg-red-600 rounded-full"></span>
+        <span>Avec événement</span>
+      </div>
+    </div>
+
+    {# Afficher les événements d'aujourd'hui ou du jour sélectionné #}
+    {% set todayEvents = calendar.eventsByDate[calendar.today]|default([]) %}
+    {% if todayEvents|length > 0 %}
+      <div class="mt-2">
+        <p class="font-bold text-gray-700 mb-1">Aujourd'hui :</p>
+        {% for event in todayEvents %}
+          <div class="py-1 text-gray-700">
+            {% if event.time %}
+              <span class="font-semibold">{{ event.time }}</span>
+              —
+            {% endif %}
+            <span>{{ event.title }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .calendar-widget table td {
+    @apply transition-colors;
+  }
+  .calendar-widget table td[data-events="0"]:hover {
+    @apply bg-gray-50;
+  }
+  .calendar-widget table td[data-events="0"]:active {
+    @apply bg-gray-100;
+  }
+</style>

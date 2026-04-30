@@ -12,8 +12,9 @@
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}
 
-  {# Tableau croisé avec sticky première colonne #}
-  <div class="overflow-x-auto border border-gray-400 rounded" style="max-height:80vh; overflow-y:auto;">
+  <div class="flex gap-6 mb-8">
+    {# Tableau croisé avec sticky première colonne #}
+    <div class="flex-1 overflow-x-auto border border-gray-400 rounded" style="max-height:80vh; overflow-y:auto;">
     <table class="border-collapse text-sm whitespace-nowrap">
 
       {# ── EN-TÊTE : une colonne par manifestation ── #}
@@ -210,6 +211,14 @@
       </tbody>
 
     </table>
+    </div>
+
+    {# Calendrier widget #}
+    {% if calendar %}
+    <div class="flex-shrink-0">
+      {% include '_calendar_widget.twig' %}
+    </div>
+    {% endif %}
   </div>
 
   {# Légende #}
