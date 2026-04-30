@@ -34,10 +34,18 @@ class AgendaService
     {
         try {
             $db = ExternalDatabase::get();
+            if (!$db) {
+                error_log('getCrossTable: ExternalDatabase::get() returned null');
+                return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+            }
 
             // 1. Joueurs triés par nom
             $joueurs = [];
             $stmt = $db->query("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 ORDER BY Nom");
+            if (!$stmt) {
+                error_log('getCrossTable: Failed to query Joueurs - ' . json_encode($db->errorInfo()));
+                return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+            }
             while ($row = $stmt->fetch()) {
                 $id = (int) $row['id_joueur'];
                 $joueurs[$id] = $row['Nom'] . ' ' . $row['Prénom'];
@@ -53,7 +61,14 @@ class AgendaService
                  WHERE id_manifestation > 0 AND `Date` >= CURDATE()
                  ORDER BY `Date` ASC"
             );
+            if (!$stmt) {
+                error_log('getCrossTable: Failed to query Manifestation - ' . json_encode($db->errorInfo()));
+                return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+            }
+
+            $manifestationCount = 0;
             while ($row = $stmt->fetch()) {
+                $manifestationCount++;
                 $id  = (int) $row['id_manifestation'];
                 $parts = explode(' - ', $row['ManifestationTypée'], 3);
                 $type  = $parts[1] ?? '';
@@ -87,8 +102,10 @@ class AgendaService
                     'nb_pas_de_reponse' => count($joueurs),
                 ];
             }
+            error_log("getCrossTable: Fetched $manifestationCount Manifestation rows, stored " . count($manifestations) . " in array");
 
             if (empty($manifestations)) {
+                error_log('getCrossTable: No manifestations found!');
                 return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
             }
 
@@ -173,7 +190,8 @@ class AgendaService
                 }
             }
 
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            error_log('getCrossTable: Exception - ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
         }
 
