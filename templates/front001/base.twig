@@ -310,14 +310,7 @@
         <div class="text-white/80 text-center sm:text-left">
           © {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}.
           {% if site_config.legal_text %}<span class="hidden sm:inline">— {{ site_config.legal_text }}</span>{% endif %}
-        </div>
-        <div class="flex items-center gap-3">
-          {% if admin_logged_in %}
-            <a href="{{ url('admin') }}" class="hover:underline opacity-80">Admin</a>
-          {% else %}
-            <a href="{{ url('admin/login') }}" class="hover:underline opacity-60">Admin</a>
-          {% endif %}
-        </div>
+        </div>        
       </div>
     </div>
   </footer>
