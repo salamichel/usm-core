@@ -59,23 +59,34 @@ class AgendaService
                  FROM Manifestation
                  WHERE id_manifestation > 0 AND `Date` >= CURDATE()";
 
+            $bindings = [];
+
             // Appliquer les filtres
             if (!empty($filters['location'])) {
-                $sql .= " AND Lieu = '" . $db->quote($filters['location']) . "'";
+                $sql .= " AND Lieu = ?";
+                $bindings[] = $filters['location'];
             }
             if (!empty($filters['type'])) {
-                $sql .= " AND ManifestationTypée LIKE '%" . $db->quote($filters['type']) . "%'";
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = '%' . $filters['type'] . '%';
             }
             if (!empty($filters['this_week'])) {
                 $weekStart = date('Y-m-d', strtotime('Monday this week'));
                 $weekEnd = date('Y-m-d', strtotime('Sunday this week'));
-                $sql .= " AND Date BETWEEN '" . $weekStart . "' AND '" . $weekEnd . " 23:59:59'";
+                $sql .= " AND Date BETWEEN ? AND ?";
+                $bindings[] = $weekStart;
+                $bindings[] = $weekEnd . ' 23:59:59';
             }
 
             $sql .= " ORDER BY `Date` ASC";
-            $stmt = $db->query($sql);
+
+            $stmt = $db->prepare($sql);
             if (!$stmt) {
-                error_log('getCrossTable: Failed to query Manifestation - ' . json_encode($db->errorInfo()));
+                error_log('getCrossTable: Failed to prepare Manifestation query - ' . json_encode($db->errorInfo()));
+                return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+            }
+            if (!$stmt->execute($bindings)) {
+                error_log('getCrossTable: Failed to execute Manifestation query - ' . json_encode($db->errorInfo()));
                 return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
             }
 
