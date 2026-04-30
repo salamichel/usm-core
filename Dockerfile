@@ -23,7 +23,8 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN mkdir -p public/assets/uploads logs && \
+RUN rm -rf .git .gitignore && \
+    mkdir -p public/assets/uploads logs && \
     chown -R www-data:www-data public/assets/uploads logs
 
 EXPOSE 80
