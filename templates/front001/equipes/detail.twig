@@ -2,6 +2,7 @@
 {% block title %}{{ equipe.libelle }}{% if saison %} — {{ saison.libelle }}{% endif %} — USM Volley{% endblock %}
 
 {% import '_gallery.twig' as components %}
+{% import 'agenda/_macros.twig' as agendaMacros %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto px-4 py-10">
@@ -62,6 +63,38 @@
         <p class="font-black text-base leading-tight">{{ j.prenom }} {{ j.nom }}</p>
       </div>
       {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Upcoming events for this team #}
+  {% if mini_agenda_events|length %}
+  <section class="mt-10">
+    <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">Événements à venir</h2>
+
+    <div class="space-y-4">
+      {% for event in mini_agenda_events %}
+      <div class="border-4 border-black p-4 hover:shadow-[4px_4px_0_#000] transition-all">
+        <div class="flex justify-between items-start gap-4">
+          <div class="flex-1">
+            <h3 class="font-black text-lg mb-1">{{ event.titre }}</h3>
+            <p class="text-sm text-gray-600 mb-1">
+              {{ event.date_display }}{% if event.time_range %} · {{ event.time_range }}{% endif %}
+            </p>
+            <p class="text-sm text-gray-600">📍 {{ event.lieu }}</p>
+          </div>
+          <div class="flex-shrink-0">
+            {{ agendaMacros.render_participation_badge(event.nb_present, event.nb_disponible, event.nb_indisponible) }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-6">
+      <a href="{{ url('agenda?team=' ~ equipe.slug_colonne) }}" class="inline-block px-4 py-2 bg-gray-800 hover:bg-black text-white rounded font-semibold transition-colors">
+        → Voir l'agenda complet de {{ equipe.libelle }}
+      </a>
     </div>
   </section>
   {% endif %}

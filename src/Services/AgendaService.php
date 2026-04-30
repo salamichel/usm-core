@@ -821,4 +821,125 @@ class AgendaService
             return ['types' => [], 'locations' => []];
         }
     }
+
+    /**
+     * Get upcoming matches for a specific team with participation stats.
+     *
+     * Fetches upcoming matches and filters by team's participation records.
+     * Only returns matches where at least one team member has a participation record.
+     * Returns events with naming compatible with template: titre, date_display, time_range, lieu, etc.
+     *
+     * @param string $teamCode Team identifier (e.g., 'Eq_L1')
+     * @param int $limit Maximum number of matches to return
+     * @return array List of match events with participation stats
+     */
+    public static function getUpcomingMatchesForTeam(string $teamCode, int $limit = 5): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+            if (!$db) {
+                error_log('getUpcomingMatchesForTeam: ExternalDatabase::get() returned null');
+                return [];
+            }
+
+            // Validate team code
+            if (!self::teamColumn($teamCode)) {
+                error_log("getUpcomingMatchesForTeam: Invalid team code '$teamCode'");
+                return [];
+            }
+
+            // Get players for this team
+            $teamCol = self::teamColumn($teamCode);
+            $playerStmt = $db->prepare(
+                "SELECT id_joueur FROM Joueurs WHERE `$teamCol` = 1 AND id_joueur > 0"
+            );
+            $playerStmt->execute();
+            $playerIds = [];
+            while ($row = $playerStmt->fetch()) {
+                $playerIds[] = (int) $row['id_joueur'];
+            }
+
+            if (empty($playerIds)) {
+                return [];
+            }
+
+            // Get upcoming matches with participation from team's players
+            $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
+            $stmt = $db->prepare(
+                "SELECT DISTINCT m.id_manifestation, m.ManifestationTypée, m.Date,
+                        m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
+                 FROM Manifestation m
+                 INNER JOIN Participation p ON m.id_manifestation = p.id_manifestation
+                 WHERE m.id_manifestation > 0 AND m.ManifestationTypée LIKE '% - Match - %'
+                   AND m.Date >= CURDATE()
+                   AND p.id_joueur IN ($playerPlaceholders)
+                 ORDER BY m.Date ASC
+                 LIMIT ?"
+            );
+            $bindings = array_merge($playerIds, [$limit]);
+            if (!$stmt->execute($bindings)) {
+                error_log('getUpcomingMatchesForTeam: Failed to query matches - ' . json_encode($db->errorInfo()));
+                return [];
+            }
+
+            $events = [];
+            $manifestationIds = [];
+            while ($row = $stmt->fetch()) {
+                $id = (int) $row['id_manifestation'];
+                $manifestationIds[] = $id;
+
+                $parts = explode(' - ', $row['ManifestationTypée'], 3);
+                $type = $parts[1] ?? '';
+                $titre = $parts[2] ?? $row['ManifestationTypée'];
+
+                // Calculate time range
+                $timeRange = '';
+                if (!empty($row['Durée_créneau'])) {
+                    $hm = explode('h', $row['Durée_créneau'], 2);
+                    $h = (int) ($hm[0] ?? 0);
+                    $m = isset($hm[1]) && $hm[1] !== '' ? (int) $hm[1] : 0;
+                    $ts = strtotime($row['Date']);
+                    $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
+                }
+
+                $dateObj = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $row['Date']);
+                $events[$id] = [
+                    'id'           => $id,
+                    'titre'        => $titre,
+                    'type'         => $type,
+                    'date_display' => $dateObj ? self::formatDateDisplay($dateObj) : $row['Date'],
+                    'time_range'   => $timeRange,
+                    'lieu'         => $row['Lieu'],
+                    'commentaire'  => $row['Commentaire'] ?? '',
+                    'statut'       => $row['Statut'] ?? '',
+                    'nb_present'   => 0,
+                    'nb_disponible' => 0,
+                    'nb_indisponible' => 0,
+                    'nb_ne_sait_pas' => 0,
+                    'nb_pas_de_reponse' => 0,
+                ];
+            }
+
+            if (empty($events)) {
+                return [];
+            }
+
+            // Fetch participation stats for these events
+            $stats = self::getParticipationStatsBatch($manifestationIds);
+            foreach ($events as &$event) {
+                if (isset($stats[$event['id']])) {
+                    $eventStats = $stats[$event['id']];
+                    $event['nb_present'] = $eventStats['present'] ?? 0;
+                    $event['nb_disponible'] = $eventStats['available'] ?? 0;
+                    $event['nb_indisponible'] = $eventStats['unavailable'] ?? 0;
+                    $event['nb_ne_sait_pas'] = $eventStats['unknown'] ?? 0;
+                }
+            }
+
+            return array_values($events);
+        } catch (\Throwable $e) {
+            error_log('getUpcomingMatchesForTeam: Exception - ' . $e->getMessage());
+            return [];
+        }
+    }
 }
