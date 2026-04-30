@@ -5,7 +5,6 @@ namespace App\Controllers;
 
 use App\Core\NotFoundHandler;
 use App\Services\AgendaService;
-use App\Services\CalendarWidgetService;
 use App\Core\View;
 
 class AgendaController
@@ -36,7 +35,6 @@ class AgendaController
             'cross'          => $data['cross'],
             'filters'        => $filters,
             'filterOptions'  => AgendaService::getFilterOptions(),
-            'calendar'       => CalendarWidgetService::getCalendarData(),
         ]);
     }
 
@@ -63,8 +61,7 @@ class AgendaController
         $event['participation'] = $participationStats;
 
         View::render('agenda/detail.twig', [
-            'event'    => $event,
-            'calendar' => CalendarWidgetService::getCalendarData(),
+            'event' => $event,
         ]);
     }
 

@@ -22,7 +22,7 @@
       {% for week in calendar.weeks %}
         <tr>
           {% for day in week %}
-            <td class="border border-gray-300 h-12 align-top relative cursor-pointer hover:bg-gray-50 transition"
+            <td class="border border-gray-300 h-12 align-top relative cursor-pointer hover:bg-gray-50 transition group"
                 {% if day %}
                   data-date="{{ day.date }}"
                   data-events="{{ calendar.eventsByDate[day.date]|length }}"
@@ -41,6 +41,18 @@
                 <div class="relative z-10 p-1 text-right">
                   <span class="font-bold text-gray-800">{{ day.day }}</span>
                 </div>
+
+                {# Popup avec événements au survol #}
+                {% set dayEvents = calendar.eventsByDate[day.date]|default([]) %}
+                {% if dayEvents|length > 0 %}
+                  <div class="absolute bottom-full mb-1 left-0 right-0 bg-gray-900 text-white rounded px-2 py-1 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-20 transition hidden group-hover:block">
+                    {% for event in dayEvents %}
+                      <div class="truncate">
+                        {% if event.time %}{{ event.time }} {% endif %}{{ event.title }}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               {% endif %}
             </td>
           {% endfor %}
@@ -50,7 +62,7 @@
   </table>
 
   {# Légende et événements actuels #}
-  <div class="border-t-4 border-black px-4 py-3 bg-gray-50 text-xs">
+  <div class="border-t-4 border-black px-4 py-3 bg-gray-50 text-xs max-h-40 overflow-y-auto">
     <div class="mb-2 pb-2 border-b border-gray-300">
       <div class="flex items-center gap-2 text-gray-600">
         <span class="inline-block w-3 h-3 bg-blue-200 border-2 border-blue-600"></span>
@@ -62,18 +74,44 @@
       </div>
     </div>
 
-    {# Afficher les événements d'aujourd'hui ou du jour sélectionné #}
+    {# Afficher les événements d'aujourd'hui #}
     {% set todayEvents = calendar.eventsByDate[calendar.today]|default([]) %}
     {% if todayEvents|length > 0 %}
       <div class="mt-2">
-        <p class="font-bold text-gray-700 mb-1">Aujourd'hui :</p>
+        <p class="font-bold text-gray-700 mb-2">📅 Aujourd'hui :</p>
         {% for event in todayEvents %}
-          <div class="py-1 text-gray-700">
+          <div class="py-1.5 px-2 bg-white border-l-2 border-blue-600 text-gray-700 mb-1">
             {% if event.time %}
-              <span class="font-semibold">{{ event.time }}</span>
-              —
+              <div class="font-semibold text-blue-700">{{ event.time }}</div>
             {% endif %}
-            <span>{{ event.title }}</span>
+            <div class="font-semibold">{{ event.title }}</div>
+            <div class="text-xs text-gray-600">{{ event.type }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="mt-2 text-gray-600 italic text-xs">Aucun événement aujourd'hui</div>
+    {% endif %}
+
+    {# Prochains événements du mois #}
+    {% set upcomingEvents = [] %}
+    {% for date, events in calendar.eventsByDate %}
+      {% if date > calendar.today and events|length > 0 %}
+        {% set upcomingEvents = upcomingEvents|merge(events[:1]) %}
+        {% if upcomingEvents|length >= 2 %}{% break %}{% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% if upcomingEvents|length > 0 %}
+      <div class="mt-3 pt-2 border-t border-gray-300">
+        <p class="font-bold text-gray-700 mb-2">⏰ Prochains :</p>
+        {% for event in upcomingEvents %}
+          <div class="py-1.5 px-2 bg-white border-l-2 border-red-600 text-gray-700 mb-1">
+            {% if event.time %}
+              <div class="font-semibold text-red-700">{{ event.time }}</div>
+            {% endif %}
+            <div class="font-semibold text-sm">{{ event.title }}</div>
+            <div class="text-xs text-gray-600">{{ event.type }}</div>
           </div>
         {% endfor %}
       </div>

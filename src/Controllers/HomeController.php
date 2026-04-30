@@ -11,7 +11,6 @@ use App\Models\Post;
 use App\Models\Saison;
 use App\Models\SiteConfig;
 use App\Services\AgendaService;
-use App\Services\CalendarWidgetService;
 use App\Services\SeoService;
 use App\Services\StructuredDataService;
 use App\ValueObjects\PageMetadata;
@@ -92,7 +91,6 @@ class HomeController
             'post_covers'  => $postCovers,
             'matches'      => $matches,
             'trainings'    => $trainings,
-            'calendar'     => CalendarWidgetService::getCalendarData(),
         ]);
     }
 }
