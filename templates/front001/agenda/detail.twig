@@ -146,27 +146,27 @@
               <tr class="border-b">
                 <td class="px-4 py-2">✓ Présents</td>
                 <td class="px-4 py-2 text-right font-bold">{{ part.present }}</td>
-                <td class="px-4 py-2 text-center">{{ (part.present / [1, part.total_responses]|max * 100)|round(0) }}%</td>
+                <td class="px-4 py-2 text-center">{% if part.total_responses > 0 %}{{ (part.present / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
               </tr>
               <tr class="border-b bg-blue-50">
                 <td class="px-4 py-2">◐ Disponibles</td>
                 <td class="px-4 py-2 text-right font-bold">{{ part.available }}</td>
-                <td class="px-4 py-2 text-center">{{ (part.available / [1, part.total_responses]|max * 100)|round(0) }}%</td>
+                <td class="px-4 py-2 text-center">{% if part.total_responses > 0 %}{{ (part.available / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
               </tr>
               <tr class="border-b bg-amber-50">
                 <td class="px-4 py-2">★ Sélectionnés</td>
                 <td class="px-4 py-2 text-right font-bold">{{ part.selected }}</td>
-                <td class="px-4 py-2 text-center">{{ (part.selected / [1, part.total_responses]|max * 100)|round(0) }}%</td>
+                <td class="px-4 py-2 text-center">{% if part.total_responses > 0 %}{{ (part.selected / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
               </tr>
               <tr class="border-b bg-red-50">
                 <td class="px-4 py-2">✗ Indisponibles</td>
                 <td class="px-4 py-2 text-right font-bold">{{ part.unavailable }}</td>
-                <td class="px-4 py-2 text-center">{{ (part.unavailable / [1, part.total_responses]|max * 100)|round(0) }}%</td>
+                <td class="px-4 py-2 text-center">{% if part.total_responses > 0 %}{{ (part.unavailable / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
               </tr>
               <tr class="border-b">
                 <td class="px-4 py-2">✘ Absents</td>
                 <td class="px-4 py-2 text-right font-bold">{{ part.absent }}</td>
-                <td class="px-4 py-2 text-center">{{ (part.absent / [1, part.total_responses]|max * 100)|round(0) }}%</td>
+                <td class="px-4 py-2 text-center">{% if part.total_responses > 0 %}{{ (part.absent / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
               </tr>
               <tr class="bg-gray-100 font-bold">
                 <td class="px-4 py-2">Total avec réponse</td>
