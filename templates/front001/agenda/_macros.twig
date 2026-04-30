@@ -69,7 +69,7 @@
     {# Try to match the status string to one of the known statuses #}
     {% set found = false %}
     {% for key, data in cell_data %}
-      {% if status contains key %}
+      {% if key in status %}
         <span class="inline-flex items-center gap-1 px-2 py-1 rounded {{ data.bg }} {{ data.text }} text-xs font-medium" title="{{ status }}">
           <span>{{ data.icon }}</span>
           <span>{{ data.label }}</span>
