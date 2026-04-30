@@ -37,8 +37,8 @@
               {% set col_border = loop.index is odd ? 'border-blue-400' : 'border-cyan-400' %}
             {% endif %}
 
-            {# Seuil 6 joueurs : vert si ok, rouge sinon #}
-            {% set ok = (m.nb_present + m.nb_disponible + m.nb_disponible_si_necessaire + m.nb_selection) >= 6 %}
+            {# Seuil 6 joueurs : vert si au moins une catégorie >= 6 #}
+            {% set ok = (m.nb_present >= 6) or (m.nb_disponible >= 6) or (m.nb_selection >= 6) %}
             {% set stats_color = ok ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50' %}
             {% set status_icon = m.annule ? '❌' : (m.provisoire ? '⚠️' : '✅') %}
 
@@ -56,11 +56,10 @@
               {# Barre de statut avec couleur #}
               <div class="mt-2 px-1 py-1 rounded {{ stats_color }} border border-gray-300">
                 <div class="font-bold text-xs">
-                  {% set total_engaged = m.nb_present + m.nb_disponible + m.nb_disponible_si_necessaire + m.nb_selection %}
                   {% if ok %}
-                    ✓ {{ total_engaged }}/6
+                    ✓ Équipe OK
                   {% else %}
-                    ⚠️ {{ total_engaged }}/6
+                    ⚠️ Sous-effectif
                   {% endif %}
                 </div>
               </div>
