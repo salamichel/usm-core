@@ -30,7 +30,7 @@ class AgendaService
         return self::queryByPattern('% - Entra%', $limit);
     }
 
-    public static function getCrossTable(): array
+    public static function getCrossTable(array $filters = []): array
     {
         try {
             $db = ExternalDatabase::get();
@@ -51,16 +51,29 @@ class AgendaService
                 $joueurs[$id] = $row['Nom'] . ' ' . $row['Prénom'];
             }
 
-            // 2. Manifestations futures uniquement
+            // 2. Manifestations futures uniquement — avec filtres
             $manifestations = [];
-            $stmt = $db->query(
-                "SELECT id_manifestation, `ManifestationTypée`, `Date`,
+            $sql = "SELECT id_manifestation, `ManifestationTypée`, `Date`,
                         DATE_FORMAT(`Date`, '%W %d %M') AS date_fr,
                         `Durée_créneau`, Nombre_terrain, Lieu, Commentaire, Statut
                  FROM Manifestation
-                 WHERE id_manifestation > 0 AND `Date` >= CURDATE()
-                 ORDER BY `Date` ASC"
-            );
+                 WHERE id_manifestation > 0 AND `Date` >= CURDATE()";
+
+            // Appliquer les filtres
+            if (!empty($filters['location'])) {
+                $sql .= " AND Lieu = '" . $db->quote($filters['location']) . "'";
+            }
+            if (!empty($filters['type'])) {
+                $sql .= " AND ManifestationTypée LIKE '%" . $db->quote($filters['type']) . "%'";
+            }
+            if (!empty($filters['this_week'])) {
+                $weekStart = date('Y-m-d', strtotime('Monday this week'));
+                $weekEnd = date('Y-m-d', strtotime('Sunday this week'));
+                $sql .= " AND Date BETWEEN '" . $weekStart . "' AND '" . $weekEnd . " 23:59:59'";
+            }
+
+            $sql .= " ORDER BY `Date` ASC";
+            $stmt = $db->query($sql);
             if (!$stmt) {
                 error_log('getCrossTable: Failed to query Manifestation - ' . json_encode($db->errorInfo()));
                 return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
@@ -534,5 +547,47 @@ class AgendaService
         $monthEn = $date->format('M'); // Jan, Feb, …
         $monthFr = self::$MONTHS_FR[$monthEn] ?? $monthEn;
         return $dayFr . ' ' . $date->format('j') . ' ' . $monthFr;
+    }
+
+    public static function getFilterOptions(): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+
+            // Get unique event types
+            $types = [];
+            $stmt = $db->query(
+                "SELECT DISTINCT SUBSTRING_INDEX(ManifestationTypée, ' - ', 2) AS type_part
+                 FROM Manifestation
+                 WHERE id_manifestation > 0 AND Date >= CURDATE()
+                 ORDER BY type_part"
+            );
+            while ($row = $stmt->fetch()) {
+                $type = trim(str_replace('Disponibilités - ', '', $row['type_part'] ?? ''));
+                if (!empty($type)) {
+                    $types[] = $type;
+                }
+            }
+
+            // Get unique locations
+            $locations = [];
+            $stmt = $db->query(
+                "SELECT DISTINCT Lieu FROM Manifestation
+                 WHERE id_manifestation > 0 AND Date >= CURDATE() AND Lieu IS NOT NULL
+                 ORDER BY Lieu"
+            );
+            while ($row = $stmt->fetch()) {
+                if (!empty($row['Lieu'])) {
+                    $locations[] = $row['Lieu'];
+                }
+            }
+
+            return [
+                'types'     => $types,
+                'locations' => $locations,
+            ];
+        } catch (\Throwable) {
+            return ['types' => [], 'locations' => []];
+        }
     }
 }

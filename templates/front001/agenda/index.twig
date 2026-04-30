@@ -6,6 +6,8 @@
 <div class="px-4 py-6">
   <h1 class="text-3xl font-bold mb-6">Agenda — événements à venir</h1>
 
+  {% include 'agenda/filters.twig' %}
+
   {% if manifestations is empty %}
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}

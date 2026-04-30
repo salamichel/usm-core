@@ -15,12 +15,15 @@ class AgendaController
 
     public function index(array $params): void
     {
-        $data = AgendaService::getCrossTable();
+        $filters = $this->extractFilters();
+        $data = AgendaService::getCrossTable($filters);
 
         View::render('agenda/index.twig', [
             'joueurs'        => $data['joueurs'],
             'manifestations' => $data['manifestations'],
             'cross'          => $data['cross'],
+            'filters'        => $filters,
+            'filterOptions'  => AgendaService::getFilterOptions(),
         ]);
     }
 
@@ -46,20 +49,24 @@ class AgendaController
     {
         $filters = [];
 
-        if (!empty($_GET['location'])) {
+        if (!empty($_GET['location']) && $_GET['location'] !== 'Tous') {
             $filters['location'] = (string) $_GET['location'];
         }
 
-        if (!empty($_GET['date_from'])) {
-            $filters['date_from'] = (string) $_GET['date_from'];
-        }
-
-        if (!empty($_GET['date_to'])) {
-            $filters['date_to'] = (string) $_GET['date_to'];
-        }
-
-        if (!empty($_GET['type'])) {
+        if (!empty($_GET['type']) && $_GET['type'] !== 'Tous') {
             $filters['type'] = (string) $_GET['type'];
+        }
+
+        if (!empty($_GET['hide_empty_players'])) {
+            $filters['hide_empty_players'] = true;
+        }
+
+        if (!empty($_GET['hide_absent_unavailable'])) {
+            $filters['hide_absent_unavailable'] = true;
+        }
+
+        if (!empty($_GET['this_week'])) {
+            $filters['this_week'] = true;
         }
 
         return $filters;
