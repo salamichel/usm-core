@@ -579,29 +579,16 @@ class AgendaService
 
     private static function teamColumn(string $team): ?string
     {
-        $map = [
-            'L1'          => 'Eq_L1',
-            'L2'          => 'Eq_L2',
-            'L3'          => 'Eq_L3',
-            'L4'          => 'Eq_L4',
-            'Open'        => 'Eq_Open',
-            'Coupe Loisir'=> 'CoupeLoisir',
-            'Heitz'       => 'Eq_Heitz',
-            'Aico'        => 'Eq_Aico',
-            'UFOLEP 1'    => 'UFOLEP_1',
-            'UFOLEP 2'    => 'UFOLEP_2',
-            'UFOLEP 3'    => 'UFOLEP_3',
-            'DEP'         => 'DEP',
-            'Adulte'      => 'Adulte',
-            'Jeune'       => 'Jeune',
-            'M18F'        => 'M18F',
-            'M15F'        => 'M15F',
-            'R2F'         => 'R2F',
-            'Compétition' => 'Compétition',
-            'Loisir'      => 'Loisir',
-            'Débutant'    => 'Débutant',
+        // Les valeurs viennent de Mots_clef et sont directement les noms de colonnes
+        // Whitelist des colonnes booléennes autorisées pour éviter toute injection
+        $allowed = [
+            'Eq_L1', 'Eq_L2', 'Eq_L3', 'Eq_L4', 'Eq_Open',
+            'CoupeLoisir', 'Eq_Heitz', 'Eq_Aico',
+            'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3',
+            'DEP', 'Adulte', 'Jeune', 'M18F', 'M15F', 'R2F',
+            'Compétition', 'Loisir', 'Débutant',
         ];
-        return $map[$team] ?? null;
+        return in_array($team, $allowed, true) ? $team : null;
     }
 
     public static function getFilterOptions(): array
@@ -652,15 +639,15 @@ class AgendaService
                 }
             }
 
-            // Get distinct teams from Joueurs
+            // Get teams from Mots_clef (values are the boolean column names in Joueurs)
             $teams = [];
             $stmt = $db->query(
-                "SELECT DISTINCT Equipe FROM Joueurs
-                 WHERE id_joueur > 0 AND Equipe IS NOT NULL AND Equipe != ''
-                 ORDER BY Equipe"
+                "SELECT Mot FROM Mots_clef WHERE `Catégorie` = 'EquipeParEquipe' ORDER BY Mot"
             );
             while ($row = $stmt->fetch()) {
-                $teams[] = $row['Equipe'];
+                if (!empty($row['Mot'])) {
+                    $teams[] = $row['Mot'];
+                }
             }
 
             return [
