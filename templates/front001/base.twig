@@ -156,6 +156,11 @@
 
     /* Show mobile menu burger on landscape smartphone mode */
     @media (max-height: 500px) and (min-width: 480px) and (max-width: 900px) and (orientation: landscape) {
+      /* Hide desktop menu */
+      nav.sm\:flex {
+        display: none !important;
+      }
+
       #mobile-menu-toggle {
         display: block !important;
       }
