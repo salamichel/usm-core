@@ -283,21 +283,7 @@
           {% endif %}
         </div>
 
-        {# Section 2 — Main Navigation #}
-        <div>
-          <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Navigation</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="{{ url('/') }}" class="hover:text-amber-300 transition">🏠 Accueil</a></li>
-            <li><a href="{{ url('agenda') }}" class="hover:text-amber-300 transition">📅 Agenda</a></li>
-            <li><a href="{{ url('equipes') }}" class="hover:text-amber-300 transition">👥 Équipes</a></li>
-            <li><a href="{{ url('blog') }}" class="hover:text-amber-300 transition">📰 Actualités</a></li>
-            {% for item in menu_items %}
-              <li><a href="{{ item_url(item) }}" class="hover:text-amber-300 transition">→ {{ item.label }}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-
-        {# Section 3 — Info & Contact #}
+        {# Section 2 — Contact Info #}
         <div>
           <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Infos</h4>
           <ul class="space-y-2 text-sm">
@@ -309,6 +295,17 @@
               <li><a href="mailto:{{ site_config.email }}" class="hover:text-amber-300 transition">📧 {{ site_config.email }}</a></li>
             {% endif %}
             <li><a href="{{ url('documents') }}" class="hover:text-amber-300 transition">📄 Documents</a></li>
+          </ul>
+        </div>
+
+        {# Section 3 — Mentions légales #}
+        <div>
+          <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Légal</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="{{ url('page/mentions-legales') }}" class="hover:text-amber-300 transition">⚖️ Mentions légales</a></li>
+            <li><a href="{{ url('page/confidentialite') }}" class="hover:text-amber-300 transition">🔒 Confidentialité</a></li>
+            <li><a href="{{ url('page/conditions-utilisation') }}" class="hover:text-amber-300 transition">📋 Conditions d'usage</a></li>
+            <li><a href="{{ url('page/cookies') }}" class="hover:text-amber-300 transition">🍪 Gestion des cookies</a></li>
           </ul>
         </div>
 
