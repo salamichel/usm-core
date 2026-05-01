@@ -369,10 +369,14 @@
     left: 0;
     z-index: 10;
   }
+</style>
 
-  /* Permettre le pinch-to-zoom partout */
+{% block head %}
+<style>
+  /* Pinch-to-zoom uniquement sur la page agenda */
   html {
     touch-action: manipulation;
   }
 </style>
+{% endblock %}
 {% endblock %}
