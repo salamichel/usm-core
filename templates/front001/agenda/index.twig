@@ -13,7 +13,7 @@
     <a href="/agenda?type=Match" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}bg-white hover:bg-amber-50{% endif %}">
       ⚽ Matchs
     </a>
-    <a href="/agenda?type=Entraînement" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Entraînement' %}bg-blue-600 text-white border-blue-800{% else %}bg-white hover:bg-blue-50{% endif %}">
+    <a href="/agenda?type=Présences+-+Entrainement" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}bg-white hover:bg-blue-50{% endif %}">
       🏋️ Entraînements
     </a>
     {% if filters.type %}
@@ -350,54 +350,29 @@
 </div>
 
 <style>
-  @media (max-width: 768px) {
-    /* Mobile: retirer les sticky pour permettre le scroll libre */
-    .agenda-table thead {
-      position: static !important;
-      top: auto !important;
-    }
-
-    .agenda-table thead th {
-      position: static !important;
-      z-index: auto !important;
-    }
-
-    .agenda-table th.sticky-left,
-    .agenda-table td.sticky-left {
-      position: static !important;
-      left: auto !important;
-      z-index: auto !important;
-      background: inherit !important;
-    }
-
-    /* Réduire la hauteur max en mobile pour moins de contrainte */
-    .agenda-table-container {
-      max-height: auto !important;
-      overflow-y: visible !important;
-      touch-action: pan-x pan-y;
-    }
+  /* Garder les sticky partout (desktop et mobile) */
+  .agenda-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
   }
 
-  @media (min-width: 769px) {
-    /* Desktop: garder les sticky */
-    .agenda-table thead {
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 20 !important;
-      background: white !important;
-    }
+  .agenda-table th.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 30;
+  }
 
-    .agenda-table th.sticky-left {
-      position: sticky !important;
-      left: 0 !important;
-      z-index: 30 !important;
-    }
+  .agenda-table td.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+  }
 
-    .agenda-table td.sticky-left {
-      position: sticky !important;
-      left: 0 !important;
-      z-index: 10 !important;
-    }
+  /* Permettre le pinch-to-zoom partout */
+  html {
+    touch-action: manipulation;
   }
 </style>
 {% endblock %}
