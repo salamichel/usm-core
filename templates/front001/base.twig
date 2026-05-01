@@ -160,12 +160,13 @@
         display: block !important;
       }
 
+      /* Allow menu to toggle normally */
       #mobile-menu {
-        display: none !important;
+        display: none;
       }
 
-      #mobile-menu.hidden {
-        display: none !important;
+      #mobile-menu:not(.hidden) {
+        display: block !important;
       }
     }
   </style>
