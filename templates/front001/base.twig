@@ -268,7 +268,7 @@
   {# ── Footer ── #}
   <footer class="border-t-4 border-black bg-usm-brown text-white mt-12">
     <div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
 
         {# Section 1 — Club Identity #}
         <div>
@@ -281,35 +281,31 @@
           {% if site_config.address %}
             <address class="not-italic text-xs text-white/75 whitespace-pre-line leading-relaxed">{{ site_config.address }}</address>
           {% endif %}
+          {% if site_config.phone or site_config.email %}
+            <div class="mt-4 pt-4 border-t border-white/20">
+              {% if site_config.phone %}
+                <p class="text-xs text-white/85"><strong>{{ site_config.phone }}</strong></p>
+              {% endif %}
+              {% if site_config.email %}
+                <p class="text-xs text-white/85"><a href="mailto:{{ site_config.email }}" class="hover:text-amber-300 transition">{{ site_config.email }}</a></p>
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
 
-        {# Section 2 — Contact Info #}
-        <div>
-          <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Infos</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="{{ url('contact') }}" class="hover:text-amber-300 transition">💬 Nous contacter</a></li>
-            {% if site_config.phone %}
-              <li class="text-white/85">📞 <span class="font-semibold">{{ site_config.phone }}</span></li>
-            {% endif %}
-            {% if site_config.email %}
-              <li><a href="mailto:{{ site_config.email }}" class="hover:text-amber-300 transition">📧 {{ site_config.email }}</a></li>
-            {% endif %}
-            <li><a href="{{ url('documents') }}" class="hover:text-amber-300 transition">📄 Documents</a></li>
-          </ul>
-        </div>
-
-        {# Section 3 — Mentions légales #}
+        {# Section 2 — Mentions légales #}
         <div>
           <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Légal</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="{{ url('page/mentions-legales') }}" class="hover:text-amber-300 transition">⚖️ Mentions légales</a></li>
-            <li><a href="{{ url('page/confidentialite') }}" class="hover:text-amber-300 transition">🔒 Confidentialité</a></li>
-            <li><a href="{{ url('page/conditions-utilisation') }}" class="hover:text-amber-300 transition">📋 Conditions d'usage</a></li>
-            <li><a href="{{ url('page/cookies') }}" class="hover:text-amber-300 transition">🍪 Gestion des cookies</a></li>
+            <li><a href="{{ url('page/mentions-legales') }}" class="hover:text-amber-300 transition">Mentions légales</a></li>
+            <li><a href="{{ url('page/confidentialite') }}" class="hover:text-amber-300 transition">Confidentialité</a></li>
+            <li><a href="{{ url('page/conditions-utilisation') }}" class="hover:text-amber-300 transition">Conditions d'usage</a></li>
+            <li><a href="{{ url('page/cookies') }}" class="hover:text-amber-300 transition">Gestion des cookies</a></li>
+            <li><a href="{{ url('contact') }}" class="hover:text-amber-300 transition">Nous contacter</a></li>
           </ul>
         </div>
 
-        {# Section 4 — Social & Actions #}
+        {# Section 3 — Social & Actions #}
         <div>
           <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Nous suivre</h4>
           <div class="flex gap-3 mb-6">
