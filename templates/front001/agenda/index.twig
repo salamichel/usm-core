@@ -27,8 +27,8 @@
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}
 
-  {# Tableau croisé avec sticky première colonne (desktop only) #}
-  <div class="overflow-x-auto border border-gray-400 rounded agenda-table-container" style="max-height:80vh; overflow-y:auto;">
+  {# Tableau croisé avec scroll horizontal + zoom #}
+  <div class="border border-gray-400 rounded agenda-table-container" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
     <table class="border-collapse text-sm whitespace-nowrap agenda-table">
 
       {# ── EN-TÊTE : une colonne par manifestation ── #}
@@ -350,7 +350,28 @@
 </div>
 
 <style>
-  /* Garder les sticky partout (desktop et mobile) */
+  .agenda-table-container {
+    position: relative;
+    /* Enable scrolling and zoom on mobile */
+    touch-action: manipulation;
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  /* Gradient indicating scrollable content on right */
+  .agenda-table-container::after {
+    content: '';
+    position: sticky;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(0,0,0,0.05));
+    pointer-events: none;
+    z-index: 5;
+  }
+
   .agenda-table thead {
     position: sticky;
     top: 0;
@@ -368,6 +389,15 @@
     position: sticky;
     left: 0;
     z-index: 10;
+  }
+
+  @media (max-width: 640px) {
+    .agenda-table-container {
+      font-size: 0.75rem;
+    }
+    .agenda-table th, .agenda-table td {
+      padding: 4px 6px;
+    }
   }
 </style>
 
