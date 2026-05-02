@@ -85,7 +85,7 @@
           </div>
         {% endif %}
 
-        <form method="POST" action="{{ url('contact') }}" class="space-y-4">
+        <form method="POST" action="{{ url('contact') }}" class="space-y-4" id="contact-form" data-track="contact_form">
           <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
           <div class="grid sm:grid-cols-2 gap-4">
@@ -127,7 +127,7 @@
                       class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ form.message|default('') }}</textarea>
           </div>
 
-          <button type="submit"
+          <button type="submit" data-track="contact_submit"
                   class="w-full border-4 border-black bg-usm-brown text-white font-black px-6 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
             Envoyer
           </button>

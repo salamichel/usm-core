@@ -5,3 +5,7 @@ cache/twig/
 cache/agenda/*.json
 data/
 logs/
+
+# Google Analytics
+config/google-credentials.json
+config/*-credentials.json

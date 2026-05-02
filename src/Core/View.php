@@ -33,6 +33,7 @@ class View
             $twig->addGlobal('site_config', SiteConfig::all());
             $twig->addGlobal('csrf_token', CsrfToken::generate());
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+            $twig->addGlobal('ga_measurement_id', GA_MEASUREMENT_ID);
             $twig->addGlobal('_POST', $_POST);
 
             // Contact stats for admin menu badge
