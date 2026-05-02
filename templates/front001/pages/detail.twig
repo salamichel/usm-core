@@ -7,7 +7,7 @@
   <article class="border-4 border-black bg-white p-8 shadow-[8px_8px_0_#000]">
     <h1 class="text-3xl font-black mb-6 border-b-4 border-black pb-3">{{ page.title }}</h1>
     <div class="prose prose-gray max-w-none">
-      {{ page.content|raw }}
+      {{ page.content|render_with_config|raw }}
     </div>
 
     {{ components.gallery(photos) }}
