@@ -8,19 +8,34 @@
 
   {% include 'agenda/filters.twig' %}
 
+  {# Quick filter buttons #}
+  <div class="mb-4 flex flex-wrap gap-2">
+    <a href="/agenda?type=Match" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}bg-white hover:bg-amber-50{% endif %}">
+      ⚽ Matchs
+    </a>
+    <a href="/agenda?type=Présences - Entrainement" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}bg-white hover:bg-blue-50{% endif %}">
+      🏋️ Entraînements
+    </a>
+    {% if filters.type %}
+      <a href="/agenda" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold bg-gray-200 hover:bg-gray-300 transition">
+        ✕ Tous les types
+      </a>
+    {% endif %}
+  </div>
+
   {% if manifestations is empty %}
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}
 
-  {# Tableau croisé avec sticky première colonne #}
-  <div class="overflow-x-auto border border-gray-400 rounded" style="max-height:80vh; overflow-y:auto;">
-    <table class="border-collapse text-sm whitespace-nowrap">
+  {# Tableau croisé avec scroll horizontal + zoom #}
+  <div class="border border-gray-400 rounded agenda-table-container" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
+    <table class="border-collapse text-sm whitespace-nowrap agenda-table">
 
       {# ── EN-TÊTE : une colonne par manifestation ── #}
       <thead class="sticky top-0 z-20 bg-white">
         <tr>
           {# Cellule coin haut-gauche #}
-          <th class="sticky left-0 z-30 bg-gradient-to-b from-gray-300 to-gray-200 border-2 border-gray-500 px-3 py-2 text-left font-bold min-w-[160px]">
+          <th class="sticky-left z-30 bg-gradient-to-b from-gray-300 to-gray-200 border-2 border-gray-500 px-3 py-2 text-left font-bold min-w-[160px]">
             <div class="text-center">👥</div>
             <div>Joueurs</div>
           </th>
@@ -96,7 +111,7 @@
           <tr class="{{ loop.index is odd ? 'bg-white' : 'bg-gray-50' }} hover:bg-yellow-50">
 
             {# Nom joueur — sticky gauche #}
-            <td class="sticky left-0 z-10 border-2 border-gray-400 px-2 py-1 font-semibold bg-gradient-to-r from-gray-200 to-gray-100 min-w-[160px]">
+            <td class="sticky-left z-10 border-2 border-gray-400 px-2 py-1 font-semibold bg-gradient-to-r from-gray-200 to-gray-100 min-w-[160px]">
               {# Smiley avec 3 niveaux selon l'alerte #}
               {% if row.nb_participation < nb_manif %}
                 <span class="text-xl" title="Participation incomplète">😒</span>
@@ -333,4 +348,65 @@
     <a href="/" class="text-amber-600 hover:underline">← Retour à l'accueil</a>
   </div>
 </div>
+
+<style>
+  .agenda-table-container {
+    position: relative;
+    /* Enable scrolling and zoom on mobile */
+    touch-action: manipulation;
+    /* Scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  /* Gradient indicating scrollable content on right */
+  .agenda-table-container::after {
+    content: '';
+    position: sticky;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(0,0,0,0.05));
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .agenda-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
+  }
+
+  .agenda-table th.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 30;
+  }
+
+  .agenda-table td.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+  }
+
+  @media (max-width: 640px) {
+    .agenda-table-container {
+      font-size: 0.75rem;
+    }
+    .agenda-table th, .agenda-table td {
+      padding: 4px 6px;
+    }
+  }
+</style>
+
+{% block head %}
+<style>
+  /* Pinch-to-zoom uniquement sur la page agenda */
+  html {
+    touch-action: manipulation;
+  }
+</style>
+{% endblock %}
 {% endblock %}

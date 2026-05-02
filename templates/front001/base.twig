@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5">
 
   {# Title #}
   {% set page_title = block('title')|trim %}
@@ -153,6 +153,27 @@
       width: 1.5rem;
       text-align: right;
     }
+
+    /* Show mobile menu burger on landscape smartphone mode */
+    @media (max-height: 500px) and (min-width: 480px) and (max-width: 900px) and (orientation: landscape) {
+      /* Hide desktop menu */
+      nav.sm\:flex {
+        display: none !important;
+      }
+
+      #mobile-menu-toggle {
+        display: block !important;
+      }
+
+      /* Allow menu to toggle normally */
+      #mobile-menu {
+        display: none;
+      }
+
+      #mobile-menu:not(.hidden) {
+        display: block !important;
+      }
+    }
   </style>
   {% block head %}{% endblock %}
 </head>
@@ -245,72 +266,81 @@
   </main>
 
   {# ── Footer ── #}
-  <footer class="border-t-4 border-black bg-usm-brown text-white mt-8 sm:mt-12">
-    <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10 grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-0 sm:gap-8">
+  <footer class="border-t-4 border-black bg-usm-brown text-white mt-12">
+    <div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
 
-      {# Col 1 — Identité club (pleine largeur sur mobile) #}
-      <div class="col-span-2 lg:col-span-1 border-b-2 border-white/20 pb-5 mb-1 lg:border-b-0 lg:pb-0 lg:mb-0">
-        <h3 class="text-lg font-black border-b-2 border-white/40 pb-2 mb-3">
-          {{ site_config.club_name|default('USM Volley') }}
-        </h3>
-        {% if site_config.club_tagline %}
-          <p class="text-sm text-white/85 mb-3 leading-relaxed">{{ site_config.club_tagline }}</p>
-        {% endif %}
-        {% if site_config.address %}
-          <address class="not-italic text-sm text-white/85 whitespace-pre-line leading-relaxed">{{ site_config.address }}</address>
-        {% endif %}
-      </div>
-
-      {# Col 2 — Navigation #}
-      <div class="pt-4 lg:pt-0 border-r border-white/10 lg:border-r-0 pr-4 lg:pr-0">
-        <h3 class="text-base lg:text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Navigation</h3>
-        <ul class="space-y-1.5 text-sm">
-          <li><a href="{{ url('/') }}" class="hover:underline hover:text-amber-300 transition">Accueil</a></li>
-          {% for item in menu_items %}
-            <li><a href="{{ item_url(item) }}" class="hover:underline hover:text-amber-300 transition">{{ item.label }}</a></li>
-          {% endfor %}
-          <li><a href="{{ url('blog') }}" class="hover:underline hover:text-amber-300 transition">Actualités</a></li>
-          <li><a href="{{ url('equipes') }}" class="hover:underline hover:text-amber-300 transition">Équipes</a></li>
-          <li><a href="{{ url('contact') }}" class="hover:underline hover:text-amber-300 transition">Nous contacter</a></li>
-        </ul>
-      </div>
-
-      {# Col 3 — Réseaux sociaux (pleine largeur sur mobile) #}
-      <div class="col-span-2 lg:col-span-1 border-t-2 border-white/20 pt-5 mt-1 lg:border-t-0 lg:pt-0 lg:mt-0">
-        <h3 class="text-base lg:text-lg font-black border-b-2 border-white/40 pb-2 mb-3">Suivez-nous</h3>
-        <div class="flex gap-3">
-          {% if site_config.facebook_url %}
-            <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener"
-               aria-label="Facebook"
-               class="w-11 h-11 border-4 border-black bg-white text-usm-brown flex items-center justify-center shadow-[3px_3px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.36 2 1.88 6.48 1.88 12.07c0 5.02 3.66 9.18 8.46 9.93v-7.03H7.83v-2.9h2.51V9.83c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.25c-1.23 0-1.61.77-1.61 1.55v1.86h2.74l-.44 2.9h-2.3V22c4.8-.75 8.46-4.91 8.46-9.93z"/>
-              </svg>
-            </a>
+        {# Section 1 — Club Identity #}
+        <div>
+          <h3 class="text-lg font-black mb-3 pb-2 border-b-2 border-white/40">
+            🏐 {{ site_config.club_name|default('USM Volley') }}
+          </h3>
+          {% if site_config.club_tagline %}
+            <p class="text-sm text-white/90 mb-3 leading-relaxed">{{ site_config.club_tagline }}</p>
           {% endif %}
-          {% if site_config.instagram_url %}
-            <a href="{{ site_config.instagram_url }}" target="_blank" rel="noopener"
-               aria-label="Instagram"
-               class="w-11 h-11 border-4 border-black bg-white text-usm-brown flex items-center justify-center shadow-[3px_3px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.07.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.07.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.07-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.07-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.8c-3.15 0-3.5.01-4.74.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.83-.39.38-.63.75-.83 1.26-.15.39-.33.97-.38 2.04-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.05 1.07.23 1.65.38 2.04.2.51.44.88.83 1.26.38.39.75.63 1.26.83.39.15.97.33 2.04.38 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.83.39-.38.63-.75.83-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.83-1.26 3.4 3.4 0 0 0-1.26-.83c-.39-.15-.97-.33-2.04-.38-1.24-.06-1.59-.07-4.74-.07zm0 3.06A4.97 4.97 0 1 1 12 17a4.97 4.97 0 0 1 0-9.97zm0 1.8a3.17 3.17 0 1 0 0 6.34 3.17 3.17 0 0 0 0-6.34zm5.18-2.16a1.16 1.16 0 1 1 0 2.32 1.16 1.16 0 0 1 0-2.32z"/>
-              </svg>
-            </a>
+          {% if site_config.address %}
+            <address class="not-italic text-xs text-white/75 whitespace-pre-line leading-relaxed">{{ site_config.address }}</address>
+          {% endif %}
+          {% if site_config.phone or site_config.email %}
+            <div class="mt-4 pt-4 border-t border-white/20">
+              {% if site_config.phone %}
+                <p class="text-xs text-white/85"><strong>{{ site_config.phone }}</strong></p>
+              {% endif %}
+              {% if site_config.email %}
+                <p class="text-xs text-white/85"><a href="mailto:{{ site_config.email }}" class="hover:text-amber-300 transition">{{ site_config.email }}</a></p>
+              {% endif %}
+            </div>
           {% endif %}
         </div>
-        {% if not site_config.facebook_url and not site_config.instagram_url %}
-          <p class="text-xs text-white/60 italic">Aucun réseau social configuré.</p>
-        {% endif %}
-      </div>
-    </div>
 
-    {# ── Bandeau bas ── #}
-    <div class="border-t-2 border-white/30 bg-black/20">
-      <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center sm:justify-between gap-1 sm:gap-2 text-xs">
-        <div class="text-white/80 text-center sm:text-left">
-          © {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}.
-          {% if site_config.legal_text %}<span class="hidden sm:inline">— {{ site_config.legal_text }}</span>{% endif %}
-        </div>        
+        {# Section 2 — Mentions légales #}
+        <div>
+          <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Légal</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="{{ url('page/mentions-legales') }}" class="hover:text-amber-300 transition">Mentions légales</a></li>
+            <li><a href="{{ url('page/confidentialite') }}" class="hover:text-amber-300 transition">Confidentialité</a></li>
+            <li><a href="{{ url('page/conditions-utilisation') }}" class="hover:text-amber-300 transition">Conditions d'usage</a></li>
+            <li><a href="{{ url('page/cookies') }}" class="hover:text-amber-300 transition">Gestion des cookies</a></li>
+            <li><a href="{{ url('contact') }}" class="hover:text-amber-300 transition">Nous contacter</a></li>
+          </ul>
+        </div>
+
+        {# Section 3 — Social & Actions #}
+        <div>
+          <h4 class="text-base font-black mb-4 pb-2 border-b-2 border-white/40">Nous suivre</h4>
+          <div class="flex gap-3 mb-6">
+            {% if site_config.facebook_url %}
+              <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener"
+                 aria-label="Facebook"
+                 class="w-10 h-10 border-3 border-black bg-white text-usm-brown flex items-center justify-center shadow-[2px_2px_0_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.36 2 1.88 6.48 1.88 12.07c0 5.02 3.66 9.18 8.46 9.93v-7.03H7.83v-2.9h2.51V9.83c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.25c-1.23 0-1.61.77-1.61 1.55v1.86h2.74l-.44 2.9h-2.3V22c4.8-.75 8.46-4.91 8.46-9.93z"/>
+                </svg>
+              </a>
+            {% endif %}
+            {% if site_config.instagram_url %}
+              <a href="{{ site_config.instagram_url }}" target="_blank" rel="noopener"
+                 aria-label="Instagram"
+                 class="w-10 h-10 border-3 border-black bg-white text-usm-brown flex items-center justify-center shadow-[2px_2px_0_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.07.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.07.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.07-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.07-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.8c-3.15 0-3.5.01-4.74.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.83-.39.38-.63.75-.83 1.26-.15.39-.33.97-.38 2.04-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.05 1.07.23 1.65.38 2.04.2.51.44.88.83 1.26.38.39.75.63 1.26.83.39.15.97.33 2.04.38 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.83.39-.38.63-.75.83-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.83-1.26 3.4 3.4 0 0 0-1.26-.83c-.39-.15-.97-.33-2.04-.38-1.24-.06-1.59-.07-4.74-.07zm0 3.06A4.97 4.97 0 1 1 12 17a4.97 4.97 0 0 1 0-9.97zm0 1.8a3.17 3.17 0 1 0 0 6.34 3.17 3.17 0 0 0 0-6.34zm5.18-2.16a1.16 1.16 0 1 1 0 2.32 1.16 1.16 0 0 1 0-2.32z"/>
+                </svg>
+              </a>
+            {% endif %}
+            {% if not site_config.facebook_url and not site_config.instagram_url %}
+              <p class="text-xs text-white/60 italic">Réseaux à configurer</p>
+            {% endif %}
+          </div>
+          {% if admin_logged_in %}
+            <a href="{{ url('admin') }}" class="inline-block px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-800 rounded text-xs font-semibold transition">⚙️ Admin</a>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Bottom bar ── #}
+      <div class="border-t-2 border-white/30 pt-6 text-center text-xs text-white/75">
+        <p>© {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}. {% if site_config.legal_text %}{{ site_config.legal_text }}{% endif %}</p>
+        <p class="mt-2 text-white/60">Construit avec passion 🏐</p>
       </div>
     </div>
   </footer>
