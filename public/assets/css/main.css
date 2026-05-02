@@ -1,0 +1,62 @@
+/* Typography: Headings Hierarchy */
+
+h1 {
+  font-size: 2.25rem; /* 36px */
+  font-weight: 900; /* black */
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 900; /* black */
+  margin-bottom: 0.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 900; /* black */
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+h4 {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 700; /* bold */
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+h5 {
+  font-size: 1rem; /* 16px */
+  font-weight: 700; /* bold */
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+h6 {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 600; /* semibold */
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive: Larger headings on bigger screens (sm breakpoint = 640px) */
+@media (min-width: 640px) {
+  h1 {
+    font-size: 3rem; /* 48px */
+  }
+
+  h2 {
+    font-size: 2.25rem; /* 36px */
+  }
+
+  h3 {
+    font-size: 1.5rem; /* 24px */
+  }
+}

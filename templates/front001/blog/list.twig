@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto px-4 py-10">
-  <h1 class="text-3xl font-black mb-6 border-b-4 border-black pb-3">Actualités</h1>
+  <h1 class="mb-6 border-b-4 border-black pb-3">Actualités</h1>
 
   {# ── Barre de filtres ── #}
   {% if all_tags|length or months|length %}
@@ -12,7 +12,7 @@
 
     {% if all_tags|length %}
     <select name="tag" onchange="this.form.submit()"
-            class="border-2 border-black bg-white px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-black">
+            class="border-2 border-black bg-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-black">
       <option value="">Toutes catégories</option>
       {% for tag in all_tags %}
         {% set count = tag_counts[tag.id] ?? 0 %}
@@ -27,7 +27,7 @@
 
     {% if months|length %}
     <select name="month" onchange="this.form.submit()"
-            class="border-2 border-black bg-white px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-black">
+            class="border-2 border-black bg-white px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-black">
       <option value="">Tous les mois</option>
       {% for month in months %}
         <option value="{{ month }}" {{ selected_month == month ? 'selected' : '' }}>{{ month|month_fr }}</option>
@@ -36,12 +36,12 @@
     {% endif %}
 
     <noscript>
-      <button type="submit" class="border-2 border-black bg-black text-white px-3 py-1.5 text-sm font-bold">Filtrer</button>
+      <button type="submit" class="border-2 border-black bg-black text-white px-3 py-1.5">Filtrer</button>
     </noscript>
 
     {% if selected_tag or selected_month %}
       <a href="{{ url('blog') }}"
-         class="ml-auto text-sm font-bold text-gray-700 underline hover:no-underline">Réinitialiser</a>
+         class="ml-auto text-gray-700 underline hover:no-underline">Réinitialiser</a>
     {% endif %}
   </form>
   {% endif %}
@@ -62,18 +62,18 @@
       {% endif %}
       <div class="p-6 md:p-8 flex flex-col justify-center {{ featured.cover ? '' : 'w-full' }}">
         {% if featured.published_at %}
-          <time class="text-xs text-gray-500 mb-2 block font-semibold uppercase tracking-wide">
+          <time class="text-xs text-gray-500 mb-2 block uppercase tracking-wide">
             {{ featured.published_at|date_fr }}
           </time>
         {% endif %}
-        <h2 class="text-2xl md:text-3xl font-black mb-3 leading-tight">
+        <h2 class="md: mb-3 leading-tight">
           <a href="{{ url('blog/' ~ featured.slug) }}" class="hover:underline">{{ featured.title }}</a>
         </h2>
         {% if featured.excerpt %}
           <p class="text-gray-700 leading-relaxed line-clamp-3">{{ featured.excerpt }}</p>
         {% endif %}
         <a href="{{ url('blog/' ~ featured.slug) }}"
-           class="inline-block mt-4 px-4 py-2 border-2 border-black bg-black text-white text-sm font-bold hover:bg-white hover:text-black transition self-start">
+           class="inline-block mt-4 px-4 py-2 border-2 border-black bg-black text-white hover:bg-white hover:text-black transition self-start">
           Lire la suite →
         </a>
       </div>
@@ -93,18 +93,18 @@
         {% endif %}
         <div class="p-5 flex flex-col flex-1">
           {% if post.published_at %}
-            <time class="text-xs text-gray-500 mb-1 block font-semibold uppercase tracking-wide">
+            <time class="text-xs text-gray-500 mb-1 block uppercase tracking-wide">
               {{ post.published_at|date_fr }}
             </time>
           {% endif %}
-          <h2 class="text-lg font-black mb-2 leading-snug">
+          <h2 class="mb-2 leading-snug">
             <a href="{{ url('blog/' ~ post.slug) }}" class="hover:underline">{{ post.title }}</a>
           </h2>
           {% if post.excerpt %}
-            <p class="text-gray-700 text-sm leading-relaxed line-clamp-2">{{ post.excerpt }}</p>
+            <p class="text-gray-700 leading-relaxed line-clamp-2">{{ post.excerpt }}</p>
           {% endif %}
           <a href="{{ url('blog/' ~ post.slug) }}"
-             class="inline-block mt-auto pt-3 text-sm font-bold underline hover:no-underline">
+             class="inline-block mt-auto pt-3 underline hover:no-underline">
             Lire la suite →
           </a>
         </div>
@@ -125,19 +125,19 @@
     {# Previous button #}
     {% if pagination.hasPrevious() %}
       <a href="{{ url('blog') ~ '?page=' ~ pagination.previousPage() ~ qs }}"
-         class="px-4 py-2 border-2 border-black font-bold hover:bg-black hover:text-white transition">← Précédent</a>
+         class="px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition">← Précédent</a>
     {% else %}
-      <span class="px-4 py-2 border-2 border-gray-300 text-gray-400 font-bold">← Précédent</span>
+      <span class="px-4 py-2 border-2 border-gray-300 text-gray-400">← Précédent</span>
     {% endif %}
 
     {# Page numbers #}
     <div class="flex gap-1">
       {% for page in pagination.getPageRange(7) %}
         {% if page == pagination.currentPage %}
-          <span class="px-3 py-2 border-4 border-black bg-black text-white font-bold">{{ page }}</span>
+          <span class="px-3 py-2 border-4 border-black bg-black text-white">{{ page }}</span>
         {% else %}
           <a href="{{ url('blog') ~ '?page=' ~ page ~ qs }}"
-             class="px-3 py-2 border-2 border-black hover:bg-black hover:text-white transition font-bold">{{ page }}</a>
+             class="px-3 py-2 border-2 border-black hover:bg-black hover:text-white transition">{{ page }}</a>
         {% endif %}
       {% endfor %}
     </div>
@@ -145,13 +145,13 @@
     {# Next button #}
     {% if pagination.hasNext() %}
       <a href="{{ url('blog') ~ '?page=' ~ pagination.nextPage() ~ qs }}"
-         class="px-4 py-2 border-2 border-black font-bold hover:bg-black hover:text-white transition">Suivant →</a>
+         class="px-4 py-2 border-2 border-black hover:bg-black hover:text-white transition">Suivant →</a>
     {% else %}
-      <span class="px-4 py-2 border-2 border-gray-300 text-gray-400 font-bold">Suivant →</span>
+      <span class="px-4 py-2 border-2 border-gray-300 text-gray-400">Suivant →</span>
     {% endif %}
   </div>
 
-  <div class="text-center text-sm text-gray-600 mt-4">
+  <div class="text-center text-gray-600 mt-4">
     Page {{ pagination.currentPage }} / {{ pagination.totalPages }}
   </div>
   {% endif %}

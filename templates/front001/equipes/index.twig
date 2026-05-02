@@ -3,15 +3,15 @@
 
 {% block content %}
 <div class="max-w-5xl mx-auto px-4 py-10">
-  <h1 class="text-4xl font-black mb-2">Nos équipes</h1>
+  <h1 class="mb-2">Nos équipes</h1>
   {% if saison %}
-    <p class="text-gray-500 font-semibold mb-8">Saison {{ saison.libelle }}</p>
+    <p class="text-gray-500 mb-8">Saison {{ saison.libelle }}</p>
   {% endif %}
 
   {% if grouped|length %}
     {% for cat, equipes in grouped %}
     <section class="mb-12">
-      <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">{{ cat }}</h2>
+      <h2 class="mb-6 border-b-4 border-black pb-2">{{ cat }}</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
         {% for eq in equipes %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"
@@ -23,10 +23,10 @@
                  alt="{{ eq.libelle }}"
                  class="w-full h-40 object-cover">
           {% else %}
-            <div class="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400 text-3xl">🏐</div>
+            <div class="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400">🏐</div>
           {% endif %}
           <div class="p-3">
-            <h3 class="font-black text-base leading-tight">{{ eq.libelle }}</h3>
+            <h3 class="leading-tight">{{ eq.libelle }}</h3>
           </div>
         </a>
         {% endfor %}
@@ -35,8 +35,8 @@
     {% endfor %}
   {% else %}
     <div class="border-4 border-black bg-white p-8 text-center shadow-[4px_4px_0_#000]">
-      <p class="text-gray-500 text-lg">Aucune équipe disponible pour cette saison.</p>
-      <p class="text-gray-400 text-sm mt-2">Les équipes apparaissent après le flashage d'une saison active.</p>
+      <p class="text-gray-500">Aucune équipe disponible pour cette saison.</p>
+      <p class="text-gray-400 mt-2">Les équipes apparaissent après le flashage d'une saison active.</p>
     </div>
   {% endif %}
 </div>

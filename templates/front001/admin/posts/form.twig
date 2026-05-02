@@ -4,7 +4,7 @@
 {% block content %}
 <div class="flex items-center gap-4 mb-6">
   <a href="{{ url('admin/posts') }}" class="font-bold hover:underline text-sm">← Retour</a>
-  <h1 class="text-3xl font-black">{{ post ? 'Éditer l\'article' : 'Nouvel article' }}</h1>
+  <h1>{{ post ? 'Éditer l\'article' : 'Nouvel article' }}</h1>
 </div>
 
 {% if error %}

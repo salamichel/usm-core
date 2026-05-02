@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-6">
   <a href="{{ url('admin/equipes-config') }}" class="text-sm text-gray-500 hover:underline">← Équipes</a>
-  <h1 class="text-3xl font-black mt-1">{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}</h1>
+  <h1 class="mt-1">{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}</h1>
 </div>
 
 {% if error is defined and error %}
@@ -88,7 +88,7 @@
 
 {% if equipe and saisons|length %}
 <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
-  <h2 class="font-black text-lg mb-4">Photos & joueurs par saison</h2>
+  <h2 class="mb-4">Photos & joueurs par saison</h2>
   <table class="w-full text-sm">
     <thead class="bg-black text-white">
       <tr>

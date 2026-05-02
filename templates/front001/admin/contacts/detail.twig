@@ -7,7 +7,7 @@
     <div class="max-w-4xl mx-auto">
         <div class="flex justify-between items-start mb-6">
             <div>
-                <h1 class="text-3xl font-bold">{{ contact.subject }}</h1>
+                <h1>{{ contact.subject }}</h1>
                 <p class="text-gray-600 mt-2">
                     <strong>De :</strong> {{ contact.name }} &lt;{{ contact.email }}&gt;<br>
                     <strong>Date :</strong> {{ contact.created_at|date_fr }}
@@ -43,14 +43,14 @@
 
         <!-- Original message -->
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
-            <h2 class="text-lg font-semibold mb-4">Message original</h2>
+            <h2 class="mb-4">Message original</h2>
             <p class="text-gray-700 whitespace-pre-wrap">{{ contact.message }}</p>
         </div>
 
         <!-- Previous replies -->
         {% if replies %}
             <div class="mb-8">
-                <h2 class="text-lg font-semibold mb-4">Historique des réponses</h2>
+                <h2 class="mb-4">Historique des réponses</h2>
                 <div class="space-y-4">
                     {% for reply in replies %}
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -69,7 +69,7 @@
 
         <!-- Reply form -->
         <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-            <h2 class="text-lg font-semibold mb-4">Répondre</h2>
+            <h2 class="mb-4">Répondre</h2>
             <form method="POST" action="{{ url('admin/contacts/' ~ contact.id ~ '/reply') }}">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 

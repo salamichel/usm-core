@@ -7,7 +7,7 @@
     - entity_type  : 'post' | 'page'
 #}
 <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
-  <h2 class="font-black text-lg mb-4">Galerie photos</h2>
+  <h2 class="mb-4">Galerie photos</h2>
 
   {% if entity_id == 0 %}
     <p class="text-sm text-gray-500 italic border-2 border-dashed border-gray-300 p-4 text-center">
@@ -20,9 +20,9 @@
          class="dropzone border-4 border-dashed border-black bg-amber-50 rounded-none cursor-pointer
                 min-h-[140px] flex items-center justify-center mb-5
                 hover:bg-amber-100 transition-colors">
-      <div class="dz-message text-center text-gray-600 font-semibold pointer-events-none">
+      <div class="dz-message text-center text-gray-600 pointer-events-none">
         <div class="text-4xl mb-2">📸</div>
-        <div class="text-base font-black">Glissez vos photos ici</div>
+        <div class="text-base">Glissez vos photos ici</div>
         <div class="text-sm font-normal mt-1">ou cliquez pour sélectionner</div>
         <div class="text-xs text-gray-400 mt-1">JPG · PNG · WebP · GIF — max 10 Mo</div>
       </div>
@@ -39,7 +39,7 @@
                 data-delete-url="{{ url('admin/' ~ entity_type ~ 's/' ~ entity_id ~ '/photos/' ~ photo.id ~ '/delete-xhr') }}"
                 class="delete-photo absolute inset-0 flex items-center justify-center
                        opacity-0 group-hover:opacity-100 transition bg-black/60
-                       text-white font-black text-sm border-0 cursor-pointer w-full">
+                       text-white border-0 cursor-pointer w-full">
           ✕ Supprimer
         </button>
       </div>
@@ -92,7 +92,7 @@ function addThumb(id, url, deleteUrl) {
             data-delete-url="${deleteUrl}"
             class="delete-photo absolute inset-0 flex items-center justify-center
                    opacity-0 group-hover:opacity-100 transition bg-black/60
-                   text-white font-black text-sm border-0 cursor-pointer w-full">
+                   text-white border-0 cursor-pointer w-full">
       ✕ Supprimer
     </button>`;
   document.getElementById('existing-photos').appendChild(wrap);
