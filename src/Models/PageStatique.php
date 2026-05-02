@@ -19,7 +19,7 @@ class PageStatique
 
     public static function all(): array
     {
-        $stmt = Database::get()->query("SELECT * FROM pages ORDER BY title ASC");
+        $stmt = Database::get()->query("SELECT * FROM pages ORDER BY id ASC");
         return $stmt->fetchAll();
     }
 

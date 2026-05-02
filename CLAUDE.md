@@ -505,6 +505,33 @@ $cover = Photo::getEntityCover('equipe_saison', $es['id']);
 // Remplace : $cover = Photo::forEntity(...)[0] ?? null;
 ```
 
+### Twig dans les pages CMS
+
+Les pages et articles supportent la compilation Twig pour référencer la configuration du site.
+Cela permet aux éditeurs de construire du contenu dynamique sans code :
+
+```twig
+Email: {{ site_config.email }}
+Téléphone: {{ site_config.phone|default('Non renseigné') }}
+Adresse: {{ site_config.address }}
+© {{ site_config.club_name }}
+```
+
+**Champs disponibles** : `club_name`, `club_tagline`, `address`, `email`, `phone`,
+`facebook_url`, `instagram_url`, `legal_text`, `home_slider_posts_count`,
+`home_latest_posts_count`.
+
+**Fonctionnement** :
+- À chaque rendu d'une page ou article, le contenu est compilé comme template Twig
+- Le contexte fourni est limité à `site_config` uniquement (pas d'accès à auth, globals, etc.)
+- Les erreurs Twig sont loggées ; en debug le message s'affiche, en production le contenu brut s'affiche
+
+**Usage** :
+- Pages mentions légales : insérer email/adresse qui se mettront à jour automatiquement
+- Articles de référence : ajouter dynamiquement le nom du club
+- Conditions : `{% if site_config.facebook_url %}Suivez-nous{% endif %}`
+- Filtres : `{{ site_config.legal_text|truncate(200) }}`
+
 ---
 
 ## Variables d'environnement

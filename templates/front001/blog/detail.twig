@@ -25,7 +25,7 @@
         </time>
       {% endif %}
       <div class="prose prose-gray max-w-none">
-        {{ post.content|raw }}
+        {{ post.content|render_with_config|raw }}
       </div>
 
       {% if tags|length %}

@@ -6,6 +6,7 @@ namespace App\Core;
 use App\Models\MenuItem;
 use App\Models\SiteConfig;
 use App\Models\ContactMessage;
+use App\Services\ContentRenderer;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
@@ -15,7 +16,7 @@ class View
 {
     private static ?Environment $twig = null;
 
-    private static function getInstance(): Environment
+    public static function getInstance(): Environment
     {
         if (self::$twig === null) {
             $loader = new FilesystemLoader(ROOT . '/templates/' . THEME);
@@ -67,6 +68,11 @@ class View
             $twig->addFilter(new TwigFilter('truncate', function (string $text, int $maxLength = 160): string {
                 return \App\Services\SeoService::truncate($text, $maxLength);
             }));
+
+            // |render_with_config filter — render content with site_config Twig variables
+            $twig->addFilter(new TwigFilter('render_with_config', function (string $content): string {
+                return ContentRenderer::renderWithConfig($content);
+            }, ['is_safe' => ['html']]));
 
             // json_encode_pretty() function — JSON with pretty printing + unicode (marked safe)
             $twig->addFunction(new TwigFunction('json_encode_pretty', function ($data): string {
