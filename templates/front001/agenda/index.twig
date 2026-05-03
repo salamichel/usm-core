@@ -2,6 +2,16 @@
 
 {% block title %}Agenda{% endblock %}
 
+{% block head %}
+<meta name="viewport" content="width=1024">
+<style>
+  body { min-width: 1024px; }
+  @media (max-width: 1024px) {
+    * { zoom: 0.8; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="px-4 py-6">
   <h1 class="text-3xl font-bold mb-6">Agenda — événements à venir</h1>
