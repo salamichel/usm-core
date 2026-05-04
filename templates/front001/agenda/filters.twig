@@ -12,10 +12,8 @@
 
   {# Filters content #}
   <form method="GET" action="/agenda" id="filters-content" class="hidden md:block space-y-4">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {{ macros.render_filter_dropdown('team', 'Équipe', filterOptions.teams, filters.team) }}
-      {{ macros.render_filter_dropdown('type', 'Type', filterOptions.types, filters.type) }}
-      {{ macros.render_filter_dropdown('manifestation', 'Manifestation', filterOptions.manifestationNames, filters.manifestation) }}
       {{ macros.render_filter_dropdown('location', 'Lieu', filterOptions.locations, filters.location) }}
       {{ macros.render_filter_checkbox('this_week', 'Semaine en cours', filters.this_week) }}
       {{ macros.render_filter_checkbox('hide_empty_players', 'Sans réponse', filters.hide_empty_players) }}
