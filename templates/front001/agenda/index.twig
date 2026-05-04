@@ -27,6 +27,15 @@
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}
 
+  {# Contrôles de zoom (utile en mobile pour voir plus de colonnes) #}
+  <div class="mb-2 flex flex-wrap items-center gap-2 text-sm">
+    <span class="text-gray-700 font-semibold">Zoom :</span>
+    <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">100%</button>
+    <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">80%</button>
+    <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">65%</button>
+    <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
+  </div>
+
   {# Tableau croisé avec scroll horizontal + zoom #}
   <div class="border border-gray-400 rounded agenda-table-container" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
     <table class="border-collapse text-sm whitespace-nowrap agenda-table">
@@ -399,6 +408,40 @@
       padding: 4px 6px;
     }
   }
+
+  .zoom-btn.active {
+    background-color: #d97706;
+    color: white;
+    border-color: #92400e;
+  }
 </style>
+
+<script>
+(function() {
+  var table = document.querySelector('.agenda-table');
+  var buttons = document.querySelectorAll('.zoom-btn');
+  if (!table || !buttons.length) return;
+
+  function applyZoom(z) {
+    table.style.zoom = z;
+    buttons.forEach(function(b) {
+      b.classList.toggle('active', parseFloat(b.dataset.zoom) === z);
+    });
+    try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
+  }
+
+  var stored = null;
+  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
+  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
+
+  applyZoom(initial);
+
+  buttons.forEach(function(b) {
+    b.addEventListener('click', function() {
+      applyZoom(parseFloat(b.dataset.zoom));
+    });
+  });
+})();
+</script>
 
 {% endblock %}
