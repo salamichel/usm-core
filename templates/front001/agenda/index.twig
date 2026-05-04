@@ -8,18 +8,56 @@
 
   {% include 'agenda/filters.twig' %}
 
-  {# Quick filter buttons #}
-  <div class="mb-4 flex flex-wrap gap-2">
-    <a href="/agenda?type=Match" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}bg-white hover:bg-amber-50{% endif %}">
-      ⚽ Matchs
-    </a>
-    <a href="/agenda?type=Présences - Entrainement" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}bg-white hover:bg-blue-50{% endif %}">
-      🏋️ Entraînements
-    </a>
-    {% if filters.type %}
-      <a href="/agenda" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold bg-gray-200 hover:bg-gray-300 transition">
-        ✕ Tous les types
-      </a>
+  {# Toolbar: Zoom + Quick filters #}
+  <div class="bg-white border-b-2 border-gray-300 p-3 mb-4 rounded-lg flex flex-wrap items-center gap-4">
+    {# Zoom controls #}
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Zoom :</span>
+      <div class="flex gap-1">
+        <button type="button" data-zoom="1"    class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">100%</button>
+        <button type="button" data-zoom="0.8"  class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">80%</button>
+        <button type="button" data-zoom="0.65" class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">65%</button>
+        <button type="button" data-zoom="0.5"  class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
+      </div>
+    </div>
+
+    {# Divider #}
+    <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
+
+    {# Quick type filters #}
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Type :</span>
+      <div class="flex gap-1 flex-wrap">
+        <a href="/agenda" class="px-3 py-1 text-xs rounded border-2 {% if not filters.type %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+          Tous
+        </a>
+        <a href="/agenda?type=Match" class="px-3 py-1 text-xs rounded border-2 {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+          ⚽ Matchs
+        </a>
+        <a href="/agenda?type=Présences - Entrainement" class="px-3 py-1 text-xs rounded border-2 {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}border-gray-400 bg-white hover:bg-blue-50{% endif %} font-semibold transition">
+          🏋️ Entr.
+        </a>
+      </div>
+    </div>
+
+    {% if filterOptions.manifestationNames %}
+      {# Divider #}
+      <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
+
+      {# Quick manifestation filters #}
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Manifestation :</span>
+        <div class="flex gap-1 flex-wrap">
+          <a href="/agenda" class="px-3 py-1 text-xs rounded border-2 {% if not filters.manifestation %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
+            Tous
+          </a>
+          {% for name in filterOptions.manifestationNames %}
+            <a href="/agenda?manifestation={{ name|url_encode }}" class="px-3 py-1 text-xs rounded border-2 {% if filters.manifestation == name %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
+              {{ name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
     {% endif %}
   </div>
 
@@ -114,13 +152,13 @@
             <td class="sticky-left z-10 border-2 border-gray-400 px-2 py-1 font-semibold bg-gradient-to-r from-gray-200 to-gray-100 min-w-[160px]">
               {# Smiley avec 3 niveaux selon l'alerte #}
               {% if row.nb_participation < nb_manif %}
-                <span class="text-xl" title="Participation incomplète">😒</span>
+                <img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" class="inline w-6 h-6">
               {% elseif row.nb_ne_sait_pas > 3 %}
                 <span class="text-xl" title="Trop d'hésitations">😕</span>
               {% elseif row.nb_ne_sait_pas_proche > 0 %}
                 <span class="text-xl" title="Réponse attendue bientôt">🤔</span>
               {% else %}
-                <span class="text-xl" title="Participation complète">😊</span>
+                <img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" class="inline w-6 h-6">
               {% endif %}
               {% set parts = nom|split(' ') %}
               {% set nom_famille = parts[0] %}
@@ -399,14 +437,40 @@
       padding: 4px 6px;
     }
   }
-</style>
 
-{% block head %}
-<style>
-  /* Pinch-to-zoom uniquement sur la page agenda */
-  html {
-    touch-action: manipulation;
+  .zoom-btn.active {
+    background-color: #d97706;
+    color: white;
+    border-color: #92400e;
   }
 </style>
-{% endblock %}
+
+<script>
+(function() {
+  var table = document.querySelector('.agenda-table');
+  var buttons = document.querySelectorAll('.zoom-btn');
+  if (!table || !buttons.length) return;
+
+  function applyZoom(z) {
+    table.style.zoom = z;
+    buttons.forEach(function(b) {
+      b.classList.toggle('active', parseFloat(b.dataset.zoom) === z);
+    });
+    try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
+  }
+
+  var stored = null;
+  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
+  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
+
+  applyZoom(initial);
+
+  buttons.forEach(function(b) {
+    b.addEventListener('click', function() {
+      applyZoom(parseFloat(b.dataset.zoom));
+    });
+  });
+})();
+</script>
+
 {% endblock %}
