@@ -39,6 +39,26 @@
         </a>
       </div>
     </div>
+
+    {% if filterOptions.manifestationNames %}
+      {# Divider #}
+      <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
+
+      {# Quick manifestation filters #}
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Manifestation :</span>
+        <div class="flex gap-1 flex-wrap">
+          <a href="/agenda" class="px-3 py-1 text-xs rounded border-2 {% if not filters.manifestation %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
+            Tous
+          </a>
+          {% for name in filterOptions.manifestationNames %}
+            <a href="/agenda?manifestation={{ name|url_encode }}" class="px-3 py-1 text-xs rounded border-2 {% if filters.manifestation == name %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
+              {{ name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 
   {% if manifestations is empty %}
