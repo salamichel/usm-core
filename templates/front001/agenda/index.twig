@@ -129,7 +129,7 @@
               {% elseif row.nb_ne_sait_pas_proche > 0 %}
                 <span class="text-xl" title="Réponse attendue bientôt">🤔</span>
               {% else %}
-                <span class="text-xl" title="Participation complète">😊</span>
+                <img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" class="inline w-6 h-6">
               {% endif %}
               {% set parts = nom|split(' ') %}
               {% set nom_famille = parts[0] %}
