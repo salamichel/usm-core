@@ -401,17 +401,4 @@
   }
 </style>
 
-{% block head %}
-<meta name="viewport" content="width=1024">
-<style>
-  /* Pinch-to-zoom uniquement sur la page agenda */
-  html {
-    touch-action: manipulation;
-  }
-  body { min-width: 1024px; }
-  @media (max-width: 1024px) {
-    * { zoom: 0.8; }
-  }
-</style>
-{% endblock %}
 {% endblock %}
