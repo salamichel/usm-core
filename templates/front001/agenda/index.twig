@@ -8,33 +8,42 @@
 
   {% include 'agenda/filters.twig' %}
 
-  {# Quick filter buttons #}
-  <div class="mb-4 flex flex-wrap gap-2">
-    <a href="/agenda?type=Match" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}bg-white hover:bg-amber-50{% endif %}">
-      ⚽ Matchs
-    </a>
-    <a href="/agenda?type=Présences - Entrainement" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}bg-white hover:bg-blue-50{% endif %}">
-      🏋️ Entraînements
-    </a>
-    {% if filters.type %}
-      <a href="/agenda" class="px-4 py-2 rounded border-2 border-gray-400 font-semibold bg-gray-200 hover:bg-gray-300 transition">
-        ✕ Tous les types
-      </a>
-    {% endif %}
+  {# Toolbar: Zoom + Quick filters #}
+  <div class="bg-white border-b-2 border-gray-300 p-3 mb-4 rounded-lg flex flex-wrap items-center gap-4">
+    {# Zoom controls #}
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Zoom :</span>
+      <div class="flex gap-1">
+        <button type="button" data-zoom="1"    class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">100%</button>
+        <button type="button" data-zoom="0.8"  class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">80%</button>
+        <button type="button" data-zoom="0.65" class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">65%</button>
+        <button type="button" data-zoom="0.5"  class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
+      </div>
+    </div>
+
+    {# Divider #}
+    <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
+
+    {# Quick type filters #}
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Type :</span>
+      <div class="flex gap-1 flex-wrap">
+        <a href="/agenda" class="px-3 py-1 text-xs rounded border-2 {% if not filters.type %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+          Tous
+        </a>
+        <a href="/agenda?type=Match" class="px-3 py-1 text-xs rounded border-2 {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+          ⚽ Matchs
+        </a>
+        <a href="/agenda?type=Présences - Entrainement" class="px-3 py-1 text-xs rounded border-2 {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}border-gray-400 bg-white hover:bg-blue-50{% endif %} font-semibold transition">
+          🏋️ Entr.
+        </a>
+      </div>
+    </div>
   </div>
 
   {% if manifestations is empty %}
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}
-
-  {# Contrôles de zoom (utile en mobile pour voir plus de colonnes) #}
-  <div class="mb-2 flex flex-wrap items-center gap-2 text-sm">
-    <span class="text-gray-700 font-semibold">Zoom :</span>
-    <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">100%</button>
-    <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">80%</button>
-    <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">65%</button>
-    <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1 rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
-  </div>
 
   {# Tableau croisé avec scroll horizontal + zoom #}
   <div class="border border-gray-400 rounded agenda-table-container" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
