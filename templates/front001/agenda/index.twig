@@ -169,7 +169,7 @@
                   </div>
                   <div class="flex flex-wrap gap-x-2 gap-y-0.5">
                     {% if m.nb_absent > 0 %}<span class="text-red-800 font-semibold">Absents: <strong>{{ m.nb_absent }}</strong></span>{% endif %}
-                    {% if m.nb_ne_sait_pas > 0 %}<span class="text-orange-600">??: <strong>{{ m.nb_ne_sait_pas }}</strong></span>{% endif %}
+                    {% if m.nb_ne_sait_pas > 0 %}<span class="text-orange-600">Ne sait pas: <strong>{{ m.nb_ne_sait_pas }}</strong></span>{% endif %}
                   </div>
                 {% else %}
                   <div class="flex flex-wrap gap-x-2 gap-y-0.5">
@@ -180,7 +180,7 @@
                     {% if m.nb_disponible > 0 %}<span class="text-blue-700">Dispos: <strong>{{ m.nb_disponible }}</strong></span>{% endif %}
                     {% if m.nb_indisponible > 0 %}<span class="text-red-700">Indispos: <strong>{{ m.nb_indisponible }}</strong></span>{% endif %}
                   </div>
-                  {% if m.nb_ne_sait_pas > 0 %}<div><span class="text-orange-600">??: <strong>{{ m.nb_ne_sait_pas }}</strong></span></div>{% endif %}
+                  {% if m.nb_ne_sait_pas > 0 %}<div><span class="text-orange-600">Ne sait pas: <strong>{{ m.nb_ne_sait_pas }}</strong></span></div>{% endif %}
                 {% endif %}
               </div>
 
