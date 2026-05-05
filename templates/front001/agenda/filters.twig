@@ -12,6 +12,13 @@
 
   {# Filters content #}
   <form method="GET" action="/agenda" id="filters-content" class="hidden md:block space-y-4">
+    {# Preserve quick-filter params (type/manifestation) set via toolbar buttons #}
+    {% if filters.type is defined %}
+      <input type="hidden" name="type" value="{{ filters.type }}">
+    {% endif %}
+    {% if filters.manifestation is defined %}
+      <input type="hidden" name="manifestation" value="{{ filters.manifestation }}">
+    {% endif %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {{ macros.render_filter_dropdown('team', 'Équipe', filterOptions.teams, filters.team) }}
       {{ macros.render_filter_dropdown('location', 'Lieu', filterOptions.locations, filters.location) }}
