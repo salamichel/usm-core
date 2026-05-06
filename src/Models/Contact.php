@@ -10,11 +10,11 @@ class Contact
     public static function create(array $data): int
     {
         $stmt = Database::get()->prepare(
-            'INSERT INTO contacts (name, email, subject, message, status) VALUES (?, ?, ?, ?, ?)'
+            'INSERT INTO contacts (name, phone, subject, message, status) VALUES (?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $data['name'],
-            $data['email'],
+            $data['phone'] ?? null,
             $data['subject'],
             $data['message'],
             $data['status'] ?? 'new',

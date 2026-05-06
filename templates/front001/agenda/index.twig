@@ -74,6 +74,16 @@
     {% endif %}
   </div>
 
+  {# Login CTA for players #}
+  <div class="mb-4 p-3 bg-amber-50 border-2 border-amber-400 rounded flex items-center gap-3">
+    <span class="text-amber-700 text-lg">🔒</span>
+    <a href="https://unionsallesmiosvolley.free.nf/login.php"
+       target="_blank" rel="noopener"
+       class="text-usm-brown font-semibold underline hover:text-amber-800 transition">
+      S'identifier pour mettre à jour sa participation
+    </a>
+  </div>
+
   {% if manifestations is empty %}
     <p class="text-gray-600">Aucun événement à venir.</p>
   {% else %}

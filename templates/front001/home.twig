@@ -98,7 +98,7 @@
          {% if parallax_img %}style="background-image: url('{{ parallax_img }}');"{% endif %}>
   <div class="absolute inset-0 bg-usm-brown/90"></div>
   <div class="relative max-w-5xl mx-auto px-4 py-14 text-white">
-    <h2 class="text-center text-xs font-black uppercase tracking-[0.3em] mb-8 opacity-80">Le club en chiffres</h2>
+    <h2 class="text-center text-base sm:text-lg font-black uppercase tracking-[0.3em] mb-8 opacity-80">Le club en chiffres</h2>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {% set tiles = [
         {value: stats.licencies,      label: 'Licenciés',       suffix: ''},
@@ -242,7 +242,7 @@
 {% if latest_posts|length %}
 <section class="bg-amber-50">
   <div class="max-w-5xl mx-auto px-4 py-14">
-    <h2 class="text-3xl font-black mb-8 text-center">Dernières actualités</h2>
+    <h2 class="text-3xl font-black mb-8 text-center">Actualités</h2>
     <div class="overflow-x-auto border-4 border-black bg-white shadow-[6px_6px_0_#000]">
       <table class="w-full">
         <thead>
