@@ -281,46 +281,36 @@
   <footer class="border-t-4 border-black bg-usm-brown text-white mt-12">
     <div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
 
-      {# Main footer content: 2 columns #}
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 pb-6 border-b-2 border-white/30">
+      {# Main footer content: 2 columns with vertical separator #}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 pb-6 border-b-2 border-white/30 sm:gap-12">
 
-        {# Left: Logo + Contact Info #}
-        <div class="flex flex-col justify-start">
-          <h3 class="text-lg font-black mb-2 uppercase">{{ site_config.club_name|default('USM Volley') }}</h3>
+        {# Left: Logo + Contact Info + Social #}
+        <div class="flex flex-col justify-between sm:border-r-2 sm:border-white/20 sm:pr-8">
+          <div>
+            <h3 class="text-lg font-black mb-2 uppercase">{{ site_config.club_name|default('USM Volley') }}</h3>
 
-          {# Tagline #}
-          {% if site_config.club_tagline %}
-            <p class="text-sm text-white/80 mb-4 leading-relaxed">{{ site_config.club_tagline }}</p>
-          {% endif %}
+            {# Tagline #}
+            {% if site_config.club_tagline %}
+              <p class="text-sm text-white/80 mb-4 leading-relaxed">{{ site_config.club_tagline }}</p>
+            {% endif %}
 
-          {# Address #}
-          {% if site_config.address %}
-            <address class="not-italic text-xs text-white/75 whitespace-pre-line leading-relaxed mb-3">{{ site_config.address }}</address>
-          {% endif %}
+            {# Address #}
+            {% if site_config.address %}
+              <address class="not-italic text-xs text-white/75 whitespace-pre-line leading-relaxed mb-3">{{ site_config.address }}</address>
+            {% endif %}
 
-          {# Phone #}
-          {% if site_config.phone %}
-            <div class="text-xs text-white/75 mb-2">
-              <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="hover:text-amber-300 transition">
-                {{ site_config.phone }}
-              </a>
-            </div>
-          {% endif %}
-        </div>
-
-        {# Right: Links + Social #}
-        <div>
-          {# Legal links — 3 liens en majuscules #}
-          <div class="mb-6">
-            <ul class="space-y-2 text-sm font-semibold">
-              <li><a href="{{ url('/p/mentions-legales') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Mentions légales</a></li>
-              <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Politique de confidentialité</a></li>
-              <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Gestion des cookies</a></li>
-            </ul>
+            {# Phone #}
+            {% if site_config.phone %}
+              <div class="text-xs text-white/75 mb-4">
+                <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="hover:text-amber-300 transition">
+                  {{ site_config.phone }}
+                </a>
+              </div>
+            {% endif %}
           </div>
 
-          {# Bottom: Social icons #}
-          <div class="flex gap-3">
+          {# Social icons #}
+          <div class="flex gap-3 mt-4">
             {% if site_config.facebook_url %}
               <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener"
                  aria-label="Facebook"
@@ -346,6 +336,15 @@
               <a href="{{ url('admin') }}" class="inline-block px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-800 rounded text-xs font-semibold transition">⚙️ Admin</a>
             </div>
           {% endif %}
+        </div>
+
+        {# Right: Legal links (no bullets) #}
+        <div class="sm:pl-8">
+          <ul class="space-y-2 text-sm font-semibold list-none">
+            <li><a href="{{ url('/p/mentions-legales') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Mentions légales</a></li>
+            <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Politique de confidentialité</a></li>
+            <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Gestion des cookies</a></li>
+          </ul>
         </div>
       </div>
 
