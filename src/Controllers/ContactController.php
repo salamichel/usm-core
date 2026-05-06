@@ -28,6 +28,8 @@ class ContactController
         $v = Validator::make($_POST)
             ->required('name', 'Le nom est obligatoire.')
             ->minLength('name', 2)
+            ->required('email', 'L\'email est obligatoire.')
+            ->email('email')
             ->required('phone', 'Le téléphone est obligatoire.')
             ->minLength('phone', 6)
             ->required('subject', 'Le sujet est obligatoire.')
@@ -40,6 +42,7 @@ class ContactController
                 'error' => $v->firstError(),
                 'form_data' => [
                     'name' => $_POST['name'] ?? '',
+                    'email' => $_POST['email'] ?? '',
                     'phone' => $_POST['phone'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
                     'message' => $_POST['message'] ?? '',
@@ -48,7 +51,7 @@ class ContactController
             return;
         }
 
-        $data = $v->getCleanData(['name', 'phone', 'subject', 'message']);
+        $data = $v->getCleanData(['name', 'email', 'phone', 'subject', 'message']);
 
         try {
             $contactId = Contact::create($data);
@@ -72,6 +75,7 @@ class ContactController
                 'error' => 'Une erreur est survenue. Veuillez réessayer.',
                 'form_data' => [
                     'name' => $_POST['name'] ?? '',
+                    'email' => $_POST['email'] ?? '',
                     'phone' => $_POST['phone'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
                     'message' => $_POST['message'] ?? '',
