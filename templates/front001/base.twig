@@ -286,7 +286,12 @@
 
         {# Left: Logo + Contact Info #}
         <div class="flex flex-col justify-start">
-          <h3 class="text-lg font-black mb-4 uppercase">{{ site_config.club_name|default('USM Volley') }}</h3>
+          <h3 class="text-lg font-black mb-2 uppercase">{{ site_config.club_name|default('USM Volley') }}</h3>
+
+          {# Tagline #}
+          {% if site_config.club_tagline %}
+            <p class="text-sm text-white/80 mb-4 leading-relaxed">{{ site_config.club_tagline }}</p>
+          {% endif %}
 
           {# Address #}
           {% if site_config.address %}
@@ -305,12 +310,12 @@
 
         {# Right: Links + Social #}
         <div>
-          {# Top: Legal links #}
+          {# Legal links — 3 liens en majuscules #}
           <div class="mb-6">
-            <p class="text-xs font-black text-white/60 uppercase tracking-wider mb-2">Mentions légales</p>
-            <ul class="space-y-1 text-xs">
-              <li><a href="{{ url('/p/mentions-legales') }}" class="hover:text-amber-300 transition">Politique de confidentialité</a></li>
-              <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="hover:text-amber-300 transition">Gestion des cookies</a></li>
+            <ul class="space-y-2 text-sm font-semibold">
+              <li><a href="{{ url('/p/mentions-legales') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Mentions légales</a></li>
+              <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Politique de confidentialité</a></li>
+              <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Gestion des cookies</a></li>
             </ul>
           </div>
 
