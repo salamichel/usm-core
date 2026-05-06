@@ -245,6 +245,14 @@ class AgendaService
             return ['joueurs' => [], 'manifestations' => [], 'cross' => []];
         }
 
+        if (!empty($filters['hide_empty_players'])) {
+            foreach (array_keys($joueurs) as $jid) {
+                if ($cross[$jid]['nb_participation'] === 0) {
+                    unset($joueurs[$jid], $cross[$jid]);
+                }
+            }
+        }
+
         return ['joueurs' => $joueurs, 'manifestations' => $manifestations, 'cross' => $cross];
     }
 
