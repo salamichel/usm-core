@@ -100,77 +100,8 @@
       });
     });
   </script>
+  <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
   <style>
-    /* Fix list styles */
-    ul, ol {
-      margin-left: 0 !important;
-      padding-left: 0 !important;
-      margin-top: 0.5rem !important;
-      margin-bottom: 0.5rem !important;
-    }
-    ul {
-      counter-reset: none !important;
-    }
-    ul li {
-      margin-left: 2rem !important;
-      margin-top: 0 !important;
-      margin-bottom: 0 !important;
-      padding-left: 0.5rem !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-      list-style: none !important;
-      position: relative;
-    }
-    ul li::before {
-      content: '–';
-      position: absolute;
-      left: -1.5rem;
-      width: 1.5rem;
-      text-align: center;
-    }
-    ol {
-      counter-reset: custom-counter;
-      margin-left: 0 !important;
-      padding-left: 0 !important;
-      margin-top: 0.5rem !important;
-      margin-bottom: 0.5rem !important;
-    }
-    ol li {
-      counter-increment: custom-counter;
-      margin-left: 2rem !important;
-      margin-top: 0 !important;
-      margin-bottom: 0 !important;
-      padding-left: 0.5rem !important;
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-      list-style: none !important;
-      position: relative;
-    }
-    ol li::before {
-      content: counter(custom-counter) '.';
-      position: absolute;
-      left: -2rem;
-      width: 1.5rem;
-      text-align: right;
-    }
-
-    /* Exclude footer from bullet styling */
-    footer ul li::before {
-      content: none;
-    }
-
-    /* Titles uppercase */
-    main h1, main h2, main h3, main h4 {
-      text-transform: uppercase;
-    }
-
-    /* Content hyperlinks more visible */
-    main a:not([class]):not([aria-label]) {
-      text-decoration: underline;
-      text-underline-offset: 2px;
-      font-weight: 600;
-    }
-
     /* Show mobile menu burger on landscape smartphone mode */
     @media (max-height: 500px) and (min-width: 480px) and (max-width: 900px) and (orientation: landscape) {
       /* Hide desktop menu */
