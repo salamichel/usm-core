@@ -218,9 +218,6 @@
             </a>
           {% endif %}
         {% endfor %}
-        {% if admin_logged_in %}
-          <a href="{{ url('admin') }}" class="px-3 py-1 bg-black text-white border-2 border-black hover:bg-gray-800 rounded transition">⚙ Admin</a>
-        {% endif %}
       </nav>
 
       {# Mobile burger button #}
@@ -255,9 +252,6 @@
             </a>
           {% endif %}
         {% endfor %}
-        {% if admin_logged_in %}
-          <a href="{{ url('admin') }}" class="block px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-800 rounded transition font-semibold text-sm">⚙ Admin</a>
-        {% endif %}
       </div>
     </nav>
   </header>
