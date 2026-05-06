@@ -59,27 +59,15 @@
 {% endblock %}
 
 {% block scripts %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@3/es5/jodit.min.css">
 <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jodit@3/es5/jodit.min.js"></script>
 <script>
-  $('#content').summernote({
-    height: 400,
-    lang: 'fr-FR',
-    toolbar: [
-      ['style',  ['style']],
-      ['font',   ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
-      ['align',  ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull']],
-      ['para',   ['ul', 'ol']],
-      ['table',  ['table']],
-      ['insert', ['link', 'picture']],
-      ['view',   ['codeview']]
-    ]
-  });
-  $('form').on('submit', function () {
-    document.getElementById('content').value = $('#content').summernote('code');
+  Jodit.make('#content', {
+    language: 'fr',
+    height: 500,
+    toolbarButtonSize: 'small',
+    buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
   });
 </script>
 {% endblock %}
