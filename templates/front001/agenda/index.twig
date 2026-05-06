@@ -8,7 +8,7 @@
 
   {% include 'agenda/filters.twig' %}
 
-  {# Toolbar: Zoom + Quick filters #}
+  {# Toolbar: Zoom #}
   <div class="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-4 mb-6 rounded flex flex-wrap items-center gap-4">
     {# Zoom controls #}
     <div class="flex items-center gap-2">
@@ -20,58 +20,6 @@
         <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
       </div>
     </div>
-
-    {# Divider #}
-    <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
-
-    {# Build base query strings preserving other active filters #}
-    {% set _no_type = [] %}
-    {% set _no_manif = [] %}
-    {% for k, v in filters %}
-      {% set _enc = v is same as(true) ? '1' : v|url_encode %}
-      {% if k != 'type' %}{% set _no_type = _no_type|merge([k ~ '=' ~ _enc]) %}{% endif %}
-      {% if k != 'manifestation' %}{% set _no_manif = _no_manif|merge([k ~ '=' ~ _enc]) %}{% endif %}
-    {% endfor %}
-    {% set _base_type = '/agenda' ~ (_no_type is not empty ? '?' ~ _no_type|join('&') : '') %}
-    {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
-    {% set _sep_type = _no_type is not empty ? '&' : '?' %}
-    {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
-
-    {# Quick type filters #}
-    <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap uppercase tracking-wide">Type :</span>
-      <div class="flex gap-1 flex-wrap">
-        <a href="{{ _base_type }}" class="px-3 py-1 text-xs rounded border-2 {% if not filters.type %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
-          Tous
-        </a>
-        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-3 py-1 text-xs rounded border-2 {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
-          ⚽ Matchs
-        </a>
-        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-3 py-1 text-xs rounded border-2 {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white border-blue-800{% else %}border-gray-400 bg-white hover:bg-blue-50{% endif %} font-semibold transition">
-          🏋️ Entr.
-        </a>
-      </div>
-    </div>
-
-    {% if filterOptions.manifestationNames %}
-      {# Divider #}
-      <div class="hidden sm:block w-px h-6 bg-gray-300"></div>
-
-      {# Quick manifestation filters #}
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm font-semibold text-gray-700 whitespace-nowrap uppercase tracking-wide">Manifestation :</span>
-        <div class="flex gap-1 flex-wrap">
-          <a href="{{ _base_manif }}" class="px-3 py-1 text-xs rounded border-2 {% if not filters.manifestation %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
-            Tous
-          </a>
-          {% for name in filterOptions.manifestationNames %}
-            <a href="{{ _base_manif ~ _sep_manif ~ 'manifestation=' ~ name|url_encode }}" class="px-3 py-1 text-xs rounded border-2 {% if filters.manifestation == name %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
-              {{ name }}
-            </a>
-          {% endfor %}
-        </div>
-      </div>
-    {% endif %}
   </div>
 
   {# Login CTA for players #}
