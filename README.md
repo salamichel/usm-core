@@ -212,7 +212,3 @@ Pour toute question ou problème :
 ## 📄 Licence
 
 Ce projet est propriétaire de l'USM Volley.
-
----
-
-**Maintenant sur GitHub** : https://github.com/salamichel/usm-core
