@@ -3,21 +3,21 @@
 {% block title %}Agenda{% endblock %}
 
 {% block content %}
-<div class="px-4 py-6">
-  <h1 class="text-3xl font-bold mb-6">Agenda — événements à venir</h1>
+<div class="max-w-5xl mx-auto px-4 py-10">
+  <h1 class="text-3xl font-black mb-8 border-b-4 border-black pb-3">Agenda — événements à venir</h1>
 
   {% include 'agenda/filters.twig' %}
 
   {# Toolbar: Zoom + Quick filters #}
-  <div class="bg-white border-b-2 border-gray-300 p-3 mb-4 rounded-lg flex flex-wrap items-center gap-4">
+  <div class="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-4 mb-6 rounded flex flex-wrap items-center gap-4">
     {# Zoom controls #}
     <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Zoom :</span>
+      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap uppercase tracking-wide">Zoom :</span>
       <div class="flex gap-1">
-        <button type="button" data-zoom="1"    class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">100%</button>
-        <button type="button" data-zoom="0.8"  class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">80%</button>
-        <button type="button" data-zoom="0.65" class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">65%</button>
-        <button type="button" data-zoom="0.5"  class="zoom-btn px-2 py-1 text-xs rounded border border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
+        <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">100%</button>
+        <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">80%</button>
+        <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">65%</button>
+        <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold">50%</button>
       </div>
     </div>
 
@@ -39,7 +39,7 @@
 
     {# Quick type filters #}
     <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Type :</span>
+      <span class="text-sm font-semibold text-gray-700 whitespace-nowrap uppercase tracking-wide">Type :</span>
       <div class="flex gap-1 flex-wrap">
         <a href="{{ _base_type }}" class="px-3 py-1 text-xs rounded border-2 {% if not filters.type %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
           Tous
@@ -59,7 +59,7 @@
 
       {# Quick manifestation filters #}
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Manifestation :</span>
+        <span class="text-sm font-semibold text-gray-700 whitespace-nowrap uppercase tracking-wide">Manifestation :</span>
         <div class="flex gap-1 flex-wrap">
           <a href="{{ _base_manif }}" class="px-3 py-1 text-xs rounded border-2 {% if not filters.manifestation %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
             Tous
@@ -75,7 +75,7 @@
   </div>
 
   {# Login CTA for players #}
-  <div class="mb-4 p-3 bg-amber-50 border-2 border-amber-400 rounded flex items-center gap-3">
+  <div class="mb-6 p-4 bg-amber-50 border-2 border-black shadow-[4px_4px_0_#000] flex items-center gap-3">
     <span class="text-amber-700 text-lg">🔒</span>
     <a href="https://unionsallesmiosvolley.free.nf/login.php"
        target="_blank" rel="noopener"
@@ -89,7 +89,7 @@
   {% else %}
 
   {# Tableau croisé avec scroll horizontal + zoom #}
-  <div class="border border-gray-400 rounded agenda-table-container" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
+  <div class="border-2 border-black shadow-[4px_4px_0_#000] agenda-table-container" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
     <table class="border-collapse text-sm whitespace-nowrap agenda-table">
 
       {# ── EN-TÊTE : une colonne par manifestation ── #}
