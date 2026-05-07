@@ -58,7 +58,7 @@
             {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
             {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
 
-            <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';" class="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg bg-white text-gray-800 font-medium focus:outline-none focus:border-usm-brown">
+            <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';" class="w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-800 font-medium focus:outline-none {% if filters.manifestation %}border-usm-brown focus:border-usm-brown{% else %}border-gray-300 focus:border-usm-brown{% endif %}">
               <option value="">Tous les événements</option>
               {% for name in filterOptions.manifestationNames %}
                 <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
@@ -81,7 +81,7 @@
             {% set _base_team = '/agenda' ~ (_no_team is not empty ? '?' ~ _no_team|join('&') : '') %}
             {% set _sep_team = _no_team is not empty ? '&' : '?' %}
 
-            <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';" class="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg bg-white text-gray-800 font-medium focus:outline-none focus:border-usm-brown">
+            <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';" class="w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-800 font-medium focus:outline-none {% if filters.team %}border-usm-brown focus:border-usm-brown{% else %}border-gray-300 focus:border-usm-brown{% endif %}">
               <option value="">Toutes les équipes</option>
               {% for team in filterOptions.teams %}
                 <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
@@ -104,7 +104,7 @@
             {% set _base_location = '/agenda' ~ (_no_location is not empty ? '?' ~ _no_location|join('&') : '') %}
             {% set _sep_location = _no_location is not empty ? '&' : '?' %}
 
-            <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';" class="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg bg-white text-gray-800 font-medium focus:outline-none focus:border-usm-brown">
+            <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';" class="w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-800 font-medium focus:outline-none {% if filters.location %}border-usm-brown focus:border-usm-brown{% else %}border-gray-300 focus:border-usm-brown{% endif %}">
               <option value="">Tous les lieux</option>
               {% for location in filterOptions.locations %}
                 <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
@@ -131,7 +131,7 @@
           Liste complète
         </a>
         <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="px-4 py-2 text-sm rounded-lg border-2 font-semibold transition {% if filters.hide_empty_players %}bg-white text-usm-brown border-usm-brown{% else %}border-gray-300 bg-gray-50 text-gray-600 hover:bg-white{% endif %}">
-          Mes réponses
+          Ayant répondu
         </a>
       </div>
     </div>
