@@ -71,13 +71,21 @@
   {% endif %}
 
 
+  {% if site_config.font_family %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ site_config.font_family|replace({' ': '+'})|url_encode }}:wght@400;500;600;700;800;900&display=swap">
+  {% endif %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: { 'usm-brown': '#94674d' }
+          colors: { 'usm-brown': '{{ site_config.primary_color|default('#94674d') }}' }
+          {% if site_config.font_family %}
+          , fontFamily: { sans: ['{{ site_config.font_family }}', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+          {% endif %}
         }
       }
     }
@@ -102,6 +110,7 @@
   </script>
   <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
   <style>
+    :root { --primary: {{ site_config.primary_color|default('#94674d') }}; }
     /* Show mobile menu burger on landscape smartphone mode */
     @media (max-height: 500px) and (min-width: 480px) and (max-width: 900px) and (orientation: landscape) {
       /* Hide desktop menu */

@@ -121,6 +121,71 @@
     </div>
   </div>
 
+  {# ── Apparence ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
+    <h2 class="font-black text-lg">Apparence</h2>
+
+    {# Couleur principale #}
+    <div>
+      <label class="block font-black mb-2" for="primary_color">Couleur principale</label>
+      <div class="flex items-center gap-4">
+        <input type="color" id="primary_color" name="primary_color"
+               value="{{ config.primary_color|default('#94674d') }}"
+               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white">
+        <div>
+          <div id="color-preview" class="text-sm font-semibold text-gray-700">{{ config.primary_color|default('#94674d') }}</div>
+          <div class="text-xs text-gray-500">Utilisée pour l'en-tête, le footer, les boutons et les accents.</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        {% set presets = [
+          { label: 'Marron (défaut)', value: '#94674d' },
+          { label: 'Marine',         value: '#1e3a5f' },
+          { label: 'Vert forêt',     value: '#2d6a4f' },
+          { label: 'Bordeaux',       value: '#7b2d3e' },
+          { label: 'Ardoise',        value: '#475569' },
+          { label: 'Orange',         value: '#c2410c' },
+        ] %}
+        {% for preset in presets %}
+          <button type="button"
+                  onclick="document.getElementById('primary_color').value='{{ preset.value }}'; document.getElementById('color-preview').textContent='{{ preset.value }}';"
+                  class="flex items-center gap-2 px-3 py-1.5 border-2 border-black text-xs font-semibold hover:bg-gray-100 transition">
+            <span class="w-4 h-4 border border-black inline-block" style="background:{{ preset.value }}"></span>
+            {{ preset.label }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Typographie #}
+    <div>
+      <label class="block font-black mb-2" for="font_family">Typographie</label>
+      {% set fonts = [
+        { value: '',               label: 'Système (défaut)',  sample: 'ui-sans-serif, system-ui, sans-serif' },
+        { value: 'Inter',          label: 'Inter',             sample: 'Inter, sans-serif' },
+        { value: 'Space Grotesk',  label: 'Space Grotesk',     sample: "'Space Grotesk', sans-serif" },
+        { value: 'DM Sans',        label: 'DM Sans',           sample: "'DM Sans', sans-serif" },
+        { value: 'Syne',           label: 'Syne',              sample: 'Syne, sans-serif' },
+        { value: 'Outfit',         label: 'Outfit',            sample: 'Outfit, sans-serif' },
+      ] %}
+      <div class="space-y-2">
+        {% for font in fonts %}
+          <label class="flex items-center gap-3 p-3 border-2 cursor-pointer transition
+                        {{ config.font_family|default('') == font.value ? 'border-black bg-amber-50' : 'border-gray-300 hover:border-black' }}">
+            <input type="radio" name="font_family" value="{{ font.value }}"
+                   {% if config.font_family|default('') == font.value %}checked{% endif %}
+                   class="w-4 h-4">
+            <span class="font-black text-sm w-28">{{ font.label }}</span>
+            <span class="text-lg text-gray-700" style="font-family: {{ font.sample }}">
+              Club de volley-ball — USM Mios
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+      <div class="text-xs text-gray-500 mt-2">Les polices web sont chargées depuis Google Fonts.</div>
+    </div>
+  </div>
+
   <button type="submit"
           class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
     Enregistrer
