@@ -4,7 +4,7 @@
   <div class="flex justify-between items-center mb-6">
     <h2 class="text-lg font-bold">Filtres</h2>
     {% if filters is not empty %}
-      <a href="/agenda" class="text-sm text-usm-brown hover:underline font-semibold">Réinitialiser ↺</a>
+      <a href="/agenda" class="px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold transition">Réinitialiser ↺</a>
     {% endif %}
   </div>
 
@@ -31,13 +31,13 @@
         {% set _base_type = '/agenda' ~ (_no_type is not empty ? '?' ~ _no_type|join('&') : '') %}
         {% set _sep_type = _no_type is not empty ? '&' : '?' %}
 
-        <a href="{{ _base_type }}" class="px-4 py-2 text-sm rounded-lg border-2 font-semibold transition {% if not filters.type %}bg-white text-usm-brown border-usm-brown{% else %}border-gray-300 bg-gray-50 text-gray-600 hover:bg-white{% endif %}">
+        <a href="{{ _base_type }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if not filters.type %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           Tous
         </a>
-        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-4 py-2 text-sm rounded-lg border-2 font-semibold transition {% if filters.type == 'Match' %}bg-white text-usm-brown border-usm-brown{% else %}border-gray-300 bg-gray-50 text-gray-600 hover:bg-white{% endif %}">
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           ⚽ Matchs
         </a>
-        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-4 py-2 text-sm rounded-lg border-2 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-white text-usm-brown border-usm-brown{% else %}border-gray-300 bg-gray-50 text-gray-600 hover:bg-white{% endif %}">
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           🏋️ Entraînement
         </a>
       </div>
@@ -58,7 +58,7 @@
             {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
             {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
 
-            <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';" class="w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-800 font-medium focus:outline-none {% if filters.manifestation %}border-usm-brown focus:border-usm-brown{% else %}border-gray-300 focus:border-usm-brown{% endif %}">
+            <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';" class="w-full px-3 py-1.5 text-xs rounded border-2 font-semibold {% if filters.manifestation %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
               <option value="">Tous les événements</option>
               {% for name in filterOptions.manifestationNames %}
                 <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
@@ -81,7 +81,7 @@
             {% set _base_team = '/agenda' ~ (_no_team is not empty ? '?' ~ _no_team|join('&') : '') %}
             {% set _sep_team = _no_team is not empty ? '&' : '?' %}
 
-            <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';" class="w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-800 font-medium focus:outline-none {% if filters.team %}border-usm-brown focus:border-usm-brown{% else %}border-gray-300 focus:border-usm-brown{% endif %}">
+            <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';" class="w-full px-3 py-1.5 text-xs rounded border-2 font-semibold {% if filters.team %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
               <option value="">Toutes les équipes</option>
               {% for team in filterOptions.teams %}
                 <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
@@ -104,7 +104,7 @@
             {% set _base_location = '/agenda' ~ (_no_location is not empty ? '?' ~ _no_location|join('&') : '') %}
             {% set _sep_location = _no_location is not empty ? '&' : '?' %}
 
-            <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';" class="w-full px-4 py-2.5 border-2 rounded-lg bg-white text-gray-800 font-medium focus:outline-none {% if filters.location %}border-usm-brown focus:border-usm-brown{% else %}border-gray-300 focus:border-usm-brown{% endif %}">
+            <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';" class="w-full px-3 py-1.5 text-xs rounded border-2 font-semibold {% if filters.location %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
               <option value="">Tous les lieux</option>
               {% for location in filterOptions.locations %}
                 <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
@@ -127,10 +127,10 @@
         {% set _base_empty = '/agenda' ~ (_no_empty is not empty ? '?' ~ _no_empty|join('&') : '') %}
         {% set _sep_empty = _no_empty is not empty ? '&' : '?' %}
 
-        <a href="{{ _base_empty }}" class="px-4 py-2 text-sm rounded-lg border-2 font-semibold transition {% if not filters.hide_empty_players %}bg-white text-usm-brown border-usm-brown{% else %}border-gray-300 bg-gray-50 text-gray-600 hover:bg-white{% endif %}">
+        <a href="{{ _base_empty }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if not filters.hide_empty_players %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           Liste complète
         </a>
-        <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="px-4 py-2 text-sm rounded-lg border-2 font-semibold transition {% if filters.hide_empty_players %}bg-white text-usm-brown border-usm-brown{% else %}border-gray-300 bg-gray-50 text-gray-600 hover:bg-white{% endif %}">
+        <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if filters.hide_empty_players %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           Ayant répondu
         </a>
       </div>
