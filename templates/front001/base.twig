@@ -84,9 +84,9 @@
       theme: {
         extend: {
           colors: {
-            'usm-brown': '{{ site_config.primary_color|default('#94674d') }}',
+            'usm-brown':  '{{ site_config.primary_color|default('#94674d') }}',
             'brutal-dark': '#1a2d4c',
-            'brutal-gold': '#f1c40f'
+            'brutal-gold': '{{ site_config.primary_color|default('#94674d') }}'
           }
           {% if site_config.font_family %}
           , fontFamily: { sans: ['{{ site_config.font_family }}', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
@@ -123,7 +123,7 @@
     :root {
       --primary: {{ site_config.primary_color|default('#94674d') }};
       --brutal-dark: #1a2d4c;
-      --brutal-gold: #f1c40f;
+      --brutal-gold: var(--primary);
       --brutal-shadow: 5px 5px 0px #000000;
       --brutal-shadow-hover: 2px 2px 0px #000000;
       --transition: all 0.2s ease;
@@ -404,7 +404,7 @@
     </nav>
 
     {# Mobile burger button #}
-    <button id="mobile-menu-toggle" class="sm:hidden border-4 border-black px-3 py-2 bg-white hover:bg-yellow-300 transition font-bold" aria-label="Menu">
+    <button id="mobile-menu-toggle" class="sm:hidden border-4 border-black px-3 py-2 bg-white hover:bg-brutal-gold transition font-bold" aria-label="Menu">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
@@ -417,7 +417,7 @@
       {% for item in menu_items %}
         {% if item.children|length %}
           <div x-data="{ open: false }">
-            <button @click="open = !open" class="w-full text-left px-3 py-2 border-2 border-black hover:bg-yellow-300 transition flex items-center justify-between font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
+            <button @click="open = !open" class="w-full text-left px-3 py-2 border-2 border-black hover:bg-brutal-gold transition flex items-center justify-between font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
               {{ item.label }}
               <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -429,16 +429,16 @@
                   {# Level 2 = section header (column title in mega menu) #}
                   <div class="pt-2">
                     <p class="text-xs font-black uppercase text-gray-500 tracking-widest py-1">{{ child.label }}</p>
-                    <div class="space-y-1 border-l-2 border-yellow-400 ml-1 pl-2">
+                    <div class="space-y-1 border-l-2 border-brutal-gold ml-1 pl-2">
                       {% for sub in child.children %}
-                        <a href="{{ item_url(sub) }}" class="block px-2 py-1.5 hover:bg-yellow-100 transition text-sm font-semibold uppercase">
+                        <a href="{{ item_url(sub) }}" class="block px-2 py-1.5 hover:bg-gray-100 transition text-sm font-semibold uppercase">
                           {{ sub.label }}
                         </a>
                       {% endfor %}
                     </div>
                   </div>
                 {% else %}
-                  <a href="{{ item_url(child) }}" class="block px-2 py-2 hover:bg-yellow-100 transition text-sm font-semibold uppercase">
+                  <a href="{{ item_url(child) }}" class="block px-2 py-2 hover:bg-gray-100 transition text-sm font-semibold uppercase">
                     {{ child.label }}
                   </a>
                 {% endif %}
@@ -446,7 +446,7 @@
             </div>
           </div>
         {% else %}
-          <a href="{{ item_url(item) }}" class="block px-3 py-2 border-2 border-black hover:bg-yellow-300 transition font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
+          <a href="{{ item_url(item) }}" class="block px-3 py-2 border-2 border-black hover:bg-brutal-gold transition font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
             {{ item.label }}
           </a>
         {% endif %}
