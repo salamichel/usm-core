@@ -1,6 +1,13 @@
 {# Agenda filter panel - all filters above table #}
 
-<div class="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-4 mb-6">
+<div class="bg-white border-2 border-black shadow-[4px_4px_0_#000] p-6 mb-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-lg font-bold">Filtres</h2>
+    {% if filters is not empty %}
+      <a href="/agenda" class="px-3 py-1.5 text-xs rounded border-2 border-gray-400 bg-white hover:bg-amber-50 font-semibold transition">Réinitialiser ↺</a>
+    {% endif %}
+  </div>
+
   {# Mobile filter toggle button #}
   <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2 bg-usm-brown text-white border-2 border-black rounded font-semibold flex items-center justify-between hover:bg-amber-900 transition">
     <span>🔍 Filtres</span>
@@ -10,11 +17,11 @@
   </button>
 
   {# Filters content - visible on desktop, hidden on mobile by default #}
-  <div id="filters-content" class="hidden md:block space-y-4">
+  <div id="filters-content" class="hidden md:block space-y-6">
 
-    {# Type filter #}
+    {# Type filter - segmented control #}
     <div>
-      <p class="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Type</p>
+      <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">Type d'évènement</p>
       <div class="flex flex-wrap gap-2">
         {% set _no_type = [] %}
         {% for k, v in filters %}
@@ -24,144 +31,111 @@
         {% set _base_type = '/agenda' ~ (_no_type is not empty ? '?' ~ _no_type|join('&') : '') %}
         {% set _sep_type = _no_type is not empty ? '&' : '?' %}
 
-        <a href="{{ _base_type }}" class="px-3 py-1.5 text-xs rounded border-2 {% if not filters.type %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+        <a href="{{ _base_type }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if not filters.type %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           Tous
         </a>
-        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-3 py-1.5 text-xs rounded border-2 {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if filters.type == 'Match' %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           ⚽ Matchs
         </a>
-        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-3 py-1.5 text-xs rounded border-2 {% if filters.type == 'Présences - Entrainement' %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if filters.type == 'Présences - Entrainement' %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
           🏋️ Entraînement
         </a>
       </div>
     </div>
 
-    {# Manifestation filter #}
-    {% if filterOptions.manifestationNames %}
-      <div>
-        <p class="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Manifestation</p>
-        <div class="flex flex-wrap gap-2">
-          {% set _no_manif = [] %}
-          {% for k, v in filters %}
-            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
-            {% if k != 'manifestation' %}{% set _no_manif = _no_manif|merge([k ~ '=' ~ _enc]) %}{% endif %}
-          {% endfor %}
-          {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
-          {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
+    {# Dropdown filters grid #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {# Manifestation dropdown #}
+      {% if filterOptions.manifestationNames %}
+        <div>
+          <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">Manifestation</p>
+          <div>
+            {% set _no_manif = [] %}
+            {% for k, v in filters %}
+              {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+              {% if k != 'manifestation' %}{% set _no_manif = _no_manif|merge([k ~ '=' ~ _enc]) %}{% endif %}
+            {% endfor %}
+            {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
+            {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
 
-          <a href="{{ _base_manif }}" class="px-3 py-1.5 text-xs rounded border-2 {% if not filters.manifestation %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
-            Tous
-          </a>
-          {% for name in filterOptions.manifestationNames %}
-            <a href="{{ _base_manif ~ _sep_manif ~ 'manifestation=' ~ name|url_encode }}" class="px-3 py-1.5 text-xs rounded border-2 {% if filters.manifestation == name %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition">
-              {{ name }}
-            </a>
-          {% endfor %}
+            <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';" class="w-full px-3 py-1.5 text-xs rounded border-2 font-semibold {% if filters.manifestation %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
+              <option value="">Tous les événements</option>
+              {% for name in filterOptions.manifestationNames %}
+                <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-      </div>
-    {% endif %}
+      {% endif %}
 
-    {# Équipe filter #}
-    {% if filterOptions.teams %}
-      <div>
-        <p class="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Équipe</p>
-        <div class="flex flex-wrap gap-2">
-          {% set _no_team = [] %}
-          {% for k, v in filters %}
-            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
-            {% if k != 'team' %}{% set _no_team = _no_team|merge([k ~ '=' ~ _enc]) %}{% endif %}
-          {% endfor %}
-          {% set _base_team = '/agenda' ~ (_no_team is not empty ? '?' ~ _no_team|join('&') : '') %}
-          {% set _sep_team = _no_team is not empty ? '&' : '?' %}
+      {# Équipe dropdown #}
+      {% if filterOptions.teams %}
+        <div>
+          <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">Équipe</p>
+          <div>
+            {% set _no_team = [] %}
+            {% for k, v in filters %}
+              {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+              {% if k != 'team' %}{% set _no_team = _no_team|merge([k ~ '=' ~ _enc]) %}{% endif %}
+            {% endfor %}
+            {% set _base_team = '/agenda' ~ (_no_team is not empty ? '?' ~ _no_team|join('&') : '') %}
+            {% set _sep_team = _no_team is not empty ? '&' : '?' %}
 
-          <a href="{{ _base_team }}" class="px-3 py-1.5 text-xs rounded border-2 {% if not filters.team %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
-            Tous
-          </a>
-          {% for team in filterOptions.teams %}
-            <a href="{{ _base_team ~ _sep_team ~ 'team=' ~ team|url_encode }}" class="px-3 py-1.5 text-xs rounded border-2 {% if filters.team == team %}bg-amber-600 text-white border-amber-800{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %} font-semibold transition">
-              {{ team }}
-            </a>
-          {% endfor %}
+            <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';" class="w-full px-3 py-1.5 text-xs rounded border-2 font-semibold {% if filters.team %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
+              <option value="">Toutes les équipes</option>
+              {% for team in filterOptions.teams %}
+                <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-      </div>
-    {% endif %}
+      {% endif %}
 
-    {# Lieu filter #}
-    {% if filterOptions.locations %}
-      <div>
-        <p class="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Lieu</p>
-        <div class="flex flex-wrap gap-2">
-          {% set _no_location = [] %}
-          {% for k, v in filters %}
-            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
-            {% if k != 'location' %}{% set _no_location = _no_location|merge([k ~ '=' ~ _enc]) %}{% endif %}
-          {% endfor %}
-          {% set _base_location = '/agenda' ~ (_no_location is not empty ? '?' ~ _no_location|join('&') : '') %}
-          {% set _sep_location = _no_location is not empty ? '&' : '?' %}
+      {# Lieu dropdown #}
+      {% if filterOptions.locations %}
+        <div>
+          <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">Lieu</p>
+          <div>
+            {% set _no_location = [] %}
+            {% for k, v in filters %}
+              {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+              {% if k != 'location' %}{% set _no_location = _no_location|merge([k ~ '=' ~ _enc]) %}{% endif %}
+            {% endfor %}
+            {% set _base_location = '/agenda' ~ (_no_location is not empty ? '?' ~ _no_location|join('&') : '') %}
+            {% set _sep_location = _no_location is not empty ? '&' : '?' %}
 
-          <a href="{{ _base_location }}" class="px-3 py-1.5 text-xs rounded border-2 {% if not filters.location %}bg-blue-600 text-white border-blue-800{% else %}border-gray-400 bg-white hover:bg-blue-50{% endif %} font-semibold transition">
-            Tous
-          </a>
-          {% for location in filterOptions.locations %}
-            <a href="{{ _base_location ~ _sep_location ~ 'location=' ~ location|url_encode }}" class="px-3 py-1.5 text-xs rounded border-2 {% if filters.location == location %}bg-blue-600 text-white border-blue-800{% else %}border-gray-400 bg-white hover:bg-blue-50{% endif %} font-semibold transition">
-              {{ location }}
-            </a>
-          {% endfor %}
+            <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';" class="w-full px-3 py-1.5 text-xs rounded border-2 font-semibold {% if filters.location %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
+              <option value="">Tous les lieux</option>
+              {% for location in filterOptions.locations %}
+                <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-      </div>
-    {% endif %}
+      {% endif %}
+    </div>
 
-    {# Semaine + Affichage (inline) #}
-    <div class="grid grid-cols-2 gap-4">
-      {% set _no_week = [] %}
-      {% for k, v in filters %}
-        {% set _enc = v is same as(true) ? '1' : v|url_encode %}
-        {% if k != 'this_week' %}{% set _no_week = _no_week|merge([k ~ '=' ~ _enc]) %}{% endif %}
-      {% endfor %}
-      {% set _base_week = '/agenda' ~ (_no_week is not empty ? '?' ~ _no_week|join('&') : '') %}
-      {% set _sep_week = _no_week is not empty ? '&' : '?' %}
+    {# Display section - segmented control #}
+    <div class="pt-6 border-t-2 border-gray-200">
+      <p class="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wider">Affichage</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_empty = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'hide_empty_players' %}{% set _no_empty = _no_empty|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_empty = '/agenda' ~ (_no_empty is not empty ? '?' ~ _no_empty|join('&') : '') %}
+        {% set _sep_empty = _no_empty is not empty ? '&' : '?' %}
 
-      <div>
-        <p class="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Semaine</p>
-        <div class="flex gap-2">
-          <a href="{{ _base_week }}" class="flex-1 px-3 py-1.5 text-xs rounded border-2 {% if not filters.this_week %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition text-center">
-            Tous
-          </a>
-          <a href="{{ _base_week ~ _sep_week ~ 'this_week=1' }}" class="flex-1 px-3 py-1.5 text-xs rounded border-2 {% if filters.this_week %}bg-green-600 text-white border-green-800{% else %}border-gray-400 bg-white hover:bg-green-50{% endif %} font-semibold transition text-center">
-            Semaine
-          </a>
-        </div>
-      </div>
-
-      {% set _no_empty = [] %}
-      {% for k, v in filters %}
-        {% set _enc = v is same as(true) ? '1' : v|url_encode %}
-        {% if k != 'hide_empty_players' %}{% set _no_empty = _no_empty|merge([k ~ '=' ~ _enc]) %}{% endif %}
-      {% endfor %}
-      {% set _base_empty = '/agenda' ~ (_no_empty is not empty ? '?' ~ _no_empty|join('&') : '') %}
-      {% set _sep_empty = _no_empty is not empty ? '&' : '?' %}
-
-      <div>
-        <p class="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Affichage</p>
-        <div class="flex gap-2">
-          <a href="{{ _base_empty }}" class="flex-1 px-3 py-1.5 text-xs rounded border-2 {% if not filters.hide_empty_players %}bg-red-600 text-white border-red-800{% else %}border-gray-400 bg-white hover:bg-red-50{% endif %} font-semibold transition text-center">
-            Tous
-          </a>
-          <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="flex-1 px-3 py-1.5 text-xs rounded border-2 {% if filters.hide_empty_players %}bg-red-600 text-white border-red-800{% else %}border-gray-400 bg-white hover:bg-red-50{% endif %} font-semibold transition text-center">
-            Réponses
-          </a>
-        </div>
+        <a href="{{ _base_empty }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if not filters.hide_empty_players %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
+          Liste complète
+        </a>
+        <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="px-3 py-1.5 text-xs rounded border-2 font-semibold transition {% if filters.hide_empty_players %}bg-amber-600 text-white border-amber-900{% else %}border-gray-400 bg-white hover:bg-amber-50{% endif %}">
+          Ayant répondu
+        </a>
       </div>
     </div>
 
-    {# Reset button #}
-    {% if filters is not empty %}
-      <div class="pt-2 border-t-2 border-gray-200">
-        <a href="/agenda" class="inline-block px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded border-2 border-gray-500 text-sm font-semibold transition">
-          Réinitialiser filtres
-        </a>
-      </div>
-    {% endif %}
   </div>
 </div>
 
