@@ -55,18 +55,19 @@
     </div>
 
     <div>
-      <label class="block font-black mb-1" for="parent_id">Parent (niveau 2)</label>
+      <label class="block font-black mb-1" for="parent_id">Parent</label>
       <select id="parent_id" name="parent_id"
-              class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <option value="">— Aucun (racine) —</option>
-        {% for root in roots %}
-          {% if item is null or root.id != item.id %}
-          <option value="{{ root.id }}" {% if (item.parent_id ?? '') == root.id %}selected{% endif %}>
-            {{ root.label }}
+              class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown font-mono">
+        <option value="">— Aucun (racine niveau 1) —</option>
+        {% for opt in roots %}
+          {% if item is null or opt.id != item.id %}
+          <option value="{{ opt.id }}" {% if (item.parent_id ?? '') == opt.id %}selected{% endif %}>
+            {{ opt.prefix }}{{ opt.label }}
           </option>
           {% endif %}
         {% endfor %}
       </select>
+      <p class="text-xs text-gray-500 mt-1">Niveau 1 → racine · Niveau 2 (— enfant) → colonne méga menu · Niveau 3 (—— enfant) → lien dans la colonne</p>
     </div>
 
     <div>

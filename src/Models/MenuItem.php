@@ -21,21 +21,18 @@ class MenuItem
             return [];
         }
 
-        // Index all items, initialize empty children
-        $indexed = [];
-        foreach ($all as $row) {
-            $row['children'] = [];
-            $indexed[$row['id']] = $row;
-        }
-
-        // Nest children into their parent
-        foreach ($indexed as $id => $row) {
-            if ($row['parent_id'] !== null && isset($indexed[$row['parent_id']])) {
-                $indexed[$row['parent_id']]['children'][] = $row;
+        $build = function (array $items, ?int $parentId = null) use (&$build): array {
+            $result = [];
+            foreach ($items as $item) {
+                if ($item['parent_id'] === $parentId) {
+                    $item['children'] = $build($items, (int)$item['id']);
+                    $result[] = $item;
+                }
             }
-        }
+            return $result;
+        };
 
-        return array_values(array_filter($indexed, fn($r) => $r['parent_id'] === null));
+        return $build($all);
     }
 
     public static function allFlat(): array
@@ -52,6 +49,32 @@ class MenuItem
             "SELECT * FROM menu_items WHERE parent_id IS NULL ORDER BY position ASC"
         );
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Returns all items in hierarchical order with a 'depth' and 'prefix' key,
+     * suitable for building a <select> that shows indentation.
+     */
+    public static function allFlatHierarchical(): array
+    {
+        $tree   = self::getTree();
+        $result = [];
+
+        $flatten = function (array $items, int $depth) use (&$flatten, &$result): void {
+            foreach ($items as $item) {
+                $children       = $item['children'];
+                $item['depth']  = $depth;
+                $item['prefix'] = str_repeat('— ', $depth);
+                unset($item['children']);
+                $result[] = $item;
+                if ($children) {
+                    $flatten($children, $depth + 1);
+                }
+            }
+        };
+
+        $flatten($tree, 0);
+        return $result;
     }
 
     public static function find(int $id): ?array

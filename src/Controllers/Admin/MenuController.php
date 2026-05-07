@@ -24,7 +24,7 @@ class MenuController
         View::render('admin/menu/form.twig', [
             'item'   => null,
             'action' => BASE_URL . '/admin/menu/create',
-            'roots'  => MenuItem::roots(),
+            'roots'  => MenuItem::allFlatHierarchical(),
             'pages'  => PageStatique::allPublished(),
         ]);
     }
@@ -51,7 +51,7 @@ class MenuController
         View::render('admin/menu/form.twig', [
             'item'   => $item,
             'action' => BASE_URL . '/admin/menu/' . $item['id'] . '/edit',
-            'roots'  => MenuItem::roots(),
+            'roots'  => MenuItem::allFlatHierarchical(),
             'pages'  => PageStatique::allPublished(),
         ]);
     }

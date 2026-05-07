@@ -78,11 +78,16 @@
   {% endif %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: { 'usm-brown': '{{ site_config.primary_color|default('#94674d') }}' }
+          colors: {
+            'usm-brown':  '{{ site_config.primary_color|default('#94674d') }}',
+            'brutal-dark': '#1a2d4c',
+            'brutal-gold': '{{ site_config.primary_color|default('#94674d') }}'
+          }
           {% if site_config.font_family %}
           , fontFamily: { sans: ['{{ site_config.font_family }}', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
           {% endif %}
@@ -106,14 +111,188 @@
           menu.classList.add('hidden');
         });
       });
+
+      // Initialize Lucide icons
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
     });
   </script>
   <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
   <style>
-    :root { --primary: {{ site_config.primary_color|default('#94674d') }}; }
+    :root {
+      --primary:           {{ site_config.primary_color|default('#94674d') }};
+      --header-bg:         {{ site_config.header_bg_color|default('#ffffff') }};
+      --header-text:       {{ site_config.header_text_color|default('#000000') }};
+      --header-hover-bg:   {{ site_config.header_hover_bg_color|default(site_config.primary_color|default('#94674d')) }};
+      --header-hover-text: {{ site_config.header_hover_text_color|default('#000000') }};
+      --logo-bg:           {{ site_config.logo_bg_color|default(site_config.primary_color|default('#94674d')) }};
+      --logo-text:         {{ site_config.logo_text_color|default('#000000') }};
+      --brutal-shadow: 5px 5px 0px #000000;
+      --transition: all 0.2s ease;
+    }
+
+    /* Neobrutalism Header */
+    .header-brutal {
+      background-color: var(--header-bg);
+      height: 90px;
+      display: flex;
+      align-items: center;
+      padding: 0 5%;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 4px solid #000000;
+    }
+
+    .logo-brutal {
+      color: var(--logo-text);
+      background: var(--logo-bg);
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-right: 40px;
+      border: 3px solid #000000;
+      padding: 8px 16px;
+      box-shadow: var(--brutal-shadow);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .nav-container-brutal {
+      flex-grow: 1;
+      height: 100%;
+    }
+
+    .nav-list-brutal {
+      display: flex;
+      list-style: none;
+      height: 100%;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-item-brutal {
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-link-brutal {
+      color: var(--header-text);
+      text-decoration: none;
+      padding: 8px 15px;
+      font-weight: 900;
+      font-size: 12px;
+      text-transform: uppercase;
+      transition: var(--transition);
+      border: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 100%;
+    }
+
+    .nav-link-brutal:hover,
+    .nav-link-brutal.active {
+      background-color: var(--header-hover-bg);
+      color: var(--header-hover-text);
+      border: 3px solid #000000;
+      box-shadow: 3px 3px 0px #000000;
+      transform: translate(-2px, -2px);
+    }
+
+    .nav-link-brutal.active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px #000000;
+    }
+
+    .has-mega {
+      position: static;
+    }
+
+    .mega-menu {
+      position: absolute;
+      top: 90px;
+      left: 0;
+      width: 100%;
+      background-color: var(--header-bg);
+      border: 4px solid #000000;
+      box-shadow: var(--brutal-shadow);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 40px;
+      gap: 30px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(15px);
+      transition: var(--transition);
+    }
+
+    .has-mega:hover .mega-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .mega-column h3 {
+      color: var(--header-text);
+      font-size: 14px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      background: var(--header-hover-bg);
+      color: var(--header-hover-text);
+      border: 3px solid #000000;
+      padding: 8px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 3px 3px 0px #000000;
+      font-weight: 900;
+    }
+
+    .mega-links {
+      list-style: none;
+      margin-top: 15px;
+      padding: 0;
+    }
+
+    .mega-links li {
+      margin-bottom: 10px;
+    }
+
+    .mega-links a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+    }
+
+    .mega-links a:hover {
+      transform: translateX(5px);
+      border-left: 3px solid var(--header-text);
+      padding-left: 5px;
+    }
+
+    .mega-links svg {
+      color: var(--header-text);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
     /* Show mobile menu burger on landscape smartphone mode */
     @media (max-height: 500px) and (min-width: 480px) and (max-width: 900px) and (orientation: landscape) {
-      /* Hide desktop menu */
       nav.sm\:flex {
         display: none !important;
       }
@@ -122,7 +301,6 @@
         display: block !important;
       }
 
-      /* Allow menu to toggle normally */
       #mobile-menu {
         display: none;
       }
@@ -131,75 +309,161 @@
         display: block !important;
       }
     }
+
+    @media (max-width: 768px) {
+      .mega-menu {
+        grid-template-columns: 1fr 1fr;
+        padding: 20px;
+        gap: 20px;
+      }
+
+      .nav-link-brutal {
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+    }
   </style>
   {% block head %}{% endblock %}
 </head>
 <body class="bg-amber-50 text-gray-900 min-h-screen flex flex-col">
 
-  {# ── Header ── #}
-  <header class="sticky top-0 z-50 bg-usm-brown text-white">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-      <a href="{{ url('/') }}" class="text-2xl font-black tracking-tight hover:opacity-80">USM VOLLEY</a>
+  {# ── Header Neobrutalism ── #}
+  <header class="header-brutal">
+    <a href="{{ url('/') }}" class="logo-brutal">{{ site_config.club_name|default('USM VOLLEY') }}</a>
 
-      {# Desktop menu #}
-      <nav class="hidden sm:flex items-center gap-2 flex-wrap text-sm font-semibold">
+    <nav class="nav-container-brutal hidden sm:block">
+      <ul class="nav-list-brutal">
         {% for item in menu_items %}
           {% if item.children|length %}
-            <div class="relative group">
-              <button class="px-3 py-1 border-2 border-white/40 hover:border-white rounded transition flex items-center gap-1 uppercase">
-                {{ item.label }} <span class="text-xs">▾</span>
-              </button>
-              <div class="hidden group-hover:block absolute top-full left-0 z-50 bg-usm-brown border-2 border-black shadow-[4px_4px_0_#000] min-w-[160px]">
-                {% for child in item.children %}
-                  <a href="{{ item_url(child) }}" class="block px-4 py-2 hover:bg-black/20 border-b border-white/20 last:border-b-0 uppercase">
-                    {{ child.label }}
-                  </a>
-                {% endfor %}
-              </div>
-            </div>
-          {% else %}
-            <a href="{{ item_url(item) }}" class="px-3 py-1 border-2 border-white/40 hover:border-white rounded transition uppercase">
-              {{ item.label }}
-            </a>
-          {% endif %}
-        {% endfor %}
-      </nav>
-
-      {# Mobile burger button #}
-      <button id="mobile-menu-toggle" class="sm:hidden border-2 border-white px-3 py-2 rounded hover:bg-black/20 transition" aria-label="Menu">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-    </div>
-
-    {# Mobile menu dropdown #}
-    <nav id="mobile-menu" class="hidden sm:hidden bg-usm-brown border-t-2 border-white/20">
-      <div class="px-4 py-3 space-y-2">
-        {% for item in menu_items %}
-          {% if item.children|length %}
-            <div x-data="{ open: false }">
-              <button @click="open = !open" class="w-full text-left px-3 py-2 border-2 border-white/40 hover:border-white rounded transition flex items-center justify-between font-semibold text-sm uppercase">
+            <li class="nav-item-brutal has-mega">
+              <a href="#" class="nav-link-brutal">
                 {{ item.label }}
-                <span class="text-xs" :class="{ 'rotate-180': open }">▾</span>
-              </button>
-              <div x-show="open" class="ml-4 mt-1 space-y-1 border-l-2 border-white/20">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </a>
+              <div class="mega-menu">
+                {# Check if children have their own sub-children (3-level: col headers) #}
+                {% set has_columns = false %}
                 {% for child in item.children %}
-                  <a href="{{ item_url(child) }}" class="block px-3 py-2 hover:bg-black/20 rounded transition text-sm uppercase">
-                    {{ child.label }}
-                  </a>
+                  {% if child.children|length %}{% set has_columns = true %}{% endif %}
                 {% endfor %}
+
+                {% if has_columns %}
+                  {# 3-level mode: level-2 items = columns, level-3 items = links #}
+                  {% for col in item.children %}
+                    <div class="mega-column">
+                      <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        {{ col.label }}
+                      </h3>
+                      <ul class="mega-links">
+                        {% if col.children|length %}
+                          {% for sub in col.children %}
+                            <li>
+                              <a href="{{ item_url(sub) }}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                  <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                                {{ sub.label }}
+                              </a>
+                            </li>
+                          {% endfor %}
+                        {% else %}
+                          <li>
+                            <a href="{{ item_url(col) }}">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                              </svg>
+                              {{ col.label }}
+                            </a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  {# 2-level fallback: all children in a single column #}
+                  <div class="mega-column" style="grid-column: 1 / -1;">
+                    <ul class="mega-links" style="columns: 2; column-gap: 30px;">
+                      {% for child in item.children %}
+                        <li style="break-inside: avoid;">
+                          <a href="{{ item_url(child) }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            {{ child.label }}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
               </div>
-            </div>
+            </li>
           {% else %}
-            <a href="{{ item_url(item) }}" class="block px-3 py-2 border-2 border-white/40 hover:border-white rounded transition font-semibold text-sm uppercase">
-              {{ item.label }}
-            </a>
+            {% set item_href = item_url(item) %}
+            <li class="nav-item-brutal">
+              <a href="{{ item_href }}" class="nav-link-brutal {{ is_active(item_href) ? 'active' : '' }}">{{ item.label }}</a>
+            </li>
           {% endif %}
         {% endfor %}
-      </div>
+      </ul>
     </nav>
+
+    {# Mobile burger button #}
+    <button id="mobile-menu-toggle" class="sm:hidden border-4 border-black px-3 py-2 transition font-bold" style="background:var(--header-bg);color:var(--header-text);" aria-label="Menu">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
   </header>
+
+  {# Mobile menu dropdown #}
+  <nav id="mobile-menu" class="hidden sm:hidden bg-white border-b-4 border-black">
+    <div class="px-4 py-3 space-y-2">
+      {% for item in menu_items %}
+        {% if item.children|length %}
+          <div x-data="{ open: false }">
+            <button @click="open = !open" class="w-full text-left px-3 py-2 border-2 border-black hover:bg-brutal-gold transition flex items-center justify-between font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
+              {{ item.label }}
+              <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div x-show="open" class="mt-1 border-l-4 border-black ml-2 pl-3 space-y-1">
+              {% for child in item.children %}
+                {% if child.children|length %}
+                  {# Level 2 = section header (column title in mega menu) #}
+                  <div class="pt-2">
+                    <p class="text-xs font-black uppercase text-gray-500 tracking-widest py-1">{{ child.label }}</p>
+                    <div class="space-y-1 border-l-2 border-brutal-gold ml-1 pl-2">
+                      {% for sub in child.children %}
+                        <a href="{{ item_url(sub) }}" class="block px-2 py-1.5 hover:bg-gray-100 transition text-sm font-semibold uppercase">
+                          {{ sub.label }}
+                        </a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <a href="{{ item_url(child) }}" class="block px-2 py-2 hover:bg-gray-100 transition text-sm font-semibold uppercase">
+                    {{ child.label }}
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <a href="{{ item_url(item) }}" class="block px-3 py-2 border-2 border-black hover:bg-brutal-gold transition font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
+            {{ item.label }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </nav>
 
   {# ── Flash message ── #}
   {% if flash %}
