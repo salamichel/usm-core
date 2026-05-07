@@ -17,6 +17,23 @@
           {{ categorie_descriptions[cat].description|raw }}
         </div>
       {% endif %}
+
+      {% if categorie_descriptions[cat] is defined and (categorie_descriptions[cat].type or categorie_descriptions[cat].hauteur_filet or categorie_descriptions[cat].description_courte) %}
+        <div class="mb-8 border-l-4 border-black pl-4 py-2 bg-gray-50 p-4">
+          {% if categorie_descriptions[cat].type %}
+            <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">Type</p>
+            <p class="text-lg font-black text-gray-900 mb-3">{{ categorie_descriptions[cat].type }}</p>
+          {% endif %}
+          {% if categorie_descriptions[cat].hauteur_filet %}
+            <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">Hauteur du filet</p>
+            <p class="text-lg font-black text-gray-900 mb-3">{{ categorie_descriptions[cat].hauteur_filet }}</p>
+          {% endif %}
+          {% if categorie_descriptions[cat].description_courte %}
+            <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">À propos</p>
+            <p class="text-gray-800 italic leading-relaxed">{{ categorie_descriptions[cat].description_courte }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {% for eq in equipes %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"

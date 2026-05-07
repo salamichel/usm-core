@@ -95,10 +95,18 @@ class CategorieEquipeController
 
     private function formData(): array
     {
+        $description = $_POST['description'] ?? null;
+        if ($description === '<p><br></p>') {
+            $description = null;
+        }
+
         return [
-            'nom'         => trim($_POST['nom'] ?? ''),
-            'description' => $_POST['description'] ?? null,
-            'ordre'       => (int)($_POST['ordre'] ?? 0),
+            'nom'                   => trim($_POST['nom'] ?? ''),
+            'description'           => $description,
+            'description_courte'    => trim($_POST['description_courte'] ?? '') ?: null,
+            'hauteur_filet'         => trim($_POST['hauteur_filet'] ?? '') ?: null,
+            'type'                  => trim($_POST['type'] ?? '') ?: null,
+            'ordre'                 => (int)($_POST['ordre'] ?? 0),
         ];
     }
 }

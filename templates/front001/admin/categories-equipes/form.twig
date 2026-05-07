@@ -16,7 +16,7 @@
 
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4 mb-4">
       <div>
         <label class="block font-black mb-1 text-sm" for="nom">Nom *</label>
         <input id="nom" name="nom" type="text" required
@@ -31,6 +31,30 @@
                value="{{ categorie.ordre ?? 0 }}"
                class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
       </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block font-black mb-1 text-sm" for="type">Type</label>
+        <input id="type" name="type" type="text"
+               value="{{ categorie.type ?? '' }}"
+               class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+               placeholder="Ex: Filles - 6*6">
+      </div>
+      <div>
+        <label class="block font-black mb-1 text-sm" for="hauteur_filet">Hauteur du filet</label>
+        <input id="hauteur_filet" name="hauteur_filet" type="text"
+               value="{{ categorie.hauteur_filet ?? '' }}"
+               class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+               placeholder="Ex: 2m43">
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-black mb-1 text-sm" for="description_courte">Description courte</label>
+      <textarea id="description_courte" name="description_courte" rows="3"
+                class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                placeholder="Affichée sur les cartes d'équipes">{{ categorie.description_courte ?? '' }}</textarea>
     </div>
 
     <div>
