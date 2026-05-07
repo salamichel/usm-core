@@ -121,11 +121,13 @@
   <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
   <style>
     :root {
-      --primary:            {{ site_config.primary_color|default('#94674d') }};
-      --header-bg:          {{ site_config.header_bg_color|default('#ffffff') }};
-      --header-text:        {{ site_config.header_text_color|default('#000000') }};
-      --header-hover-bg:    var(--primary);
-      --header-hover-text:  {{ site_config.header_hover_text_color|default('#000000') }};
+      --primary:           {{ site_config.primary_color|default('#94674d') }};
+      --header-bg:         {{ site_config.header_bg_color|default('#ffffff') }};
+      --header-text:       {{ site_config.header_text_color|default('#000000') }};
+      --header-hover-bg:   {{ site_config.header_hover_bg_color|default(site_config.primary_color|default('#94674d')) }};
+      --header-hover-text: {{ site_config.header_hover_text_color|default('#000000') }};
+      --logo-bg:           {{ site_config.logo_bg_color|default(site_config.primary_color|default('#94674d')) }};
+      --logo-text:         {{ site_config.logo_text_color|default('#000000') }};
       --brutal-shadow: 5px 5px 0px #000000;
       --transition: all 0.2s ease;
     }
@@ -144,7 +146,8 @@
     }
 
     .logo-brutal {
-      color: var(--header-text);
+      color: var(--logo-text);
+      background: var(--logo-bg);
       font-size: 24px;
       font-weight: 900;
       letter-spacing: -1px;
@@ -153,7 +156,6 @@
       margin-right: 40px;
       border: 3px solid #000000;
       padding: 8px 16px;
-      background: var(--header-hover-bg);
       box-shadow: var(--brutal-shadow);
       text-decoration: none;
       display: inline-block;
