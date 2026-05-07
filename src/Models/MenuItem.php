@@ -21,21 +21,18 @@ class MenuItem
             return [];
         }
 
-        // Index all items, initialize empty children
-        $indexed = [];
-        foreach ($all as $row) {
-            $row['children'] = [];
-            $indexed[$row['id']] = $row;
-        }
-
-        // Nest children into their parent
-        foreach ($indexed as $id => $row) {
-            if ($row['parent_id'] !== null && isset($indexed[$row['parent_id']])) {
-                $indexed[$row['parent_id']]['children'][] = $row;
+        $build = function (array $items, ?int $parentId = null) use (&$build): array {
+            $result = [];
+            foreach ($items as $item) {
+                if ($item['parent_id'] === $parentId) {
+                    $item['children'] = $build($items, (int)$item['id']);
+                    $result[] = $item;
+                }
             }
-        }
+            return $result;
+        };
 
-        return array_values(array_filter($indexed, fn($r) => $r['parent_id'] === null));
+        return $build($all);
     }
 
     public static function allFlat(): array

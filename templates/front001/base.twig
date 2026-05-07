@@ -193,7 +193,6 @@
       align-items: center;
       gap: 5px;
       height: 100%;
-      align-items: center;
     }
 
     .nav-link-brutal:hover {
@@ -204,14 +203,14 @@
     }
 
     .has-mega {
-      position: relative;
+      position: static;
     }
 
     .mega-menu {
       position: absolute;
       top: 90px;
       left: 0;
-      width: 100vw;
+      width: 100%;
       background-color: #ffffff;
       border: 4px solid #000000;
       box-shadow: var(--brutal-shadow);
@@ -223,8 +222,6 @@
       visibility: hidden;
       transform: translateY(15px);
       transition: var(--transition);
-      max-width: 1200px;
-      margin-left: -5%;
     }
 
     .has-mega:hover .mega-menu {
@@ -336,29 +333,65 @@
                 </svg>
               </a>
               <div class="mega-menu">
-                <div class="mega-column">
-                  <h3>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    {{ item.label }}
-                  </h3>
-                  <ul class="mega-links">
-                    {% for child in item.children %}
-                      <li>
-                        <a href="{{ item_url(child) }}">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                          </svg>
-                          {{ child.label }}
-                        </a>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
+                {# Check if children have their own sub-children (3-level: col headers) #}
+                {% set has_columns = false %}
+                {% for child in item.children %}
+                  {% if child.children|length %}{% set has_columns = true %}{% endif %}
+                {% endfor %}
+
+                {% if has_columns %}
+                  {# 3-level mode: level-2 items = columns, level-3 items = links #}
+                  {% for col in item.children %}
+                    <div class="mega-column">
+                      <h3>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        {{ col.label }}
+                      </h3>
+                      <ul class="mega-links">
+                        {% if col.children|length %}
+                          {% for sub in col.children %}
+                            <li>
+                              <a href="{{ item_url(sub) }}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                  <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                                {{ sub.label }}
+                              </a>
+                            </li>
+                          {% endfor %}
+                        {% else %}
+                          <li>
+                            <a href="{{ item_url(col) }}">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                              </svg>
+                              {{ col.label }}
+                            </a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  {# 2-level fallback: all children in a single column #}
+                  <div class="mega-column" style="grid-column: 1 / -1;">
+                    <ul class="mega-links" style="columns: 2; column-gap: 30px;">
+                      {% for child in item.children %}
+                        <li style="break-inside: avoid;">
+                          <a href="{{ item_url(child) }}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                            {{ child.label }}
+                          </a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
               </div>
             </li>
           {% else %}
@@ -371,7 +404,7 @@
     </nav>
 
     {# Mobile burger button #}
-    <button id="mobile-menu-toggle" class="hidden sm:hidden border-4 border-black px-3 py-2 bg-white hover:bg-yellow-300 transition font-bold" aria-label="Menu">
+    <button id="mobile-menu-toggle" class="sm:hidden border-4 border-black px-3 py-2 bg-white hover:bg-yellow-300 transition font-bold" aria-label="Menu">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
@@ -384,22 +417,36 @@
       {% for item in menu_items %}
         {% if item.children|length %}
           <div x-data="{ open: false }">
-            <button @click="open = !open" class="w-full text-left px-3 py-2 border-3 border-black hover:bg-yellow-300 rounded transition flex items-center justify-between font-bold text-sm uppercase bg-white">
+            <button @click="open = !open" class="w-full text-left px-3 py-2 border-2 border-black hover:bg-yellow-300 transition flex items-center justify-between font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
               {{ item.label }}
-              <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div x-show="open" class="ml-2 mt-2 space-y-1 border-l-4 border-black pl-2">
+            <div x-show="open" class="mt-1 border-l-4 border-black ml-2 pl-3 space-y-1">
               {% for child in item.children %}
-                <a href="{{ item_url(child) }}" class="block px-3 py-2 hover:bg-yellow-100 rounded transition text-sm uppercase font-semibold">
-                  {{ child.label }}
-                </a>
+                {% if child.children|length %}
+                  {# Level 2 = section header (column title in mega menu) #}
+                  <div class="pt-2">
+                    <p class="text-xs font-black uppercase text-gray-500 tracking-widest py-1">{{ child.label }}</p>
+                    <div class="space-y-1 border-l-2 border-yellow-400 ml-1 pl-2">
+                      {% for sub in child.children %}
+                        <a href="{{ item_url(sub) }}" class="block px-2 py-1.5 hover:bg-yellow-100 transition text-sm font-semibold uppercase">
+                          {{ sub.label }}
+                        </a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <a href="{{ item_url(child) }}" class="block px-2 py-2 hover:bg-yellow-100 transition text-sm font-semibold uppercase">
+                    {{ child.label }}
+                  </a>
+                {% endif %}
               {% endfor %}
             </div>
           </div>
         {% else %}
-          <a href="{{ item_url(item) }}" class="block px-3 py-2 border-3 border-black hover:bg-yellow-300 rounded transition font-bold text-sm uppercase bg-white">
+          <a href="{{ item_url(item) }}" class="block px-3 py-2 border-2 border-black hover:bg-yellow-300 transition font-black text-sm uppercase bg-white shadow-[3px_3px_0_#000]">
             {{ item.label }}
           </a>
         {% endif %}
