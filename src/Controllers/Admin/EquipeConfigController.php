@@ -225,6 +225,11 @@ class EquipeConfigController
 
     private function formData(): array
     {
+        $description = $_POST['description'] ?? null;
+        if ($description === '<p><br></p>') {
+            $description = null;
+        }
+
         return [
             'slug_colonne'          => trim($_POST['slug_colonne'] ?? ''),
             'libelle'               => trim($_POST['libelle'] ?? ''),
@@ -234,6 +239,7 @@ class EquipeConfigController
             'slug'                  => trim($_POST['slug'] ?? ''),
             'team_filter'           => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
             'manifestation_filter'  => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
+            'description'           => $description,
         ];
     }
 

@@ -49,18 +49,19 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description)"
         );
         $stmt->execute([
-            ':slug_colonne' => $data['slug_colonne'],
-            ':libelle'      => $data['libelle'],
-            ':categorie'    => $data['categorie'],
-            ':ordre'        => (int)($data['ordre'] ?? 0),
-            ':is_active'    => (int)($data['is_active'] ?? 1),
-            ':slug'         => $data['slug'] ?? '',
-            ':team_filter'  => $data['team_filter'] ?? null,
+            ':slug_colonne'         => $data['slug_colonne'],
+            ':libelle'              => $data['libelle'],
+            ':categorie'            => $data['categorie'],
+            ':ordre'                => (int)($data['ordre'] ?? 0),
+            ':is_active'            => (int)($data['is_active'] ?? 1),
+            ':slug'                 => $data['slug'] ?? '',
+            ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
+            ':description'          => $data['description'] ?? null,
         ]);
         return (int)$db->lastInsertId();
     }
@@ -69,25 +70,27 @@ class EquipeConfig
     {
         Database::get()->prepare(
             "UPDATE equipes_config
-             SET slug_colonne = :slug_colonne,
-                 libelle      = :libelle,
-                 categorie    = :categorie,
-                 ordre        = :ordre,
-                 is_active    = :is_active,
-                 slug         = :slug,
-                 team_filter  = :team_filter,
-                 manifestation_filter = :manifestation_filter
+             SET slug_colonne         = :slug_colonne,
+                 libelle              = :libelle,
+                 categorie            = :categorie,
+                 ordre                = :ordre,
+                 is_active            = :is_active,
+                 slug                 = :slug,
+                 team_filter          = :team_filter,
+                 manifestation_filter = :manifestation_filter,
+                 description          = :description
              WHERE id = :id"
         )->execute([
-            ':slug_colonne' => $data['slug_colonne'],
-            ':libelle'      => $data['libelle'],
-            ':categorie'    => $data['categorie'],
-            ':ordre'        => (int)($data['ordre'] ?? 0),
-            ':is_active'    => (int)($data['is_active'] ?? 1),
-            ':slug'         => $data['slug'] ?? '',
-            ':team_filter'  => $data['team_filter'] ?? null,
+            ':slug_colonne'         => $data['slug_colonne'],
+            ':libelle'              => $data['libelle'],
+            ':categorie'            => $data['categorie'],
+            ':ordre'                => (int)($data['ordre'] ?? 0),
+            ':is_active'            => (int)($data['is_active'] ?? 1),
+            ':slug'                 => $data['slug'] ?? '',
+            ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
-            ':id'           => $id,
+            ':description'          => $data['description'] ?? null,
+            ':id'                   => $id,
         ]);
     }
 

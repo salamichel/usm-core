@@ -11,7 +11,7 @@
   <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-4 font-semibold">{{ error }}</div>
 {% endif %}
 
-<div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] max-w-xl mb-8">
+<div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] mb-8">
   <form method="POST" action="{{ action }}">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -73,6 +73,11 @@
         </div>
       </div>
     </fieldset>
+    <div class="mb-4">
+      <label class="block font-black mb-1 text-sm" for="description">Description</label>
+      <textarea id="description" name="description">{{ equipe.description ?? '' }}</textarea>
+    </div>
+
     <label class="flex items-center gap-2 mb-4 cursor-pointer">
       <input type="checkbox" name="is_active" value="1"
              {% if equipe is null or equipe.is_active %}checked{% endif %}
@@ -119,4 +124,31 @@
   </table>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
+<style>
+  .note-editor .note-editable ul li { margin-left: 2rem !important; list-style: disc !important; }
+  .note-editor .note-editable ol li { margin-left: 2rem !important; list-style: decimal !important; }
+</style>
+<script>
+  $('#description').summernote({
+    height: 250,
+    lang: 'fr-FR',
+    toolbar: [
+      ['style',  ['style']],
+      ['font',   ['bold', 'italic', 'underline', 'clear']],
+      ['para',   ['ul', 'ol']],
+      ['insert', ['link']],
+      ['view',   ['codeview']]
+    ]
+  });
+  $('form').on('submit', function () {
+    document.getElementById('description').value = $('#description').summernote('code');
+  });
+</script>
 {% endblock %}

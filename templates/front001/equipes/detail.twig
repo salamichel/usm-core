@@ -48,6 +48,14 @@
     </div>
   </section>
 
+  {% if equipe.description %}
+  <section class="mb-10">
+    <div class="border-4 border-black bg-white p-6 shadow-[4px_4px_0_#000] prose max-w-none text-gray-800">
+      {{ equipe.description|raw }}
+    </div>
+  </section>
+  {% endif %}
+
   {% if categorie_desc and categorie_desc.description %}
   <section class="mb-10">
     <div class="border-4 border-black bg-amber-50 p-6 shadow-[4px_4px_0_#000] prose max-w-none text-gray-800">
