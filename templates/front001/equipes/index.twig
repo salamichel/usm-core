@@ -11,7 +11,12 @@
   {% if grouped|length %}
     {% for cat, equipes in grouped %}
     <section class="mb-12">
-      <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">{{ cat }}</h2>
+      <h2 class="text-2xl font-black mb-3 border-b-4 border-black pb-2">{{ cat }}</h2>
+      {% if categorie_descriptions[cat] is defined and categorie_descriptions[cat].description %}
+        <div class="prose mb-6 text-gray-700">
+          {{ categorie_descriptions[cat].description|raw }}
+        </div>
+      {% endif %}
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
         {% for eq in equipes %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"
