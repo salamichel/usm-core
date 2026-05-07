@@ -13,6 +13,7 @@ class SiteConfigController
         'club_name', 'club_tagline', 'address', 'email', 'phone',
         'facebook_url', 'instagram_url', 'legal_text',
         'home_slider_posts_count', 'home_latest_posts_count',
+        'font_family', 'primary_color',
     ];
 
     public function edit(array $params): void

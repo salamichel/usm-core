@@ -30,8 +30,9 @@ class ContactController
             ->minLength('name', 2)
             ->required('email', 'L\'email est obligatoire.')
             ->email('email')
+            ->required('phone', 'Le téléphone est obligatoire.')
+            ->minLength('phone', 6)
             ->required('subject', 'Le sujet est obligatoire.')
-            ->minLength('subject', 5)
             ->required('message', 'Le message est obligatoire.')
             ->minLength('message', 10);
 
@@ -39,9 +40,10 @@ class ContactController
             View::render('contact.twig', [
                 'locations' => Location::all(),
                 'error' => $v->firstError(),
-                'form' => [
+                'form_data' => [
                     'name' => $_POST['name'] ?? '',
                     'email' => $_POST['email'] ?? '',
+                    'phone' => $_POST['phone'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
                     'message' => $_POST['message'] ?? '',
                 ],
@@ -49,7 +51,7 @@ class ContactController
             return;
         }
 
-        $data = $v->getCleanData(['name', 'email', 'subject', 'message']);
+        $data = $v->getCleanData(['name', 'email', 'phone', 'subject', 'message']);
 
         try {
             $contactId = Contact::create($data);
@@ -71,9 +73,10 @@ class ContactController
             View::render('contact.twig', [
                 'locations' => Location::all(),
                 'error' => 'Une erreur est survenue. Veuillez réessayer.',
-                'form' => [
+                'form_data' => [
                     'name' => $_POST['name'] ?? '',
                     'email' => $_POST['email'] ?? '',
+                    'phone' => $_POST['phone'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
                     'message' => $_POST['message'] ?? '',
                 ],

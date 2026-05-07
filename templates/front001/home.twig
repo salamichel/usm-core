@@ -98,7 +98,7 @@
          {% if parallax_img %}style="background-image: url('{{ parallax_img }}');"{% endif %}>
   <div class="absolute inset-0 bg-usm-brown/90"></div>
   <div class="relative max-w-5xl mx-auto px-4 py-14 text-white">
-    <h2 class="text-center text-xs font-black uppercase tracking-[0.3em] mb-8 opacity-80">Le club en chiffres</h2>
+    <h2 class="text-center text-base sm:text-lg font-black uppercase tracking-[0.3em] mb-8 opacity-80">Le club en chiffres</h2>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {% set tiles = [
         {value: stats.licencies,      label: 'Licenciés',       suffix: ''},
@@ -229,9 +229,9 @@
     <p class="text-lg max-w-2xl mx-auto mb-6 text-white/90 drop-shadow">
       Venez essayer une séance gratuitement. Tous niveaux, ambiance conviviale, encadrement diplômé.
     </p>
-    <a href="{{ url('blog') }}"
+    <a href="{{ url('/contact') }}"
        class="inline-block border-4 border-black bg-usm-brown text-white font-black px-6 py-3 shadow-[6px_6px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-      Découvrir les actualités →
+      Nous rejoindre →
     </a>
   </div>
 </section>
@@ -242,30 +242,28 @@
 {% if latest_posts|length %}
 <section class="bg-amber-50">
   <div class="max-w-5xl mx-auto px-4 py-14">
-    <h2 class="text-3xl font-black mb-8 text-center">Dernières actualités</h2>
+    <h2 class="text-3xl font-black mb-8 text-center">Actualités</h2>
     <div class="overflow-x-auto border-4 border-black bg-white shadow-[6px_6px_0_#000]">
       <table class="w-full">
-        <thead>
-          <tr class="bg-usm-brown text-white border-b-4 border-black">
-            <th class="text-center font-black px-4 py-3 w-20"></th>
-            <th class="text-left font-black px-4 py-3">Actualité</th>
-          </tr>
-        </thead>
         <tbody>
           {% for post in latest_posts %}
           <tr class="border-b-2 border-gray-200 hover:bg-gray-100 transition-colors">
-            {# Cover #}
+            {# Cover — landscape and clickable #}
             <td class="px-4 py-3">
               {% set cover = post_covers[post.id] %}
               {% if cover %}
-                <img src="{{ asset('uploads/' ~ cover.filename) }}" alt="{{ post.title }}"
-                     loading="lazy"
-                     decoding="async"
-                     class="w-16 h-16 object-cover border-2 border-black">
+                <a href="{{ url('blog/' ~ post.slug) }}" class="block group">
+                  <img src="{{ asset('uploads/' ~ cover.filename) }}" alt="{{ post.title }}"
+                       loading="lazy"
+                       decoding="async"
+                       class="w-40 h-24 object-cover border-2 border-black group-hover:shadow-[4px_4px_0_#000] transition-all">
+                </a>
               {% else %}
-                <div class="w-16 h-16 bg-gradient-to-br from-usm-brown to-black border-2 border-black flex items-center justify-center">
-                  <span class="text-white text-xl">📄</span>
-                </div>
+                <a href="{{ url('blog/' ~ post.slug) }}" class="block group">
+                  <div class="w-40 h-24 bg-gradient-to-br from-usm-brown to-black border-2 border-black flex items-center justify-center group-hover:shadow-[4px_4px_0_#000] transition-all">
+                    <span class="text-white text-3xl">📄</span>
+                  </div>
+                </a>
               {% endif %}
             </td>
             {# Titre + Date #}

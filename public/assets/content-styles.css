@@ -1,0 +1,88 @@
+/* Shared content styles — frontend (main) and WYSIWYG editor (.note-editor .note-editable) */
+/*
+main ul,
+.note-editor .note-editable ul,
+main ol,
+.note-editor .note-editable ol {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+main ul,
+.note-editor .note-editable ul {
+  counter-reset: none !important;
+}
+
+main ul li,
+.note-editor .note-editable ul li {
+  margin-left: 2rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-left: 0.5rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  list-style: none !important;
+  position: relative;
+}
+/*
+main ul li::before,
+.note-editor .note-editable ul li::before {
+  content: '–';
+  position: absolute;
+  left: -1.5rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+main ol,
+.note-editor .note-editable ol {
+  counter-reset: custom-counter;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+main ol li,
+.note-editor .note-editable ol li {
+  counter-increment: custom-counter;
+  margin-left: 2rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-left: 0.5rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  list-style: none !important;
+  position: relative;
+}
+
+main ol li::before,
+.note-editor .note-editable ol li::before {
+  content: counter(custom-counter) '.';
+  position: absolute;
+  left: -2rem;
+  width: 1.5rem;
+  text-align: right;
+}*/
+
+/* Titles uppercase */
+main h1, main h2, main h3, main h4,
+.note-editor .note-editable h1,
+.note-editor .note-editable h2,
+.note-editor .note-editable h3,
+.note-editor .note-editable h4 {
+  text-transform: uppercase;
+}
+
+/* Content hyperlinks */
+main a:not([class]):not([aria-label]),
+.note-editor .note-editable a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
+/* Exclude footer from bullet styling */
+footer ul li::before {
+  content: none;
+}

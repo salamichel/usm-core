@@ -25,15 +25,6 @@
           <h2 class="font-black text-lg mb-4">Informations</h2>
         </div>
 
-        {% if site_config.email %}
-        <div>
-          <p class="text-xs font-black text-gray-600 uppercase tracking-wider mb-1">Email</p>
-          <a href="mailto:{{ site_config.email }}" class="text-usm-brown font-semibold hover:underline break-all">
-            {{ site_config.email }}
-          </a>
-        </div>
-        {% endif %}
-
         {% if site_config.phone %}
         <div>
           <p class="text-xs font-black text-gray-600 uppercase tracking-wider mb-1">Téléphone</p>
@@ -92,39 +83,52 @@
             <div>
               <label class="block font-black mb-1 text-sm" for="name">Nom *</label>
               <input type="text" id="name" name="name" required
-                     value="{{ form.name|default('') }}"
+                     value="{{ form_data.name|default('') }}"
                      class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
             </div>
 
             <div>
               <label class="block font-black mb-1 text-sm" for="email">Email *</label>
               <input type="email" id="email" name="email" required
-                     value="{{ form.email|default('') }}"
+                     value="{{ form_data.email|default('') }}"
                      class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
             </div>
           </div>
 
           <div>
-            <label class="block font-black mb-1 text-sm" for="phone">Téléphone</label>
-            <input type="tel" id="phone" name="phone"
-                   value="{{ form.phone|default('') }}"
+            <label class="block font-black mb-1 text-sm" for="phone">Téléphone *</label>
+            <input type="tel" id="phone" name="phone" required
+                   value="{{ form_data.phone|default('') }}"
                    placeholder="06 12 34 56 78"
                    class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
           </div>
 
           <div>
             <label class="block font-black mb-1 text-sm" for="subject">Sujet *</label>
-            <input type="text" id="subject" name="subject" required
-                   value="{{ form.subject|default('') }}"
-                   placeholder="Renseignements, demande, avis..."
-                   class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+            <select id="subject" name="subject" required
+                    class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              <option value="" disabled {% if not form_data.subject %}selected{% endif %}>— Choisissez un sujet —</option>
+              {% set subjects = [
+                'Adhésion / Inscription',
+                'Tarifs et licences',
+                'Informations sur les entraînements',
+                'Matchs et compétitions',
+                'Partenariat / Sponsor',
+                'Bénévolat',
+                'Question générale',
+                'Autre'
+              ] %}
+              {% for s in subjects %}
+                <option value="{{ s }}" {% if form_data.subject == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
           </div>
 
           <div>
             <label class="block font-black mb-1 text-sm" for="message">Message *</label>
             <textarea id="message" name="message" required rows="5"
                       placeholder="Votre message..."
-                      class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ form.message|default('') }}</textarea>
+                      class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ form_data.message|default('') }}</textarea>
           </div>
 
           <button type="submit"
