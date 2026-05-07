@@ -45,8 +45,8 @@ class CategorieEquipe
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO categories_equipes (nom, description, description_courte, hauteur_filet, type, ordre)
-             VALUES (:nom, :description, :description_courte, :hauteur_filet, :type, :ordre)"
+            "INSERT INTO categories_equipes (nom, description, hauteur_filet, type, ordre)
+             VALUES (:nom, :description, :hauteur_filet, :type, :ordre)"
         );
 
         $description = $data['description'] ?? null;
@@ -55,12 +55,11 @@ class CategorieEquipe
         }
 
         $stmt->execute([
-            ':nom'                  => $data['nom'],
-            ':description'          => $description,
-            ':description_courte'   => $data['description_courte'] ?? null,
-            ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
-            ':type'                 => $data['type'] ?? null,
-            ':ordre'                => (int)($data['ordre'] ?? 0),
+            ':nom'           => $data['nom'],
+            ':description'   => $description,
+            ':hauteur_filet' => $data['hauteur_filet'] ?? null,
+            ':type'          => $data['type'] ?? null,
+            ':ordre'         => (int)($data['ordre'] ?? 0),
         ]);
         return (int)$db->lastInsertId();
     }
@@ -74,17 +73,15 @@ class CategorieEquipe
 
         Database::get()->prepare(
             "UPDATE categories_equipes
-             SET nom = :nom, description = :description, description_courte = :description_courte,
-                 hauteur_filet = :hauteur_filet, type = :type, ordre = :ordre
+             SET nom = :nom, description = :description, hauteur_filet = :hauteur_filet, type = :type, ordre = :ordre
              WHERE id = :id"
         )->execute([
-            ':nom'                  => $data['nom'],
-            ':description'          => $description,
-            ':description_courte'   => $data['description_courte'] ?? null,
-            ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
-            ':type'                 => $data['type'] ?? null,
-            ':ordre'                => (int)($data['ordre'] ?? 0),
-            ':id'                   => $id,
+            ':nom'           => $data['nom'],
+            ':description'   => $description,
+            ':hauteur_filet' => $data['hauteur_filet'] ?? null,
+            ':type'          => $data['type'] ?? null,
+            ':ordre'         => (int)($data['ordre'] ?? 0),
+            ':id'            => $id,
         ]);
     }
 

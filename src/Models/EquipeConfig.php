@@ -49,8 +49,8 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte)"
         );
         $stmt->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -62,6 +62,7 @@ class EquipeConfig
             ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
             ':description'          => $data['description'] ?? null,
+            ':description_courte'   => $data['description_courte'] ?? null,
         ]);
         return (int)$db->lastInsertId();
     }
@@ -78,7 +79,8 @@ class EquipeConfig
                  slug                 = :slug,
                  team_filter          = :team_filter,
                  manifestation_filter = :manifestation_filter,
-                 description          = :description
+                 description          = :description,
+                 description_courte   = :description_courte
              WHERE id = :id"
         )->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -90,6 +92,7 @@ class EquipeConfig
             ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
             ':description'          => $data['description'] ?? null,
+            ':description_courte'   => $data['description_courte'] ?? null,
             ':id'                   => $id,
         ]);
     }

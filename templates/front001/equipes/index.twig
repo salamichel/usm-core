@@ -28,10 +28,6 @@
             <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">Hauteur du filet</p>
             <p class="text-lg font-black text-gray-900 mb-3">{{ categorie_descriptions[cat].hauteur_filet }}</p>
           {% endif %}
-          {% if categorie_descriptions[cat].description_courte %}
-            <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">À propos</p>
-            <p class="text-gray-800 italic leading-relaxed">{{ categorie_descriptions[cat].description_courte }}</p>
-          {% endif %}
         </div>
       {% endif %}
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -45,20 +41,20 @@
           {% if eq.cover %}
             <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
                  alt="{{ eq.libelle }}"
-                 class="w-full {{ eq.description ? 'h-48' : 'h-72' }} object-cover transition-transform duration-300 group-hover:scale-105">
+                 class="w-full {{ eq.description_courte ? 'h-48' : 'h-72' }} object-cover transition-transform duration-300 group-hover:scale-105">
           {% else %}
-            <div class="w-full {{ eq.description ? 'h-48' : 'h-72' }} bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
+            <div class="w-full {{ eq.description_courte ? 'h-48' : 'h-72' }} bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
           {% endif %}
 
-          {% if eq.description %}
-          {# Carte enrichie avec description #}
+          {% if eq.description_courte %}
+          {# Carte enrichie avec description courte #}
           <div class="flex flex-col flex-1 p-5">
             <h3 class="font-black text-lg leading-tight mb-4 border-l-4 border-black pl-3 group-hover:text-amber-700 transition-colors">
               {{ eq.libelle }}
             </h3>
             <div class="border-t-2 border-gray-200 pt-4 mt-auto">
               <p class="text-gray-700 text-sm leading-relaxed italic line-clamp-3">
-                {{ eq.description|striptags|slice(0, 140) }}{% if eq.description|striptags|length > 140 %}…{% endif %}
+                {{ eq.description_courte }}
               </p>
             </div>
           </div>

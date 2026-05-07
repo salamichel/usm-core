@@ -57,6 +57,14 @@
       </div>
     </div>
 
+    <div class="mb-4">
+      <label class="block font-black mb-1 text-sm" for="description_courte">Description courte</label>
+      <textarea id="description_courte" name="description_courte" rows="3"
+                class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                placeholder="Affichée sur les cartes d'équipes (max 140 caractères)">{{ equipe.description_courte ?? '' }}</textarea>
+      <p class="text-xs text-gray-500 mt-1">Brève description affichée sur la carte d'équipe.</p>
+    </div>
+
     {# Agenda Filter Mapping #}
     <fieldset class="border-2 border-gray-300 p-4 mb-4 rounded">
       <legend class="font-black text-sm px-2">Filtres Agenda</legend>

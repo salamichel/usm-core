@@ -245,6 +245,7 @@ class EquipeConfigController
             'team_filter'           => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
             'manifestation_filter'  => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
             'description'           => $description,
+            'description_courte'    => trim($_POST['description_courte'] ?? '') ?: null,
         ];
     }
 
