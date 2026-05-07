@@ -1,5 +1,5 @@
 /* Shared content styles — frontend (main) and WYSIWYG editor (.note-editor .note-editable) */
-
+/*
 main ul,
 .note-editor .note-editable ul,
 main ol,
@@ -34,7 +34,7 @@ main ul li::before,
   left: -1.5rem;
   width: 1.5rem;
   text-align: center;
-}*/
+}
 
 main ol,
 .note-editor .note-editable ol {
@@ -63,7 +63,7 @@ main ol li::before,
   left: -2rem;
   width: 1.5rem;
   text-align: right;
-}
+}*/
 
 /* Titles uppercase */
 main h1, main h2, main h3, main h4,
