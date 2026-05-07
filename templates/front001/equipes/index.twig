@@ -32,6 +32,7 @@
       {% endif %}
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {% for eq in equipes %}
+        {% set catInfo = categorie_descriptions[cat] is defined ? categorie_descriptions[cat] : {} %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"
            class="border-4 border-black bg-white shadow-[6px_6px_0_#000]
                   hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1
@@ -41,29 +42,42 @@
           {% if eq.cover %}
             <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
                  alt="{{ eq.libelle }}"
-                 class="w-full {{ eq.description_courte ? 'h-48' : 'h-72' }} object-cover transition-transform duration-300 group-hover:scale-105">
+                 class="w-full h-60 object-cover transition-transform duration-300 group-hover:scale-105">
           {% else %}
-            <div class="w-full {{ eq.description_courte ? 'h-48' : 'h-72' }} bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
+            <div class="w-full h-60 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
           {% endif %}
 
-          {% if eq.description_courte %}
-          {# Carte enrichie avec description courte #}
+          {# Contenu enrichi avec métadonnées #}
           <div class="flex flex-col flex-1 p-5">
-            <h3 class="font-black text-lg leading-tight mb-4 border-l-4 border-black pl-3 group-hover:text-amber-700 transition-colors">
+            <h3 class="font-black text-lg leading-tight mb-3 border-l-4 border-black pl-3 group-hover:text-amber-700 transition-colors">
               {{ eq.libelle }}
             </h3>
-            <div class="border-t-2 border-gray-200 pt-4 mt-auto">
-              <p class="text-gray-700 text-sm leading-relaxed italic line-clamp-3">
-                {{ eq.description_courte }}
-              </p>
+
+            {# Métadonnées de catégorie #}
+            {% if catInfo.type or catInfo.hauteur_filet %}
+            <div class="text-xs space-y-2 mb-3 pb-3 border-b border-gray-200">
+              {% if catInfo.type %}
+              <div>
+                <span class="font-bold text-gray-500 uppercase tracking-wider">Type</span>
+                <p class="font-black text-gray-900">{{ catInfo.type }}</p>
+              </div>
+              {% endif %}
+              {% if catInfo.hauteur_filet %}
+              <div>
+                <span class="font-bold text-gray-500 uppercase tracking-wider">Filet</span>
+                <p class="font-black text-gray-900">{{ catInfo.hauteur_filet }}</p>
+              </div>
+              {% endif %}
             </div>
+            {% endif %}
+
+            {# Description courte de l'équipe #}
+            {% if eq.description_courte %}
+            <p class="text-gray-700 text-sm leading-relaxed italic line-clamp-3 mt-auto">
+              {{ eq.description_courte }}
+            </p>
+            {% endif %}
           </div>
-          {% else %}
-          {# Carte simple #}
-          <div class="p-5">
-            <h3 class="font-black text-lg leading-tight group-hover:text-amber-700 transition-colors">{{ eq.libelle }}</h3>
-          </div>
-          {% endif %}
 
         </a>
         {% endfor %}
