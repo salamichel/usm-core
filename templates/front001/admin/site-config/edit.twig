@@ -155,6 +155,34 @@
       </div>
     </div>
 
+    {# Couleur du texte du header #}
+    <div>
+      <label class="block font-black mb-2" for="header_text_color">Couleur du texte du header</label>
+      <div class="flex items-center gap-3 mb-3">
+        <input type="color" id="header_text_color" name="header_text_color"
+               value="{{ config.header_text_color|default('#000000') }}"
+               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
+               oninput="document.getElementById('hex_input_text').value=this.value">
+        <input type="text" id="hex_input_text" placeholder="#000000" maxlength="7"
+               value="{{ config.header_text_color|default('#000000') }}"
+               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
+               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_text_color').value=this.value}">
+        <span class="text-xs text-gray-500">ou saisir le code hex</span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {% for preset in [
+          {l:'Noir',     v:'#000000'},{l:'Blanc',   v:'#ffffff'},{l:'Marron foncé',    v:'#4a2c1a'},
+          {l:'Gris foncé', v:'#1f2937'},{l:'Bleu',    v:'#1e3a5f'},{l:'Ardoise',       v:'#475569'}
+        ] %}
+          <button type="button"
+                  onclick="document.getElementById('header_text_color').value='{{ preset.v }}';document.getElementById('hex_input_text').value='{{ preset.v }}';"
+                  class="flex items-center gap-1.5 px-2 py-1 border border-black text-xs font-semibold hover:bg-gray-50 transition">
+            <span class="w-3 h-3 border border-black/30 rounded-sm inline-block" style="background:{{ preset.v }}"></span>{{ preset.l }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
     {# Typographie #}
     <div>
       <label class="block font-black mb-2">Typographie</label>

@@ -122,6 +122,7 @@
   <style>
     :root {
       --primary: {{ site_config.primary_color|default('#94674d') }};
+      --header-text: {{ site_config.header_text_color|default('#000000') }};
       --brutal-dark: #1a2d4c;
       --brutal-gold: var(--primary);
       --brutal-shadow: 5px 5px 0px #000000;
@@ -143,7 +144,7 @@
     }
 
     .logo-brutal {
-      color: var(--brutal-dark);
+      color: var(--header-text);
       font-size: 24px;
       font-weight: 900;
       letter-spacing: -1px;
@@ -181,7 +182,7 @@
     }
 
     .nav-link-brutal {
-      color: #000000;
+      color: var(--header-text);
       text-decoration: none;
       padding: 8px 15px;
       font-weight: 900;
@@ -231,7 +232,7 @@
     }
 
     .mega-column h3 {
-      color: #000000;
+      color: var(--header-text);
       font-size: 14px;
       margin-bottom: 20px;
       text-transform: uppercase;
@@ -256,7 +257,7 @@
     }
 
     .mega-links a {
-      color: #000000;
+      color: var(--header-text);
       text-decoration: none;
       font-size: 13px;
       font-weight: bold;
@@ -270,12 +271,12 @@
     .mega-links a:hover {
       background: #eee;
       transform: translateX(5px);
-      border-left: 3px solid var(--brutal-dark);
+      border-left: 3px solid var(--header-text);
       padding-left: 5px;
     }
 
     .mega-links svg {
-      color: var(--brutal-dark);
+      color: var(--header-text);
       width: 18px;
       height: 18px;
       flex-shrink: 0;
