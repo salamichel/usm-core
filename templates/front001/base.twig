@@ -291,6 +291,16 @@
       flex-shrink: 0;
     }
 
+    #mobile-menu:not(.hidden) {
+      position: fixed;
+      top: 90px;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      max-height: calc(100vh - 90px);
+      overflow-y: auto;
+    }
+
     /* Show mobile menu burger on landscape smartphone mode */
     @media (max-height: 500px) and (min-width: 480px) and (max-width: 900px) and (orientation: landscape) {
       nav.sm\:flex {
