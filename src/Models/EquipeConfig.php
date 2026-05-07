@@ -49,8 +49,8 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte, type, hauteur_filet)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte, :type, :hauteur_filet)"
         );
         $stmt->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -63,6 +63,8 @@ class EquipeConfig
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
             ':description'          => $data['description'] ?? null,
             ':description_courte'   => $data['description_courte'] ?? null,
+            ':type'                 => $data['type'] ?? null,
+            ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
         ]);
         return (int)$db->lastInsertId();
     }
@@ -80,7 +82,9 @@ class EquipeConfig
                  team_filter          = :team_filter,
                  manifestation_filter = :manifestation_filter,
                  description          = :description,
-                 description_courte   = :description_courte
+                 description_courte   = :description_courte,
+                 type                 = :type,
+                 hauteur_filet        = :hauteur_filet
              WHERE id = :id"
         )->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -93,6 +97,8 @@ class EquipeConfig
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
             ':description'          => $data['description'] ?? null,
             ':description_courte'   => $data['description_courte'] ?? null,
+            ':type'                 => $data['type'] ?? null,
+            ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
             ':id'                   => $id,
         ]);
     }

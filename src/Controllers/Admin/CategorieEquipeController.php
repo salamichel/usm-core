@@ -101,11 +101,9 @@ class CategorieEquipeController
         }
 
         return [
-            'nom'           => trim($_POST['nom'] ?? ''),
-            'description'   => $description,
-            'hauteur_filet' => trim($_POST['hauteur_filet'] ?? '') ?: null,
-            'type'          => trim($_POST['type'] ?? '') ?: null,
-            'ordre'         => (int)($_POST['ordre'] ?? 0),
+            'nom'         => trim($_POST['nom'] ?? ''),
+            'description' => $description,
+            'ordre'       => (int)($_POST['ordre'] ?? 0),
         ];
     }
 }

@@ -32,7 +32,6 @@
       {% endif %}
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {% for eq in equipes %}
-        {% set catInfo = categorie_descriptions[cat] is defined ? categorie_descriptions[cat] : {} %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"
            class="border-4 border-black bg-white shadow-[6px_6px_0_#000]
                   hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1
@@ -53,19 +52,19 @@
               {{ eq.libelle }}
             </h3>
 
-            {# Métadonnées de catégorie #}
-            {% if catInfo.type or catInfo.hauteur_filet %}
+            {# Métadonnées de l'équipe #}
+            {% if eq.type or eq.hauteur_filet %}
             <div class="text-xs space-y-2 mb-3 pb-3 border-b border-gray-200">
-              {% if catInfo.type %}
+              {% if eq.type %}
               <div>
                 <span class="font-bold text-gray-500 uppercase tracking-wider">Type</span>
-                <p class="font-black text-gray-900">{{ catInfo.type }}</p>
+                <p class="font-black text-gray-900">{{ eq.type }}</p>
               </div>
               {% endif %}
-              {% if catInfo.hauteur_filet %}
+              {% if eq.hauteur_filet %}
               <div>
                 <span class="font-bold text-gray-500 uppercase tracking-wider">Filet</span>
-                <p class="font-black text-gray-900">{{ catInfo.hauteur_filet }}</p>
+                <p class="font-black text-gray-900">{{ eq.hauteur_filet }}</p>
               </div>
               {% endif %}
             </div>

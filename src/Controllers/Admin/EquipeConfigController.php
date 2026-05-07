@@ -246,6 +246,8 @@ class EquipeConfigController
             'manifestation_filter'  => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
             'description'           => $description,
             'description_courte'    => trim($_POST['description_courte'] ?? '') ?: null,
+            'type'                  => trim($_POST['type'] ?? '') ?: null,
+            'hauteur_filet'         => trim($_POST['hauteur_filet'] ?? '') ?: null,
         ];
     }
 
