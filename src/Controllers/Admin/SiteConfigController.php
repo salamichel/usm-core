@@ -14,6 +14,7 @@ class SiteConfigController
         'facebook_url', 'instagram_url', 'legal_text',
         'home_slider_posts_count', 'home_latest_posts_count',
         'font_family', 'primary_color', 'header_text_color',
+        'header_bg_color', 'header_hover_text_color',
     ];
 
     public function edit(array $params): void

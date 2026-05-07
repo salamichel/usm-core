@@ -121,18 +121,18 @@
   <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
   <style>
     :root {
-      --primary: {{ site_config.primary_color|default('#94674d') }};
-      --header-text: {{ site_config.header_text_color|default('#000000') }};
-      --brutal-dark: #1a2d4c;
-      --brutal-gold: var(--primary);
+      --primary:            {{ site_config.primary_color|default('#94674d') }};
+      --header-bg:          {{ site_config.header_bg_color|default('#ffffff') }};
+      --header-text:        {{ site_config.header_text_color|default('#000000') }};
+      --header-hover-bg:    var(--primary);
+      --header-hover-text:  {{ site_config.header_hover_text_color|default('#000000') }};
       --brutal-shadow: 5px 5px 0px #000000;
-      --brutal-shadow-hover: 2px 2px 0px #000000;
       --transition: all 0.2s ease;
     }
 
     /* Neobrutalism Header */
     .header-brutal {
-      background-color: #ffffff;
+      background-color: var(--header-bg);
       height: 90px;
       display: flex;
       align-items: center;
@@ -153,7 +153,7 @@
       margin-right: 40px;
       border: 3px solid #000000;
       padding: 8px 16px;
-      background: var(--brutal-gold);
+      background: var(--header-hover-bg);
       box-shadow: var(--brutal-shadow);
       text-decoration: none;
       display: inline-block;
@@ -196,11 +196,18 @@
       height: 100%;
     }
 
-    .nav-link-brutal:hover {
-      background-color: var(--brutal-gold);
+    .nav-link-brutal:hover,
+    .nav-link-brutal.active {
+      background-color: var(--header-hover-bg);
+      color: var(--header-hover-text);
       border: 3px solid #000000;
       box-shadow: 3px 3px 0px #000000;
       transform: translate(-2px, -2px);
+    }
+
+    .nav-link-brutal.active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px #000000;
     }
 
     .has-mega {
@@ -212,7 +219,7 @@
       top: 90px;
       left: 0;
       width: 100%;
-      background-color: #ffffff;
+      background-color: var(--header-bg);
       border: 4px solid #000000;
       box-shadow: var(--brutal-shadow);
       display: grid;
@@ -236,7 +243,8 @@
       font-size: 14px;
       margin-bottom: 20px;
       text-transform: uppercase;
-      background: var(--brutal-gold);
+      background: var(--header-hover-bg);
+      color: var(--header-hover-text);
       border: 3px solid #000000;
       padding: 8px 10px;
       display: inline-flex;
@@ -396,8 +404,9 @@
               </div>
             </li>
           {% else %}
+            {% set item_href = item_url(item) %}
             <li class="nav-item-brutal">
-              <a href="{{ item_url(item) }}" class="nav-link-brutal">{{ item.label }}</a>
+              <a href="{{ item_href }}" class="nav-link-brutal {{ is_active(item_href) ? 'active' : '' }}">{{ item.label }}</a>
             </li>
           {% endif %}
         {% endfor %}
@@ -405,7 +414,7 @@
     </nav>
 
     {# Mobile burger button #}
-    <button id="mobile-menu-toggle" class="sm:hidden border-4 border-black px-3 py-2 bg-white hover:bg-brutal-gold transition font-bold" aria-label="Menu">
+    <button id="mobile-menu-toggle" class="sm:hidden border-4 border-black px-3 py-2 transition font-bold" style="background:var(--header-bg);color:var(--header-text);" aria-label="Menu">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
       </svg>

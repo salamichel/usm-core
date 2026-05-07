@@ -155,31 +155,102 @@
       </div>
     </div>
 
-    {# Couleur du texte du header #}
-    <div>
-      <label class="block font-black mb-2" for="header_text_color">Couleur du texte du header</label>
-      <div class="flex items-center gap-3 mb-3">
-        <input type="color" id="header_text_color" name="header_text_color"
-               value="{{ config.header_text_color|default('#000000') }}"
-               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
-               oninput="document.getElementById('hex_input_text').value=this.value">
-        <input type="text" id="hex_input_text" placeholder="#000000" maxlength="7"
-               value="{{ config.header_text_color|default('#000000') }}"
-               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
-               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_text_color').value=this.value}">
-        <span class="text-xs text-gray-500">ou saisir le code hex</span>
+    {# Couleurs du header — tableau de prévisualisation #}
+    <div class="border-2 border-black p-4 bg-gray-50">
+      <p class="font-black text-sm mb-3 uppercase">Couleurs du header</p>
+      <p class="text-xs text-gray-500 mb-4">Prévisualisation en bas de page · La <strong>couleur principale</strong> sert d'accent (logo, hover, titres méga menu).</p>
+
+      <div class="grid sm:grid-cols-3 gap-6">
+
+        {# Fond du header #}
+        <div>
+          <label class="block font-black mb-2 text-sm" for="header_bg_color">Fond du menu</label>
+          <div class="flex items-center gap-2 mb-2">
+            <input type="color" id="header_bg_color" name="header_bg_color"
+                   value="{{ config.header_bg_color|default('#ffffff') }}"
+                   class="w-10 h-10 border-2 border-black cursor-pointer p-0.5 bg-white"
+                   oninput="syncHex(this,'hex_bg');previewHeader()">
+            <input type="text" id="hex_bg" maxlength="7"
+                   value="{{ config.header_bg_color|default('#ffffff') }}"
+                   class="w-24 border-2 border-black px-2 py-1.5 font-mono text-xs focus:outline-none"
+                   oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_bg_color').value=this.value;previewHeader()}">
+          </div>
+          <div class="flex flex-wrap gap-1">
+            {% for p in [{l:'Blanc',v:'#ffffff'},{l:'Crème',v:'#fffdef'},{l:'Noir',v:'#111827'},{l:'Marine',v:'#1e3a5f'},{l:'Marron',v:'#94674d'}] %}
+              <button type="button" onclick="setColor('header_bg_color','hex_bg','{{ p.v }}')"
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                <span class="w-3 h-3 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Texte normal #}
+        <div>
+          <label class="block font-black mb-2 text-sm" for="header_text_color">Texte des liens</label>
+          <div class="flex items-center gap-2 mb-2">
+            <input type="color" id="header_text_color" name="header_text_color"
+                   value="{{ config.header_text_color|default('#000000') }}"
+                   class="w-10 h-10 border-2 border-black cursor-pointer p-0.5 bg-white"
+                   oninput="syncHex(this,'hex_text');previewHeader()">
+            <input type="text" id="hex_text" maxlength="7"
+                   value="{{ config.header_text_color|default('#000000') }}"
+                   class="w-24 border-2 border-black px-2 py-1.5 font-mono text-xs focus:outline-none"
+                   oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_text_color').value=this.value;previewHeader()}">
+          </div>
+          <div class="flex flex-wrap gap-1">
+            {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Marine',v:'#1e3a5f'},{l:'Marron',v:'#4a2c1a'},{l:'Ardoise',v:'#475569'}] %}
+              <button type="button" onclick="setColor('header_text_color','hex_text','{{ p.v }}')"
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                <span class="w-3 h-3 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Texte au survol #}
+        <div>
+          <label class="block font-black mb-2 text-sm" for="header_hover_text_color">Texte au survol</label>
+          <div class="flex items-center gap-2 mb-2">
+            <input type="color" id="header_hover_text_color" name="header_hover_text_color"
+                   value="{{ config.header_hover_text_color|default('#000000') }}"
+                   class="w-10 h-10 border-2 border-black cursor-pointer p-0.5 bg-white"
+                   oninput="syncHex(this,'hex_hover');previewHeader()">
+            <input type="text" id="hex_hover" maxlength="7"
+                   value="{{ config.header_hover_text_color|default('#000000') }}"
+                   class="w-24 border-2 border-black px-2 py-1.5 font-mono text-xs focus:outline-none"
+                   oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_hover_text_color').value=this.value;previewHeader()}">
+          </div>
+          <div class="flex flex-wrap gap-1">
+            {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Crème',v:'#fffdef'},{l:'Marine',v:'#1e3a5f'},{l:'Marron',v:'#4a2c1a'}] %}
+              <button type="button" onclick="setColor('header_hover_text_color','hex_hover','{{ p.v }}')"
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                <span class="w-3 h-3 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+
       </div>
-      <div class="flex flex-wrap gap-2">
-        {% for preset in [
-          {l:'Noir',     v:'#000000'},{l:'Blanc',   v:'#ffffff'},{l:'Marron foncé',    v:'#4a2c1a'},
-          {l:'Gris foncé', v:'#1f2937'},{l:'Bleu',    v:'#1e3a5f'},{l:'Ardoise',       v:'#475569'}
-        ] %}
-          <button type="button"
-                  onclick="document.getElementById('header_text_color').value='{{ preset.v }}';document.getElementById('hex_input_text').value='{{ preset.v }}';"
-                  class="flex items-center gap-1.5 px-2 py-1 border border-black text-xs font-semibold hover:bg-gray-50 transition">
-            <span class="w-3 h-3 border border-black/30 rounded-sm inline-block" style="background:{{ preset.v }}"></span>{{ preset.l }}
-          </button>
-        {% endfor %}
+
+      {# Live preview #}
+      <div class="mt-4">
+        <p class="text-xs text-gray-500 mb-1">Aperçu :</p>
+        <div id="header-preview" class="h-14 flex items-center px-6 gap-4 border-4 border-black shadow-[4px_4px_0_#000]"
+             style="background:{{ config.header_bg_color|default('#ffffff') }}">
+          <span id="prev-logo" class="font-black text-sm px-3 py-1 border-2 border-black shadow-[2px_2px_0_#000]"
+                style="background:{{ config.primary_color|default('#94674d') }};color:{{ config.header_text_color|default('#000000') }}">
+            USM VOLLEY
+          </span>
+          <span id="prev-link" class="font-black text-xs uppercase px-3 py-1 border-2 border-transparent"
+                style="color:{{ config.header_text_color|default('#000000') }}">
+            Agenda
+          </span>
+          <span id="prev-hover" class="font-black text-xs uppercase px-3 py-1 border-2 border-black shadow-[2px_2px_0_#000]"
+                style="background:{{ config.primary_color|default('#94674d') }};color:{{ config.header_hover_text_color|default('#000000') }}">
+            Équipes ↗
+          </span>
+        </div>
       </div>
     </div>
 
@@ -254,5 +325,32 @@
       radio.value = val;
     }
   });
+
+  function syncHex(colorInput, hexId) {
+    document.getElementById(hexId).value = colorInput.value;
+  }
+
+  function setColor(colorId, hexId, val) {
+    document.getElementById(colorId).value = val;
+    document.getElementById(hexId).value = val;
+    previewHeader();
+  }
+
+  function previewHeader() {
+    const bg       = document.getElementById('header_bg_color').value;
+    const text     = document.getElementById('header_text_color').value;
+    const hoverTxt = document.getElementById('header_hover_text_color').value;
+    const accent   = document.getElementById('primary_color').value;
+
+    document.getElementById('header-preview').style.background = bg;
+    document.getElementById('prev-logo').style.background      = accent;
+    document.getElementById('prev-logo').style.color           = text;
+    document.getElementById('prev-link').style.color           = text;
+    document.getElementById('prev-hover').style.background     = accent;
+    document.getElementById('prev-hover').style.color          = hoverTxt;
+  }
+
+  // Update preview when primary color changes too
+  document.getElementById('primary_color').addEventListener('input', previewHeader);
 </script>
 {% endblock %}

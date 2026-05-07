@@ -94,6 +94,13 @@ class View
                 return MenuItem::getUrl($item);
             }));
 
+            // is_active(url) — true when the URL's path matches the current request path
+            $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+            $twig->addFunction(new TwigFunction('is_active', function (string $url) use ($currentPath): bool {
+                $urlPath = parse_url($url, PHP_URL_PATH) ?? '/';
+                return $urlPath !== '/' && $urlPath === $currentPath;
+            }));
+
             self::$twig = $twig;
         }
         return self::$twig;
