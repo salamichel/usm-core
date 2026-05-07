@@ -22,17 +22,36 @@
         <a href="{{ url('equipes/' ~ eq.slug) }}"
            class="border-4 border-black bg-white shadow-[6px_6px_0_#000]
                   hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1
-                  transition-all block overflow-hidden group">
+                  transition-all flex flex-col overflow-hidden group">
+
+          {# Photo #}
           {% if eq.cover %}
             <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
                  alt="{{ eq.libelle }}"
-                 class="w-full h-72 object-cover transition-transform duration-300 group-hover:scale-105">
+                 class="w-full {{ eq.description ? 'h-48' : 'h-72' }} object-cover transition-transform duration-300 group-hover:scale-105">
           {% else %}
-            <div class="w-full h-72 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
+            <div class="w-full {{ eq.description ? 'h-48' : 'h-72' }} bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
           {% endif %}
+
+          {% if eq.description %}
+          {# Carte enrichie avec description #}
+          <div class="flex flex-col flex-1 p-5">
+            <h3 class="font-black text-lg leading-tight mb-4 border-l-4 border-black pl-3 group-hover:text-amber-700 transition-colors">
+              {{ eq.libelle }}
+            </h3>
+            <div class="border-t-2 border-gray-200 pt-4 mt-auto">
+              <p class="text-gray-700 text-sm leading-relaxed italic line-clamp-3">
+                {{ eq.description|striptags|slice(0, 140) }}{% if eq.description|striptags|length > 140 %}…{% endif %}
+              </p>
+            </div>
+          </div>
+          {% else %}
+          {# Carte simple #}
           <div class="p-5">
             <h3 class="font-black text-lg leading-tight group-hover:text-amber-700 transition-colors">{{ eq.libelle }}</h3>
           </div>
+          {% endif %}
+
         </a>
         {% endfor %}
       </div>
