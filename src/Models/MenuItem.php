@@ -51,6 +51,32 @@ class MenuItem
         return $stmt->fetchAll();
     }
 
+    /**
+     * Returns all items in hierarchical order with a 'depth' and 'prefix' key,
+     * suitable for building a <select> that shows indentation.
+     */
+    public static function allFlatHierarchical(): array
+    {
+        $tree   = self::getTree();
+        $result = [];
+
+        $flatten = function (array $items, int $depth) use (&$flatten, &$result): void {
+            foreach ($items as $item) {
+                $children       = $item['children'];
+                $item['depth']  = $depth;
+                $item['prefix'] = str_repeat('— ', $depth);
+                unset($item['children']);
+                $result[] = $item;
+                if ($children) {
+                    $flatten($children, $depth + 1);
+                }
+            }
+        };
+
+        $flatten($tree, 0);
+        return $result;
+    }
+
     public static function find(int $id): ?array
     {
         $stmt = Database::get()->prepare("SELECT * FROM menu_items WHERE id = ? LIMIT 1");
