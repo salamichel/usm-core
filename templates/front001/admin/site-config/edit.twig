@@ -132,28 +132,24 @@
         <input type="color" id="primary_color" name="primary_color"
                value="{{ config.primary_color|default('#94674d') }}"
                class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
-               onchange="document.getElementById('hex_input').value = this.value;">
+               oninput="document.getElementById('hex_input').value=this.value">
         <input type="text" id="hex_input" placeholder="#94674d" maxlength="7"
                value="{{ config.primary_color|default('#94674d') }}"
-               class="w-24 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
-               onchange="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)) document.getElementById('primary_color').value = this.value;">
-        <div class="text-xs text-gray-500">Format: #RRGGBB</div>
+               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
+               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('primary_color').value=this.value}">
+        <span class="text-xs text-gray-500">ou saisir le code hex</span>
       </div>
       <div class="flex flex-wrap gap-2">
-        {% set presets = [
-          { label: 'Marron', value: '#94674d' },
-          { label: 'Marine', value: '#1e3a5f' },
-          { label: 'Vert', value: '#2d6a4f' },
-          { label: 'Bordeaux', value: '#7b2d3e' },
-          { label: 'Ardoise', value: '#475569' },
-          { label: 'Orange', value: '#c2410c' },
-          { label: 'Rose', value: '#be185d' },
-          { label: 'Indigo', value: '#4f46e5' },
+        {% for preset in [
+          {l:'Marron',   v:'#94674d'},{l:'Marine',   v:'#1e3a5f'},{l:'Vert',     v:'#2d6a4f'},
+          {l:'Bordeaux', v:'#7b2d3e'},{l:'Ardoise',  v:'#475569'},{l:'Orange',   v:'#c2410c'},
+          {l:'Rose',     v:'#be185d'},{l:'Indigo',   v:'#4f46e5'},{l:'Cyan',     v:'#0e7490'},
+          {l:'Noir',     v:'#111827'}
         ] %}
-        {% for preset in presets %}
-          <button type="button" onclick="document.getElementById('primary_color').value='{{ preset.value }}'; document.getElementById('hex_input').value='{{ preset.value }}';"
-                  class="flex items-center gap-2 px-2 py-1 border border-black text-xs font-semibold hover:bg-gray-100">
-            <span class="w-3 h-3 border border-black" style="background:{{ preset.value }}"></span>{{ preset.label }}
+          <button type="button"
+                  onclick="document.getElementById('primary_color').value='{{ preset.v }}';document.getElementById('hex_input').value='{{ preset.v }}';"
+                  class="flex items-center gap-1.5 px-2 py-1 border border-black text-xs font-semibold hover:bg-gray-50 transition">
+            <span class="w-3 h-3 border border-black/30 rounded-sm inline-block" style="background:{{ preset.v }}"></span>{{ preset.l }}
           </button>
         {% endfor %}
       </div>
@@ -162,32 +158,48 @@
     {# Typographie #}
     <div>
       <label class="block font-black mb-2">Typographie</label>
-      {% set fonts = [
-        { value: '',               label: 'Système (défaut)' },
-        { value: 'Inter',          label: 'Inter' },
-        { value: 'Space Grotesk',  label: 'Space Grotesk' },
-        { value: 'DM Sans',        label: 'DM Sans' },
-        { value: 'Syne',           label: 'Syne' },
-        { value: 'Outfit',         label: 'Outfit' },
-        { value: 'Poppins',        label: 'Poppins' },
-        { value: 'Plus Jakarta Sans', label: 'Plus Jakarta Sans' },
-        { value: 'Raleway',        label: 'Raleway' },
-        { value: 'Montserrat',     label: 'Montserrat' },
-        { value: 'Work Sans',      label: 'Work Sans' },
-        { value: 'Unbounded',      label: 'Unbounded' },
-      ] %}
-      <div class="grid sm:grid-cols-2 gap-2">
-        {% for font in fonts %}
-          <label class="flex items-center gap-2 p-2 border-2 cursor-pointer transition
-                        {{ config.font_family|default('') == font.value ? 'border-black bg-amber-50' : 'border-gray-300 hover:border-black' }}">
-            <input type="radio" name="font_family" value="{{ font.value }}"
-                   {% if config.font_family|default('') == font.value %}checked{% endif %}
-                   class="w-4 h-4">
-            <span class="text-sm font-semibold">{{ font.label }}</span>
+      {% set knownFonts = ['Inter','Space Grotesk','DM Sans','Syne','Outfit','Poppins','Plus Jakarta Sans','Raleway','Montserrat','Work Sans','Unbounded'] %}
+      {% set currentFont = config.font_family|default('') %}
+      {% set isCustom = currentFont is not empty and currentFont not in knownFonts %}
+
+      <div class="space-y-1.5 mb-3">
+
+        {# Système #}
+        <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
+                      {{ currentFont == '' ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}">
+          <input type="radio" name="font_family" value="" class="w-4 h-4 font-radio"
+                 {{ currentFont == '' ? 'checked' : '' }}>
+          <span class="text-sm font-semibold w-36">Système (défaut)</span>
+          <span class="text-base text-gray-500" style="font-family: ui-sans-serif, system-ui, sans-serif">Club USM Mios — Volley</span>
+        </label>
+
+        {# Polices connues #}
+        {% for f in knownFonts %}
+          <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
+                        {{ currentFont == f ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}">
+            <input type="radio" name="font_family" value="{{ f }}" class="w-4 h-4 font-radio"
+                   {{ currentFont == f ? 'checked' : '' }}>
+            <span class="text-sm font-semibold w-36">{{ f }}</span>
+            <span class="text-base text-gray-700" style="font-family: '{{ f }}', sans-serif">Club USM Mios — Volley</span>
           </label>
         {% endfor %}
+
+        {# Police personnalisée #}
+        <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
+                      {{ isCustom ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}"
+               id="custom-font-label">
+          <input type="radio" name="font_family" value="__custom__" class="w-4 h-4 font-radio" id="radio-custom"
+                 {{ isCustom ? 'checked' : '' }}>
+          <span class="text-sm font-semibold w-36">Personnalisée</span>
+          <input type="text" id="custom_font_input"
+                 value="{{ isCustom ? currentFont : '' }}"
+                 placeholder="Ex: Nunito, Josefin Sans, Pacifico…"
+                 class="flex-1 border border-gray-300 px-2 py-0.5 text-sm focus:outline-none focus:border-black"
+                 onclick="document.getElementById('radio-custom').checked=true"
+                 oninput="document.getElementById('radio-custom').checked=true">
+        </label>
       </div>
-      <div class="text-xs text-gray-500 mt-2">Les polices Google Fonts se chargent automatiquement.</div>
+      <div class="text-xs text-gray-500">Noms exacts tels qu'ils apparaissent sur <a href="https://fonts.google.com" target="_blank" class="underline">fonts.google.com</a>.</div>
     </div>
   </div>
 
@@ -198,8 +210,21 @@
 </form>
 {% endblock %}
 
-{% block scripts %}
+{% block head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Raleway:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600;700;800;900&family=Unbounded:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Space+Grotesk:wght@400;600;700;900&family=DM+Sans:wght@400;600;700;900&family=Syne:wght@400;600;700;900&family=Outfit:wght@400;600;700;900&family=Poppins:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;600;700;900&family=Raleway:wght@400;600;700;900&family=Montserrat:wght@400;600;700;900&family=Work+Sans:wght@400;600;700;900&family=Unbounded:wght@400;600;700;900&display=swap">
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Sync custom font radio value before submit
+  document.querySelector('form').addEventListener('submit', function () {
+    const radio = document.getElementById('radio-custom');
+    if (radio.checked) {
+      const val = document.getElementById('custom_font_input').value.trim();
+      radio.value = val;
+    }
+  });
+</script>
 {% endblock %}
