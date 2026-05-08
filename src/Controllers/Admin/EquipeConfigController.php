@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Auth;
 use App\Core\View;
+use App\Models\CategorieEquipe;
 use App\Models\EquipeConfig;
 use App\Models\EquipeSaison;
 use App\Models\EquipeSaisonJoueur;
@@ -26,9 +27,10 @@ class EquipeConfigController
     {
         Auth::require();
         View::render('admin/equipes-config/form.twig', [
-            'equipe'  => null,
-            'saisons' => [],
-            'action'  => BASE_URL . '/admin/equipes-config/create',
+            'equipe'      => null,
+            'saisons'     => [],
+            'categories'  => CategorieEquipe::all(),
+            'action'      => BASE_URL . '/admin/equipes-config/create',
         ]);
     }
 
@@ -38,10 +40,11 @@ class EquipeConfigController
         $data = $this->formData();
         if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
             View::render('admin/equipes-config/form.twig', [
-                'equipe'  => $data,
-                'saisons' => [],
-                'action'  => BASE_URL . '/admin/equipes-config/create',
-                'error'   => 'Colonne et libellé sont obligatoires.',
+                'equipe'      => $data,
+                'saisons'     => [],
+                'categories'  => CategorieEquipe::all(),
+                'action'      => BASE_URL . '/admin/equipes-config/create',
+                'error'       => 'Colonne et libellé sont obligatoires.',
             ]);
             return;
         }
@@ -65,9 +68,10 @@ class EquipeConfigController
             $s['es_id']        = $es ? $es['id'] : null;
         }
         View::render('admin/equipes-config/form.twig', [
-            'equipe'  => $equipe,
-            'saisons' => $saisons,
-            'action'  => BASE_URL . '/admin/equipes-config/' . $equipe['id'] . '/edit',
+            'equipe'      => $equipe,
+            'saisons'     => $saisons,
+            'categories'  => CategorieEquipe::all(),
+            'action'      => BASE_URL . '/admin/equipes-config/' . $equipe['id'] . '/edit',
         ]);
     }
 
@@ -81,10 +85,11 @@ class EquipeConfigController
         if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
             $saisons = Saison::all();
             View::render('admin/equipes-config/form.twig', [
-                'equipe'  => array_merge($equipe, $data),
-                'saisons' => $saisons,
-                'action'  => BASE_URL . '/admin/equipes-config/' . $id . '/edit',
-                'error'   => 'Colonne et libellé sont obligatoires.',
+                'equipe'      => array_merge($equipe, $data),
+                'saisons'     => $saisons,
+                'categories'  => CategorieEquipe::all(),
+                'action'      => BASE_URL . '/admin/equipes-config/' . $id . '/edit',
+                'error'       => 'Colonne et libellé sont obligatoires.',
             ]);
             return;
         }
@@ -225,6 +230,11 @@ class EquipeConfigController
 
     private function formData(): array
     {
+        $description = $_POST['description'] ?? null;
+        if ($description === '<p><br></p>') {
+            $description = null;
+        }
+
         return [
             'slug_colonne'          => trim($_POST['slug_colonne'] ?? ''),
             'libelle'               => trim($_POST['libelle'] ?? ''),
@@ -234,6 +244,10 @@ class EquipeConfigController
             'slug'                  => trim($_POST['slug'] ?? ''),
             'team_filter'           => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
             'manifestation_filter'  => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
+            'description'           => $description,
+            'description_courte'    => trim($_POST['description_courte'] ?? '') ?: null,
+            'type'                  => trim($_POST['type'] ?? '') ?: null,
+            'hauteur_filet'         => trim($_POST['hauteur_filet'] ?? '') ?: null,
         ];
     }
 

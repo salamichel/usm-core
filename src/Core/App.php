@@ -12,6 +12,7 @@ use App\Controllers\SitemapController;
 use App\Controllers\AgendaController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
+use App\Controllers\Admin\CategorieEquipeController;
 use App\Controllers\Admin\TagController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\EquipeConfigController;
@@ -150,6 +151,14 @@ class App
             [EquipeConfigController::class, 'addJoueur']);
         $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/remove',
             [EquipeConfigController::class, 'removeJoueur']);
+
+        // ── Admin catégories d'équipes ────────────────────────────────────────
+        $r->get('/admin/categories-equipes',              [CategorieEquipeController::class, 'index']);
+        $r->get('/admin/categories-equipes/create',       [CategorieEquipeController::class, 'create']);
+        $r->post('/admin/categories-equipes/create',      [CategorieEquipeController::class, 'store']);
+        $r->get('/admin/categories-equipes/{id}/edit',    [CategorieEquipeController::class, 'edit']);
+        $r->post('/admin/categories-equipes/{id}/edit',   [CategorieEquipeController::class, 'update']);
+        $r->post('/admin/categories-equipes/{id}/delete', [CategorieEquipeController::class, 'delete']);
 
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);

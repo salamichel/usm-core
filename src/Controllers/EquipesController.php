@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Core\NotFoundHandler;
 use App\Core\View;
+use App\Models\CategorieEquipe;
 use App\Models\EquipeConfig;
 use App\Models\EquipeSaison;
 use App\Models\EquipeSaisonJoueur;
@@ -47,6 +48,8 @@ class EquipesController
             $jsonLd[] = $breadcrumbSchema;
         }
 
+        $categorieDescriptions = CategorieEquipe::allKeyedByNom();
+
         $meta = new PageMetadata(
             title: SeoService::title('Équipes'),
             description: SeoService::description(
@@ -61,9 +64,10 @@ class EquipesController
         );
 
         View::render('equipes/index.twig', [
-            'meta'   => $meta,
-            'grouped' => $result,
-            'saison' => $saison,
+            'meta'                     => $meta,
+            'grouped'                  => $result,
+            'saison'                   => $saison,
+            'categorie_descriptions'   => $categorieDescriptions,
         ]);
     }
 
@@ -113,6 +117,8 @@ class EquipesController
             }
         }
 
+        $categorieDesc = CategorieEquipe::findByNom($equipe['categorie']);
+
         // SEO metadata
         $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
         $url = SeoService::absoluteUrl('/equipes/' . $equipe['slug']);
@@ -154,6 +160,7 @@ class EquipesController
             'otherEquipes'      => $otherEquipes,
             'mini_agenda_events' => $miniAgendaEvents,
             'agenda_filter_url' => $agendaFilterUrl,
+            'categorie_desc'    => $categorieDesc,
         ]);
     }
 }

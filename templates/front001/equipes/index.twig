@@ -2,32 +2,82 @@
 {% block title %}Nos équipes{% if saison %} — {{ saison.libelle }}{% endif %} — USM Volley{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-10">
-  <h1 class="text-4xl font-black mb-2">Nos équipes</h1>
+<div class="max-w-6xl mx-auto px-4 py-10">
+  <h1 class="text-5xl font-black mb-2">Nos équipes</h1>
   {% if saison %}
-    <p class="text-gray-500 font-semibold mb-8">Saison {{ saison.libelle }}</p>
+    <p class="text-gray-500 font-semibold mb-10">Saison {{ saison.libelle }}</p>
   {% endif %}
 
   {% if grouped|length %}
     {% for cat, equipes in grouped %}
-    <section class="mb-12">
-      <h2 class="text-2xl font-black mb-6 border-b-4 border-black pb-2">{{ cat }}</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+    <section class="mb-16">
+      <h2 class="text-3xl font-black mb-4 border-b-4 border-black pb-3">{{ cat }}</h2>
+      {% if categorie_descriptions[cat] is defined and categorie_descriptions[cat].description %}
+        <div class="prose mb-8 text-gray-700">
+          {{ categorie_descriptions[cat].description|raw }}
+        </div>
+      {% endif %}
+
+      {% if categorie_descriptions[cat] is defined and (categorie_descriptions[cat].type or categorie_descriptions[cat].hauteur_filet or categorie_descriptions[cat].description_courte) %}
+        <div class="mb-8 border-l-4 border-black pl-4 py-2 bg-gray-50 p-4">
+          {% if categorie_descriptions[cat].type %}
+            <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">Type</p>
+            <p class="text-lg font-black text-gray-900 mb-3">{{ categorie_descriptions[cat].type }}</p>
+          {% endif %}
+          {% if categorie_descriptions[cat].hauteur_filet %}
+            <p class="text-sm font-bold text-gray-600 uppercase tracking-wider mb-1">Hauteur du filet</p>
+            <p class="text-lg font-black text-gray-900 mb-3">{{ categorie_descriptions[cat].hauteur_filet }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {% for eq in equipes %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"
-           class="border-4 border-black bg-white shadow-[4px_4px_0_#000]
+           class="border-4 border-black bg-white shadow-[6px_6px_0_#000]
                   hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1
-                  transition-all block overflow-hidden">
+                  transition-all flex flex-col overflow-hidden group">
+
+          {# Photo #}
           {% if eq.cover %}
             <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
                  alt="{{ eq.libelle }}"
-                 class="w-full h-40 object-cover">
+                 class="w-full h-60 object-cover transition-transform duration-300 group-hover:scale-105">
           {% else %}
-            <div class="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400 text-3xl">🏐</div>
+            <div class="w-full h-60 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
           {% endif %}
-          <div class="p-3">
-            <h3 class="font-black text-base leading-tight">{{ eq.libelle }}</h3>
+
+          {# Contenu enrichi avec métadonnées #}
+          <div class="flex flex-col flex-1 p-5">
+            <h3 class="font-black text-lg leading-tight mb-3 border-l-4 border-black pl-3 group-hover:text-amber-700 transition-colors">
+              {{ eq.libelle }}
+            </h3>
+
+            {# Métadonnées de l'équipe #}
+            {% if eq.type or eq.hauteur_filet %}
+            <div class="text-xs space-y-2 mb-3 pb-3 border-b border-gray-200">
+              {% if eq.type %}
+              <div>
+                <span class="font-bold text-gray-500 uppercase tracking-wider">Type</span>
+                <p class="font-black text-gray-900">{{ eq.type }}</p>
+              </div>
+              {% endif %}
+              {% if eq.hauteur_filet %}
+              <div>
+                <span class="font-bold text-gray-500 uppercase tracking-wider">Filet</span>
+                <p class="font-black text-gray-900">{{ eq.hauteur_filet }}</p>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            {# Description courte de l'équipe #}
+            {% if eq.description_courte %}
+            <p class="text-gray-700 text-sm leading-relaxed italic mt-auto">
+              {{ eq.description_courte }}
+            </p>
+            {% endif %}
           </div>
+
         </a>
         {% endfor %}
       </div>

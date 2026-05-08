@@ -48,6 +48,14 @@
     </div>
   </section>
 
+  {% if equipe.description %}
+  <section class="mb-10">
+    <div class="border-4 border-black bg-white p-6 shadow-[4px_4px_0_#000] prose max-w-none text-gray-800">
+      {{ equipe.description|raw }}
+    </div>
+  </section>
+  {% endif %}
+
   {# Upcoming events for this team — featured section #}
   {% if mini_agenda_events|length %}
   <section class="mt-12 mb-12 bg-gradient-to-br from-amber-50 to-orange-50 border-4 border-black p-6 sm:p-8 shadow-[8px_8px_0_#000]">
