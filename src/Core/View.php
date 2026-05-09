@@ -34,6 +34,7 @@ class View
             $twig->addGlobal('csrf_token', CsrfToken::generate());
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
             $twig->addGlobal('_POST', $_POST);
+            $twig->addGlobal('theme', THEME);
 
             // Contact stats for admin menu badge
             if (Auth::check()) {
