@@ -30,7 +30,7 @@
           {% endif %}
         </div>
       {% endif %}
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {% for eq in equipes %}
         <a href="{{ url('equipes/' ~ eq.slug) }}"
            class="border-4 border-black bg-white shadow-[6px_6px_0_#000]
@@ -41,9 +41,9 @@
           {% if eq.cover %}
             <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
                  alt="{{ eq.libelle }}"
-                 class="w-full h-60 object-cover transition-transform duration-300 group-hover:scale-105">
+                 class="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105">
           {% else %}
-            <div class="w-full h-60 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
+            <div class="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-5xl">🏐</div>
           {% endif %}
 
           {# Contenu enrichi avec métadonnées #}
