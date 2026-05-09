@@ -258,9 +258,9 @@
           </div>
         </div>
 
-        {# Zone 4 : Hover / Actif #}
+        {# Zone 4 : Hover #}
         <div class="border-2 border-black bg-white p-3">
-          <p class="font-black text-xs uppercase mb-2">④ Hover / Actif</p>
+          <p class="font-black text-xs uppercase mb-2">④ Hover</p>
           <div class="space-y-2">
             <div>
               <p class="text-xs text-gray-500 mb-1">Fond</p>
@@ -298,6 +298,55 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Crème',v:'#fffdef'},{l:'Marine',v:'#1e3a5f'}] %}
                   <button type="button" onclick="setColor('header_hover_text_color','hex_hover_txt','{{ p.v }}')"
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                    <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Zone 5 : Actif #}
+        <div class="border-2 border-black bg-white p-3">
+          <p class="font-black text-xs uppercase mb-2">⑤ Actif</p>
+          <div class="space-y-2">
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Fond</p>
+              <div class="flex items-center gap-2">
+                <input type="color" id="header_active_bg_color" name="header_active_bg_color"
+                       value="{{ config.header_active_bg_color|default(config.header_hover_bg_color|default(config.primary_color|default('#94674d'))) }}"
+                       class="w-9 h-9 border-2 border-black cursor-pointer p-0.5"
+                       oninput="syncHex(this,'hex_active_bg');previewHeader()">
+                <input type="text" id="hex_active_bg" maxlength="7"
+                       value="{{ config.header_active_bg_color|default(config.header_hover_bg_color|default(config.primary_color|default('#94674d'))) }}"
+                       class="w-20 border-2 border-black px-2 py-1 font-mono text-xs focus:outline-none"
+                       oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_active_bg_color').value=this.value;previewHeader()}">
+              </div>
+              <div class="flex flex-wrap gap-1 mt-1">
+                {% for p in [{l:'Marron',v:'#94674d'},{l:'Doré',v:'#f1c40f'},{l:'Marine',v:'#1e3a5f'},{l:'Noir',v:'#111827'},{l:'Blanc',v:'#ffffff'}] %}
+                  <button type="button" onclick="setColor('header_active_bg_color','hex_active_bg','{{ p.v }}')"
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                    <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">Texte</p>
+              <div class="flex items-center gap-2">
+                <input type="color" id="header_active_text_color" name="header_active_text_color"
+                       value="{{ config.header_active_text_color|default(config.header_hover_text_color|default('#000000')) }}"
+                       class="w-9 h-9 border-2 border-black cursor-pointer p-0.5"
+                       oninput="syncHex(this,'hex_active_txt');previewHeader()">
+                <input type="text" id="hex_active_txt" maxlength="7"
+                       value="{{ config.header_active_text_color|default(config.header_hover_text_color|default('#000000')) }}"
+                       class="w-20 border-2 border-black px-2 py-1 font-mono text-xs focus:outline-none"
+                       oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('header_active_text_color').value=this.value;previewHeader()}">
+              </div>
+              <div class="flex flex-wrap gap-1 mt-1">
+                {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Crème',v:'#fffdef'},{l:'Marine',v:'#1e3a5f'}] %}
+                  <button type="button" onclick="setColor('header_active_text_color','hex_active_txt','{{ p.v }}')"
                           class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
