@@ -496,11 +496,6 @@
               <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="text-slate-300 hover:text-white transition">{{ site_config.phone }}</a>
             </div>
           {% endif %}
-          {% if site_config.email %}
-            <div class="text-sm mt-1">
-              <a href="mailto:{{ site_config.email }}" class="text-slate-300 hover:text-white transition">{{ site_config.email }}</a>
-            </div>
-          {% endif %}
         </div>
 
         {# Liens utiles #}
