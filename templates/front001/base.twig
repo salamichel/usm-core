@@ -126,6 +126,8 @@
       --header-text:       {{ site_config.header_text_color|default('#000000') }};
       --header-hover-bg:   {{ site_config.header_hover_bg_color|default(site_config.primary_color|default('#94674d')) }};
       --header-hover-text: {{ site_config.header_hover_text_color|default('#000000') }};
+      --header-active-bg:  {{ site_config.header_active_bg_color|default(site_config.header_hover_bg_color|default(site_config.primary_color|default('#94674d'))) }};
+      --header-active-text: {{ site_config.header_active_text_color|default(site_config.header_hover_text_color|default('#000000')) }};
       --logo-bg:           {{ site_config.logo_bg_color|default(site_config.primary_color|default('#94674d')) }};
       --logo-text:         {{ site_config.logo_text_color|default('#000000') }};
       --brutal-shadow: 5px 5px 0px #000000;
@@ -198,8 +200,7 @@
       height: 100%;
     }
 
-    .nav-link-brutal:hover,
-    .nav-link-brutal.active {
+    .nav-link-brutal:hover {
       background-color: var(--header-hover-bg);
       color: var(--header-hover-text);
       border: 3px solid #000000;
@@ -208,8 +209,11 @@
     }
 
     .nav-link-brutal.active {
-      transform: translate(1px, 1px);
+      background-color: var(--header-active-bg);
+      color: var(--header-active-text);
+      border: 3px solid #000000;
       box-shadow: 1px 1px 0px #000000;
+      transform: translate(1px, 1px);
     }
 
     .has-mega {

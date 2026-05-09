@@ -16,6 +16,7 @@ class SiteConfigController
         'font_family', 'primary_color',
         'header_bg_color', 'header_text_color',
         'header_hover_bg_color', 'header_hover_text_color',
+        'header_active_bg_color', 'header_active_text_color',
         'logo_bg_color', 'logo_text_color',
     ];
 

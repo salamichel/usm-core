@@ -105,6 +105,8 @@
       --header-text:       {{ site_config.header_text_color|default('#0f172a') }};
       --header-hover-bg:   {{ site_config.header_hover_bg_color|default(site_config.primary_color|default('#1d4ed8')) }};
       --header-hover-text: {{ site_config.header_hover_text_color|default('#ffffff') }};
+      --header-active-bg:  {{ site_config.header_active_bg_color|default(site_config.header_hover_bg_color|default(site_config.primary_color|default('#1d4ed8'))) }};
+      --header-active-text: {{ site_config.header_active_text_color|default(site_config.header_hover_text_color|default('#ffffff')) }};
       --logo-bg:           {{ site_config.logo_bg_color|default('transparent') }};
       --logo-text:         {{ site_config.logo_text_color|default('#0f172a') }};
       --surface:           #ffffff;
@@ -194,7 +196,8 @@
       background-color: rgba(0,0,0,0.03);
     }
     .nav-link-classic.active {
-      color: var(--primary);
+      color: var(--header-active-text);
+      background-color: var(--header-active-bg);
     }
     .nav-link-classic.active::after {
       content: '';
@@ -203,7 +206,7 @@
       right: 0.875rem;
       bottom: 4px;
       height: 2px;
-      background: var(--primary);
+      background: var(--header-active-text);
       border-radius: 1px;
     }
 
