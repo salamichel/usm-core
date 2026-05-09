@@ -1,0 +1,21 @@
+{# Galerie photos avec lightbox GLightbox - style éditorial #}
+{% macro gallery(photos) %}
+{% if photos|length %}
+<section class="mt-12">
+  <h2 class="font-serif text-2xl font-semibold text-slate-900 mb-6 pb-3 border-b border-slate-200">Galerie photos</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+    {% for photo in photos %}
+    <a href="{{ asset('uploads/' ~ photo.filename) }}"
+       class="glightbox block rounded-lg overflow-hidden border border-slate-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+       {% if photo.caption %}data-glightbox="description: {{ photo.caption }}"{% endif %}
+       data-gallery="gallery-{{ photo.entity_type }}-{{ photo.entity_id }}">
+      <img src="{{ asset('uploads/' ~ photo.filename) }}"
+           alt="{{ photo.caption ? photo.caption|truncate(125) : 'Photo' }}"
+           loading="lazy" decoding="async"
+           class="w-full h-40 object-cover">
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endmacro %}

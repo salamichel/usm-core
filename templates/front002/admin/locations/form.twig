@@ -1,0 +1,77 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ location ? 'Éditer' : 'Créer' }} un emplacement{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <a href="{{ url('admin/locations') }}" class="font-bold hover:underline text-sm">← Retour</a>
+  <h1 class="text-3xl font-black">{{ location ? 'Éditer l\'emplacement' : 'Nouvel emplacement' }}</h1>
+</div>
+
+{% if error %}
+  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-6 font-semibold text-sm rounded">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="{{ action }}" class="space-y-6">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+  {# ── Informations ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Informations</h2>
+
+    <div>
+      <label class="block font-black mb-1" for="name">Nom du lieu *</label>
+      <input type="text" id="name" name="name" required
+             value="{{ location.name ?? '' }}"
+             placeholder="Ex: Gymnase Jean Moulin"
+             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      <div class="text-xs text-gray-500 mt-1">Nom du gymnase ou du lieu d'entraînement.</div>
+    </div>
+
+    <div>
+      <label class="block font-black mb-1" for="address">Adresse *</label>
+      <textarea id="address" name="address" required
+                placeholder="12 Rue de la Paix&#10;33380 Mios"
+                class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
+                rows="3">{{ location.address ?? '' }}</textarea>
+      <div class="text-xs text-gray-500 mt-1">Adresse complète (utilisée pour le lien Google Maps).</div>
+    </div>
+
+    <div class="bg-blue-50 border-2 border-blue-400 p-4 rounded space-y-3">
+      <p class="font-semibold text-blue-700 text-sm">📍 Coordonnées GPS (optionnel)</p>
+      <p class="text-xs text-blue-600">Entrez les coordonnées GPS pour afficher une carte interactive. Sinon, un lien Google Maps s'affichera.</p>
+
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block font-black mb-1 text-sm" for="latitude">Latitude</label>
+          <input type="number" id="latitude" name="latitude" step="0.00000001"
+                 value="{{ location.latitude ?? '' }}"
+                 placeholder="Ex: 44.52556"
+                 class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <div class="text-xs text-gray-500 mt-1">Entre -90 et 90</div>
+        </div>
+
+        <div>
+          <label class="block font-black mb-1 text-sm" for="longitude">Longitude</label>
+          <input type="number" id="longitude" name="longitude" step="0.00000001"
+                 value="{{ location.longitude ?? '' }}"
+                 placeholder="Ex: -0.69171"
+                 class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <div class="text-xs text-gray-500 mt-1">Entre -180 et 180</div>
+        </div>
+      </div>
+    </div>
+
+    {% if location and location.latitude and location.longitude %}
+    <div class="bg-green-50 border-2 border-green-400 p-3 rounded">
+      <p class="font-semibold text-green-700 text-sm">✓ Coordonnées définies</p>
+      <p class="text-xs text-green-600 mt-1">Latitude: {{ location.latitude|number_format(8) }}, Longitude: {{ location.longitude|number_format(8) }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <button type="submit"
+          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    {{ location ? 'Mettre à jour' : 'Créer' }}
+  </button>
+</form>
+{% endblock %}

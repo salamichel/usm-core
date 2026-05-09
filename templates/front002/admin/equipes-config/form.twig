@@ -1,0 +1,215 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}{% endblock %}
+
+{% block content %}
+
+{# ── En-tête ── #}
+<div class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-3">
+    <a href="{{ url('admin/equipes-config') }}"
+       class="border-2 border-black px-3 py-1.5 text-sm font-bold hover:bg-black hover:text-white transition">← Équipes</a>
+    <h1 class="text-3xl font-black">{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}</h1>
+    {% if equipe %}
+      {% if equipe.is_active %}
+        <span class="bg-green-100 text-green-800 border-2 border-green-600 px-2 py-0.5 text-xs font-black">Active</span>
+      {% else %}
+        <span class="bg-gray-100 text-gray-500 border-2 border-gray-400 px-2 py-0.5 text-xs font-black">Inactive</span>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% if error is defined and error %}
+  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold">{{ error }}</div>
+{% endif %}
+
+{# ── Layout desktop : 2 colonnes si saisons ── #}
+<div class="{% if equipe and saisons|length %}lg:grid lg:grid-cols-[1fr_320px] lg:gap-6{% endif %}">
+
+  {# ── Formulaire ── #}
+  <form method="POST" action="{{ action }}" class="space-y-5">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+    {# Section 1 : Identité #}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Identité</div>
+      <div class="p-5 grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black mb-1 text-sm" for="libelle">Libellé *</label>
+          <input id="libelle" name="libelle" type="text" required
+                 value="{{ equipe.libelle ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="Loisir 1">
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="categorie">Catégorie *</label>
+          <select id="categorie" name="categorie" required
+                  class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="">-- Sélectionner --</option>
+            {% for cat in categories %}
+              <option value="{{ cat.nom }}" {% if equipe and equipe.categorie == cat.nom %}selected{% endif %}>{{ cat.nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="slug_colonne">Colonne DB *</label>
+          <input id="slug_colonne" name="slug_colonne" type="text" required
+                 value="{{ equipe.slug_colonne ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="Eq_L1">
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="slug">Slug SEO</label>
+          <input id="slug" name="slug" type="text"
+                 value="{{ equipe.slug ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="loisir-1">
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="ordre">Ordre</label>
+          <input id="ordre" name="ordre" type="number" min="0"
+                 value="{{ equipe.ordre ?? 0 }}"
+                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+        <div class="flex items-end pb-2">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" name="is_active" value="1"
+                   {% if equipe is null or equipe.is_active %}checked{% endif %}
+                   class="w-5 h-5 border-2 border-black">
+            <span class="font-black text-sm">Équipe active</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    {# Section 2 : Fiche équipe (carte) #}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Fiche équipe <span class="font-normal opacity-60">— affichée sur les cartes</span></div>
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-black mb-1 text-sm" for="type">Type</label>
+            <input id="type" name="type" type="text"
+                   value="{{ equipe.type ?? '' }}"
+                   class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                   placeholder="Ex: Filles - 6×6">
+          </div>
+          <div>
+            <label class="block font-black mb-1 text-sm" for="hauteur_filet">Hauteur du filet</label>
+            <input id="hauteur_filet" name="hauteur_filet" type="text"
+                   value="{{ equipe.hauteur_filet ?? '' }}"
+                   class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                   placeholder="Ex: 2m43">
+          </div>
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="description_courte">Description courte</label>
+          <textarea id="description_courte" name="description_courte" rows="3"
+                    class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="Quelques mots affichés sous le titre sur la carte">{{ equipe.description_courte ?? '' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    {# Section 3 : Description longue (WYSIWYG) #}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Description <span class="font-normal opacity-60">— page détail</span></div>
+      <div class="p-5">
+        <textarea id="description" name="description">{{ equipe.description ?? '' }}</textarea>
+      </div>
+    </div>
+
+    {# Section 4 : Filtres agenda #}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Filtres agenda <span class="font-normal opacity-60">— optionnel</span></div>
+      <div class="p-5 grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black mb-1 text-sm" for="team_filter">Code équipe</label>
+          <input id="team_filter" name="team_filter" type="text"
+                 value="{{ equipe.team_filter ?? equipe.slug_colonne ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="Ex: Eq_L2">
+          <p class="text-xs text-gray-400 mt-1">Filtre agenda par équipe</p>
+        </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="manifestation_filter">Filtre manifestation</label>
+          <input id="manifestation_filter" name="manifestation_filter" type="text"
+                 value="{{ equipe.manifestation_filter ?? '' }}"
+                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 placeholder="Ex: Match L2">
+          <p class="text-xs text-gray-400 mt-1">Filtre agenda par manifestation</p>
+        </div>
+      </div>
+    </div>
+
+    {# Bouton #}
+    <div>
+      <button type="submit"
+              class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+        {{ equipe ? 'Mettre à jour' : 'Créer l\'équipe' }}
+      </button>
+    </div>
+
+  </form>
+
+  {# ── Panneau latéral : Saisons ── #}
+  {% if equipe and saisons|length %}
+  <div class="mt-5 lg:mt-0">
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000] sticky top-4">
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Saisons</div>
+      <div class="divide-y-2 divide-gray-100">
+        {% for s in saisons %}
+        <div class="p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-black text-sm">{{ s.libelle }}</span>
+            {% if s.is_active %}
+              <span class="bg-green-100 text-green-800 border border-green-400 px-1.5 py-0.5 text-xs font-bold">Active</span>
+            {% endif %}
+          </div>
+          <div class="flex gap-2 text-xs text-gray-500 mb-3">
+            <span>📷 {{ s.photo_count }} photo{{ s.photo_count != 1 ? 's' }}</span>
+            <span>·</span>
+            <span>👥 {{ s.joueur_count }} joueur{{ s.joueur_count != 1 ? 's' }}</span>
+          </div>
+          <div class="flex gap-2">
+            <a href="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ s.id ~ '/photos') }}"
+               class="flex-1 text-center border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">📷 Photos</a>
+            <a href="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ s.id ~ '/joueurs') }}"
+               class="flex-1 text-center border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">👥 Joueurs</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/lang/summernote-fr-FR.min.js"></script>
+<style>
+  .note-editor .note-editable ul li { margin-left: 2rem !important; list-style: disc !important; }
+  .note-editor .note-editable ol li { margin-left: 2rem !important; list-style: decimal !important; }
+</style>
+<script>
+  $('#description').summernote({
+    height: 250,
+    lang: 'fr-FR',
+    toolbar: [
+      ['style',  ['style']],
+      ['font',   ['bold', 'italic', 'underline', 'clear']],
+      ['para',   ['ul', 'ol']],
+      ['insert', ['link']],
+      ['view',   ['codeview']]
+    ]
+  });
+  $('form').on('submit', function () {
+    document.getElementById('description').value = $('#description').summernote('code');
+  });
+</script>
+{% endblock %}

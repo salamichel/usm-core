@@ -1,0 +1,79 @@
+{% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
+{% block title %}{{ post.title }} — USM Volley{% endblock %}
+
+{% block content %}
+<article class="max-w-3xl mx-auto px-6 py-16">
+
+  {# Breadcrumb #}
+  <nav class="text-sm text-slate-500 mb-10">
+    <a href="{{ url('/') }}" class="hover:text-[var(--primary)] transition">Accueil</a>
+    <span class="mx-2 text-slate-300">/</span>
+    <a href="{{ url('blog') }}" class="hover:text-[var(--primary)] transition">Actualités</a>
+    <span class="mx-2 text-slate-300">/</span>
+    <span class="text-slate-700">{{ post.title|truncate(50) }}</span>
+  </nav>
+
+  {# Header #}
+  <header class="mb-12">
+    {% if post.published_at %}
+      <time class="block text-xs uppercase tracking-[0.2em] text-slate-500 font-medium mb-4">
+        {{ post.published_at|date_fr('d/m/Y') }}
+      </time>
+    {% endif %}
+    <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight text-slate-900 mb-6">{{ post.title }}</h1>
+    {% if post.excerpt %}
+      <p class="text-xl md:text-2xl text-slate-600 leading-relaxed font-light">{{ post.excerpt }}</p>
+    {% endif %}
+  </header>
+
+  {# Cover #}
+  {% if post.cover %}
+    <figure class="-mx-6 md:mx-0 mb-12">
+      <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}"
+           class="w-full max-h-[600px] object-cover md:rounded-lg">
+    </figure>
+  {% endif %}
+
+  {# Body #}
+  <div class="prose prose-slate prose-lg max-w-none
+              prose-headings:font-serif prose-headings:font-semibold prose-headings:text-slate-900
+              prose-a:text-[var(--primary)] prose-a:underline-offset-2
+              prose-img:rounded-md prose-img:my-8
+              prose-blockquote:border-l-2 prose-blockquote:border-[var(--primary)] prose-blockquote:font-serif prose-blockquote:italic prose-blockquote:text-slate-700">
+    {{ post.content|render_with_config|raw }}
+  </div>
+
+  {# Tags #}
+  {% if tags|length %}
+  <div class="mt-16 pt-8 border-t border-slate-200">
+    <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Tags</p>
+    <div class="flex flex-wrap gap-2">
+      {% for tag in tags %}
+        <a href="{{ url('blog/tag/' ~ tag.slug) }}"
+           class="inline-block px-3 py-1.5 rounded-full text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          {{ tag.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {{ components.gallery(photos) }}
+
+  <div class="mt-16 pt-8 border-t border-slate-200">
+    <a href="{{ url('blog') }}" class="text-sm font-medium text-slate-600 hover:text-[var(--primary)] inline-flex items-center gap-1 transition">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Toutes les actualités
+    </a>
+  </div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+{% if photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });</script>
+{% endif %}
+{% endblock %}

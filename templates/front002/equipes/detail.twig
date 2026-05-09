@@ -1,0 +1,152 @@
+{% extends 'base.twig' %}
+{% block title %}{{ equipe.libelle }}{% if saison %} — {{ saison.libelle }}{% endif %} — USM Volley{% endblock %}
+
+{% import '_gallery.twig' as components %}
+{% import 'agenda/_macros.twig' as agendaMacros %}
+
+{% block head %}
+{% if photos|length or cover %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-12">
+
+  {# Breadcrumb #}
+  <nav class="text-sm text-slate-500 mb-8">
+    <a href="{{ url('/') }}" class="hover:text-[var(--primary)] transition">Accueil</a>
+    <span class="mx-2 text-slate-300">/</span>
+    <a href="{{ url('equipes') }}" class="hover:text-[var(--primary)] transition">Équipes</a>
+    <span class="mx-2 text-slate-300">/</span>
+    <span class="text-slate-700">{{ equipe.libelle }}</span>
+  </nav>
+
+  {# Hero #}
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-center mb-16">
+    {% if cover %}
+    <a href="{{ asset('uploads/' ~ cover.filename) }}"
+       class="glightbox block aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 group order-2 md:order-1"
+       {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
+       data-gallery="gallery-equipe_saison-cover">
+      <img src="{{ asset('uploads/' ~ cover.filename) }}"
+           alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
+           loading="eager" decoding="async"
+           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]">
+    </a>
+    {% endif %}
+
+    <div class="order-1 md:order-2">
+      <span class="inline-block text-xs uppercase tracking-[0.2em] text-[var(--primary)] font-semibold mb-3">{{ equipe.categorie }}</span>
+      <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-slate-900 leading-tight mb-5">{{ equipe.libelle }}</h1>
+      <div class="flex flex-wrap gap-x-6 gap-y-2 text-slate-600">
+        {% if saison %}
+          <span><span class="text-slate-400">Saison</span> · <span class="font-medium">{{ saison.libelle }}</span></span>
+        {% endif %}
+        {% if joueurs|length %}
+          <span><span class="text-slate-400">Effectif</span> · <span class="font-medium">{{ joueurs|length }} joueur{{ joueurs|length > 1 ? 's' : '' }}</span></span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  {# Description #}
+  {% if equipe.description %}
+  <section class="mb-16 max-w-3xl">
+    <div class="prose prose-slate prose-lg max-w-none text-slate-700">
+      {{ equipe.description|raw }}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Upcoming events #}
+  {% if mini_agenda_events|length %}
+  <section class="mb-16">
+    <div class="flex items-baseline justify-between mb-8 flex-wrap gap-3">
+      <div>
+        <span class="inline-block text-xs uppercase tracking-[0.25em] text-slate-500 font-medium mb-1">Calendrier</span>
+        <h2 class="font-serif text-3xl font-semibold text-slate-900">Prochains matchs</h2>
+      </div>
+      {% if agenda_filter_url %}
+      <a href="{{ agenda_filter_url }}" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">Agenda complet →</a>
+      {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {% for event in mini_agenda_events %}
+      <div class="card card-hover p-5">
+        <div class="flex justify-between items-start gap-4">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-serif font-semibold text-lg text-slate-900 leading-tight mb-3">{{ event.titre }}</h3>
+            <div class="space-y-1 text-sm text-slate-600">
+              <p class="flex items-center gap-1.5"><span class="text-slate-400">📅</span> {{ event.date_display }}</p>
+              {% if event.time_range %}<p class="flex items-center gap-1.5"><span class="text-slate-400">🕐</span> {{ event.time_range }}</p>{% endif %}
+              <p class="flex items-center gap-1.5"><span class="text-slate-400">📍</span> {{ event.lieu }}</p>
+            </div>
+          </div>
+          <div class="flex-shrink-0">
+            {{ agendaMacros.render_participation_badge(event.nb_present, event.nb_disponible, event.nb_indisponible) }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Gallery #}
+  {{ components.gallery(photos) }}
+
+  {# Roster #}
+  {% if joueurs|length %}
+  <section class="mt-16 pt-10 border-t border-slate-200">
+    <div class="flex items-baseline justify-between mb-8">
+      <h2 class="font-serif text-3xl font-semibold text-slate-900">Effectif</h2>
+      <span class="text-sm text-slate-500">{{ joueurs|length }} joueur{{ joueurs|length > 1 ? 's' : '' }}</span>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {% for j in joueurs %}
+      {%- set isFemale = j.data.Sexe|default('F') == 'F' -%}
+      <div class="card p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-semibold {{ isFemale ? 'bg-pink-50 text-pink-700' : 'bg-blue-50 text-blue-700' }}">
+          {{ j.prenom|first }}{{ j.nom|first }}
+        </div>
+        <p class="font-medium text-sm text-slate-900 leading-tight truncate">{{ j.prenom }} {{ j.nom }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Other teams #}
+  {% if otherEquipes|length %}
+  <section class="mt-20 pt-10 border-t border-slate-200">
+    <h2 class="font-serif text-3xl font-semibold text-slate-900 mb-8">Autres équipes — {{ equipe.categorie }}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for eq in otherEquipes %}
+      <a href="{{ url('equipes/' ~ eq.slug) }}" class="group block">
+        <div class="aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-4">
+          {% if eq.cover %}
+            <img src="{{ asset('uploads/' ~ eq.cover.filename) }}" alt="{{ eq.libelle }}"
+                 loading="lazy" decoding="async"
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+          {% else %}
+            <div class="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">Pas de photo</div>
+          {% endif %}
+        </div>
+        <h3 class="font-serif text-lg font-semibold text-slate-900 leading-tight group-hover:text-[var(--primary)] transition">{{ eq.libelle }}</h3>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if photos|length or cover %}
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox' });</script>
+{% endif %}
+{% endblock %}
