@@ -1,0 +1,116 @@
+/* =============================================================
+   frames.css — Système de cadres éditoriaux (thème front002)
+   Style : bordures fines, ombres douces, coins arrondis.
+   Mêmes classes que front001 pour rester compatible.
+
+   Utilisation : class="frame [frame-xs|frame-sm|frame-lg]
+                              [frame-amber|frame-dark]
+                              [frame-center]
+                              [frame-hover]
+                              [frame-dashed]"
+   ============================================================= */
+
+/* --- Cadre de base --- */
+.frame {
+  border: 1px solid var(--border, #e2e8f0);
+  background-color: var(--surface, #ffffff);
+  color: var(--text, #0f172a);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
+              0 1px 3px rgba(15, 23, 42, 0.06);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s ease,
+              transform 0.2s ease,
+              border-color 0.2s ease;
+}
+
+/* --- Variantes d'ombre / taille (s'appliquent en complément de .frame) --- */
+.frame-xs {
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.frame-sm {
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
+              0 2px 4px rgba(15, 23, 42, 0.04);
+}
+
+/* .frame seul = ombre douce par défaut */
+
+.frame-lg {
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 8px -2px rgba(15, 23, 42, 0.08),
+              0 12px 24px -8px rgba(15, 23, 42, 0.10);
+}
+
+/* --- Variantes de fond ---
+   Sur front001 .frame-amber est un beige clair (fffbeb).
+   Ici on garde le nom pour compatibilité, mais on map sur la
+   surface alternative slate-50 (surface-alt) — plus cohérente avec
+   l'identité éditoriale. */
+.frame-amber {
+  background-color: var(--surface-alt, #f8fafc);
+}
+
+.frame-dark {
+  background-color: #0f172a;       /* slate-900 */
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.18),
+              0 12px 28px -10px rgba(15, 23, 42, 0.22);
+}
+
+.frame-dark a            { color: #ffffff; }
+.frame-dark .text-muted,
+.frame-dark .muted       { color: rgba(255, 255, 255, 0.65); }
+
+/* --- Alignement --- */
+.frame-center {
+  text-align: center;
+}
+
+/* --- Cadre interactif (hover éditorial : léger soulèvement) --- */
+.frame-hover {
+  cursor: pointer;
+}
+
+.frame-hover:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;            /* slate-300 */
+  box-shadow: 0 6px 12px -2px rgba(15, 23, 42, 0.08),
+              0 16px 32px -10px rgba(15, 23, 42, 0.14);
+}
+
+.frame-hover:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.06),
+              0 8px 16px -8px rgba(15, 23, 42, 0.10);
+}
+
+/* --- Cadre en pointillés (ex. dropzone) --- */
+.frame-dashed {
+  border-style: dashed;
+  border-width: 2px;
+  border-color: #cbd5e1;            /* slate-300 */
+  background-color: var(--surface-alt, #f8fafc);
+  box-shadow: none;
+}
+
+.frame-dashed:hover {
+  border-color: var(--primary, #1d4ed8);
+  background-color: #ffffff;
+}
+
+/* --- Séparateur éditorial (bordure basse uniquement) --- */
+.frame-divider {
+  border: none;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
