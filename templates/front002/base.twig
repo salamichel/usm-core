@@ -7,7 +7,7 @@
   {% set page_title = block('title')|trim %}
   <title>{{ page_title ?: 'USM Volley' }}</title>
 
-  {# SEO #}
+  {# ── SEO ── #}
   {% if meta %}
     <meta name="description" content="{{ meta.description|truncate(160) }}">
     <meta name="robots" content="{{ meta.robots }}">
@@ -22,7 +22,7 @@
     <link rel="canonical" href="{{ base_url ~ current_path }}">
   {% endif %}
 
-  {# Open Graph #}
+  {# ── Open Graph ── #}
   {% if meta %}
     <meta property="og:title" content="{{ meta.title }}">
     <meta property="og:description" content="{{ meta.description|truncate(160) }}">
@@ -59,6 +59,7 @@
     <meta name="twitter:description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
   {% endif %}
 
+  {# ── JSON-LD ── #}
   {% if meta and meta.jsonLd %}
     {% for schema in meta.jsonLd %}
     <script type="application/ld+json">
@@ -67,9 +68,10 @@
     {% endfor %}
   {% endif %}
 
-  {# Fonts: serif for headings + sans for body #}
+  {# ── Fonts ── #}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap">
   {% if site_config.font_family %}
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ site_config.font_family|replace({' ': '+'}) }}:wght@300;400;500;600;700&display=swap">
@@ -77,18 +79,19 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
   {% endif %}
 
+  {# ── Tailwind CDN + config (variables dynamiques via site_config) ── #}
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'usm-brown':  '{{ site_config.primary_color|default('#1d4ed8') }}',
+            'usm-brown':   '{{ site_config.primary_color|default('#1d4ed8') }}',
             'brutal-gold': '{{ site_config.primary_color|default('#1d4ed8') }}'
           },
           fontFamily: {
-            sans: ['{{ site_config.font_family|default('Inter') }}', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            sans:  ['{{ site_config.font_family|default('Inter') }}', 'ui-sans-serif', 'system-ui', 'sans-serif'],
             serif: ['Playfair Display', 'Georgia', 'serif'],
           }
         }
@@ -99,461 +102,48 @@
   <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
   <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}">
 
+  {# CSS vars dynamiques (dépendent de site_config, doivent rester inline) #}
   <style>
     :root {
-      --primary:           {{ site_config.primary_color|default('#1d4ed8') }};
-      --header-bg:         {{ site_config.header_bg_color|default('#ffffff') }};
-      --header-text:       {{ site_config.header_text_color|default('#0f172a') }};
-      --header-hover-bg:   {{ site_config.header_hover_bg_color|default(site_config.primary_color|default('#1d4ed8')) }};
-      --header-hover-text: {{ site_config.header_hover_text_color|default('#ffffff') }};
-      --header-active-bg:  {{ site_config.header_active_bg_color|default(site_config.header_hover_bg_color|default(site_config.primary_color|default('#1d4ed8'))) }};
+      --primary:            {{ site_config.primary_color|default('#1d4ed8') }};
+      --header-bg:          {{ site_config.header_bg_color|default('#ffffff') }};
+      --header-text:        {{ site_config.header_text_color|default('#0f172a') }};
+      --header-hover-bg:    {{ site_config.header_hover_bg_color|default(site_config.primary_color|default('#1d4ed8')) }};
+      --header-hover-text:  {{ site_config.header_hover_text_color|default('#ffffff') }};
+      --header-active-bg:   {{ site_config.header_active_bg_color|default(site_config.header_hover_bg_color|default(site_config.primary_color|default('#1d4ed8'))) }};
       --header-active-text: {{ site_config.header_active_text_color|default(site_config.header_hover_text_color|default('#ffffff')) }};
-      --logo-bg:           {{ site_config.logo_bg_color|default('transparent') }};
-      --logo-text:         {{ site_config.logo_text_color|default('#0f172a') }};
-      --surface:           #ffffff;
-      --surface-alt:       #f8fafc;
-      --text:              #0f172a;
-      --text-muted:        #64748b;
-      --border:            #e2e8f0;
-      --transition:        all 0.2s ease;
+      --logo-bg:            {{ site_config.logo_bg_color|default('transparent') }};
+      --logo-text:          {{ site_config.logo_text_color|default('#0f172a') }};
+      --surface:            #ffffff;
+      --surface-alt:        #f8fafc;
+      --text:               #0f172a;
+      --text-muted:         #64748b;
+      --border:             #e2e8f0;
+      --transition:         all 0.2s ease;
     }
-
-    html { scroll-behavior: smooth; }
-    body { font-feature-settings: "ss01", "cv11"; }
-
-    h1, h2, h3, h4, .serif { font-family: 'Playfair Display', Georgia, serif; letter-spacing: -0.01em; }
-
-    /* ── Header éditorial ─────────────────────────────────────────────────── */
-    .header-classic {
-      background-color: var(--header-bg);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      backdrop-filter: blur(8px);
-    }
-    .header-inner {
-      max-width: 1152px;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-      height: 76px;
-      display: flex;
-      align-items: center;
-      gap: 2.5rem;
-    }
-    .logo-classic {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-weight: 700;
-      font-size: 1.5rem;
-      letter-spacing: -0.02em;
-      color: var(--logo-text);
-      background: var(--logo-bg);
-      text-decoration: none;
-      white-space: nowrap;
-      padding: 4px 10px;
-      border-radius: 4px;
-      transition: var(--transition);
-    }
-    .logo-classic:hover { opacity: 0.85; }
-
-    .nav-classic {
-      flex: 1;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      height: 100%;
-    }
-    .nav-list-classic {
-      display: flex;
-      list-style: none;
-      gap: 0.25rem;
-      margin: 0;
-      padding: 0;
-      align-items: center;
-      height: 100%;
-    }
-    .nav-item-classic {
-      position: relative;
-      height: 100%;
-      display: flex;
-      align-items: center;
-    }
-    .nav-link-classic {
-      color: var(--header-text);
-      text-decoration: none;
-      padding: 0.5rem 0.875rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      border-radius: 6px;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      position: relative;
-    }
-    .nav-link-classic:hover {
-      color: var(--primary);
-      background-color: rgba(0,0,0,0.03);
-    }
-    .nav-link-classic.active {
-      color: var(--header-active-text);
-      background-color: var(--header-active-bg);
-    }
-    .nav-link-classic.active::after {
-      content: '';
-      position: absolute;
-      left: 0.875rem;
-      right: 0.875rem;
-      bottom: 4px;
-      height: 2px;
-      background: var(--header-active-text);
-      border-radius: 1px;
-    }
-
-    /* Mega menu — soft dropdown */
-    .has-mega-classic .mega-menu-classic {
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%) translateY(8px);
-      min-width: 560px;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 12px 32px -8px rgba(15,23,42,0.12), 0 4px 8px rgba(15,23,42,0.04);
-      padding: 1.5rem;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.5rem;
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition);
-      z-index: 50;
-    }
-    .has-mega-classic:hover .mega-menu-classic,
-    .has-mega-classic:focus-within .mega-menu-classic {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) translateY(0);
-    }
-    .mega-column-classic h3 {
-      font-family: 'Inter', ui-sans-serif, sans-serif;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .mega-links-classic {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.125rem;
-    }
-    .mega-links-classic a {
-      display: block;
-      padding: 0.5rem 0.625rem;
-      font-size: 0.875rem;
-      color: var(--text);
-      text-decoration: none;
-      border-radius: 6px;
-      transition: var(--transition);
-    }
-    .mega-links-classic a:hover {
-      background: var(--surface-alt);
-      color: var(--primary);
-      transform: translateX(2px);
-    }
-
-    /* Mobile drawer */
-    #mobile-menu:not(.hidden) {
-      position: fixed;
-      top: 76px;
-      left: 0;
-      right: 0;
-      z-index: 999;
-      max-height: calc(100vh - 76px);
-      overflow-y: auto;
-    }
-
-    /* Buttons */
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: var(--primary);
-      color: #fff;
-      padding: 0.625rem 1.25rem;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 0.875rem;
-      text-decoration: none;
-      transition: var(--transition);
-      border: 1px solid transparent;
-    }
-    .btn-primary:hover { filter: brightness(0.92); transform: translateY(-1px); box-shadow: 0 4px 12px -4px rgba(0,0,0,0.15); }
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #fff;
-      color: var(--text);
-      padding: 0.625rem 1.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      font-weight: 500;
-      font-size: 0.875rem;
-      text-decoration: none;
-      transition: var(--transition);
-    }
-    .btn-secondary:hover { background: var(--surface-alt); border-color: #cbd5e1; }
-
-    /* Cards */
-    .card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: var(--transition);
-    }
-    .card-hover:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px -8px rgba(15,23,42,0.10);
-      border-color: #cbd5e1;
-    }
-
-    /* Body proportions */
     body {
       color: var(--text);
       background: var(--surface);
       font-family: '{{ site_config.font_family|default('Inter') }}', ui-sans-serif, system-ui, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-    }
-
-    @media (max-width: 900px) {
-      .has-mega-classic .mega-menu-classic { display: none; }
     }
   </style>
 
   {% block head %}{% endblock %}
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var toggle = document.getElementById('mobile-menu-toggle');
-      var menu = document.getElementById('mobile-menu');
-      if (toggle && menu) {
-        toggle.addEventListener('click', function() { menu.classList.toggle('hidden'); });
-        menu.querySelectorAll('a').forEach(function(a) {
-          a.addEventListener('click', function() { menu.classList.add('hidden'); });
-        });
-      }
-      // Mobile submenu toggles
-      document.querySelectorAll('[data-submenu-toggle]').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var target = document.getElementById(btn.getAttribute('data-submenu-toggle'));
-          if (target) target.classList.toggle('hidden');
-          var caret = btn.querySelector('.caret');
-          if (caret) caret.classList.toggle('rotate-180');
-        });
-      });
-      if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-    });
-  </script>
+  <script src="{{ asset(theme ~ '/base.js') }}" defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  {# ── Header ── #}
-  <header class="header-classic">
-    <div class="header-inner">
-      <a href="{{ url('/') }}" class="logo-classic">{{ site_config.club_name|default('USM Volley') }}</a>
-
-      <nav class="nav-classic hidden md:flex">
-        <ul class="nav-list-classic">
-          {% for item in menu_items %}
-            {% if item.children|length %}
-              <li class="nav-item-classic has-mega-classic">
-                <a href="#" class="nav-link-classic">
-                  {{ item.label }}
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </a>
-                <div class="mega-menu-classic">
-                  {% set has_columns = false %}
-                  {% for child in item.children %}
-                    {% if child.children|length %}{% set has_columns = true %}{% endif %}
-                  {% endfor %}
-
-                  {% if has_columns %}
-                    {% for col in item.children %}
-                      <div class="mega-column-classic">
-                        <h3>{{ col.label }}</h3>
-                        <ul class="mega-links-classic">
-                          {% if col.children|length %}
-                            {% for sub in col.children %}
-                              <li><a href="{{ item_url(sub) }}">{{ sub.label }}</a></li>
-                            {% endfor %}
-                          {% else %}
-                            <li><a href="{{ item_url(col) }}">{{ col.label }}</a></li>
-                          {% endif %}
-                        </ul>
-                      </div>
-                    {% endfor %}
-                  {% else %}
-                    <div class="mega-column-classic" style="grid-column: 1 / -1;">
-                      <ul class="mega-links-classic" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.125rem 1rem;">
-                        {% for child in item.children %}
-                          <li><a href="{{ item_url(child) }}">{{ child.label }}</a></li>
-                        {% endfor %}
-                      </ul>
-                    </div>
-                  {% endif %}
-                </div>
-              </li>
-            {% else %}
-              {% set item_href = item_url(item) %}
-              <li class="nav-item-classic">
-                <a href="{{ item_href }}" class="nav-link-classic {{ is_active(item_href) ? 'active' : '' }}">{{ item.label }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      </nav>
-
-      <button id="mobile-menu-toggle" class="md:hidden ml-auto p-2 rounded-md border border-slate-200 hover:bg-slate-50 transition" aria-label="Menu">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-    </div>
-  </header>
-
-  {# Mobile menu #}
-  <nav id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200">
-    <div class="px-6 py-4 space-y-1">
-      {% for item in menu_items %}
-        {% if item.children|length %}
-          <button type="button" data-submenu-toggle="mob-sub-{{ loop.index }}"
-                  class="w-full text-left px-3 py-2.5 rounded-md hover:bg-slate-50 transition flex items-center justify-between text-sm font-medium text-slate-900">
-            {{ item.label }}
-            <svg class="caret w-4 h-4 transition-transform flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-          <div id="mob-sub-{{ loop.index }}" class="hidden pl-4 border-l border-slate-200 ml-3 space-y-0.5">
-            {% for child in item.children %}
-              {% if child.children|length %}
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 pt-3 pb-1 px-3">{{ child.label }}</p>
-                {% for sub in child.children %}
-                  <a href="{{ item_url(sub) }}" class="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition">{{ sub.label }}</a>
-                {% endfor %}
-              {% else %}
-                <a href="{{ item_url(child) }}" class="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-md transition">{{ child.label }}</a>
-              {% endif %}
-            {% endfor %}
-          </div>
-        {% else %}
-          <a href="{{ item_url(item) }}" class="block px-3 py-2.5 rounded-md hover:bg-slate-50 transition text-sm font-medium text-slate-900">{{ item.label }}</a>
-        {% endif %}
-      {% endfor %}
-    </div>
-  </nav>
-
-  {# ── Flash ── #}
-  {% if flash %}
-    <div class="max-w-6xl mx-auto w-full px-6 pt-4">
-      <div class="rounded-md border px-4 py-3 text-sm font-medium
-        {% if flash.type == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800
-        {% else %}bg-rose-50 border-rose-200 text-rose-800{% endif %}">
-        {{ flash.message }}
-      </div>
-    </div>
-  {% endif %}
+  {% include '_header.twig' %}
+  {% include '_mobile_menu.twig' %}
+  {% include '_flash.twig' %}
 
   {# ── Main ── #}
   <main class="flex-1">
     {% block content %}{% endblock %}
   </main>
 
-  {# ── Footer ── #}
-  <footer class="mt-24 bg-slate-900 text-slate-300">
-    <div class="max-w-6xl mx-auto px-6 py-10 md:py-14">
-      <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-2 md:grid-cols-3 pb-8 md:pb-10 border-b border-white/10">
-
-        {# Club info #}
-        <div class="col-span-2 md:col-span-1">
-          <h3 class="font-serif text-lg md:text-xl text-white mb-2 md:mb-3 font-semibold">{{ site_config.club_name|default('USM Volley') }}</h3>
-          {% if site_config.club_tagline %}
-            <p class="text-xs md:text-sm text-slate-400 leading-relaxed mb-3 md:mb-5">{{ site_config.club_tagline }}</p>
-          {% endif %}
-          {% if site_config.address %}
-            <address class="not-italic text-xs md:text-sm text-slate-400 whitespace-pre-line leading-relaxed mb-2 md:mb-3">{{ site_config.address }}</address>
-          {% endif %}
-          {% if site_config.phone %}
-            <div class="text-xs md:text-sm">
-              <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="text-slate-300 hover:text-white transition">{{ site_config.phone }}</a>
-            </div>
-          {% endif %}
-        </div>
-
-        {# Liens utiles #}
-        <div>
-          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Navigation</h4>
-          <ul class="space-y-1.5 text-xs md:text-sm">
-            <li><a href="{{ url('/') }}" class="text-slate-300 hover:text-white transition">Accueil</a></li>
-            <li><a href="{{ url('blog') }}" class="text-slate-300 hover:text-white transition">Actualités</a></li>
-            <li><a href="{{ url('agenda') }}" class="text-slate-300 hover:text-white transition">Agenda</a></li>
-            <li><a href="{{ url('equipes') }}" class="text-slate-300 hover:text-white transition">Équipes</a></li>
-            <li><a href="{{ url('contact') }}" class="text-slate-300 hover:text-white transition">Contact</a></li>
-          </ul>
-        </div>
-
-        {# Légal + réseaux #}
-        <div class="col-span-2 md:col-span-1">
-          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Informations</h4>
-          <ul class="space-y-1.5 text-xs md:text-sm mb-4 md:mb-6">
-            <li><a href="{{ url('/p/mentions-legales') }}" class="text-slate-300 hover:text-white transition">Mentions légales</a></li>
-            <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="text-slate-300 hover:text-white transition">Confidentialité</a></li>
-            <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="text-slate-300 hover:text-white transition">Cookies</a></li>
-          </ul>
-
-          {% if site_config.facebook_url or site_config.instagram_url %}
-          <div class="flex gap-2">
-            {% if site_config.facebook_url %}
-              <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"
-                 class="w-9 h-9 rounded-full border border-white/15 hover:border-white/40 hover:bg-white/5 flex items-center justify-center transition">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.36 2 1.88 6.48 1.88 12.07c0 5.02 3.66 9.18 8.46 9.93v-7.03H7.83v-2.9h2.51V9.83c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.25c-1.23 0-1.61.77-1.61 1.55v1.86h2.74l-.44 2.9h-2.3V22c4.8-.75 8.46-4.91 8.46-9.93z"/>
-                </svg>
-              </a>
-            {% endif %}
-            {% if site_config.instagram_url %}
-              <a href="{{ site_config.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"
-                 class="w-9 h-9 rounded-full border border-white/15 hover:border-white/40 hover:bg-white/5 flex items-center justify-center transition">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.07.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.07.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.07-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.07-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.8c-3.15 0-3.5.01-4.74.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.83-.39.38-.63.75-.83 1.26-.15.39-.33.97-.38 2.04-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.05 1.07.23 1.65.38 2.04.2.51.44.88.83 1.26.38.39.75.63 1.26.83.39.15.97.33 2.04.38 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.83.39-.38.63-.75.83-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.83-1.26 3.4 3.4 0 0 0-1.26-.83c-.39-.15-.97-.33-2.04-.38-1.24-.06-1.59-.07-4.74-.07zm0 3.06A4.97 4.97 0 1 1 12 17a4.97 4.97 0 0 1 0-9.97zm0 1.8a3.17 3.17 0 1 0 0 6.34 3.17 3.17 0 0 0 0-6.34zm5.18-2.16a1.16 1.16 0 1 1 0 2.32 1.16 1.16 0 0 1 0-2.32z"/>
-                </svg>
-              </a>
-            {% endif %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="pt-6 md:pt-8 text-xs text-slate-500 flex flex-col md:flex-row md:justify-between gap-1.5 md:gap-2">
-        <p>© {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}. Tous droits réservés.</p>
-        {% if site_config.legal_text %}
-          <p class="text-slate-500">{{ site_config.legal_text }}</p>
-        {% endif %}
-      </div>
-    </div>
-  </footer>
+  {% include '_footer.twig' %}
 
   {% block scripts %}{% endblock %}
 </body>

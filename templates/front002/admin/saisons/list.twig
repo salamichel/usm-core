@@ -32,14 +32,14 @@
         <button type="submit" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Activer</button>
       </form>
       {% endif %}
-      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" onsubmit="return confirm('Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.')">
+      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" data-confirm="Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
         <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
       </form>
       <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
          class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Joueurs</a>
       {% if not s.is_active %}
-      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/delete') }}" onsubmit="return confirm('Supprimer la saison « {{ s.libelle }} » et tous ses snapshots ?')">
+      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/delete') }}" data-confirm="Supprimer la saison « {{ s.libelle }} » et tous ses snapshots ?">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
         <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
       </form>
@@ -80,14 +80,14 @@
               <button type="submit" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Activer</button>
             </form>
             {% endif %}
-            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" onsubmit="return confirm('Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.')">
+            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" data-confirm="Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
               <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
             </form>
             <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
                class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Joueurs</a>
             {% if not s.is_active %}
-            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/delete') }}" onsubmit="return confirm('Supprimer la saison « {{ s.libelle }} » et tous ses snapshots ?')">
+            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/delete') }}" data-confirm="Supprimer la saison « {{ s.libelle }} » et tous ses snapshots ?">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
               <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
             </form>

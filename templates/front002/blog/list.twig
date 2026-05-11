@@ -61,6 +61,7 @@
       {% if featured.cover %}
         <a href="{{ url('blog/' ~ featured.slug) }}" class="block aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
           <img src="{{ asset('uploads/' ~ featured.cover.filename) }}" alt="{{ featured.title }}"
+               loading="lazy" decoding="async"
                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]">
         </a>
       {% endif %}
@@ -89,6 +90,7 @@
         {% if post.cover %}
           <a href="{{ url('blog/' ~ post.slug) }}" class="block aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-5 group">
             <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}"
+                 loading="lazy" decoding="async"
                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
           </a>
         {% endif %}
