@@ -45,6 +45,30 @@ class AgendaService
     }
 
     /**
+     * Get upcoming events filtered by a type fragment found anywhere in
+     * ManifestationTypée or Lieu (e.g. 'Beach', 'Tournoi').
+     */
+    public static function getUpcomingByType(string $needle, int $limit = 5): array
+    {
+        try {
+            $stmt = ExternalDatabase::get()->prepare(
+                "SELECT * FROM Manifestation
+                 WHERE (`ManifestationTypée` LIKE :pat OR `Lieu` LIKE :pat)
+                   AND `Date` >= CURDATE()
+                 ORDER BY `Date` ASC
+                 LIMIT :limit"
+            );
+            $stmt->bindValue(':pat',   '%' . $needle . '%');
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+            $stmt->execute();
+            $rows = $stmt->fetchAll();
+        } catch (\Throwable) {
+            return [];
+        }
+        return array_map([self::class, 'buildEvent'], $rows);
+    }
+
+    /**
      * Build a cross-table of players × events with participation data.
      *
      * Fetches all players, all upcoming manifestations, and their participation statuses,

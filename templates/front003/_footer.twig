@@ -1,0 +1,117 @@
+<footer class="footer-classic">
+  <div class="shell py-16">
+    <div class="grid lg:grid-cols-12 gap-10">
+      {# Identité + adresse + contact #}
+      <div class="lg:col-span-4">
+        <div class="flex items-center gap-3">
+          <span class="logo-tile lg">
+            {% include '_logo.twig' with {size: 32} %}
+          </span>
+          <div class="leading-tight">
+            <div class="font-display text-ink text-[18px] tracking-tight">
+              {{ site_config.club_name|default('USM VOLLEY')|upper }}
+            </div>
+            {% if site_config.club_tagline %}
+              <div class="text-[11px] font-bold tracking-[0.22em] text-ink/60 uppercase">
+                {{ site_config.club_tagline|truncate(40, true, '') }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if site_config.address %}
+          <p class="mt-5 text-[14px] text-ink/60 leading-relaxed max-w-[36ch] whitespace-pre-line">{{ site_config.address }}</p>
+        {% endif %}
+
+        <div class="mt-5 space-y-2 text-[14px]">
+          {# Pas d'email en clair — CTA vers le formulaire #}
+          <a href="{{ url('contact') }}" class="inline-flex items-center gap-2 text-ink/80 hover:text-flame transition-colors">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" class="text-flame">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Nous écrire
+          </a>
+          {% if site_config.phone %}
+            <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="flex items-center gap-2 text-ink/80 hover:text-flame transition-colors">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" class="text-flame">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              {{ site_config.phone }}
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="mt-6 flex items-center gap-2">
+          {% if site_config.instagram_url %}
+            <a href="{{ site_config.instagram_url }}" target="_blank" rel="noopener" class="footer-social" aria-label="Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="2" y="2" width="20" height="20" rx="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/>
+              </svg>
+            </a>
+          {% endif %}
+          {% if site_config.facebook_url %}
+            <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener" class="footer-social" aria-label="Facebook">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+              </svg>
+            </a>
+          {% endif %}
+          <a href="{{ url('contact') }}" class="footer-social" aria-label="Contact">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      {# Colonnes de liens issues du menu #}
+      <div class="lg:col-span-5 grid sm:grid-cols-3 gap-8">
+        {% for item in menu_items|slice(0, 3) %}
+          <div>
+            <div class="footer-col-title">{{ item.label }}</div>
+            <ul class="mt-4 space-y-2.5">
+              {% if item.children|length %}
+                {% for child in item.children|slice(0, 5) %}
+                  <li><a href="{{ item_url(child) }}" class="footer-link">{{ child.label }}</a></li>
+                {% endfor %}
+              {% else %}
+                <li><a href="{{ item_url(item) }}" class="footer-link">{{ item.label }}</a></li>
+              {% endif %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+
+      {# Carte « Reste dans le match » #}
+      <div class="lg:col-span-3">
+        <div class="frame frame-amber">
+          <div class="font-display text-ink text-[18px] tracking-tight leading-tight">
+            Reste dans le match.
+          </div>
+          <p class="mt-1.5 text-[12.5px] text-ink/60">
+            Suis l'actualité du club — agenda, résultats, vie associative.
+          </p>
+          <a href="{{ url('blog') }}" class="btn-flame btn-sm mt-4">
+            Voir le journal
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-12 pt-6 border-t border-ink/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="text-[12px] text-ink/50">
+        © {{ "now"|date('Y') }} {{ site_config.club_name|default('USM Volley') }} — Tous droits réservés.
+      </div>
+      {% if site_config.legal_text %}
+        <div class="text-[12px] text-ink/50">{{ site_config.legal_text|truncate(120) }}</div>
+      {% endif %}
+    </div>
+  </div>
+</footer>

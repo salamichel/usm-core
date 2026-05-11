@@ -1,0 +1,85 @@
+{% extends 'base.twig' %}
+{% block title %}Nos équipes{% if saison %} — {{ saison.libelle }}{% endif %} — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block content %}
+<section class="page-header grain">
+  <div class="inner">
+    <div class="eyebrow">Le club</div>
+    <h1 class="page-title">Nos équipes.</h1>
+    {% if saison %}
+      <p class="page-intro">Saison <strong class="text-ink">{{ saison.libelle }}</strong></p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section-paper">
+  <div class="shell py-16">
+    {% if grouped|length %}
+      {% for cat, equipes in grouped %}
+        <section class="mb-20">
+          <div class="flex items-baseline justify-between flex-wrap gap-4 mb-8">
+            <h2 class="font-display text-ink text-[32px] md:text-[44px]">{{ cat }}.</h2>
+          </div>
+
+          {% if categorie_descriptions[cat] is defined and categorie_descriptions[cat].description %}
+            <div class="cms-body mb-8 max-w-3xl">{{ categorie_descriptions[cat].description|raw }}</div>
+          {% endif %}
+
+          {% if categorie_descriptions[cat] is defined and (categorie_descriptions[cat].type or categorie_descriptions[cat].hauteur_filet) %}
+            <div class="frame frame-amber max-w-2xl mb-10">
+              <div class="grid sm:grid-cols-2 gap-6">
+                {% if categorie_descriptions[cat].type %}
+                  <div>
+                    <p class="form-label">Type</p>
+                    <p class="font-display text-ink text-[20px]">{{ categorie_descriptions[cat].type }}</p>
+                  </div>
+                {% endif %}
+                {% if categorie_descriptions[cat].hauteur_filet %}
+                  <div>
+                    <p class="form-label">Hauteur du filet</p>
+                    <p class="font-display text-ink text-[20px]">{{ categorie_descriptions[cat].hauteur_filet }}</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for eq in equipes %}
+              <a href="{{ url('equipes/' ~ eq.slug) }}" class="card-team block">
+                <div class="card-art">
+                  {% if eq.cover %}
+                    <img src="{{ asset('uploads/' ~ eq.cover.filename) }}" alt="{{ eq.libelle }}" loading="lazy">
+                  {% endif %}
+                </div>
+                <div class="p-5">
+                  <div class="eyebrow">{{ cat }}</div>
+                  <h3 class="mt-2 font-display text-ink text-[22px] leading-tight">{{ eq.libelle }}</h3>
+                  {% if eq.type or eq.hauteur_filet %}
+                    <div class="flex flex-wrap gap-2 mt-3">
+                      {% if eq.type %}<span class="chip">{{ eq.type }}</span>{% endif %}
+                      {% if eq.hauteur_filet %}<span class="chip">Filet · {{ eq.hauteur_filet }}</span>{% endif %}
+                    </div>
+                  {% endif %}
+                  {% if eq.description_courte %}
+                    <p class="mt-3 text-sm text-ink/65 leading-relaxed italic">{{ eq.description_courte }}</p>
+                  {% endif %}
+                  <div class="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold tracking-widest uppercase text-ink">
+                    Voir l'équipe
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    {% else %}
+      <div class="frame frame-amber frame-center">
+        <p class="text-ink/80 text-lg">Aucune équipe disponible pour cette saison.</p>
+        <p class="text-ink/50 text-sm mt-2">Les équipes apparaissent après le flashage d'une saison active.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

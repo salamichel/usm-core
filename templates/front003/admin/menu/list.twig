@@ -1,0 +1,91 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-3xl font-black">Menu</h1>
+  <a href="{{ url('admin/menu/create') }}" class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    + Ajouter
+  </a>
+</div>
+
+{% if items|length %}
+  <div class="space-y-3">
+    {% for item in items %}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="flex items-center justify-between px-4 py-3">
+        <div>
+          <span class="font-black">{{ item.label }}</span>
+          <span class="ml-3 text-xs text-gray-500">
+            {% if item.link_type == 'page' %}→ /p/{{ item.target }}
+            {% elseif item.link_type == 'url' %}→ {{ item.target }}
+            {% else %}(groupe){% endif %}
+          </span>
+          <span class="ml-2 text-xs bg-gray-100 border border-gray-300 px-1 py-0.5 rounded">pos. {{ item.position }}</span>
+        </div>
+        <div class="flex gap-2">
+          <a href="{{ url('admin/menu/' ~ item.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+          <form method="POST" action="{{ url('admin/menu/' ~ item.id ~ '/delete') }}" data-confirm="Supprimer cet élément et ses enfants ?">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+          </form>
+        </div>
+      </div>
+      {# Children (Level 2) #}
+      {% if item.children|length %}
+        <div class="border-t-2 border-gray-200 bg-amber-50 pl-8 divide-y-2 divide-gray-200">
+          {% for child in item.children %}
+          <div class="py-2">
+            <div class="flex items-center justify-between px-4">
+              <div class="text-sm">
+                <span class="font-semibold">↳ {{ child.label }}</span>
+                <span class="ml-2 text-xs text-gray-500">
+                  {% if child.link_type == 'page' %}→ /p/{{ child.target }}
+                  {% elseif child.link_type == 'url' %}→ {{ child.target }}
+                  {% else %}(groupe){% endif %}
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <a href="{{ url('admin/menu/' ~ child.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+                <form method="POST" action="{{ url('admin/menu/' ~ child.id ~ '/delete') }}" data-confirm="Supprimer ?">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                  <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+                </form>
+              </div>
+            </div>
+
+            {# Sub-children (Level 3) #}
+            {% if child.children|length %}
+              <div class="mt-2 ml-4 border-l-2 border-usm-brown pl-3 space-y-1">
+                {% for subchild in child.children %}
+                <div class="flex items-center justify-between px-2 py-1 bg-white rounded">
+                  <div class="text-xs">
+                    <span class="font-semibold text-gray-700">↳ {{ subchild.label }}</span>
+                    <span class="ml-2 text-gray-500">
+                      {% if subchild.link_type == 'page' %}→ /p/{{ subchild.target }}
+                      {% elseif subchild.link_type == 'url' %}→ {{ subchild.target }}
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="flex gap-1">
+                    <a href="{{ url('admin/menu/' ~ subchild.id ~ '/edit') }}" class="border border-black px-1.5 py-0.5 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+                    <form method="POST" action="{{ url('admin/menu/' ~ subchild.id ~ '/delete') }}" data-confirm="Supprimer ?">
+                      <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                      <button type="submit" class="border border-red-600 text-red-600 px-1.5 py-0.5 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+                    </form>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-gray-500 italic">Aucun élément de menu.</p>
+{% endif %}
+{% endblock %}

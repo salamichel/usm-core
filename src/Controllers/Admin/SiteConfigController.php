@@ -18,6 +18,19 @@ class SiteConfigController
         'header_hover_bg_color', 'header_hover_text_color',
         'header_active_bg_color', 'header_active_text_color',
         'logo_bg_color', 'logo_text_color',
+        // front003 — palette éditoriale
+        'secondary_color', 'text_color', 'background_color', 'surface_color',
+        'display_font_family',
+        // front003 — contenu home
+        'adherer_url', 'essai_url',
+        'trust_badge_1_label', 'trust_badge_1_strong',
+        'trust_badge_2_label', 'trust_badge_2_strong',
+        'trust_badge_3_label',
+        'hero_badge_trophy_label', 'hero_badge_trophy_sub', 'hero_motto',
+        'marquee_tags',
+        'cta_feature_1_label', 'cta_feature_1_sub',
+        'cta_feature_2_label', 'cta_feature_2_sub',
+        'cta_feature_3_label', 'cta_feature_3_sub',
     ];
 
     public function edit(array $params): void

@@ -1,0 +1,140 @@
+{# Agenda filter panel - editorial style #}
+<div class="card p-6 mb-6">
+  <div class="flex justify-between items-center mb-5">
+    <h2 class="font-serif text-lg font-semibold text-slate-900">Filtres</h2>
+    {% if filters is not empty %}
+      <a href="/agenda" class="text-sm text-slate-600 hover:text-[var(--primary)] underline underline-offset-4 transition">Réinitialiser</a>
+    {% endif %}
+  </div>
+
+  {# Mobile toggle #}
+  <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-sm font-medium text-slate-700 flex items-center justify-between transition">
+    <span>Filtres</span>
+    <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+  </button>
+
+  <div id="filters-content" class="hidden md:block space-y-6">
+
+    {# Type d'évènement #}
+    <div>
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Type d'évènement</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_type = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'type' %}{% set _no_type = _no_type|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_type = '/agenda' ~ (_no_type is not empty ? '?' ~ _no_type|join('&') : '') %}
+        {% set _sep_type = _no_type is not empty ? '&' : '?' %}
+
+        <a href="{{ _base_type }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Tous
+        </a>
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.type == 'Match' %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Matchs
+        </a>
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.type == 'Présences - Entrainement' %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Entraînements
+        </a>
+      </div>
+    </div>
+
+    {# Dropdowns #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {% if filterOptions.manifestationNames %}
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Manifestation</p>
+          {% set _no_manif = [] %}
+          {% for k, v in filters %}
+            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+            {% if k != 'manifestation' %}{% set _no_manif = _no_manif|merge([k ~ '=' ~ _enc]) %}{% endif %}
+          {% endfor %}
+          {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
+          {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
+          <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';"
+                  class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <option value="">Tous les événements</option>
+            {% for name in filterOptions.manifestationNames %}
+              <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      {% if filterOptions.teams %}
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Équipe</p>
+          {% set _no_team = [] %}
+          {% for k, v in filters %}
+            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+            {% if k != 'team' %}{% set _no_team = _no_team|merge([k ~ '=' ~ _enc]) %}{% endif %}
+          {% endfor %}
+          {% set _base_team = '/agenda' ~ (_no_team is not empty ? '?' ~ _no_team|join('&') : '') %}
+          {% set _sep_team = _no_team is not empty ? '&' : '?' %}
+          <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';"
+                  class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <option value="">Toutes les équipes</option>
+            {% for team in filterOptions.teams %}
+              <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      {% if filterOptions.locations %}
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Lieu</p>
+          {% set _no_location = [] %}
+          {% for k, v in filters %}
+            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+            {% if k != 'location' %}{% set _no_location = _no_location|merge([k ~ '=' ~ _enc]) %}{% endif %}
+          {% endfor %}
+          {% set _base_location = '/agenda' ~ (_no_location is not empty ? '?' ~ _no_location|join('&') : '') %}
+          {% set _sep_location = _no_location is not empty ? '&' : '?' %}
+          <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';"
+                  class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <option value="">Tous les lieux</option>
+            {% for location in filterOptions.locations %}
+              <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+    </div>
+
+    {# Affichage #}
+    <div class="pt-5 border-t border-slate-200">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Affichage</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_empty = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'hide_empty_players' %}{% set _no_empty = _no_empty|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_empty = '/agenda' ~ (_no_empty is not empty ? '?' ~ _no_empty|join('&') : '') %}
+        {% set _sep_empty = _no_empty is not empty ? '&' : '?' %}
+
+        <a href="{{ _base_empty }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Liste complète
+        </a>
+        <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Ayant répondu
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var toggle = document.getElementById('filters-toggle');
+    var content = document.getElementById('filters-content');
+    if (toggle && content) {
+      toggle.addEventListener('click', function() {
+        var hidden = content.classList.toggle('hidden');
+        var svg = toggle.querySelector('svg');
+        if (svg) svg.style.transform = hidden ? 'rotate(0deg)' : 'rotate(180deg)';
+      });
+    }
+  });
+</script>
