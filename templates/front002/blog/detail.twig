@@ -2,6 +2,37 @@
 {% import '_gallery.twig' as components %}
 {% block title %}{{ post.title }} — USM Volley{% endblock %}
 
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ base_url }}/"},
+        {"@type": "ListItem", "position": 2, "name": "Actualités", "item": "{{ url('blog') }}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ post.title|replace({'"': '\\"'})|raw }}", "item": "{{ url('blog/' ~ post.slug) }}"}
+      ]
+    },
+    {
+      "@type": "NewsArticle",
+      "headline": "{{ post.title|replace({'"': '\\"'})|raw }}",
+      "url": "{{ url('blog/' ~ post.slug) }}",
+      {% if post.published_at %}"datePublished": "{{ post.published_at|date('Y-m-d') }}",{% endif %}
+      {% if post.excerpt %}"description": "{{ post.excerpt|striptags|replace({'"': '\\"'})|truncate(200)|raw }}",{% endif %}
+      {% if post.cover %}"image": "{{ asset('uploads/' ~ post.cover.filename) }}",{% endif %}
+      "author": {"@type": "Organization", "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"},
+      "publisher": {
+        "@type": "Organization",
+        "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <article class="max-w-3xl mx-auto px-6 py-16">
 
@@ -31,6 +62,7 @@
   {% if post.cover %}
     <figure class="-mx-6 md:mx-0 mb-12">
       <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}"
+           loading="lazy" decoding="async"
            class="w-full max-h-[600px] object-cover md:rounded-lg">
     </figure>
   {% endif %}

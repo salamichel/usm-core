@@ -1,38 +1,28 @@
 {% extends 'admin/layout.twig' %}
+{% import 'front002/admin/_macros.twig' as m %}
 {% block title %}Pages statiques{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-3xl font-black">Pages statiques</h1>
-  <a href="{{ url('admin/pages/create') }}" class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    + Nouvelle
-  </a>
-</div>
+{{ m.page_header('Pages statiques', url('admin/pages/create'), '+ Nouvelle') }}
 
 {% if pages|length %}
 
-{# ── Mobile : cartes empilées ── #}
+{# ── Mobile : cartes ── #}
 <div class="sm:hidden space-y-3">
   {% for page in pages %}
   <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
-    <div class="font-black text-base mb-1 break-words">{{ page.title }} <span class="text-gray-500 font-mono text-xs">#{{ page.id }}</span></div>
-    <div class="text-xs mb-2">
-      {% if page.is_published %}
-        <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 font-bold rounded">Publiée</span>
-      {% else %}
-        <span class="bg-gray-100 text-gray-600 border border-gray-400 px-2 py-0.5 font-bold rounded">Brouillon</span>
-      {% endif %}
+    <div class="font-black text-base mb-1 break-words">
+      {{ page.title }} <span class="text-gray-500 font-mono text-xs">#{{ page.id }}</span>
     </div>
+    <div class="text-xs mb-2">{{ m.status_badge(page.is_published, 'Publiée', 'Brouillon') }}</div>
     <div class="text-gray-500 font-mono text-xs mb-3 break-all">/p/{{ page.slug }}</div>
-    <div class="flex flex-wrap gap-2">
-      <a href="{{ url('p/' ~ page.slug) }}" target="_blank" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Voir</a>
-      <a href="{{ url('admin/pages/' ~ page.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-      <form method="POST" action="{{ url('admin/pages/' ~ page.id ~ '/delete') }}"
-            onsubmit="return confirm('Supprimer cette page ?')">
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-      </form>
-    </div>
+    {{ m.action_buttons(
+      url('admin/pages/' ~ page.id ~ '/edit'),
+      url('admin/pages/' ~ page.id ~ '/delete'),
+      'Supprimer cette page ?',
+      csrf_token,
+      url('p/' ~ page.slug)
+    ) }}
   </div>
   {% endfor %}
 </div>
@@ -46,7 +36,7 @@
         <th class="text-left px-4 py-3 font-black">Titre</th>
         <th class="text-left px-4 py-3 font-black">Slug</th>
         <th class="text-left px-4 py-3 font-black">Statut</th>
-        <th class="px-4 py-3"></th>
+        <th class="px-4 py-3" aria-label="Actions"></th>
       </tr>
     </thead>
     <tbody>
@@ -55,28 +45,23 @@
         <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ page.id }}</td>
         <td class="px-4 py-3 font-semibold">{{ page.title }}</td>
         <td class="px-4 py-3 text-gray-500 font-mono text-xs">/p/{{ page.slug }}</td>
+        <td class="px-4 py-3">{{ m.status_badge(page.is_published, 'Publiée', 'Brouillon') }}</td>
         <td class="px-4 py-3">
-          {% if page.is_published %}
-            <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">Publiée</span>
-          {% else %}
-            <span class="bg-gray-100 text-gray-600 border border-gray-400 px-2 py-0.5 text-xs font-bold rounded">Brouillon</span>
-          {% endif %}
-        </td>
-        <td class="px-4 py-3 flex gap-2 justify-end">
-          <a href="{{ url('p/' ~ page.slug) }}" target="_blank" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Voir</a>
-          <a href="{{ url('admin/pages/' ~ page.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-          <form method="POST" action="{{ url('admin/pages/' ~ page.id ~ '/delete') }}"
-                onsubmit="return confirm('Supprimer cette page ?')">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-          </form>
+          {{ m.action_buttons(
+            url('admin/pages/' ~ page.id ~ '/edit'),
+            url('admin/pages/' ~ page.id ~ '/delete'),
+            'Supprimer cette page ?',
+            csrf_token,
+            url('p/' ~ page.slug)
+          ) }}
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
 {% else %}
-  <p class="text-gray-500 italic">Aucune page.</p>
+  {{ m.empty_state('Aucune page.') }}
 {% endif %}
 {% endblock %}

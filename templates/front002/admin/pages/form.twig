@@ -1,4 +1,5 @@
 {% extends 'admin/layout.twig' %}
+{% import 'front002/admin/_macros.twig' as m %}
 {% block title %}{{ page ? 'Éditer la' : 'Nouvelle' }} page{% endblock %}
 
 {% block content %}
@@ -7,20 +8,13 @@
   <h1 class="text-3xl font-black">{{ page ? 'Éditer la page' : 'Nouvelle page' }}</h1>
 </div>
 
-{% if error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold text-sm">{{ error }}</div>
-{% endif %}
+{{ m.form_error(error) }}
 
 <form method="POST" action="{{ action }}" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
 
-    <div>
-      <label class="block font-black mb-1" for="title">Titre *</label>
-      <input type="text" id="title" name="title" required
-             value="{{ page.title ?? '' }}"
-             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-    </div>
+    {{ m.field_input('title', 'title', 'Titre', page.title ?? '', 'text', true) }}
 
     <div>
       <label class="block font-black mb-1" for="slug">Slug</label>
@@ -35,12 +29,7 @@
       <textarea id="content" name="content">{{ page.content ?? '' }}</textarea>
     </div>
 
-    <div class="flex items-center gap-3">
-      <input type="checkbox" id="is_published" name="is_published" value="1"
-             {% if page is null or page.is_published %}checked{% endif %}
-             class="w-5 h-5 border-2 border-black">
-      <label class="font-black" for="is_published">Publiée</label>
-    </div>
+    {{ m.field_checkbox('is_published', 'is_published', 'Publiée', page is null or page.is_published, '1') }}
   </div>
 
   {# ── Galerie photos (Dropzone) ── #}
@@ -51,23 +40,22 @@
     photos:      photos
   } %}
 
-  <button type="submit"
-          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    Enregistrer
-  </button>
+  {{ m.btn_submit('Enregistrer') }}
 </form>
 {% endblock %}
 
 {% block scripts %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.css">
 <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
-<script src="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.js" defer></script>
 <script>
-  Jodit.make('#content', {
-    language: 'fr',
-    height: 500,
-    toolbarButtonSize: 'small',
-    buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
+  document.addEventListener('DOMContentLoaded', function () {
+    Jodit.make('#content', {
+      language: 'fr',
+      height: 500,
+      toolbarButtonSize: 'small',
+      buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
+    });
   });
 </script>
 {% endblock %}

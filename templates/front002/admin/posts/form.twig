@@ -1,4 +1,5 @@
 {% extends 'admin/layout.twig' %}
+{% import 'front002/admin/_macros.twig' as m %}
 {% block title %}{{ post ? 'Éditer' : 'Nouvel' }} article{% endblock %}
 
 {% block content %}
@@ -7,9 +8,7 @@
   <h1 class="text-3xl font-black">{{ post ? 'Éditer l\'article' : 'Nouvel article' }}</h1>
 </div>
 
-{% if error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold text-sm">{{ error }}</div>
-{% endif %}
+{{ m.form_error(error) }}
 
 <form method="POST" action="{{ action }}" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
@@ -22,12 +21,7 @@
     </div>
     {% endif %}
 
-    <div>
-      <label class="block font-black mb-1" for="title">Titre *</label>
-      <input type="text" id="title" name="title" required
-             value="{{ post.title ?? '' }}"
-             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-    </div>
+    {{ m.field_input('title', 'title', 'Titre', post.title ?? '', 'text', true) }}
 
     <div>
       <label class="block font-black mb-1" for="slug">Slug</label>
@@ -38,11 +32,7 @@
       <div class="text-xs text-gray-600 mt-1" id="slug-preview"></div>
     </div>
 
-    <div>
-      <label class="block font-black mb-1" for="excerpt">Extrait</label>
-      <textarea id="excerpt" name="excerpt" rows="3"
-                class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ post.excerpt ?? '' }}</textarea>
-    </div>
+    {{ m.field_textarea('excerpt', 'excerpt', 'Extrait', post.excerpt ?? '', 3) }}
 
     <div>
       <label class="block font-black mb-1" for="content">Contenu</label>
@@ -56,11 +46,8 @@
                value="{{ post.published_at ?? default_date ?? '' }}"
                class="border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
       </div>
-      <div class="flex items-center gap-3 pt-7">
-        <input type="checkbox" id="is_published" name="is_published" value="1"
-               {% if post is null or post.is_published %}checked{% endif %}
-               class="w-5 h-5 border-2 border-black">
-        <label class="font-black" for="is_published">Publié</label>
+      <div class="pt-7">
+        {{ m.field_checkbox('is_published', 'is_published', 'Publié', post is null or post.is_published, '1') }}
       </div>
     </div>
 
@@ -79,7 +66,7 @@
       </div>
       {% else %}
       <div class="bg-amber-50 border-2 border-amber-300 p-3 rounded text-sm text-amber-800">
-        <strong>Aucun tag disponible.</strong> Les tags seront créés automatiquement lors de l'import d'articles CanalBlog ou peuvent être ajoutés via l'API.
+        <strong>Aucun tag disponible.</strong> Les tags seront créés automatiquement lors de l'import d'articles CanalBlog.
       </div>
       {% endif %}
     </div>
@@ -93,83 +80,66 @@
     photos:      photos
   } %}
 
-  <button type="submit"
-          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    Enregistrer
-  </button>
+  {{ m.btn_submit('Enregistrer') }}
 </form>
 {% endblock %}
 
 {% block scripts %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.css">
 <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
-<script src="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.js" defer></script>
 <script>
-  Jodit.make('#content', {
-    language: 'fr',
-    height: 400,
-    toolbarButtonSize: 'small',
-    buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
+  document.addEventListener('DOMContentLoaded', function () {
+    Jodit.make('#content', {
+      language: 'fr',
+      height: 400,
+      toolbarButtonSize: 'small',
+      buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
+    });
+
+    var titleInput     = document.getElementById('title');
+    var publishedAtInput = document.getElementById('published_at');
+    var slugInput      = document.getElementById('slug');
+    var slugPreview    = document.getElementById('slug-preview');
+
+    function normalizeSlugText(text) {
+      text = text.toLowerCase();
+      var replacements = {
+        'à':'a','á':'a','â':'a','ã':'a','ä':'a',
+        'è':'e','é':'e','ê':'e','ë':'e',
+        'ì':'i','í':'i','î':'i','ï':'i',
+        'ò':'o','ó':'o','ô':'o','õ':'o','ö':'o',
+        'ù':'u','ú':'u','û':'u','ü':'u',
+        'ç':'c','ñ':'n'
+      };
+      for (var ch in replacements) {
+        text = text.split(ch).join(replacements[ch]);
+      }
+      return text.replace(/[^a-z0-9\-\s]/g, '-').trim()
+                 .replace(/\s+/g, '-').replace(/-+/g, '-')
+                 .replace(/^-+|-+$/g, '');
+    }
+
+    function updateSlugPreview() {
+      if (slugInput.value) { slugPreview.textContent = 'Slug personnalisé'; return; }
+      var title = titleInput.value.trim();
+      if (!title) { slugPreview.textContent = ''; return; }
+      var preview = normalizeSlugText(title);
+      var publishedAt = publishedAtInput.value;
+      if (publishedAt) {
+        var d = new Date(publishedAt);
+        var y = d.getFullYear();
+        var mo = String(d.getMonth() + 1).padStart(2, '0');
+        var da = String(d.getDate()).padStart(2, '0');
+        preview = y + '/' + mo + '/' + da + '/' + preview;
+      }
+      slugPreview.textContent = 'Aperçu : ' + preview;
+    }
+
+    if (titleInput) titleInput.addEventListener('input', updateSlugPreview);
+    if (publishedAtInput) publishedAtInput.addEventListener('change', updateSlugPreview);
+    if (slugInput) slugInput.addEventListener('input', updateSlugPreview);
+    updateSlugPreview();
   });
-
-  const titleInput = document.getElementById('title');
-  const publishedAtInput = document.getElementById('published_at');
-  const slugInput = document.getElementById('slug');
-  const slugPreview = document.getElementById('slug-preview');
-
-  function normalizeSlugText(text) {
-    text = text.toLowerCase();
-    const replacements = {
-      'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
-      'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
-      'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
-      'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
-      'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
-      'ç': 'c', 'ñ': 'n'
-    };
-    for (let char in replacements) {
-      text = text.replaceAll(char, replacements[char]);
-    }
-    // Replace special characters with hyphens, keep alphanumeric and hyphens
-    text = text.replace(/[^a-z0-9\-\s]/g, '-').trim();
-    // Convert spaces to hyphens
-    text = text.replace(/\s+/g, '-');
-    // Remove duplicate hyphens
-    text = text.replace(/-+/g, '-');
-    return text.replace(/^-+|-+$/g, '');
-  }
-
-  function updateSlugPreview() {
-    if (slugInput.value) {
-      slugPreview.textContent = 'Slug personnalisé';
-      return;
-    }
-
-    const title = titleInput.value.trim();
-    const publishedAt = publishedAtInput.value;
-
-    if (!title) {
-      slugPreview.textContent = '';
-      return;
-    }
-
-    let preview = normalizeSlugText(title);
-
-    if (publishedAt) {
-      const date = new Date(publishedAt);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      preview = `${year}/${month}/${day}/${preview}`;
-    }
-
-    slugPreview.textContent = 'Aperçu: ' + preview;
-  }
-
-  titleInput.addEventListener('input', updateSlugPreview);
-  publishedAtInput.addEventListener('change', updateSlugPreview);
-  slugInput.addEventListener('input', updateSlugPreview);
-
-  updateSlugPreview();
 </script>
 {% endblock %}

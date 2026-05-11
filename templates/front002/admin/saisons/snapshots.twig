@@ -10,7 +10,7 @@
 
 <div class="mb-4 flex gap-3">
   <form method="POST" action="{{ url('admin/saisons/' ~ saison.id ~ '/flash') }}"
-        onsubmit="return confirm('Re-flasher la saison ? Les ajustements manuels des équipes seront réinitialisés.')">
+        data-confirm="Re-flasher la saison ? Les ajustements manuels des équipes seront réinitialisés.">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
     <button type="submit"
             class="border-4 border-usm-brown bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
