@@ -134,16 +134,16 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-  {% include 'front002/_header.twig' %}
-  {% include 'front002/_mobile_menu.twig' %}
-  {% include 'front002/_flash.twig' %}
+  {% include '_header.twig' %}
+  {% include '_mobile_menu.twig' %}
+  {% include '_flash.twig' %}
 
   {# ── Main ── #}
   <main class="flex-1">
     {% block content %}{% endblock %}
   </main>
 
-  {% include 'front002/_footer.twig' %}
+  {% include '_footer.twig' %}
 
   {% block scripts %}{% endblock %}
 </body>
