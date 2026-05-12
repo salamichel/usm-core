@@ -133,6 +133,9 @@
       --logo-text:         {{ site_config.logo_text_color|default('#000000') }};
       --brutal-shadow: 5px 5px 0px #000000;
       --transition: all 0.2s ease;
+      --footer-bg:      {{ site_config.footer_bg_color|default(site_config.primary_color|default('#94674d')) }};
+      --footer-text:    {{ site_config.footer_text_color|default('#ffffff') }};
+      --footer-heading: {{ site_config.footer_heading_color|default('#ffffff') }};
     }
 
     /* Neobrutalism Header */
@@ -344,7 +347,21 @@
 
   {# ── Header Neobrutalism ── #}
   <header class="header-brutal">
-    <a href="{{ url('/') }}" class="logo-brutal">{{ site_config.club_name|default('USM VOLLEY') }}</a>
+    {% set _logo_mode = site_config.logo_url ? (site_config.logo_display_mode|default('image_only')) : 'text_only' %}
+    {% set _logo_h    = site_config.logo_height|default('40') %}
+    <a href="{{ url('/') }}" class="logo-brutal inline-flex items-center gap-2">
+      {% if site_config.logo_url and _logo_mode != 'text_only' %}
+        <img src="{{ asset('uploads/' ~ site_config.logo_url) }}"
+             alt="{{ site_config.club_name|default('USM VOLLEY') }}"
+             style="height:{{ _logo_h }}px; width:auto; max-width:280px; display:block;"
+             class="{% if _logo_mode == 'image_desktop_text_mobile' %}hidden md:block{% endif %}">
+      {% endif %}
+      {% if _logo_mode == 'text_only' or _logo_mode == 'image_and_text' %}
+        <span>{{ site_config.club_name|default('USM VOLLEY') }}</span>
+      {% elseif _logo_mode == 'image_desktop_text_mobile' %}
+        <span class="md:hidden">{{ site_config.club_name|default('USM VOLLEY') }}</span>
+      {% endif %}
+    </a>
 
     <nav class="nav-container-brutal hidden sm:block">
       <ul class="nav-list-brutal">
@@ -496,7 +513,7 @@
   </main>
 
   {# ── Footer ── #}
-  <footer class="border-t-4 border-black bg-usm-brown text-white mt-12">
+  <footer class="border-t-4 border-black mt-12" style="background:var(--footer-bg);color:var(--footer-text)">
     <div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
 
       {# Main footer content: 2 columns with vertical separator #}
@@ -505,22 +522,22 @@
         {# Left: Logo + Contact Info + Social #}
         <div class="flex flex-col justify-between sm:border-r-2 sm:border-white/20 sm:pr-8">
           <div>
-            <h3 class="text-lg font-black mb-2 uppercase">{{ site_config.club_name|default('USM Volley') }}</h3>
+            <h3 class="text-lg font-black mb-2 uppercase" style="color:var(--footer-heading)">{{ site_config.club_name|default('USM Volley') }}</h3>
 
             {# Tagline #}
             {% if site_config.club_tagline %}
-              <p class="text-sm text-white/80 mb-4 leading-relaxed">{{ site_config.club_tagline }}</p>
+              <p class="text-sm mb-4 leading-relaxed opacity-80">{{ site_config.club_tagline }}</p>
             {% endif %}
 
             {# Address #}
             {% if site_config.address %}
-              <address class="not-italic text-xs text-white/75 whitespace-pre-line leading-relaxed mb-3">{{ site_config.address }}</address>
+              <address class="not-italic text-xs whitespace-pre-line leading-relaxed mb-3 opacity-75">{{ site_config.address }}</address>
             {% endif %}
 
             {# Phone #}
             {% if site_config.phone %}
-              <div class="text-xs text-white/75 mb-4">
-                <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="hover:text-amber-300 transition">
+              <div class="text-xs opacity-75 mb-4">
+                <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="transition" style="color:inherit">
                   {{ site_config.phone }}
                 </a>
               </div>
@@ -553,15 +570,15 @@
         {# Right: Legal links (no bullets) #}
         <div class="sm:pl-8">
           <ul class="space-y-2 text-sm font-semibold list-none">
-            <li><a href="{{ url('/p/mentions-legales') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Mentions légales</a></li>
-            <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Politique de confidentialité</a></li>
-            <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="uppercase hover:text-amber-300 transition tracking-wide">Gestion des cookies</a></li>
+            <li><a href="{{ url('/p/mentions-legales') }}" class="uppercase transition tracking-wide" style="color:var(--footer-text)">Mentions légales</a></li>
+            <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="uppercase transition tracking-wide" style="color:var(--footer-text)">Politique de confidentialité</a></li>
+            <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="uppercase transition tracking-wide" style="color:var(--footer-text)">Gestion des cookies</a></li>
           </ul>
         </div>
       </div>
 
       {# Bottom bar — Copyright #}
-      <div class="text-center text-xs text-white/75 py-4">
+      <div class="text-center text-xs py-4 opacity-75">
         <p>© {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}. {% if site_config.legal_text %}{{ site_config.legal_text }}{% endif %}</p>
       </div>
     </div>

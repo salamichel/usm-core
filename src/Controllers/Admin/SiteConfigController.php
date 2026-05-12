@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Auth;
 use App\Core\View;
+use App\Models\Photo;
 use App\Models\SiteConfig;
 
 class SiteConfigController
@@ -19,6 +20,8 @@ class SiteConfigController
         'header_hover_bg_color', 'header_hover_text_color',
         'header_active_bg_color', 'header_active_text_color',
         'logo_bg_color', 'logo_text_color',
+        'logo_url', 'logo_display_mode', 'logo_height',
+        'footer_bg_color', 'footer_text_color', 'footer_heading_color',
         // front003 — palette éditoriale
         'secondary_color', 'text_color', 'background_color', 'surface_color',
         'display_font_family',
@@ -34,6 +37,10 @@ class SiteConfigController
         'cta_feature_3_label', 'cta_feature_3_sub',
     ];
 
+    private const ALLOWED_DISPLAY_MODES = [
+        'text_only', 'image_only', 'image_and_text', 'image_desktop_text_mobile',
+    ];
+
     public function edit(array $params): void
     {
         Auth::require();
@@ -47,14 +54,42 @@ class SiteConfigController
     {
         Auth::require();
         $themes = self::availableThemes();
+        $existing = SiteConfig::all();
+
+        // Handle logo upload (or removal) first
+        $logoUrl = $existing['logo_url'] ?? '';
+        if (!empty($_POST['delete_logo'])) {
+            $logoUrl = '';
+        }
+        if (!empty($_FILES['logo_file']['name'])) {
+            try {
+                $logoUrl = Photo::uploadSingle($_FILES['logo_file'], 'site');
+            } catch (\Throwable $e) {
+                View::flash('error', 'Logo : ' . $e->getMessage());
+                header('Location: ' . BASE_URL . '/admin/site-config');
+                exit;
+            }
+        }
+
         $data = [];
         foreach (self::FIELDS as $key) {
+            if ($key === 'logo_url') {
+                $data[$key] = $logoUrl;
+                continue;
+            }
             $val = trim($_POST[$key] ?? '');
             if (in_array($key, ['home_slider_posts_count', 'home_latest_posts_count'])) {
                 $val = max(1, (int)$val);
             } elseif ($key === 'theme') {
                 // Whitelist : la valeur doit correspondre à un dossier templates/<name>
                 $val = in_array($val, $themes, true) ? $val : (SiteConfig::get('theme') ?? '');
+            }
+            if ($key === 'logo_display_mode' && !in_array($val, self::ALLOWED_DISPLAY_MODES, true)) {
+                $val = 'text_only';
+            }
+            if ($key === 'logo_height') {
+                $h = (int)$val;
+                $val = ($h >= 16 && $h <= 200) ? (string)$h : '40';
             }
             $data[$key] = (string)$val;
         }
