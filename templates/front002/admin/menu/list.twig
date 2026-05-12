@@ -25,7 +25,7 @@
         </div>
         <div class="flex gap-2">
           <a href="{{ url('admin/menu/' ~ item.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-          <form method="POST" action="{{ url('admin/menu/' ~ item.id ~ '/delete') }}" onsubmit="return confirm('Supprimer cet élément et ses enfants ?')">
+          <form method="POST" action="{{ url('admin/menu/' ~ item.id ~ '/delete') }}" data-confirm="Supprimer cet élément et ses enfants ?">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
           </form>
@@ -47,7 +47,7 @@
               </div>
               <div class="flex gap-2">
                 <a href="{{ url('admin/menu/' ~ child.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-                <form method="POST" action="{{ url('admin/menu/' ~ child.id ~ '/delete') }}" onsubmit="return confirm('Supprimer ?')">
+                <form method="POST" action="{{ url('admin/menu/' ~ child.id ~ '/delete') }}" data-confirm="Supprimer ?">
                   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
                   <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
                 </form>
@@ -69,7 +69,7 @@
                   </div>
                   <div class="flex gap-1">
                     <a href="{{ url('admin/menu/' ~ subchild.id ~ '/edit') }}" class="border border-black px-1.5 py-0.5 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-                    <form method="POST" action="{{ url('admin/menu/' ~ subchild.id ~ '/delete') }}" onsubmit="return confirm('Supprimer ?')">
+                    <form method="POST" action="{{ url('admin/menu/' ~ subchild.id ~ '/delete') }}" data-confirm="Supprimer ?">
                       <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
                       <button type="submit" class="border border-red-600 text-red-600 px-1.5 py-0.5 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
                     </form>

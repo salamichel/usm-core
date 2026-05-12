@@ -1,0 +1,70 @@
+{# ── Footer éditorial ──────────────────────────────────────────────────────── #}
+<footer class="mt-24 bg-slate-900 text-slate-300">
+  <div class="max-w-6xl mx-auto px-6 py-10 md:py-14">
+    <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-2 md:grid-cols-3 pb-8 md:pb-10 border-b border-white/10">
+
+      <div class="col-span-2 md:col-span-1">
+        <h3 class="font-serif text-lg md:text-xl text-white mb-2 md:mb-3 font-semibold">{{ site_config.club_name|default('USM Volley') }}</h3>
+        {% if site_config.club_tagline %}
+          <p class="text-xs md:text-sm text-slate-400 leading-relaxed mb-3 md:mb-5">{{ site_config.club_tagline }}</p>
+        {% endif %}
+        {% if site_config.address %}
+          <address class="not-italic text-xs md:text-sm text-slate-400 whitespace-pre-line leading-relaxed mb-2 md:mb-3">{{ site_config.address }}</address>
+        {% endif %}
+        {% if site_config.phone %}
+          <div class="text-xs md:text-sm">
+            <a href="tel:{{ site_config.phone|replace({' ': ''}) }}" class="text-slate-300 hover:text-white transition">{{ site_config.phone }}</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Navigation</h4>
+        <ul class="space-y-1.5 text-xs md:text-sm">
+          <li><a href="{{ url('/') }}" class="text-slate-300 hover:text-white transition">Accueil</a></li>
+          <li><a href="{{ url('blog') }}" class="text-slate-300 hover:text-white transition">Actualités</a></li>
+          <li><a href="{{ url('agenda') }}" class="text-slate-300 hover:text-white transition">Agenda</a></li>
+          <li><a href="{{ url('equipes') }}" class="text-slate-300 hover:text-white transition">Équipes</a></li>
+          <li><a href="{{ url('contact') }}" class="text-slate-300 hover:text-white transition">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="col-span-2 md:col-span-1">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Informations</h4>
+        <ul class="space-y-1.5 text-xs md:text-sm mb-4 md:mb-6">
+          <li><a href="{{ url('/p/mentions-legales') }}" class="text-slate-300 hover:text-white transition">Mentions légales</a></li>
+          <li><a href="{{ url('/p/politique-de-confidentialite') }}" class="text-slate-300 hover:text-white transition">Confidentialité</a></li>
+          <li><a href="{{ url('/p/politique-d-utilisation-des-cookies') }}" class="text-slate-300 hover:text-white transition">Cookies</a></li>
+        </ul>
+
+        {% if site_config.facebook_url or site_config.instagram_url %}
+        <div class="flex gap-2">
+          {% if site_config.facebook_url %}
+            <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Suivre USM Volley sur Facebook"
+               class="w-9 h-9 rounded-full border border-white/15 hover:border-white/40 hover:bg-white/5 flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-white/30">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.36 2 1.88 6.48 1.88 12.07c0 5.02 3.66 9.18 8.46 9.93v-7.03H7.83v-2.9h2.51V9.83c0-2.48 1.48-3.85 3.74-3.85 1.08 0 2.21.19 2.21.19v2.43h-1.25c-1.23 0-1.61.77-1.61 1.55v1.86h2.74l-.44 2.9h-2.3V22c4.8-.75 8.46-4.91 8.46-9.93z"/>
+              </svg>
+            </a>
+          {% endif %}
+          {% if site_config.instagram_url %}
+            <a href="{{ site_config.instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Suivre USM Volley sur Instagram"
+               class="w-9 h-9 rounded-full border border-white/15 hover:border-white/40 hover:bg-white/5 flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-white/30">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.43.36 1.07.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.43.16-1.07.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.43-.36-1.07-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.43-.16 1.07-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 1.8c-3.15 0-3.5.01-4.74.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.83-.39.38-.63.75-.83 1.26-.15.39-.33.97-.38 2.04-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.05 1.07.23 1.65.38 2.04.2.51.44.88.83 1.26.38.39.75.63 1.26.83.39.15.97.33 2.04.38 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.83.39-.38.63-.75.83-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.83-1.26 3.4 3.4 0 0 0-1.26-.83c-.39-.15-.97-.33-2.04-.38-1.24-.06-1.59-.07-4.74-.07zm0 3.06A4.97 4.97 0 1 1 12 17a4.97 4.97 0 0 1 0-9.97zm0 1.8a3.17 3.17 0 1 0 0 6.34 3.17 3.17 0 0 0 0-6.34zm5.18-2.16a1.16 1.16 0 1 1 0 2.32 1.16 1.16 0 0 1 0-2.32z"/>
+              </svg>
+            </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="pt-6 md:pt-8 text-xs text-slate-500 flex flex-col md:flex-row md:justify-between gap-1.5 md:gap-2">
+      <p>© {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}. Tous droits réservés.</p>
+      {% if site_config.legal_text %}
+        <p class="text-slate-500">{{ site_config.legal_text }}</p>
+      {% endif %}
+    </div>
+  </div>
+</footer>

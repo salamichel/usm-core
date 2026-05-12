@@ -1,6 +1,42 @@
 {% extends "base.twig" %}
 {% block title %}Agenda — USM Volley{% endblock %}
 
+{% block head %}
+{# JSON-LD : EventSeries pour l'ensemble des manifestations à venir #}
+{% if manifestations is defined and manifestations|length %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Agenda USM Volley",
+  "description": "Calendrier des matchs et entraînements de l'Union Sportive Miosienne Volley-Ball",
+  "itemListElement": [
+    {% for mid, m in manifestations %}{% if loop.index <= 10 %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "SportsEvent",
+        "name": "{{ m.libelle|replace({'"': '\\"'})|raw }}",
+        "startDate": "{{ m.date_heure|date('Y-m-d\\TH:i') }}",
+        "eventStatus": "{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
+        "organizer": {
+          "@type": "SportsOrganization",
+          "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
+        }{% if m.lieu %},
+        "location": {
+          "@type": "Place",
+          "name": "{{ m.lieu|replace({'"': '\\"'})|raw }}"
+        }{% endif %}
+      }
+    }{{ not loop.last and loop.index < 10 ? ',' : '' }}
+    {% endif %}{% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="max-w-6xl mx-auto px-6 py-12">
 
@@ -146,13 +182,13 @@
 
             <td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
               {% if row.nb_participation < nb_manif %}
-                <img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" class="inline w-5 h-5">
+                <img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
               {% elseif row.nb_ne_sait_pas > 3 %}
                 <span class="text-base" title="Trop d'hésitations">😕</span>
               {% elseif row.nb_ne_sait_pas_proche > 0 %}
                 <span class="text-base" title="Réponse attendue bientôt">🤔</span>
               {% else %}
-                <img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" class="inline w-5 h-5">
+                <img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
               {% endif %}
               {% set parts = nom|split(' ') %}
               {% set nom_famille = parts[0] %}

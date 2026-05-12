@@ -106,7 +106,7 @@
                 </form>
             {% endif %}
 
-            <form method="POST" action="{{ url('admin/contacts/' ~ contact.id ~ '/delete') }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+            <form method="POST" action="{{ url('admin/contacts/' ~ contact.id ~ '/delete') }}" data-confirm="Supprimer ce message de contact définitivement ?">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
                 <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg">
                     Supprimer
