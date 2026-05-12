@@ -10,6 +10,7 @@ use App\Models\SiteConfig;
 class SiteConfigController
 {
     private const FIELDS = [
+        'theme',
         'club_name', 'club_tagline', 'address', 'email', 'phone',
         'facebook_url', 'instagram_url', 'legal_text',
         'home_slider_posts_count', 'home_latest_posts_count',
@@ -37,25 +38,64 @@ class SiteConfigController
     {
         Auth::require();
         View::render('admin/site-config/edit.twig', [
-            'config' => SiteConfig::all(),
+            'config'           => SiteConfig::all(),
+            'available_themes' => self::availableThemes(),
         ]);
     }
 
     public function update(array $params): void
     {
         Auth::require();
+        $themes = self::availableThemes();
         $data = [];
         foreach (self::FIELDS as $key) {
             $val = trim($_POST[$key] ?? '');
-            // Validate numeric fields
             if (in_array($key, ['home_slider_posts_count', 'home_latest_posts_count'])) {
                 $val = max(1, (int)$val);
+            } elseif ($key === 'theme') {
+                // Whitelist : la valeur doit correspondre à un dossier templates/<name>
+                $val = in_array($val, $themes, true) ? $val : (SiteConfig::get('theme') ?? '');
             }
             $data[$key] = (string)$val;
         }
         SiteConfig::setMany($data);
+        // Invalide le cache Twig pour que le nouveau thème prenne effet
+        self::clearTwigCache();
         View::flash('success', 'Configuration enregistrée.');
         header('Location: ' . BASE_URL . '/admin/site-config');
         exit;
+    }
+
+    /**
+     * Liste les thèmes disponibles (dossiers sous `templates/`).
+     */
+    private static function availableThemes(): array
+    {
+        $dir = ROOT . '/templates';
+        if (!is_dir($dir)) {
+            return [];
+        }
+        $themes = [];
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+            if (is_dir($dir . '/' . $entry) && is_file($dir . '/' . $entry . '/base.twig')) {
+                $themes[] = $entry;
+            }
+        }
+        sort($themes);
+        return $themes;
+    }
+
+    private static function clearTwigCache(): void
+    {
+        $cache = ROOT . '/cache/twig';
+        if (!is_dir($cache)) return;
+        $it = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($cache, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($it as $file) {
+            $file->isDir() ? @rmdir($file->getPathname()) : @unlink($file->getPathname());
+        }
     }
 }

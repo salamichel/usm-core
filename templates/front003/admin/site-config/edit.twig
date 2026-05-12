@@ -13,6 +13,21 @@
 <form method="POST" action="{{ url('admin/site-config') }}" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
+  {# ── Thème actif ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-3">
+    <h2 class="font-black text-lg">Thème actif</h2>
+    <p class="text-xs text-gray-500">Sélectionne le thème (dossier <code>templates/</code>) appliqué au site public. Le cache Twig est invalidé automatiquement à l'enregistrement.</p>
+    <div>
+      <label class="block font-black mb-1" for="theme">Thème</label>
+      <select id="theme" name="theme" class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        {% for t in available_themes %}
+          <option value="{{ t }}" {{ (config.theme|default(theme)) == t ? 'selected' : '' }}>{{ t }}</option>
+        {% endfor %}
+      </select>
+      <div class="text-xs text-gray-500 mt-1">Valeur courante : <code>{{ theme }}</code>.</div>
+    </div>
+  </div>
+
   {# ── Identité ── #}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
     <h2 class="font-black text-lg">Identité du club</h2>
