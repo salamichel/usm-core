@@ -344,7 +344,21 @@
 
   {# ── Header Neobrutalism ── #}
   <header class="header-brutal">
-    <a href="{{ url('/') }}" class="logo-brutal">{{ site_config.club_name|default('USM VOLLEY') }}</a>
+    {% set _logo_mode = site_config.logo_url ? (site_config.logo_display_mode|default('image_only')) : 'text_only' %}
+    {% set _logo_h    = site_config.logo_height|default('40') %}
+    <a href="{{ url('/') }}" class="logo-brutal inline-flex items-center gap-2">
+      {% if site_config.logo_url and _logo_mode != 'text_only' %}
+        <img src="{{ asset('uploads/' ~ site_config.logo_url) }}"
+             alt="{{ site_config.club_name|default('USM VOLLEY') }}"
+             style="height:{{ _logo_h }}px; width:auto; max-width:280px; display:block;"
+             class="{% if _logo_mode == 'image_desktop_text_mobile' %}hidden md:block{% endif %}">
+      {% endif %}
+      {% if _logo_mode == 'text_only' or _logo_mode == 'image_and_text' %}
+        <span>{{ site_config.club_name|default('USM VOLLEY') }}</span>
+      {% elseif _logo_mode == 'image_desktop_text_mobile' %}
+        <span class="md:hidden">{{ site_config.club_name|default('USM VOLLEY') }}</span>
+      {% endif %}
+    </a>
 
     <nav class="nav-container-brutal hidden sm:block">
       <ul class="nav-list-brutal">

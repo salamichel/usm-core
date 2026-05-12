@@ -10,8 +10,60 @@
   Ces valeurs sont utilisées dans le footer du site (et plus tard sur la page contact).
 </p>
 
-<form method="POST" action="{{ url('admin/site-config') }}" class="space-y-6">
+<form method="POST" action="{{ url('admin/site-config') }}" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+  {# ── Logo ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Logo du site</h2>
+
+    {% if config.logo_url %}
+      <div class="flex items-center gap-4 p-3 border-2 border-black bg-gray-50">
+        <img src="{{ asset('uploads/' ~ config.logo_url) }}" alt="Logo actuel"
+             class="h-16 w-auto max-w-[200px] object-contain bg-white border border-gray-300">
+        <div class="flex-1">
+          <p class="font-bold text-sm">Logo actuel</p>
+          <p class="text-xs text-gray-600 break-all">{{ config.logo_url }}</p>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="delete_logo" value="1" class="w-4 h-4">
+          <span class="font-bold text-sm text-red-700">Supprimer</span>
+        </label>
+      </div>
+    {% endif %}
+
+    <div>
+      <label class="block font-black mb-1" for="logo_file">
+        {{ config.logo_url ? 'Remplacer le logo' : 'Charger un logo' }}
+      </label>
+      <input type="file" id="logo_file" name="logo_file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+             class="w-full border-2 border-black px-3 py-2 bg-white file:mr-3 file:py-1.5 file:px-3 file:border-2 file:border-black file:bg-usm-brown file:text-white file:font-bold file:cursor-pointer">
+      <div class="text-xs text-gray-500 mt-1">PNG, JPEG, WebP, SVG ou GIF · 10 Mo max.</div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-black mb-1" for="logo_display_mode">Affichage dans le header</label>
+        <select id="logo_display_mode" name="logo_display_mode"
+                class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% set _mode = config.logo_display_mode|default('text_only') %}
+          <option value="text_only"               {% if _mode == 'text_only' %}selected{% endif %}>Texte uniquement (nom du club)</option>
+          <option value="image_only"              {% if _mode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
+          <option value="image_and_text"          {% if _mode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
+          <option value="image_desktop_text_mobile" {% if _mode == 'image_desktop_text_mobile' %}selected{% endif %}>Logo desktop / texte mobile</option>
+        </select>
+        <div class="text-xs text-gray-500 mt-1">Choisissez comment le logo apparaît en haut du site.</div>
+      </div>
+
+      <div>
+        <label class="block font-black mb-1" for="logo_height">Hauteur du logo (px)</label>
+        <input type="number" id="logo_height" name="logo_height" min="16" max="200"
+               value="{{ config.logo_height|default('40') }}"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <div class="text-xs text-gray-500 mt-1">Entre 16 et 200 px (par défaut : 40).</div>
+      </div>
+    </div>
+  </div>
 
   {# ── Identité ── #}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
