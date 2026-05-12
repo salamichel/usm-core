@@ -197,8 +197,8 @@ h1, h2, h3, h4, .serif { font-family: 'Playfair Display', Georgia, serif; letter
   position: relative;
 }
 .nav-link-classic:hover, .nav-link-classic:focus-visible {
-  color: var(--primary, #1d4ed8);
-  background-color: rgba(0,0,0,0.03);
+  color: var(--header-hover-text, #ffffff);
+  background-color: var(--header-hover-bg, var(--primary, #1d4ed8));
   outline: none;
 }
 .nav-link-classic:focus-visible {
