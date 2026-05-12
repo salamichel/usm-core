@@ -120,6 +120,9 @@
       --text-muted:         #64748b;
       --border:             #e2e8f0;
       --transition:         all 0.2s ease;
+      --footer-bg:          {{ site_config.footer_bg_color|default('#0f172a') }};
+      --footer-text:        {{ site_config.footer_text_color|default('#cbd5e1') }};
+      --footer-heading:     {{ site_config.footer_heading_color|default('#ffffff') }};
     }
     body {
       color: var(--text);

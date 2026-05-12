@@ -20,6 +20,7 @@ class SiteConfigController
         'header_active_bg_color', 'header_active_text_color',
         'logo_bg_color', 'logo_text_color',
         'logo_url', 'logo_display_mode', 'logo_height',
+        'footer_bg_color', 'footer_text_color', 'footer_heading_color',
     ];
 
     private const ALLOWED_DISPLAY_MODES = [

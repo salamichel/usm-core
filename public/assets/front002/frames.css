@@ -343,6 +343,47 @@ h1, h2, h3, h4, .serif { font-family: 'Playfair Display', Georgia, serif; letter
   border-color: #cbd5e1;
 }
 
+/* ── Footer éditorial ───────────────────────────────────────────────────── */
+.footer-classic {
+  background-color: var(--footer-bg, #0f172a);
+  color: var(--footer-text, #cbd5e1);
+}
+.footer-classic .footer-heading {
+  color: var(--footer-heading, #ffffff);
+}
+.footer-classic .footer-label {
+  color: var(--footer-text, #cbd5e1);
+  opacity: 0.55;
+}
+.footer-classic a {
+  color: var(--footer-text, #cbd5e1);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.footer-classic a:hover,
+.footer-classic a:focus-visible {
+  color: var(--footer-heading, #ffffff);
+}
+.footer-classic .footer-border {
+  border-color: rgba(128, 128, 128, 0.2);
+}
+.footer-classic .footer-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  color: var(--footer-text, #cbd5e1);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.footer-classic .footer-social:hover {
+  border-color: var(--footer-text, #cbd5e1);
+  background-color: rgba(128, 128, 128, 0.08);
+  color: var(--footer-heading, #ffffff);
+}
+
 /* ── Réduction de mouvement (accessibilité) ──────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
