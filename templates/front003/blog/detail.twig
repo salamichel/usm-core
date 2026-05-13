@@ -1,0 +1,91 @@
+{% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
+{% block title %}{{ post.title }} — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "{{ base_url }}/"},
+        {"@type": "ListItem", "position": 2, "name": "Actualités", "item": "{{ url('blog') }}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ post.title|replace({'"': '\\"'})|raw }}", "item": "{{ url('blog/' ~ post.slug) }}"}
+      ]
+    },
+    {
+      "@type": "NewsArticle",
+      "headline": "{{ post.title|replace({'"': '\\"'})|raw }}",
+      "url": "{{ url('blog/' ~ post.slug) }}",
+      {% if post.published_at %}"datePublished": "{{ post.published_at|date('Y-m-d') }}",{% endif %}
+      {% if post.excerpt %}"description": "{{ post.excerpt|striptags|replace({'"': '\\"'})|truncate(200)|raw }}",{% endif %}
+      {% if post.cover %}"image": "{{ asset('uploads/' ~ post.cover.filename) }}",{% endif %}
+      "author": {"@type": "Organization", "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"},
+      "publisher": {"@type": "Organization", "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"}
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="page-header grain">
+  <div class="inner max-w-3xl">
+    <nav class="text-xs uppercase tracking-widest text-ink/50 mb-6">
+      <a href="{{ url('/') }}" class="hover:text-flame">Accueil</a>
+      <span class="mx-2">/</span>
+      <a href="{{ url('blog') }}" class="hover:text-flame">Actualités</a>
+    </nav>
+    {% if post.published_at %}
+      <div class="eyebrow">{{ post.published_at|date_fr('d/m/Y') }}</div>
+    {% endif %}
+    <h1 class="page-title">{{ post.title }}</h1>
+    {% if post.excerpt %}
+      <p class="page-intro text-[18px]">{{ post.excerpt }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section-paper">
+  <article class="shell py-12 max-w-3xl mx-auto">
+    {% if post.cover %}
+      <figure class="-mx-4 sm:mx-0 mb-12">
+        <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}" loading="lazy"
+             class="w-full max-h-[600px] object-cover rounded-3xl">
+      </figure>
+    {% endif %}
+
+    <div class="cms-body">{{ post.content|render_with_config|raw }}</div>
+
+    {% if tags|length %}
+      <div class="mt-16 pt-8 border-t border-ink/10">
+        <p class="form-label">Tags</p>
+        <div class="flex flex-wrap gap-2">
+          {% for tag in tags %}
+            <a href="{{ url('blog/tag/' ~ tag.slug) }}" class="chip chip-outline hover:bg-ink hover:text-paper transition">{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {{ components.gallery(photos) }}
+
+    <div class="mt-16 pt-8 border-t border-ink/10">
+      <a href="{{ url('blog') }}" class="inline-flex items-center gap-2 text-sm font-bold text-ink hover:text-flame transition">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Toutes les actualités
+      </a>
+    </div>
+  </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });</script>
+{% endif %}
+{% endblock %}

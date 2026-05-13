@@ -1,0 +1,20 @@
+{# Galerie photos — grille masonry simple avec lightbox GLightbox #}
+{% macro gallery(photos) %}
+{% if photos|length %}
+<section class="mt-12">
+  <h2 class="font-display text-ink text-[24px] sm:text-[28px] mb-6 pb-3 border-b border-ink/10">Galerie photos.</h2>
+  <div class="gallery-grid">
+    {% for photo in photos %}
+      <a href="{{ asset('uploads/' ~ photo.filename) }}"
+         class="glightbox block overflow-hidden"
+         {% if photo.caption %}data-glightbox="description: {{ photo.caption }}"{% endif %}
+         data-gallery="gallery-{{ photo.entity_type }}-{{ photo.entity_id }}">
+        <img src="{{ asset('uploads/' ~ photo.filename) }}"
+             alt="{{ photo.caption ? photo.caption|truncate(125) : 'Photo' }}"
+             loading="lazy" decoding="async">
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,20 @@
+{# UsmMark — pictogramme SVG inline (4 silhouettes en couronne + joueur central + ballon).
+   Param: size (px, défaut 28), spin (bool, ajoute .spin-slow sur la couronne) #}
+{% set size = size|default(28) %}
+<svg viewBox="0 0 120 120" width="{{ size }}" height="{{ size }}" aria-label="USM Volley logo">
+  <g class="{{ spin|default(false) ? 'spin-slow' : '' }}" style="transform-origin: 60px 60px;">
+    {% for a in [0, 90, 180, 270] %}
+      <g transform="rotate({{ a }} 60 60)">
+        <circle cx="60" cy="14" r="6.5" fill="currentColor"/>
+        <path d="M60 22 C 78 22, 94 36, 96 56 C 96 60, 92 62, 88 60 C 86 44, 74 32, 60 32 Z" fill="currentColor"/>
+      </g>
+    {% endfor %}
+  </g>
+  <g>
+    <circle cx="46" cy="44" r="6" fill="var(--ember)"/>
+    <path d="M44 50 C 40 56, 40 62, 44 68 L 50 76 L 56 70 L 60 78 L 70 76 L 66 64 L 58 58 L 56 50 Z" fill="var(--flame)"/>
+    <circle cx="74" cy="40" r="8" fill="var(--flame)"/>
+    <path d="M70 36 Q 74 40 78 36 M 70 44 Q 74 40 78 44 M 74 32 V 48"
+          stroke="var(--paper)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

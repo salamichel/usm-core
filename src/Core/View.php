@@ -19,7 +19,8 @@ class View
     public static function getInstance(): Environment
     {
         if (self::$twig === null) {
-            $loader = new FilesystemLoader(ROOT . '/templates/' . THEME);
+            $theme = self::resolveTheme();
+            $loader = new FilesystemLoader(ROOT . '/templates/' . $theme);
             $twig   = new Environment($loader, [
                 'cache'       => APP_DEBUG ? false : ROOT . '/cache/twig',
                 'auto_reload' => true,
@@ -34,7 +35,7 @@ class View
             $twig->addGlobal('csrf_token', CsrfToken::generate());
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
             $twig->addGlobal('_POST', $_POST);
-            $twig->addGlobal('theme', THEME);
+            $twig->addGlobal('theme', $theme);
 
             // Contact stats for admin menu badge
             if (Auth::check()) {
@@ -132,5 +133,30 @@ class View
             return $flash;
         }
         return null;
+    }
+
+    /**
+     * Resolve the active theme. Priority:
+     *   1. `theme` key in site_config (set via /admin/site-config)
+     *   2. THEME constant (env fallback, defaults to 'front001')
+     * Falls back silently if the DB is unavailable (early boot, migrations).
+     */
+    private static function resolveTheme(): string
+    {
+        $fallback = defined('THEME') ? THEME : 'front001';
+        try {
+            $theme = SiteConfig::get('theme');
+        } catch (\Throwable) {
+            return $fallback;
+        }
+        if (!$theme) {
+            return $fallback;
+        }
+        $theme = trim($theme);
+        // Sécurité : empêcher path traversal vers un dossier hors templates/
+        if (!preg_match('/^[A-Za-z0-9_-]+$/', $theme)) {
+            return $fallback;
+        }
+        return is_dir(ROOT . '/templates/' . $theme) ? $theme : $fallback;
     }
 }

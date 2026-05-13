@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\View;
 use App\Models\EquipeSaison;
 use App\Models\HomeBlock;
+use App\Models\Location;
 use App\Models\Photo;
 use App\Models\Post;
 use App\Models\Saison;
@@ -50,9 +51,25 @@ class HomeController
             'saison'         => $saisonActive['libelle'] ?? '—',
             'matchs_a_venir' => count(AgendaService::getUpcomingMatches(50)),
         ];
+        $newLicencies = 0;
         if ($saisonActive) {
             $stats['licencies'] = Saison::snapshotCount((int)$saisonActive['id']);
             $stats['equipes']   = EquipeSaison::countWithMembersForSaison((int)$saisonActive['id']);
+            $newLicencies       = Saison::newLicenciesCount((int)$saisonActive['id']);
+        }
+
+        $locations  = Location::all();
+        $beachEvents = AgendaService::getUpcomingByType('Beach', 5);
+        $nextMatch   = $matches[0] ?? null;
+        $matchPhotos = [];
+        // Cover du prochain match : on tente d'utiliser la photo de couverture
+        // de la 1ère équipe-saison ayant des membres (fallback visuel).
+        if ($saisonActive) {
+            $equipes = EquipeSaison::findBySaison((int)$saisonActive['id']);
+            foreach ($equipes as $es) {
+                $cover = Photo::getEntityCover('equipe_saison', (int)$es['id']);
+                if ($cover) { $matchPhotos[] = $cover; break; }
+            }
         }
 
         // Load cover photos for latest posts
@@ -91,6 +108,12 @@ class HomeController
             'post_covers'  => $postCovers,
             'matches'      => $matches,
             'trainings'    => $trainings,
+            'beach_events' => $beachEvents,
+            'next_match'   => $nextMatch,
+            'match_cover'  => $matchPhotos[0] ?? null,
+            'new_licencies'=> $newLicencies,
+            'locations'    => $locations,
+            'saison_active'=> $saisonActive,
         ]);
     }
 }

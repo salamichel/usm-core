@@ -1,0 +1,145 @@
+{% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
+{% block title %}{{ post ? 'Éditer' : 'Nouvel' }} article{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <a href="{{ url('admin/posts') }}" class="font-bold hover:underline text-sm">← Retour</a>
+  <h1 class="text-3xl font-black">{{ post ? 'Éditer l\'article' : 'Nouvel article' }}</h1>
+</div>
+
+{{ m.form_error(error) }}
+
+<form method="POST" action="{{ action }}" enctype="multipart/form-data" class="space-y-6">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+
+    {% if post and post.canalblog_id %}
+    <div class="bg-blue-50 border-2 border-blue-300 p-3 rounded">
+      <div class="text-xs text-blue-600 font-bold mb-1">Importé via API CanalBlog</div>
+      <div class="font-mono text-sm text-blue-900">ID: {{ post.canalblog_id }}</div>
+    </div>
+    {% endif %}
+
+    {{ m.field_input('title', 'title', 'Titre', post.title ?? '', 'text', true) }}
+
+    <div>
+      <label class="block font-black mb-1" for="slug">Slug</label>
+      <input type="text" id="slug" name="slug"
+             value="{{ post.slug ?? '' }}"
+             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
+             placeholder="généré automatiquement depuis le titre">
+      <div class="text-xs text-gray-600 mt-1" id="slug-preview"></div>
+    </div>
+
+    {{ m.field_textarea('excerpt', 'excerpt', 'Extrait', post.excerpt ?? '', 3) }}
+
+    <div>
+      <label class="block font-black mb-1" for="content">Contenu</label>
+      <textarea id="content" name="content">{{ post.content ?? '' }}</textarea>
+    </div>
+
+    <div class="flex flex-wrap gap-6 items-start">
+      <div>
+        <label class="block font-black mb-1" for="published_at">Date de publication</label>
+        <input type="datetime-local" id="published_at" name="published_at"
+               value="{{ post.published_at ?? default_date ?? '' }}"
+               class="border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      </div>
+      <div class="pt-7">
+        {{ m.field_checkbox('is_published', 'is_published', 'Publié', post is null or post.is_published, '1') }}
+      </div>
+    </div>
+
+    <div>
+      <label class="block font-black mb-3">Tags</label>
+      {% if all_tags|length %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {% for tag in all_tags %}
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="tags[]" value="{{ tag.id }}"
+                 {% if tag.id in tag_ids %}checked{% endif %}
+                 class="w-4 h-4 border-2 border-black">
+          <span class="text-sm">{{ tag.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="bg-amber-50 border-2 border-amber-300 p-3 rounded text-sm text-amber-800">
+        <strong>Aucun tag disponible.</strong> Les tags seront créés automatiquement lors de l'import d'articles CanalBlog.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Galerie photos (Dropzone) ── #}
+  {% include 'admin/_photo_dropzone.twig' with {
+    entity_id:   post ? post.id : 0,
+    entity_type: 'post',
+    upload_url:  post ? url('admin/posts/' ~ post.id ~ '/photos/upload') : '',
+    photos:      photos
+  } %}
+
+  {{ m.btn_submit('Enregistrer') }}
+</form>
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.css">
+<link rel="stylesheet" href="{{ asset('content-styles.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    Jodit.make('#content', {
+      language: 'fr',
+      height: 400,
+      toolbarButtonSize: 'small',
+      buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
+    });
+
+    var titleInput     = document.getElementById('title');
+    var publishedAtInput = document.getElementById('published_at');
+    var slugInput      = document.getElementById('slug');
+    var slugPreview    = document.getElementById('slug-preview');
+
+    function normalizeSlugText(text) {
+      text = text.toLowerCase();
+      var replacements = {
+        'à':'a','á':'a','â':'a','ã':'a','ä':'a',
+        'è':'e','é':'e','ê':'e','ë':'e',
+        'ì':'i','í':'i','î':'i','ï':'i',
+        'ò':'o','ó':'o','ô':'o','õ':'o','ö':'o',
+        'ù':'u','ú':'u','û':'u','ü':'u',
+        'ç':'c','ñ':'n'
+      };
+      for (var ch in replacements) {
+        text = text.split(ch).join(replacements[ch]);
+      }
+      return text.replace(/[^a-z0-9\-\s]/g, '-').trim()
+                 .replace(/\s+/g, '-').replace(/-+/g, '-')
+                 .replace(/^-+|-+$/g, '');
+    }
+
+    function updateSlugPreview() {
+      if (slugInput.value) { slugPreview.textContent = 'Slug personnalisé'; return; }
+      var title = titleInput.value.trim();
+      if (!title) { slugPreview.textContent = ''; return; }
+      var preview = normalizeSlugText(title);
+      var publishedAt = publishedAtInput.value;
+      if (publishedAt) {
+        var d = new Date(publishedAt);
+        var y = d.getFullYear();
+        var mo = String(d.getMonth() + 1).padStart(2, '0');
+        var da = String(d.getDate()).padStart(2, '0');
+        preview = y + '/' + mo + '/' + da + '/' + preview;
+      }
+      slugPreview.textContent = 'Aperçu : ' + preview;
+    }
+
+    if (titleInput) titleInput.addEventListener('input', updateSlugPreview);
+    if (publishedAtInput) publishedAtInput.addEventListener('change', updateSlugPreview);
+    if (slugInput) slugInput.addEventListener('input', updateSlugPreview);
+    updateSlugPreview();
+  });
+</script>
+{% endblock %}

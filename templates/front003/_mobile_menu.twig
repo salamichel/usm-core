@@ -1,0 +1,29 @@
+<nav id="mobile-menu" class="hidden lg:hidden bg-paper border-b border-ink/10" aria-label="Navigation mobile">
+  <div class="shell py-4">
+    <div class="grid gap-1">
+      {% for item in menu_items %}
+        <a href="{{ item_url(item) }}" class="nav-mobile-link">
+          {{ item.label }}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-ink/50">
+            <polyline points="9 6 15 12 9 18"/>
+          </svg>
+        </a>
+        {% if item.children|length %}
+          <div class="pl-4 border-l border-ink/10 ml-3 space-y-0.5">
+            {% for child in item.children %}
+              <a href="{{ item_url(child) }}" class="nav-mobile-link text-sm">
+                {{ child.label }}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+      <a href="{{ url(site_config.adherer_url|default('contact')|trim('/')) }}" class="btn-flame btn-sm justify-center mt-3">
+        Adhérer au club
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</nav>
