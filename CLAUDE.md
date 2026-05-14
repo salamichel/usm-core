@@ -180,6 +180,25 @@ Photo::forEntity('equipe_saison', $es['id'])  // lecture
 Photo::create('equipe_saison', $es['id'], $filename) // écriture
 ```
 
+### Éditeur WYSIWYG — Jodit (posts & pages)
+
+L'éditeur Jodit est utilisé pour les posts et pages dans les trois thèmes
+(`front001`, `front002`, `front003`). Il supporte :
+
+- **Drag & drop d'images** directement dans l'éditeur → upload automatique → insertion `<img>` inline
+- **Drag & drop de fichiers** (PDF, DOC/DOCX, XLS/XLSX) → upload → insertion d'un lien `<a>`
+- **Bouton "insertFile"** dans la toolbar (icône document) → sélecteur de fichiers PDF/Word/Excel
+
+L'upload passe par `POST /admin/media/upload` → `MediaUploadController::upload()`.
+Les fichiers sont stockés dans `public/assets/uploads/editor_image/YYYY/MM/` ou
+`editor_file/YYYY/MM/` selon le type.
+
+Le token CSRF est injecté automatiquement via `uploader.data` (lu depuis l'input
+`[name="_csrf_token"]` du formulaire). Ne pas supprimer cet input du formulaire.
+
+Formats acceptés : JPG, PNG, WebP, GIF (images) · PDF, DOC, DOCX, XLS, XLSX (fichiers).
+Taille max : 10 Mo.
+
 ### Twig
 
 - `url('chemin')` → `BASE_URL/chemin`

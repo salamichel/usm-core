@@ -63,11 +63,63 @@
 <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/jodit@3/build/jodit.min.js"></script>
 <script>
-  Jodit.make('#content', {
-    language: 'fr',
-    height: 500,
-    toolbarButtonSize: 'small',
-    buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,table,|,undo,redo,|,source'
-  });
+  (function () {
+    const csrfToken = document.querySelector('[name="_csrf_token"]').value;
+    const uploadUrl = '{{ url("admin/media/upload") }}';
+
+    const editor = Jodit.make('#content', {
+      language: 'fr',
+      height: 500,
+      toolbarButtonSize: 'small',
+      buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,file,|,table,|,undo,redo,|,source',
+      controls: {
+        paragraph: {
+          list: {
+            p:          'Paragraphe',
+            h1:         'Titre 1',
+            h2:         'Titre 2',
+            h3:         'Titre 3',
+            h4:         'Titre 4',
+            blockquote: 'Citation',
+          }
+        }
+      },
+      uploader: {
+        url: uploadUrl,
+        data: { _csrf_token: csrfToken },
+        format: 'json',
+        isSuccess: function (resp) { return resp.ok === true; },
+        getMessage: function (resp) { return resp.error || 'Erreur inconnue'; },
+        process: function (resp) {
+          return {
+            files:    [resp.url],
+            path:     '',
+            baseurl:  '',
+            error:    resp.ok ? 0 : 1,
+            msg:      resp.error || '',
+            isImages: [resp.isImage],
+            names:    [resp.name],
+          };
+        },
+        defaultHandlerSuccess: function (data) {
+          if (!data.files || !data.files.length) return;
+          data.files.forEach(function (url, i) {
+            const isImage = data.isImages && data.isImages[i];
+            const name    = (data.names && data.names[i]) ? data.names[i] : url.split('/').pop();
+            if (isImage) {
+              editor.s.insertImage(url, null, '100%');
+            } else {
+              const link = editor.createInside.element('a');
+              link.setAttribute('href', url);
+              link.setAttribute('target', '_blank');
+              link.setAttribute('rel', 'noopener noreferrer');
+              link.textContent = name;
+              editor.s.insertNode(link);
+            }
+          });
+        }
+      }
+    });
+  }());
 </script>
 {% endblock %}
