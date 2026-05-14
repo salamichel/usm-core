@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Services\ImageResizer;
 use App\Services\UploadPathManager;
 
 class Photo
@@ -33,19 +34,20 @@ class Photo
         return $stmt->fetch() ?: null;
     }
 
-    public static function create(string $type, int $entityId, string $filename, ?string $caption = null, int $position = 0): int
+    public static function create(string $type, int $entityId, string $filename, ?string $caption = null, int $position = 0, bool $hasVariants = false): int
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO photos (entity_type, entity_id, filename, caption, position)
-             VALUES (:type, :entity_id, :filename, :caption, :position)"
+            "INSERT INTO photos (entity_type, entity_id, filename, caption, position, has_variants)
+             VALUES (:type, :entity_id, :filename, :caption, :position, :has_variants)"
         );
         $stmt->execute([
-            ':type'      => $type,
-            ':entity_id' => $entityId,
-            ':filename'  => $filename,
-            ':caption'   => $caption,
-            ':position'  => $position,
+            ':type'         => $type,
+            ':entity_id'    => $entityId,
+            ':filename'     => $filename,
+            ':caption'      => $caption,
+            ':position'     => $position,
+            ':has_variants' => $hasVariants ? 1 : 0,
         ]);
         return (int)$db->lastInsertId();
     }
@@ -58,6 +60,7 @@ class Photo
             if (file_exists($path)) {
                 unlink($path);
             }
+            ImageResizer::deleteVariants($path);
         }
         Database::get()->prepare("DELETE FROM photos WHERE id = ?")->execute([$id]);
     }
@@ -70,6 +73,7 @@ class Photo
             if (file_exists($path)) {
                 unlink($path);
             }
+            ImageResizer::deleteVariants($path);
         }
         Database::get()->prepare(
             "DELETE FROM photos WHERE entity_type = ? AND entity_id = ?"
@@ -78,9 +82,9 @@ class Photo
 
     /**
      * Upload a single file (from Dropzone: $_FILES['file']).
-     * Returns the relative path to the saved file.
+     * Returns array with 'path' (relative) and 'has_variants' (bool).
      */
-    public static function uploadSingle(?array $file, string $entityType = 'post'): string
+    public static function uploadSingle(?array $file, string $entityType = 'post'): array
     {
         if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
             throw new \RuntimeException('Aucun fichier reçu.');
@@ -97,13 +101,18 @@ class Photo
         if (!in_array($mime, self::ALLOWED_TYPES, true)) {
             throw new \RuntimeException('Type non autorisé (' . $mime . ').');
         }
-        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $filename = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
+        $ext        = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename   = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
         $uploadPath = UploadPathManager::getUploadPath($entityType);
-        if (!move_uploaded_file($file['tmp_name'], $uploadPath . '/' . $filename)) {
+        $destPath   = $uploadPath . '/' . $filename;
+        if (!move_uploaded_file($file['tmp_name'], $destPath)) {
             throw new \RuntimeException('Impossible de sauvegarder le fichier.');
         }
-        return UploadPathManager::getRelativeUploadPath($entityType, $filename);
+        $hasVariants = ImageResizer::generateVariants($destPath);
+        return [
+            'path'         => UploadPathManager::getRelativeUploadPath($entityType, $filename),
+            'has_variants' => $hasVariants,
+        ];
     }
 
     private static function uploadErrorMessage(int $code): string
@@ -121,12 +130,11 @@ class Photo
 
     /**
      * Process a multi-file upload ($_FILES['photos']).
-     * Returns array of relative paths to saved files.
+     * Returns array of ['path' => string, 'has_variants' => bool] per file.
      */
     public static function uploadFiles(array $filesInput, string $entityType = 'post'): array
     {
         $saved = [];
-        // Normalize the $_FILES multi-upload structure
         $files = self::normalizeFilesArray($filesInput);
         $uploadPath = UploadPathManager::getUploadPath($entityType);
         foreach ($files as $file) {
@@ -145,10 +153,15 @@ class Photo
             }
             $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             $filename = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
-            if (!move_uploaded_file($file['tmp_name'], $uploadPath . '/' . $filename)) {
+            $destPath = $uploadPath . '/' . $filename;
+            if (!move_uploaded_file($file['tmp_name'], $destPath)) {
                 throw new \RuntimeException("Impossible de sauvegarder « {$file['name']} ».");
             }
-            $saved[] = UploadPathManager::getRelativeUploadPath($entityType, $filename);
+            $hasVariants = ImageResizer::generateVariants($destPath);
+            $saved[] = [
+                'path'         => UploadPathManager::getRelativeUploadPath($entityType, $filename),
+                'has_variants' => $hasVariants,
+            ];
         }
         return $saved;
     }

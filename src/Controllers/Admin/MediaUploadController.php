@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Core\Auth;
+use App\Services\ImageResizer;
 use App\Services\UploadPathManager;
 
 class MediaUploadController
@@ -55,9 +56,14 @@ class MediaUploadController
         $filename   = 'media-' . time() . '-' . uniqid() . '.' . $ext;
         $uploadPath = UploadPathManager::getUploadPath($entityType);
 
-        if (!move_uploaded_file($file['tmp_name'], $uploadPath . '/' . $filename)) {
+        $destPath = $uploadPath . '/' . $filename;
+        if (!move_uploaded_file($file['tmp_name'], $destPath)) {
             $this->error('Impossible de sauvegarder le fichier.');
             return;
+        }
+
+        if ($isImage) {
+            ImageResizer::generateVariants($destPath);
         }
 
         $relative = UploadPathManager::getRelativeUploadPath($entityType, $filename);

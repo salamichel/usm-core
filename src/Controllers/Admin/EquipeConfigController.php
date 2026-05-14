@@ -136,15 +136,15 @@ class EquipeConfigController
             $this->jsonError('Équipe ou saison introuvable.', 404); return;
         }
         try {
-            $filename = Photo::uploadSingle($_FILES['file'] ?? null, 'equipe_saison');
-            $pid      = Photo::create('equipe_saison', $es['id'], $filename);
+            $uploaded  = Photo::uploadSingle($_FILES['file'] ?? null, 'equipe_saison');
+            $pid       = Photo::create('equipe_saison', $es['id'], $uploaded['path'], null, 0, $uploaded['has_variants']);
             $deleteUrl = BASE_URL . '/admin/equipes-config/' . $equipe['id']
                          . '/saisons/' . $saison['id'] . '/photos/' . $pid . '/delete-xhr';
             header('Content-Type: application/json');
             echo json_encode([
                 'ok'        => true,
                 'id'        => $pid,
-                'url'       => BASE_URL . '/assets/uploads/' . $filename,
+                'url'       => BASE_URL . '/assets/uploads/' . $uploaded['path'],
                 'deleteUrl' => $deleteUrl,
             ]);
         } catch (\RuntimeException $e) {

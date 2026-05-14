@@ -36,7 +36,7 @@
              {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
              data-gallery="gallery-equipe_saison-cover">
             <div class="hero-card-media">
-              <img src="{{ asset('uploads/' ~ cover.filename) }}" alt="{{ cover.caption|default('Photo équipe') }}" loading="eager">
+              <img src="{{ image_variant(cover, 'large') }}" alt="{{ cover.caption|default('Photo équipe') }}" loading="eager">
             </div>
           </a>
         </div>
@@ -130,7 +130,7 @@
             <a href="{{ url('equipes/' ~ eq.slug) }}" class="card-team block">
               <div class="card-art">
                 {% if eq.cover %}
-                  <img src="{{ asset('uploads/' ~ eq.cover.filename) }}" alt="{{ eq.libelle }}" loading="lazy">
+                  <img src="{{ image_variant(eq.cover, 'medium') }}" alt="{{ eq.libelle }}" loading="lazy">
                 {% endif %}
               </div>
               <div class="p-5">

@@ -5,6 +5,7 @@ namespace App\Services;
 
 class ExternalImageDownloader
 {
+
     private const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     private const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
     private const TIMEOUT = 10;
@@ -93,6 +94,8 @@ class ExternalImageDownloader
             if (!file_put_contents($path, $imageContent)) {
                 return null;
             }
+
+            ImageResizer::generateVariants($path);
 
             return 'external/' . (new \DateTime('now', new \DateTimeZone('Europe/Paris')))->format('Y/m') . '/' . $filename;
         } catch (\Exception $e) {

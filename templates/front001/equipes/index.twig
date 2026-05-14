@@ -39,7 +39,7 @@
 
           {# Photo #}
           {% if eq.cover %}
-            <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
+            <img src="{{ image_variant(eq.cover, 'medium') }}"
                  alt="{{ eq.libelle }}"
                  class="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105">
           {% else %}

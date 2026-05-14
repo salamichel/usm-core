@@ -52,7 +52,7 @@
   <article class="shell py-12 max-w-3xl mx-auto">
     {% if post.cover %}
       <figure class="-mx-4 sm:mx-0 mb-12">
-        <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}" loading="lazy"
+        <img src="{{ image_variant(post.cover, 'large') }}" alt="{{ post.title }}" loading="lazy"
              class="w-full max-h-[600px] object-cover rounded-3xl">
       </figure>
     {% endif %}
