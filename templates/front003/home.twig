@@ -1,0 +1,500 @@
+{% extends 'base.twig' %}
+{% block title %}Accueil — {{ site_config.club_name|default('USM Volley') }}{% endblock %}
+
+{% block content %}
+
+{# ─── HERO ───────────────────────────────────────────────────────── #}
+<section class="section-bone grain relative overflow-hidden">
+  {# Anneau décoratif #}
+  <div class="pointer-events-none absolute -right-40 -top-40 sm:-right-48 sm:-top-48 lg:-right-32 lg:-top-32">
+    <div class="relative w-[520px] h-[520px] sm:w-[680px] sm:h-[680px] lg:w-[820px] lg:h-[820px]">
+      <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full spin-slow" style="color: color-mix(in srgb, var(--ink) 15%, transparent);">
+        <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="0.4" stroke-dasharray="0.6 1.4"/>
+      </svg>
+      <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="var(--flame)" stroke-width="0.5" opacity="0.5"/>
+        <circle cx="50" cy="50" r="34" fill="none" stroke="var(--ink)" stroke-width="0.4" stroke-dasharray="2 3" opacity="0.45"/>
+      </svg>
+      <div class="absolute inset-[12%]" style="color: var(--ink); opacity: .07;">
+        {% include '_logo.twig' with {size: '100%', spin: false} %}
+      </div>
+    </div>
+  </div>
+
+  <div class="shell pt-10 sm:pt-14 lg:pt-20 pb-16 sm:pb-24 lg:pb-32 relative">
+    <div class="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+
+      {# ─ Colonne gauche : copy ─ #}
+      <div class="lg:col-span-7">
+        <div class="inline-flex items-center gap-2 bg-paper border border-ink/10 rounded-full pl-2 pr-4 py-1.5 shadow-card">
+          <span class="grid place-items-center w-6 h-6 rounded-full bg-flame text-paper">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+          </span>
+          <span class="text-[11px] font-bold tracking-[0.18em] uppercase text-ink/80">
+            {% if saison_active %}Saison {{ saison_active.libelle }} · ouverte{% else %}Bienvenue au club{% endif %}
+          </span>
+        </div>
+
+        <h1 class="font-display text-ink mt-5 text-[44px] leading-[0.92] sm:text-[64px] lg:text-[88px] text-balance">
+          Bienvenue à<br>
+          <span class="inline-flex items-baseline gap-3">
+            <span>l'{{ site_config.club_name_short|default('USM') }}</span>
+            <span class="relative">
+              <span class="text-flame">Volley</span>
+              <svg class="absolute -bottom-2 left-0 w-full" height="14" viewBox="0 0 200 14" preserveAspectRatio="none">
+                <path d="M2 8 Q 50 1 100 6 T 198 5" stroke="var(--ember)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="text-ink/90">-Ball</span>
+          </span>
+        </h1>
+
+        {% if site_config.club_tagline %}
+          <p class="mt-7 text-[16px] sm:text-[18px] leading-relaxed text-ink/70 max-w-[58ch] text-pretty">
+            {{ site_config.club_tagline }}
+          </p>
+        {% endif %}
+
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a href="{{ url('equipes') }}" class="btn-flame group">
+            Découvrir nos équipes
+            <span class="grid place-items-center w-6 h-6 rounded-full bg-paper/15">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
+          </a>
+          <a href="{{ url(site_config.essai_url|default('contact')|trim('/')) }}" class="btn-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-flame">
+              <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/>
+            </svg>
+            Séance d'essai gratuite
+          </a>
+        </div>
+
+        {# Trust strip #}
+        <div class="hero-trust mt-10">
+          {% if site_config.trust_badge_1_strong %}
+            <span class="check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-flame">
+                <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span>{{ site_config.trust_badge_1_label }} <strong>{{ site_config.trust_badge_1_strong }}</strong></span>
+            </span>
+          {% endif %}
+          {% if site_config.trust_badge_2_strong %}
+            <span class="check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-flame">
+                <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span>{{ site_config.trust_badge_2_label }} <strong>{{ site_config.trust_badge_2_strong }}</strong></span>
+            </span>
+          {% endif %}
+          {% if new_licencies and new_licencies > 0 %}
+            <span class="check">
+              <span class="dot-stack">
+                <span style="background: var(--flame)"></span>
+                <span style="background: var(--ink)"></span>
+                <span style="background: var(--ember)"></span>
+              </span>
+              <span><strong>+{{ new_licencies }}</strong> {{ site_config.trust_badge_3_label|default('nouveaux licenciés cette saison') }}</span>
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ─ Colonne droite : carte hero match ─ #}
+      <div class="lg:col-span-5 relative">
+        <div class="hero-card-wrap">
+          <div class="hero-card-tilt"></div>
+          <div class="hero-card">
+            <div class="hero-card-media">
+              {% if match_cover %}
+                <img src="{{ asset('uploads/' ~ match_cover.filename) }}" alt="">
+              {% endif %}
+
+              <div class="absolute top-5 left-5 right-5 flex items-start justify-between text-paper z-10">
+                <div>
+                  <div class="text-[10px] font-bold tracking-[0.22em] uppercase opacity-80">
+                    {{ next_match ? 'Prochain match' : 'À l\'affiche' }}
+                  </div>
+                  <div class="font-display text-[24px] mt-1 leading-none">
+                    {{ next_match.title|default(site_config.club_name|default('USM Volley')) }}
+                  </div>
+                </div>
+                {% if next_match %}
+                  {% set parts = next_match.date_display|split(' ') %}
+                  <span class="rounded-full bg-paper text-ink px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
+                    {{ parts[0]|default('') }} {{ parts[1]|default('') }}
+                  </span>
+                {% endif %}
+              </div>
+
+              {# Silhouette joueur + ballon (décoration) #}
+              <svg viewBox="0 0 200 250" class="absolute inset-0 w-full h-full z-0" preserveAspectRatio="xMidYMax meet">
+                <g>
+                  <circle cx="148" cy="58" r="14" fill="var(--paper)"/>
+                  <path d="M138 52 Q 148 60 158 52 M 138 64 Q 148 60 158 64 M 148 44 V 72"
+                        stroke="var(--ink)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+                </g>
+                <g fill="var(--ink)" opacity="0.92">
+                  <circle cx="92" cy="100" r="11"/>
+                  <path d="M86 110 C 78 122, 78 138, 86 152 L 76 200 L 92 210 L 102 168 L 116 178 L 132 168 L 124 150 L 112 138 L 108 116 Q 110 110, 116 108 L 134 86 L 124 74 L 108 90 Q 100 96, 96 102 Z"/>
+                </g>
+              </svg>
+
+              {% if next_match %}
+                <div class="absolute bottom-0 inset-x-0 p-5 z-10">
+                  <div class="rounded-2xl p-4 shadow-card" style="background: color-mix(in srgb, var(--paper) 95%, transparent); backdrop-filter: blur(8px);">
+                    <div class="flex items-center gap-3">
+                      {% set parts = next_match.date_display|split(' ') %}
+                      <div class="event-date-block home" style="width: 56px; padding: .5rem 0;">
+                        <div class="day">{{ parts[0]|default('') }}</div>
+                        <div class="num" style="font-size: 22px;">{{ parts[1]|default('') }}</div>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="font-display text-ink text-[15px] truncate">{{ next_match.title }}</div>
+                        <div class="flex items-center gap-3 text-[11px] text-ink/60 mt-1">
+                          {% if next_match.time_display %}
+                            <span class="flex items-center gap-1">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              {{ next_match.time_display }}
+                            </span>
+                          {% endif %}
+                          {% if next_match.location %}
+                            <span class="flex items-center gap-1 truncate">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                              {{ next_match.location }}
+                            </span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          {# Badges flottants #}
+          {% if site_config.hero_badge_trophy_label %}
+            <div class="hero-badge-float hidden sm:flex" style="left: -1.5rem; top: 3rem; transform: rotate(-6deg);">
+              <div class="grid place-items-center w-9 h-9 rounded-xl bg-flame text-paper">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+              </div>
+              <div class="leading-tight">
+                <div class="font-display text-ink text-[14px]">{{ site_config.hero_badge_trophy_label }}</div>
+                {% if site_config.hero_badge_trophy_sub %}
+                  <div class="text-[10px] text-ink/60 font-semibold tracking-wider uppercase">{{ site_config.hero_badge_trophy_sub }}</div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          {% if site_config.hero_motto %}
+            <div class="hero-badge-float alt" style="right: -1rem; bottom: -.75rem; transform: rotate(4deg);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--flame)" stroke="var(--flame)" stroke-width="2.5"><polygon points="12 2 15 8.5 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.5"/></svg>
+              <div class="text-[11px] font-bold tracking-[0.18em] uppercase">{{ site_config.hero_motto }}</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ─ Marquee ─ #}
+  {% set tags = (site_config.marquee_tags|default('Volley loisir,Compétition,Beach,Baby-Volley,Esprit club'))|split(',') %}
+  <div class="marquee-bar relative">
+    <div class="marquee-track">
+      {% for k in 0..1 %}
+        <span>
+          {% for t in tags %}
+            <span class="flex items-center gap-10">
+              <span class="marquee-tag">{{ t|trim }}</span>
+              <span class="marquee-dot"></span>
+            </span>
+          {% endfor %}
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ─── STATS ──────────────────────────────────────────────────────── #}
+<section id="club" class="section-paper">
+  <div class="shell py-16 sm:py-20">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {% set stat_tiles = [
+        {k: stats.licencies, v: 'Licenciés', sub: 'De 6 à 60 ans', accent: 'flame'},
+        {k: stats.equipes,   v: 'Équipes',   sub: 'Loisir & compétition', accent: 'ink'},
+        {k: stats.saison,    v: 'Saison',    sub: 'En cours', accent: 'ember'},
+        {k: locations|length, v: 'Sites de jeu', sub: locations|slice(0,3)|map(l => l.name|default(l.nom))|join(' · '), accent: 'ink'}
+      ] %}
+      {% for it in stat_tiles %}
+        <div class="group relative rounded-3xl bg-bone border border-ink/10 p-6 sm:p-7 hover:bg-paper transition-all duration-300 overflow-hidden frame-hover">
+          <div class="grid place-items-center w-11 h-11 rounded-2xl bg-{{ it.accent }} text-paper transition-transform duration-300 group-hover:-rotate-6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <div class="mt-5 font-display text-[44px] sm:text-[54px] leading-[0.9] text-ink tracking-tight">
+            {{ it.k }}
+          </div>
+          <div class="mt-2 font-display text-ink text-[16px] uppercase tracking-tight">{{ it.v }}</div>
+          <div class="mt-1 text-[13px] text-ink/60 truncate">{{ it.sub }}</div>
+          <div class="absolute -bottom-10 -right-10 w-28 h-28 rounded-full border-2 transition-all duration-500 group-hover:border-flame/60" style="border-color: transparent;"></div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ─── HOME BLOCKS ÉDITORIAUX ─────────────────────────────────────── #}
+{% if home_blocks|length %}
+<section class="section-bone grain">
+  <div class="shell py-20 sm:py-24 space-y-20 relative">
+    {% for block in home_blocks %}
+      <article class="grid gap-10 md:gap-14 md:grid-cols-2 items-center {{ loop.index is divisible by(2) ? 'md:[&>*:first-child]:order-2' : '' }}">
+        <div>
+          {% if block.image %}
+            <img src="{{ asset('uploads/' ~ block.image) }}" alt="{{ block.titre }}" loading="lazy"
+                 class="w-full h-72 md:h-96 object-cover rounded-3xl border border-ink/10 shadow-card">
+          {% endif %}
+        </div>
+        <div>
+          <div class="eyebrow">Le club</div>
+          <h2 class="mt-3 font-display text-[32px] md:text-[44px] leading-[1.05] text-ink text-balance">{{ block.titre }}</h2>
+          <div class="cms-body mt-5">{{ block.contenu|raw }}</div>
+          {% if block.cta_label and block.cta_url %}
+            <a href="{{ block.cta_url starts with 'http' ? block.cta_url : url(block.cta_url|trim('/')) }}" class="btn-flame mt-6">
+              {{ block.cta_label }}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ─── AGENDA (3 onglets) ─────────────────────────────────────────── #}
+{% if matches|length or trainings|length or beach_events|length %}
+<section id="agenda" class="section-bone grain scroll-mt-20">
+  <div class="shell py-20 sm:py-24 relative">
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+      <div class="max-w-[640px]">
+        <div class="eyebrow">Agenda</div>
+        <h2 class="mt-3 font-display text-[36px] sm:text-[48px] lg:text-[60px] leading-[0.95] text-ink text-balance">
+          Le calendrier<br><span class="text-flame">en un coup d'œil.</span>
+        </h2>
+        <p class="mt-4 text-ink/60 text-[15px] sm:text-[16px] max-w-[52ch]">
+          Tous les rendez-vous de la saison — du gymnase au sable, du baby-volley à la régionale.
+        </p>
+      </div>
+      <a href="{{ url('agenda') }}" class="hidden sm:inline-flex items-center gap-1.5 text-[13px] font-bold text-ink hover:text-flame transition-colors">
+        Calendrier complet
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </a>
+    </div>
+
+    <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0" id="agenda-tabs">
+      <button type="button" data-tab="matches" class="tab-pill active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" class="text-flame"><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/><path d="M4 22h16"/></svg>
+        Prochains matchs
+        <span class="pill-count">{{ matches|length }}</span>
+      </button>
+      <button type="button" data-tab="trainings" class="tab-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Entraînements
+        <span class="pill-count">{{ trainings|length }}</span>
+      </button>
+      <button type="button" data-tab="beach" class="tab-pill">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M2 12c4-6 16-6 20 0M2 16c4-6 16-6 20 0M2 20c4-6 16-6 20 0"/></svg>
+        Beach Volley
+        <span class="pill-count">{{ beach_events|length }}</span>
+      </button>
+    </div>
+
+    {% for tab_id, list in {'matches': matches, 'trainings': trainings, 'beach': beach_events} %}
+      <div class="agenda-pane mt-6 grid md:grid-cols-2 gap-3 sm:gap-4 {{ tab_id != 'matches' ? 'hidden' : '' }}" data-pane="{{ tab_id }}">
+        {% if list|length == 0 %}
+          <div class="md:col-span-2 frame frame-amber frame-center text-ink/60">
+            Aucun événement à venir pour le moment.
+          </div>
+        {% else %}
+          {% for ev in list %}
+            {% set parts = (ev.date_display|default(''))|split(' ') %}
+            <article class="card-event">
+              <div class="flex items-stretch gap-4">
+                <div class="event-date-block home">
+                  <div class="day">{{ parts[0]|default('') }}</div>
+                  <div class="num">{{ parts[1]|default('') }}</div>
+                  <div class="month">{{ parts[2]|default('') }}</div>
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    {% if ev.status == 'Annulé' %}
+                      <span class="chip chip-flame">Annulé</span>
+                    {% elseif ev.is_soon %}
+                      <span class="chip chip-flame">Bientôt</span>
+                    {% endif %}
+                    <span class="chip">{{ tab_id == 'matches' ? 'Match' : (tab_id == 'trainings' ? 'Entraînement' : 'Beach') }}</span>
+                  </div>
+                  <h3 class="mt-2 font-display text-ink text-[17px] sm:text-[19px] leading-tight tracking-tight">{{ ev.title }}</h3>
+                  <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] text-ink/60">
+                    {% if ev.time_display %}
+                      <span class="inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-flame"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {{ ev.time_display }}
+                      </span>
+                    {% endif %}
+                    {% if ev.location %}
+                      <span class="inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-flame"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {{ ev.location }}
+                      </span>
+                    {% endif %}
+                  </div>
+                  <div class="mt-3 flex items-center justify-between">
+                    <a href="{{ url('agenda') }}" class="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-ink/40 hover:text-ink transition-colors">
+                      Détails
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ─── NEWS ────────────────────────────────────────────────────────── #}
+{% if latest_posts|length %}
+<section id="news" class="section-paper">
+  <div class="shell py-20 sm:py-24">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <div>
+        <div class="eyebrow">Le journal du club</div>
+        <h2 class="mt-3 font-display text-[36px] sm:text-[48px] lg:text-[60px] leading-[0.95] text-ink text-balance">
+          Actualités <span class="text-flame">récentes</span>.
+        </h2>
+      </div>
+      <a href="{{ url('blog') }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-ink hover:text-flame transition-colors">
+        Tous les articles
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </a>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for post in latest_posts %}
+        {% set cover = post_covers[post.id] %}
+        <a href="{{ url('blog/' ~ post.slug) }}" class="card-news">
+          <div class="card-art">
+            {% if cover %}
+              <img src="{{ asset('uploads/' ~ cover.filename) }}" alt="{{ post.title }}" loading="lazy">
+            {% else %}
+              <div class="absolute inset-0 grid place-items-center text-paper" aria-hidden="true">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7">
+                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c3 3 3 17 0 20M12 2c-3 3-3 17 0 20"/>
+                </svg>
+              </div>
+            {% endif %}
+            <div class="absolute top-3 left-3 z-10">
+              <span class="chip" style="background: var(--paper); color: var(--ink);">Actualité</span>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if post.published_at %}
+              <div class="text-[11px] font-bold tracking-widest uppercase text-ink/50">{{ post.published_at|date_fr }}</div>
+            {% endif %}
+            <h3 class="mt-2">{{ post.title }}</h3>
+            {% if post.excerpt %}
+              <p class="mt-2 text-[14px] text-ink/60 leading-relaxed line-clamp-3">{{ post.excerpt }}</p>
+            {% endif %}
+            <div class="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold tracking-widest uppercase text-ink">
+              Lire l'article
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ─── CTA Adhérer ─────────────────────────────────────────────────── #}
+<section id="adherer" class="section-bone">
+  <div class="shell pb-20 sm:pb-24">
+    <div class="relative rounded-[28px] sm:rounded-[40px] frame-dark overflow-hidden p-0">
+      <div class="pointer-events-none absolute -left-32 -top-32 w-[520px] h-[520px] rounded-full"
+           style="background: radial-gradient(closest-side, color-mix(in srgb, var(--flame) 55%, transparent), transparent 70%);"></div>
+
+      <div class="relative grid lg:grid-cols-12 gap-8 p-7 sm:p-12 lg:p-16">
+        <div class="lg:col-span-7">
+          <div class="eyebrow">Rejoindre l'{{ site_config.club_name_short|default('USM') }}</div>
+          <h2 class="mt-4 font-display text-[36px] sm:text-[52px] lg:text-[68px] leading-[0.95] text-balance">
+            Le filet t'attend.<br>
+            <span class="text-flame">Pose ton premier service.</span>
+          </h2>
+          <p class="mt-5 text-paper/70 text-[15px] sm:text-[16px] max-w-[58ch] text-pretty">
+            Inscriptions ouvertes. Première séance gratuite, encadrement diplômé, ambiance club.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a href="{{ url(site_config.adherer_url|default('contact')|trim('/')) }}" class="btn-flame">
+              Adhérer en ligne
+              <span class="grid place-items-center w-6 h-6 rounded-full bg-paper/15">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </span>
+            </a>
+            <a href="{{ url(site_config.essai_url|default('contact')|trim('/')) }}"
+               class="inline-flex items-center gap-2 rounded-2xl px-6 py-4 font-bold tracking-tight border border-paper/20 text-paper hover:bg-paper/10 transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-flame"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>
+              Réserver une séance d'essai
+            </a>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 lg:pl-8 space-y-3">
+          {% for i in 1..3 %}
+            {% set label = attribute(site_config, 'cta_feature_' ~ i ~ '_label') %}
+            {% set sub   = attribute(site_config, 'cta_feature_' ~ i ~ '_sub') %}
+            {% if label %}
+              <div class="flex items-center gap-4 rounded-2xl border border-paper/10 p-4 transition-colors hover:bg-paper/10"
+                   style="background: color-mix(in srgb, var(--paper) 5%, transparent);">
+                <div class="grid place-items-center w-11 h-11 rounded-xl bg-flame text-paper shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                </div>
+                <div class="leading-tight">
+                  <div class="font-display text-[16px]">{{ label }}</div>
+                  {% if sub %}<div class="text-[12.5px] text-paper/60 mt-0.5">{{ sub }}</div>{% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Tabs Agenda
+  (function() {
+    var tabs = document.querySelectorAll('#agenda-tabs [data-tab]');
+    var panes = document.querySelectorAll('.agenda-pane');
+    tabs.forEach(function(t) {
+      t.addEventListener('click', function() {
+        var key = t.dataset.tab;
+        tabs.forEach(function(x) { x.classList.toggle('active', x === t); });
+        panes.forEach(function(p) { p.classList.toggle('hidden', p.dataset.pane !== key); });
+      });
+    });
+  })();
+</script>
+{% endblock %}

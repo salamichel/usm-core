@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5">
+
+  {% set page_title = block('title')|trim %}
+  <title>{{ page_title ?: site_config.club_name|default('USM Volley') }}</title>
+
+  {# ── SEO ── #}
+  {% if meta %}
+    <meta name="description" content="{{ meta.description|truncate(160) }}">
+    <meta name="robots" content="{{ meta.robots }}">
+    {% if meta.canonical %}
+      <link rel="canonical" href="{{ meta.canonical }}">
+    {% else %}
+      <link rel="canonical" href="{{ base_url ~ current_path }}">
+    {% endif %}
+  {% else %}
+    <meta name="description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ base_url ~ current_path }}">
+  {% endif %}
+
+  {# ── Open Graph ── #}
+  {% if meta %}
+    <meta property="og:title" content="{{ meta.title }}">
+    <meta property="og:description" content="{{ meta.description|truncate(160) }}">
+    <meta property="og:type" content="{{ meta.ogType|default('website') }}">
+    <meta property="og:url" content="{{ meta.canonical|default(base_url ~ current_path) }}">
+    {% if meta.ogImage %}
+      <meta property="og:image" content="{{ meta.ogImage }}">
+      <meta property="og:image:width" content="1200">
+      <meta property="og:image:height" content="630">
+      <meta property="og:image:type" content="image/jpeg">
+    {% endif %}
+    {% if meta.articlePublishedAt %}
+      <meta property="article:published_time" content="{{ meta.articlePublishedAt }}">
+    {% endif %}
+    {% if meta.articleModifiedAt %}
+      <meta property="article:modified_time" content="{{ meta.articleModifiedAt }}">
+    {% endif %}
+  {% else %}
+    <meta property="og:title" content="{{ page_title ?: site_config.club_name|default('USM Volley') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ base_url ~ current_path }}">
+  {% endif %}
+
+  <meta name="twitter:card" content="summary_large_image">
+
+  {# ── JSON-LD ── #}
+  {% if meta and meta.jsonLd %}
+    {% for schema in meta.jsonLd %}
+    <script type="application/ld+json">{{ json_encode_pretty(schema) }}</script>
+    {% endfor %}
+  {% endif %}
+
+  {# ── Fonts paramétrables via site_config ── #}
+  {% set sans_font = site_config.font_family|default('Manrope') %}
+  {% set display_font = site_config.display_font_family|default('Archivo') %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family={{ sans_font|replace({' ': '+'}) }}:wght@400;500;600;700;800&family={{ display_font|replace({' ': '+'}) }}:ital,wght@0,400;0,700;0,800;0,900;1,700;1,800;1,900&display=swap">
+
+  {# ── Tailwind CDN — couleurs et fonts mappées sur les CSS vars ── #}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            flame: 'var(--flame)',
+            ember: 'var(--ember)',
+            ink:   'var(--ink)',
+            bone:  'var(--bone)',
+            paper: 'var(--paper)',
+          },
+          fontFamily: {
+            sans:    ['{{ sans_font }}', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            display: ['{{ display_font }}', 'ui-serif', 'serif'],
+          },
+          boxShadow: {
+            card:      'var(--shadow-card)',
+            cardHover: 'var(--shadow-card-hover)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
+  <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}">
+
+  {# ── Variables CSS pilotées par site_config ── #}
+  <style>
+    :root {
+      --flame: {{ site_config.primary_color|default('#E34226') }};
+      --ember: {{ site_config.secondary_color|default('#A6221C') }};
+      --ink:   {{ site_config.text_color|default('#1A1A1A') }};
+      --bone:  {{ site_config.background_color|default('#F7F4EE') }};
+      --paper: {{ site_config.surface_color|default('#FFFFFF') }};
+      --font-sans:    '{{ sans_font }}', ui-sans-serif, system-ui, sans-serif;
+      --font-display: '{{ display_font }}', ui-serif, serif;
+      --shadow-card:       0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+      --shadow-card-hover: 0 2px 4px rgba(0,0,0,.06), 0 24px 48px rgba(0,0,0,.12);
+    }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+<body class="frame-body min-h-screen flex flex-col">
+
+  {% include '_header.twig' %}
+  {% include '_mobile_menu.twig' %}
+  {% include '_flash.twig' %}
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include '_footer.twig' %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

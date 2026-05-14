@@ -1,0 +1,153 @@
+{% extends 'base.twig' %}
+{% block title %}Actualités — USM Volley{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-16">
+
+  {# Header #}
+  <header class="mb-12 pb-10 border-b border-slate-200">
+    <span class="inline-block text-xs uppercase tracking-[0.25em] text-slate-500 font-medium mb-3">Le journal</span>
+    <h1 class="font-serif text-4xl md:text-6xl font-semibold text-slate-900 leading-tight">Actualités</h1>
+  </header>
+
+  {# Filtres #}
+  {% if all_tags|length or months|length %}
+  <form method="GET" action="{{ url('blog') }}" class="mb-12 flex flex-wrap items-center gap-3">
+    {% if all_tags|length %}
+    <div class="flex items-center gap-2">
+      <label class="text-xs uppercase tracking-wider text-slate-500 font-medium">Catégorie</label>
+      <select name="tag" onchange="this.form.submit()"
+              class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+        <option value="">Toutes</option>
+        {% for tag in all_tags %}
+          {% set count = tag_counts[tag.id] ?? 0 %}
+          {% if count > 0 %}
+            <option value="{{ tag.slug }}" {{ selected_tag and selected_tag.id == tag.id ? 'selected' : '' }}>
+              {{ tag.name }} ({{ count }})
+            </option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    {% if months|length %}
+    <div class="flex items-center gap-2">
+      <label class="text-xs uppercase tracking-wider text-slate-500 font-medium">Mois</label>
+      <select name="month" onchange="this.form.submit()"
+              class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+        <option value="">Tous</option>
+        {% for month in months %}
+          <option value="{{ month }}" {{ selected_month == month ? 'selected' : '' }}>{{ month|month_fr }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <noscript><button type="submit" class="btn-primary text-xs py-1.5">Filtrer</button></noscript>
+
+    {% if selected_tag or selected_month %}
+      <a href="{{ url('blog') }}" class="ml-auto text-sm text-slate-600 hover:text-[var(--primary)] underline underline-offset-2">Réinitialiser</a>
+    {% endif %}
+  </form>
+  {% endif %}
+
+  {# Articles #}
+  {% if posts|length %}
+
+    {# Article vedette #}
+    {% set featured = posts[0] %}
+    <article class="mb-16 grid md:grid-cols-2 gap-10 items-center group">
+      {% if featured.cover %}
+        <a href="{{ url('blog/' ~ featured.slug) }}" class="block aspect-[4/3] overflow-hidden rounded-lg bg-slate-100">
+          <img src="{{ asset('uploads/' ~ featured.cover.filename) }}" alt="{{ featured.title }}"
+               loading="lazy" decoding="async"
+               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]">
+        </a>
+      {% endif %}
+      <div>
+        {% if featured.published_at %}
+          <time class="text-xs uppercase tracking-wider text-slate-500 font-medium block mb-3">{{ featured.published_at|date_fr }}</time>
+        {% endif %}
+        <h2 class="font-serif text-3xl md:text-4xl font-semibold leading-tight mb-4 text-slate-900">
+          <a href="{{ url('blog/' ~ featured.slug) }}" class="hover:text-[var(--primary)] transition">{{ featured.title }}</a>
+        </h2>
+        {% if featured.excerpt %}
+          <p class="text-slate-600 leading-relaxed text-base mb-6 line-clamp-4">{{ featured.excerpt }}</p>
+        {% endif %}
+        <a href="{{ url('blog/' ~ featured.slug) }}" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4 inline-flex items-center gap-1">
+          Lire la suite
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      </div>
+    </article>
+
+    {# Grille #}
+    {% if posts|length > 1 %}
+    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3 pt-10 border-t border-slate-200">
+      {% for post in posts|slice(1) %}
+      <article class="flex flex-col">
+        {% if post.cover %}
+          <a href="{{ url('blog/' ~ post.slug) }}" class="block aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-5 group">
+            <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}"
+                 loading="lazy" decoding="async"
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+          </a>
+        {% endif %}
+        <div class="flex flex-col flex-1">
+          {% if post.published_at %}
+            <time class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">{{ post.published_at|date_fr }}</time>
+          {% endif %}
+          <h3 class="font-serif text-xl font-semibold leading-tight mb-3 text-slate-900">
+            <a href="{{ url('blog/' ~ post.slug) }}" class="hover:text-[var(--primary)] transition">{{ post.title }}</a>
+          </h3>
+          {% if post.excerpt %}
+            <p class="text-sm text-slate-600 leading-relaxed line-clamp-3 mb-4">{{ post.excerpt }}</p>
+          {% endif %}
+          <a href="{{ url('blog/' ~ post.slug) }}" class="mt-auto text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">Lire →</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    <p class="text-slate-500 italic text-center py-20">Aucun article pour ces filtres.</p>
+  {% endif %}
+
+  {# Pagination #}
+  {% if pagination.totalPages > 1 %}
+  <nav class="flex flex-wrap items-center justify-center gap-2 mt-16 pt-10 border-t border-slate-200">
+    {% set qs = (selected_tag ? '&tag=' ~ selected_tag.slug : '') ~ (selected_month ? '&month=' ~ selected_month : '') %}
+
+    {% if pagination.hasPrevious() %}
+      <a href="{{ url('blog') ~ '?page=' ~ pagination.previousPage() ~ qs }}"
+         class="btn-secondary text-xs py-1.5 px-3">← Précédent</a>
+    {% else %}
+      <span class="inline-flex px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-300">← Précédent</span>
+    {% endif %}
+
+    <div class="flex gap-1 mx-2">
+      {% for page in pagination.getPageRange(7) %}
+        {% if page == pagination.currentPage %}
+          <span class="px-3.5 py-1.5 rounded-md bg-[var(--primary)] text-white text-sm font-semibold">{{ page }}</span>
+        {% else %}
+          <a href="{{ url('blog') ~ '?page=' ~ page ~ qs }}"
+             class="px-3.5 py-1.5 rounded-md border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition">{{ page }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if pagination.hasNext() %}
+      <a href="{{ url('blog') ~ '?page=' ~ pagination.nextPage() ~ qs }}"
+         class="btn-secondary text-xs py-1.5 px-3">Suivant →</a>
+    {% else %}
+      <span class="inline-flex px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium text-slate-300">Suivant →</span>
+    {% endif %}
+  </nav>
+
+  <p class="text-center text-xs text-slate-500 mt-4">Page {{ pagination.currentPage }} / {{ pagination.totalPages }}</p>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,402 @@
+{% extends "base.twig" %}
+{% block title %}Agenda — USM Volley{% endblock %}
+
+{% block head %}
+{# JSON-LD : EventSeries pour l'ensemble des manifestations à venir #}
+{% if manifestations is defined and manifestations|length %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Agenda USM Volley",
+  "description": "Calendrier des matchs et entraînements de l'Union Sportive Miosienne Volley-Ball",
+  "itemListElement": [
+    {% for mid, m in manifestations %}{% if loop.index <= 10 %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "SportsEvent",
+        "name": "{{ m.libelle|replace({'"': '\\"'})|raw }}",
+        "startDate": "{{ m.date_heure|date('Y-m-d\\TH:i') }}",
+        "eventStatus": "{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
+        "organizer": {
+          "@type": "SportsOrganization",
+          "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
+        }{% if m.lieu %},
+        "location": {
+          "@type": "Place",
+          "name": "{{ m.lieu|replace({'"': '\\"'})|raw }}"
+        }{% endif %}
+      }
+    }{{ not loop.last and loop.index < 10 ? ',' : '' }}
+    {% endif %}{% endfor %}
+  ]
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-12">
+
+  {# Header #}
+  <header class="mb-10">
+    <span class="inline-block text-xs uppercase tracking-[0.25em] text-slate-500 font-medium mb-3">Calendrier</span>
+    <h1 class="font-serif text-4xl md:text-5xl font-semibold text-slate-900 leading-tight">Agenda — événements à venir</h1>
+  </header>
+
+  {% include 'agenda/filters.twig' %}
+
+  {# Toolbar #}
+  <div class="card p-4 mb-6 flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-3">
+      <span class="text-xs uppercase tracking-wider text-slate-500 font-medium">Zoom</span>
+      <div class="flex gap-1">
+        <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">100%</button>
+        <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">80%</button>
+        <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">65%</button>
+        <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">50%</button>
+      </div>
+    </div>
+  </div>
+
+  {# Login CTA #}
+  <div class="rounded-md border border-[var(--primary)]/20 bg-[var(--primary)]/5 px-5 py-4 mb-6 flex items-center gap-3">
+    <svg class="w-5 h-5 text-[var(--primary)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+    <a href="https://unionsallesmiosvolley.free.nf/login.php" target="_blank" rel="noopener"
+       class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">
+      S'identifier pour mettre à jour sa participation
+    </a>
+  </div>
+
+  {% if manifestations is empty %}
+    <p class="text-slate-600 italic text-center py-16">Aucun événement à venir.</p>
+  {% else %}
+
+  {# Crosstable #}
+  <div class="agenda-table-container card overflow-hidden" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
+    <table class="border-collapse text-sm whitespace-nowrap agenda-table">
+
+      <thead class="sticky top-0 z-20 bg-slate-50">
+        <tr>
+          <th class="sticky-left z-30 bg-slate-100 border-b border-r border-slate-200 px-3 py-3 text-left font-semibold min-w-[160px] text-slate-700">
+            <div class="text-xs uppercase tracking-wider">Joueurs</div>
+          </th>
+
+          {% for mid, m in manifestations %}
+            {% if m.annule %}
+              {% set col_top = 'border-t-2 border-t-rose-400' %}
+              {% set col_bg  = 'bg-rose-50/50' %}
+            {% elseif m.provisoire %}
+              {% set col_top = 'border-t-2 border-t-amber-400' %}
+              {% set col_bg  = 'bg-amber-50/40' %}
+            {% else %}
+              {% set col_top = 'border-t-2 border-t-[var(--primary)]' %}
+              {% set col_bg  = 'bg-white' %}
+            {% endif %}
+
+            {% set ok = (m.nb_present + m.nb_disponible + m.nb_selection) >= 6 %}
+            {% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
+
+            <th class="border-b border-r border-slate-200 {{ col_top }} {{ col_bg }} px-3 py-3 text-left font-normal min-w-[180px] align-top">
+
+              <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{{ m.type }}</span>
+                {% if m.annule %}
+                  <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Annulé</span>
+                {% elseif m.provisoire %}
+                  <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Provisoire</span>
+                {% else %}
+                  <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Confirmé</span>
+                {% endif %}
+              </div>
+
+              <div class="font-serif font-semibold text-base text-slate-900 leading-snug mb-2">{{ m.titre }}</div>
+
+              <div class="space-y-1 text-xs text-slate-600 mb-2">
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span>{{ m.date_display }}</span>
+                </div>
+                {% if m.time_range %}
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>{{ m.time_range }}</span>
+                </div>
+                {% endif %}
+                <div class="flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  <span>{{ m.lieu }}</span>
+                </div>
+                {% if terrain_alert %}
+                <div class="flex items-center gap-1.5 text-rose-600 font-medium">
+                  <span>⚠</span><span>{{ m.nb_terrains }} terrains</span>
+                </div>
+                {% endif %}
+                {% if m.commentaire %}
+                <div class="italic text-slate-500 text-xs">{{ m.commentaire|slice(0, 40) }}</div>
+                {% endif %}
+              </div>
+
+              <div class="border-t border-slate-200 pt-2 space-y-1.5 text-[11px]">
+                {% if 'Match' in m.type %}
+                  <div class="px-2 py-1 rounded font-semibold text-xs text-center {% if ok %}text-emerald-700 bg-emerald-50{% else %}text-rose-700 bg-rose-50{% endif %}">
+                    {% if ok %}✓ Équipe OK{% else %}⚠ Sous-effectif{% endif %}
+                  </div>
+                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+                    {% if m.nb_selection > 0 %}<span class="text-amber-700">Sélection: <strong>{{ m.nb_selection }}</strong></span>{% endif %}
+                    {% if m.nb_present > 0 %}<span class="text-emerald-700">Présents: <strong>{{ m.nb_present }}</strong></span>{% endif %}
+                  </div>
+                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+                    {% if m.nb_disponible > 0 %}<span class="text-blue-700">Dispos: <strong>{{ m.nb_disponible }}</strong></span>{% endif %}
+                    {% if m.nb_indisponible > 0 %}<span class="text-rose-700">Indispos: <strong>{{ m.nb_indisponible }}</strong></span>{% endif %}
+                  </div>
+                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+                    {% if m.nb_absent > 0 %}<span class="text-rose-800">Absents: <strong>{{ m.nb_absent }}</strong></span>{% endif %}
+                    {% if m.nb_ne_sait_pas > 0 %}<span class="text-orange-600">Ne sait pas: <strong>{{ m.nb_ne_sait_pas }}</strong></span>{% endif %}
+                  </div>
+                {% else %}
+                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+                    <span class="text-emerald-700">Présents: <strong>{{ m.nb_present }}</strong></span>
+                    <span class="text-rose-700">Absents: <strong>{{ m.nb_absent }}</strong></span>
+                  </div>
+                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+                    {% if m.nb_disponible > 0 %}<span class="text-blue-700">Dispos: <strong>{{ m.nb_disponible }}</strong></span>{% endif %}
+                    {% if m.nb_indisponible > 0 %}<span class="text-rose-700">Indispos: <strong>{{ m.nb_indisponible }}</strong></span>{% endif %}
+                  </div>
+                  {% if m.nb_ne_sait_pas > 0 %}<div><span class="text-orange-600">Ne sait pas: <strong>{{ m.nb_ne_sait_pas }}</strong></span></div>{% endif %}
+                {% endif %}
+              </div>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for jid, nom in joueurs %}
+          {% set row = cross[jid] %}
+          {% set nb_manif = manifestations|length %}
+
+          <tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40">
+
+            <td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
+              {% if row.nb_participation < nb_manif %}
+                <img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
+              {% elseif row.nb_ne_sait_pas > 3 %}
+                <span class="text-base" title="Trop d'hésitations">😕</span>
+              {% elseif row.nb_ne_sait_pas_proche > 0 %}
+                <span class="text-base" title="Réponse attendue bientôt">🤔</span>
+              {% else %}
+                <img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
+              {% endif %}
+              {% set parts = nom|split(' ') %}
+              {% set nom_famille = parts[0] %}
+              {% set prenom = parts|last %}
+              <span class="ml-1.5 text-xs">{{ nom_famille|slice(0, 3)|upper }}... {{ prenom }}</span>
+            </td>
+
+            {% for mid, m in manifestations %}
+              {% set part = row[mid] ?? '' %}
+              {% set is_selected = part matches '/Sélectionné/' %}
+              {% set is_present = part matches '/(Présent|Oui)/' %}
+              {% set is_available_if_needed = part matches '/Disponible si n/' %}
+              {% set is_available = part matches '/(Disponible|Joker)/' and not is_available_if_needed %}
+              {% set is_unavailable = part matches '/Indisponible/' %}
+              {% set is_absent = part matches '/(Absent|Non)/' %}
+              {% set is_unknown = part matches '/(Ne sait pas|\\?)/' %}
+
+              {% if is_selected %}
+                {% set cell_bg = 'bg-amber-100' %}
+                {% set text_color = 'text-amber-800' %}
+              {% elseif is_present %}
+                {% set cell_bg = 'bg-emerald-100' %}
+                {% set text_color = 'text-emerald-800' %}
+              {% elseif is_available %}
+                {% set cell_bg = 'bg-sky-100' %}
+                {% set text_color = 'text-sky-800' %}
+              {% elseif is_available_if_needed %}
+                {% set cell_bg = 'bg-cyan-100' %}
+                {% set text_color = 'text-cyan-800' %}
+              {% elseif is_unavailable %}
+                {% set cell_bg = 'bg-rose-100' %}
+                {% set text_color = 'text-rose-800' %}
+              {% elseif is_absent %}
+                {% set cell_bg = 'bg-rose-200' %}
+                {% set text_color = 'text-rose-900' %}
+              {% elseif is_unknown %}
+                {% set cell_bg = 'bg-orange-100' %}
+                {% set text_color = 'text-orange-800' %}
+              {% else %}
+                {% set cell_bg = 'bg-slate-100' %}
+                {% set text_color = 'text-slate-500' %}
+              {% endif %}
+
+              {% if m.annule %}
+                {% set cell_bg = 'bg-rose-200' %}
+                {% set text_color = 'text-rose-900' %}
+              {% elseif m.provisoire %}
+                {% set cell_bg = 'bg-amber-100' %}
+                {% set text_color = 'text-amber-800' %}
+              {% endif %}
+
+              {% if is_selected %}
+                {% set icone = '★' %}{% set libelle = 'Sél.' %}
+              {% elseif is_present %}
+                {% set icone = '✓' %}{% set libelle = 'Prés.' %}
+              {% elseif is_available_if_needed %}
+                {% set icone = '○' %}{% set libelle = 'Si néc.' %}
+              {% elseif is_available %}
+                {% set icone = '◐' %}{% set libelle = 'Dispo' %}
+              {% elseif is_unavailable %}
+                {% set icone = '✗' %}{% set libelle = 'Indispo' %}
+              {% elseif is_absent %}
+                {% set icone = '✗' %}{% set libelle = 'Absent' %}
+              {% elseif is_unknown %}
+                {% set icone = '?' %}{% set libelle = '?' %}
+              {% else %}
+                {% set icone = '—' %}{% set libelle = 'S.R.' %}
+              {% endif %}
+
+              <td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part }}">
+                <span class="text-sm">{{ icone }}</span> <span class="text-xs">{{ libelle }}</span>
+              </td>
+            {% endfor %}
+
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Légende #}
+  <div class="mt-10 space-y-6">
+    <h2 class="font-serif text-xl font-semibold text-slate-900">Légende</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div class="flex items-center gap-2.5 bg-emerald-50 rounded-md px-3 py-2.5">
+        <span class="text-lg">✓</span>
+        <div>
+          <div class="text-xs font-semibold text-emerald-900">Présent</div>
+          <div class="text-xs text-emerald-700">Confirmé</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-amber-50 rounded-md px-3 py-2.5">
+        <span class="text-lg">★</span>
+        <div>
+          <div class="text-xs font-semibold text-amber-900">Sélectionné</div>
+          <div class="text-xs text-amber-700">Important</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-sky-50 rounded-md px-3 py-2.5">
+        <span class="text-lg">◐</span>
+        <div>
+          <div class="text-xs font-semibold text-sky-900">Disponible</div>
+          <div class="text-xs text-sky-700">En réserve</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-cyan-50 rounded-md px-3 py-2.5">
+        <span class="text-lg">○</span>
+        <div>
+          <div class="text-xs font-semibold text-cyan-900">Si nécessaire</div>
+          <div class="text-xs text-cyan-700">Recours</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-rose-50 rounded-md px-3 py-2.5">
+        <span class="text-lg">✗</span>
+        <div>
+          <div class="text-xs font-semibold text-rose-900">Indisponible</div>
+          <div class="text-xs text-rose-700">Empêchement</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-rose-100 rounded-md px-3 py-2.5">
+        <span class="text-lg">✗</span>
+        <div>
+          <div class="text-xs font-semibold text-rose-900">Absent</div>
+          <div class="text-xs text-rose-700">Confirmé</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-orange-50 rounded-md px-3 py-2.5">
+        <span class="text-lg">?</span>
+        <div>
+          <div class="text-xs font-semibold text-orange-900">Ne sait pas</div>
+          <div class="text-xs text-orange-700">À confirmer</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 bg-slate-100 rounded-md px-3 py-2.5">
+        <span class="text-lg">—</span>
+        <div>
+          <div class="text-xs font-semibold text-slate-700">Sans réponse</div>
+          <div class="text-xs text-slate-600">À remplir</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-slate-200 space-y-2 text-xs text-slate-600">
+      <p><strong class="text-emerald-700">✓ Équipe OK :</strong> au moins 6 joueurs (Présents + Disponibles + Sélectionnés)</p>
+      <p><strong class="text-rose-700">⚠ Sous-effectif :</strong> moins de 6 joueurs disponibles</p>
+      <p><strong>⚠ Alerte terrains :</strong> nombre de terrains anormal (pas 0, 1 ou ".")</p>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <div class="mt-12">
+    <a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
+  </div>
+</div>
+
+<style>
+  .agenda-table-container {
+    position: relative;
+    touch-action: manipulation;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+  .agenda-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .agenda-table th.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 30;
+  }
+  .agenda-table td.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+  }
+  @media (max-width: 640px) {
+    .agenda-table-container { font-size: 0.75rem; }
+    .agenda-table th, .agenda-table td { padding: 4px 6px; }
+  }
+  .zoom-btn.active {
+    background-color: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+</style>
+
+<script>
+(function() {
+  var table = document.querySelector('.agenda-table');
+  var buttons = document.querySelectorAll('.zoom-btn');
+  if (!table || !buttons.length) return;
+
+  function applyZoom(z) {
+    table.style.zoom = z;
+    buttons.forEach(function(b) { b.classList.toggle('active', parseFloat(b.dataset.zoom) === z); });
+    try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
+  }
+
+  var stored = null;
+  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
+  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
+  applyZoom(initial);
+  buttons.forEach(function(b) {
+    b.addEventListener('click', function() { applyZoom(parseFloat(b.dataset.zoom)); });
+  });
+})();
+</script>
+{% endblock %}

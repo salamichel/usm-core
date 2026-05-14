@@ -1,0 +1,67 @@
+{% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
+{% block title %}Pages statiques{% endblock %}
+
+{% block content %}
+{{ m.page_header('Pages statiques', url('admin/pages/create'), '+ Nouvelle') }}
+
+{% if pages|length %}
+
+{# ── Mobile : cartes ── #}
+<div class="sm:hidden space-y-3">
+  {% for page in pages %}
+  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+    <div class="font-black text-base mb-1 break-words">
+      {{ page.title }} <span class="text-gray-500 font-mono text-xs">#{{ page.id }}</span>
+    </div>
+    <div class="text-xs mb-2">{{ m.status_badge(page.is_published, 'Publiée', 'Brouillon') }}</div>
+    <div class="text-gray-500 font-mono text-xs mb-3 break-all">/p/{{ page.slug }}</div>
+    {{ m.action_buttons(
+      url('admin/pages/' ~ page.id ~ '/edit'),
+      url('admin/pages/' ~ page.id ~ '/delete'),
+      'Supprimer cette page ?',
+      csrf_token,
+      url('p/' ~ page.slug)
+    ) }}
+  </div>
+  {% endfor %}
+</div>
+
+{# ── Desktop : tableau ── #}
+<div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black">ID</th>
+        <th class="text-left px-4 py-3 font-black">Titre</th>
+        <th class="text-left px-4 py-3 font-black">Slug</th>
+        <th class="text-left px-4 py-3 font-black">Statut</th>
+        <th class="px-4 py-3" aria-label="Actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for page in pages %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ page.id }}</td>
+        <td class="px-4 py-3 font-semibold">{{ page.title }}</td>
+        <td class="px-4 py-3 text-gray-500 font-mono text-xs">/p/{{ page.slug }}</td>
+        <td class="px-4 py-3">{{ m.status_badge(page.is_published, 'Publiée', 'Brouillon') }}</td>
+        <td class="px-4 py-3">
+          {{ m.action_buttons(
+            url('admin/pages/' ~ page.id ~ '/edit'),
+            url('admin/pages/' ~ page.id ~ '/delete'),
+            'Supprimer cette page ?',
+            csrf_token,
+            url('p/' ~ page.slug)
+          ) }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+  {{ m.empty_state('Aucune page.') }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,83 @@
+{# ── Header éditorial ──────────────────────────────────────────────────────── #}
+<header class="header-classic">
+  <div class="header-inner">
+    {% set _logo_mode = site_config.logo_url ? (site_config.logo_display_mode|default('image_only')) : 'text_only' %}
+    {% set _logo_h    = site_config.logo_height|default('40') %}
+    <a href="{{ url('/') }}" class="logo-classic flex items-center gap-2.5">
+      {% if site_config.logo_url and _logo_mode != 'text_only' %}
+        <img src="{{ asset('uploads/' ~ site_config.logo_url) }}"
+             alt="{{ site_config.club_name|default('USM Volley') }}"
+             style="height:{{ _logo_h }}px; width:auto; max-width:280px; display:block;"
+             class="{% if _logo_mode == 'image_desktop_text_mobile' %}hidden md:block{% endif %}">
+      {% endif %}
+      {% if _logo_mode == 'text_only' or _logo_mode == 'image_and_text' %}
+        <span>{{ site_config.club_name|default('USM Volley') }}</span>
+      {% elseif _logo_mode == 'image_desktop_text_mobile' %}
+        <span class="md:hidden">{{ site_config.club_name|default('USM Volley') }}</span>
+      {% endif %}
+    </a>
+
+    <nav class="nav-classic hidden md:flex" aria-label="Navigation principale">
+      <ul class="nav-list-classic">
+        {% for item in menu_items %}
+          {% if item.children|length %}
+            <li class="nav-item-classic has-mega-classic">
+              <a href="#" class="nav-link-classic" aria-haspopup="true" aria-expanded="false">
+                {{ item.label }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </a>
+              <div class="mega-menu-classic" role="menu">
+                {% set has_columns = false %}
+                {% for child in item.children %}
+                  {% if child.children|length %}{% set has_columns = true %}{% endif %}
+                {% endfor %}
+
+                {% if has_columns %}
+                  {% for col in item.children %}
+                    <div class="mega-column-classic">
+                      <h3>{{ col.label }}</h3>
+                      <ul class="mega-links-classic">
+                        {% if col.children|length %}
+                          {% for sub in col.children %}
+                            <li><a href="{{ item_url(sub) }}" role="menuitem">{{ sub.label }}</a></li>
+                          {% endfor %}
+                        {% else %}
+                          <li><a href="{{ item_url(col) }}" role="menuitem">{{ col.label }}</a></li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="mega-column-classic" style="grid-column: 1 / -1;">
+                    <ul class="mega-links-classic" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.125rem 1rem;">
+                      {% for child in item.children %}
+                        <li><a href="{{ item_url(child) }}" role="menuitem">{{ child.label }}</a></li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+              </div>
+            </li>
+          {% else %}
+            {% set item_href = item_url(item) %}
+            <li class="nav-item-classic">
+              <a href="{{ item_href }}" class="nav-link-classic {{ is_active(item_href) ? 'active' : '' }}">{{ item.label }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <button id="mobile-menu-toggle"
+            class="md:hidden ml-auto p-2 rounded-md border border-slate-200 hover:bg-slate-50 transition focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            aria-label="Ouvrir le menu"
+            aria-expanded="false"
+            aria-controls="mobile-menu">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+</header>

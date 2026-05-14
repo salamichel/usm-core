@@ -1,0 +1,16 @@
+{% extends 'base.twig' %}
+{% block title %}Page introuvable — USM Volley{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-24 text-center">
+  <p class="font-serif text-7xl md:text-9xl font-semibold text-slate-200 mb-6 leading-none">404</p>
+  <h1 class="font-serif text-3xl md:text-4xl font-semibold text-slate-900 mb-4">Page introuvable</h1>
+  <p class="text-slate-600 leading-relaxed mb-10 max-w-md mx-auto">
+    La page que vous recherchez n'existe plus ou a été déplacée.
+  </p>
+  <a href="{{ url('/') }}" class="btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Retour à l'accueil
+  </a>
+</div>
+{% endblock %}

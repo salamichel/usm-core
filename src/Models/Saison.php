@@ -68,4 +68,31 @@ class Saison
         $stmt->execute([$id]);
         return (int)$stmt->fetchColumn();
     }
+
+    /**
+     * Number of licenciés in the given season that did not exist (by n_licence)
+     * in any previous season. Falls back to snapshotCount if no previous season.
+     */
+    public static function newLicenciesCount(int $id): int
+    {
+        $db = Database::get();
+        $prev = $db->prepare("SELECT id FROM saisons WHERE id < ? ORDER BY id DESC LIMIT 1");
+        $prev->execute([$id]);
+        $prevId = $prev->fetchColumn();
+        if (!$prevId) {
+            return self::snapshotCount($id);
+        }
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) FROM joueur_snapshots s
+             WHERE s.saison_id = ?
+               AND s.n_licence IS NOT NULL
+               AND s.n_licence <> ''
+               AND NOT EXISTS (
+                 SELECT 1 FROM joueur_snapshots p
+                 WHERE p.saison_id = ? AND p.n_licence = s.n_licence
+               )"
+        );
+        $stmt->execute([$id, $prevId]);
+        return (int)$stmt->fetchColumn();
+    }
 }

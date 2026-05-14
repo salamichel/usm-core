@@ -1,0 +1,29 @@
+{% extends 'base.twig' %}
+{% import '_gallery.twig' as components %}
+{% block title %}{{ page.title }} — USM Volley{% endblock %}
+
+{% block content %}
+<article class="max-w-3xl mx-auto px-6 py-16">
+  <header class="mb-12 pb-8 border-b border-slate-200">
+    <h1 class="font-serif text-4xl md:text-5xl font-semibold leading-tight text-slate-900">{{ page.title }}</h1>
+  </header>
+
+  <div class="prose prose-slate prose-lg max-w-none
+              prose-headings:font-serif prose-headings:font-semibold prose-headings:text-slate-900
+              prose-a:text-[var(--primary)] prose-a:underline-offset-2
+              prose-img:rounded-md prose-img:my-8
+              prose-blockquote:border-l-2 prose-blockquote:border-[var(--primary)] prose-blockquote:font-serif prose-blockquote:italic prose-blockquote:text-slate-700">
+    {{ page.content|render_with_config|raw }}
+  </div>
+
+  {{ components.gallery(photos) }}
+</article>
+{% endblock %}
+
+{% block scripts %}
+{% if photos|length %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });</script>
+{% endif %}
+{% endblock %}
