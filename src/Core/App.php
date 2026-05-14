@@ -25,6 +25,7 @@ use App\Controllers\Admin\SiteConfigController;
 use App\Controllers\Admin\ContactAdminController;
 use App\Controllers\Admin\LocationController;
 use App\Controllers\Admin\ContactMessageController;
+use App\Controllers\Admin\MediaUploadController;
 
 class App
 {
@@ -179,6 +180,9 @@ class App
         $r->get('/admin/locations/{id}/edit',   [LocationController::class, 'edit']);
         $r->post('/admin/locations/{id}/edit',  [LocationController::class, 'update']);
         $r->post('/admin/locations/{id}/delete',[LocationController::class, 'delete']);
+
+        // ── Admin media upload (WYSIWYG editor) ───────────────────────────────
+        $r->post('/admin/media/upload', [MediaUploadController::class, 'upload']);
 
         // ── Admin contact messages ────────────────────────────────────────────
         $r->get('/admin/contact-messages',         [ContactMessageController::class, 'index']);
