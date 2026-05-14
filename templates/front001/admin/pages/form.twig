@@ -67,7 +67,7 @@
     const csrfToken = document.querySelector('[name="_csrf_token"]').value;
     const uploadUrl = '{{ url("admin/media/upload") }}';
 
-    Jodit.make('#content', {
+    const editor = Jodit.make('#content', {
       language: 'fr',
       height: 500,
       toolbarButtonSize: 'small',
@@ -121,7 +121,6 @@
           };
         },
         defaultHandlerSuccess: function (data) {
-          const editor = this.j || this.jodit;
           if (!data.files || !data.files.length) return;
           data.files.forEach(function (url, i) {
             const isImage = data.isImages && data.isImages[i];

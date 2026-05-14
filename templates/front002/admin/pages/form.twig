@@ -53,7 +53,7 @@
     var csrfToken = document.querySelector('[name="_csrf_token"]').value;
     var uploadUrl = '{{ url("admin/media/upload") }}';
 
-    Jodit.make('#content', {
+    var editor = Jodit.make('#content', {
       language: 'fr',
       height: 500,
       toolbarButtonSize: 'small',
@@ -107,20 +107,19 @@
           };
         },
         defaultHandlerSuccess: function (data) {
-          var ed = this.j || this.jodit;
           if (!data.files || !data.files.length) return;
           data.files.forEach(function (url, i) {
             var isImage = data.isImages && data.isImages[i];
             var name    = (data.names && data.names[i]) ? data.names[i] : url.split('/').pop();
             if (isImage) {
-              ed.s.insertImage(url, null, '100%');
+              editor.s.insertImage(url, null, '100%');
             } else {
-              var link = ed.createInside.element('a');
+              var link = editor.createInside.element('a');
               link.setAttribute('href', url);
               link.setAttribute('target', '_blank');
               link.setAttribute('rel', 'noopener noreferrer');
               link.textContent = name;
-              ed.s.insertNode(link);
+              editor.s.insertNode(link);
             }
           });
         }
