@@ -55,7 +55,7 @@
           <a href="{{ url('blog/' ~ post.slug) }}" class="card-news">
             <div class="card-art">
               {% if post.cover %}
-                <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}" loading="lazy">
+                <img src="{{ image_variant(post.cover, 'medium') }}" alt="{{ post.title }}" loading="lazy">
               {% endif %}
               {% if post.tags is defined and post.tags|length %}
                 <div class="absolute top-3 left-3 z-10">

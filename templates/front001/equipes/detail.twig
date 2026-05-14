@@ -24,7 +24,7 @@
               hover:shadow-[3px_3px_0_#000] transition-all group order-2 md:order-1"
        {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
        data-gallery="gallery-equipe_saison-cover">
-      <img src="{{ asset('uploads/' ~ cover.filename) }}"
+      <img src="{{ image_variant(cover, 'large') }}"
            alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
            loading="eager"
            decoding="async"
@@ -122,7 +122,7 @@
                     hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
           {% if eq.cover %}
           <div class="relative h-48 overflow-hidden">
-            <img src="{{ asset('uploads/' ~ eq.cover.filename) }}"
+            <img src="{{ image_variant(eq.cover, 'medium') }}"
                  alt="{{ eq.libelle }}"
                  loading="lazy"
                  decoding="async"

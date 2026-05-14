@@ -91,6 +91,11 @@ class View
                 return BASE_URL . '/assets/' . ltrim($path, '/');
             }));
 
+            // image_variant(photo, size) — serves optimized variant or falls back to original
+            $twig->addFunction(new TwigFunction('image_variant', function (array $photo, string $size): string {
+                return \App\Services\ImageVariant::url($photo, $size);
+            }));
+
             // item_url(item) — resolves a MenuItem array to its URL
             $twig->addFunction(new TwigFunction('item_url', function (array $item): string {
                 return MenuItem::getUrl($item);

@@ -29,7 +29,7 @@
        class="glightbox block aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 group order-2 md:order-1"
        {% if cover.caption %}data-glightbox="description: {{ cover.caption }}"{% endif %}
        data-gallery="gallery-equipe_saison-cover">
-      <img src="{{ asset('uploads/' ~ cover.filename) }}"
+      <img src="{{ image_variant(cover, 'large') }}"
            alt="{{ cover.caption ? cover.caption|truncate(125) : 'Photo de couverture' }}"
            loading="eager" decoding="async"
            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]">
@@ -127,7 +127,7 @@
       <a href="{{ url('equipes/' ~ eq.slug) }}" class="group block">
         <div class="aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-4">
           {% if eq.cover %}
-            <img src="{{ asset('uploads/' ~ eq.cover.filename) }}" alt="{{ eq.libelle }}"
+            <img src="{{ image_variant(eq.cover, 'medium') }}" alt="{{ eq.libelle }}"
                  loading="lazy" decoding="async"
                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
           {% else %}

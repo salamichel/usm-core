@@ -50,7 +50,7 @@
         <a href="{{ url('equipes/' ~ eq.slug) }}" class="group block">
           <div class="aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-5">
             {% if eq.cover %}
-              <img src="{{ asset('uploads/' ~ eq.cover.filename) }}" alt="{{ eq.libelle }}"
+              <img src="{{ image_variant(eq.cover, 'medium') }}" alt="{{ eq.libelle }}"
                    loading="lazy" decoding="async"
                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
             {% else %}

@@ -9,7 +9,7 @@
        class="glightbox block rounded-lg overflow-hidden border border-slate-200 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
        {% if photo.caption %}data-glightbox="description: {{ photo.caption }}"{% endif %}
        data-gallery="gallery-{{ photo.entity_type }}-{{ photo.entity_id }}">
-      <img src="{{ asset('uploads/' ~ photo.filename) }}"
+      <img src="{{ image_variant(photo, 'thumb') }}"
            alt="{{ photo.caption ? photo.caption|truncate(125) : 'Photo' }}"
            loading="lazy" decoding="async"
            class="w-full h-40 object-cover">

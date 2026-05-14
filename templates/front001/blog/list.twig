@@ -55,7 +55,7 @@
       {% if featured.cover %}
         <a href="{{ url('blog/' ~ featured.slug) }}"
            class="block md:w-2/5 h-56 md:h-auto shrink-0 overflow-hidden bg-gray-200">
-          <img src="{{ asset('uploads/' ~ featured.cover.filename) }}"
+          <img src="{{ image_variant(featured.cover, 'medium') }}"
                alt="{{ featured.title }}"
                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
         </a>
@@ -86,7 +86,7 @@
       <article class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden flex flex-col">
         {% if post.cover %}
           <a href="{{ url('blog/' ~ post.slug) }}" class="block h-48 shrink-0 overflow-hidden bg-gray-200">
-            <img src="{{ asset('uploads/' ~ post.cover.filename) }}"
+            <img src="{{ image_variant(post.cover, 'medium') }}"
                  alt="{{ post.title }}"
                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
           </a>

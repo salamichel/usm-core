@@ -9,7 +9,7 @@
          class="glightbox block overflow-hidden"
          {% if photo.caption %}data-glightbox="description: {{ photo.caption }}"{% endif %}
          data-gallery="gallery-{{ photo.entity_type }}-{{ photo.entity_id }}">
-        <img src="{{ asset('uploads/' ~ photo.filename) }}"
+        <img src="{{ image_variant(photo, 'thumb') }}"
              alt="{{ photo.caption ? photo.caption|truncate(125) : 'Photo' }}"
              loading="lazy" decoding="async">
       </a>

@@ -61,7 +61,7 @@
   {# Cover #}
   {% if post.cover %}
     <figure class="-mx-6 md:mx-0 mb-12">
-      <img src="{{ asset('uploads/' ~ post.cover.filename) }}" alt="{{ post.title }}"
+      <img src="{{ image_variant(post.cover, 'large') }}" alt="{{ post.title }}"
            loading="lazy" decoding="async"
            class="w-full max-h-[600px] object-cover md:rounded-lg">
     </figure>
