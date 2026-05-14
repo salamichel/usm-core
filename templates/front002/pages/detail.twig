@@ -4,7 +4,16 @@
 
 {% block content %}
 <article class="max-w-3xl mx-auto px-6 py-16">
-  <header class="mb-12 pb-8 border-b border-slate-200">
+
+  {# Breadcrumb #}
+  <nav aria-label="Fil d'Ariane" class="text-sm text-slate-500 mb-10">
+    <a href="{{ url('') }}" class="hover:text-[var(--primary)] transition-colors">Accueil</a>
+    <span class="mx-2 text-slate-300">/</span>
+    <span class="text-slate-900">{{ page.title }}</span>
+  </nav>
+
+  <header class="mb-12 pb-10 border-b border-slate-200">
+    <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">Page</span>
     <h1 class="font-serif text-4xl md:text-5xl font-semibold leading-tight text-slate-900">{{ page.title }}</h1>
   </header>
 
