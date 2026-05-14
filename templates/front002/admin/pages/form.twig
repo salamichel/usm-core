@@ -58,6 +58,18 @@
       height: 500,
       toolbarButtonSize: 'small',
       buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,file,|,table,|,undo,redo,|,source',
+      controls: {
+        paragraph: {
+          list: {
+            p:          'Paragraphe',
+            h1:         'Titre 1',
+            h2:         'Titre 2',
+            h3:         'Titre 3',
+            h4:         'Titre 4',
+            blockquote: 'Citation',
+          }
+        }
+      },
       uploader: {
         url: uploadUrl,
         data: { _csrf_token: csrfToken },
