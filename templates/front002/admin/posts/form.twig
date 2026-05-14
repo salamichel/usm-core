@@ -97,38 +97,7 @@
       language: 'fr',
       height: 400,
       toolbarButtonSize: 'small',
-      buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,|,insertFile,|,table,|,undo,redo,|,source',
-      extraButtons: [
-        {
-          name: 'insertFile',
-          tooltip: 'Insérer un fichier (PDF, Word, Excel)',
-          icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
-          exec: function (editor) {
-            var input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.pdf,.doc,.docx,.xls,.xlsx';
-            input.onchange = function () {
-              if (!input.files.length) return;
-              var formData = new FormData();
-              formData.append('files[0]', input.files[0]);
-              formData.append('_csrf_token', csrfToken);
-              fetch(uploadUrl, { method: 'POST', body: formData })
-                .then(function (r) { return r.json(); })
-                .then(function (resp) {
-                  if (!resp.ok) { alert('Erreur : ' + (resp.error || 'Upload échoué')); return; }
-                  var link = editor.createInside.element('a');
-                  link.setAttribute('href', resp.url);
-                  link.setAttribute('target', '_blank');
-                  link.setAttribute('rel', 'noopener noreferrer');
-                  link.textContent = resp.name;
-                  editor.s.insertNode(link);
-                })
-                .catch(function () { alert('Erreur réseau lors de l\'upload.'); });
-            };
-            input.click();
-          }
-        }
-      ],
+      buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,file,|,table,|,undo,redo,|,source',
       uploader: {
         url: uploadUrl,
         data: { _csrf_token: csrfToken },
