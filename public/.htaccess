@@ -3,6 +3,9 @@ Options -MultiViews
 
 RewriteEngine On
 
+# Block direct access to sensitive directories
+RewriteRule ^(src|vendor|config|templates|logs|database)(/.*)?$ - [F,L]
+
 # Serve existing static files (assets) directly
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
