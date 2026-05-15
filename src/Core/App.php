@@ -103,6 +103,16 @@ class App
         // ── Admin dashboard ───────────────────────────────────────────────────
         $r->get('/admin',         [DashboardController::class, 'index']);
 
+        // ── AI Cover ──────────────────────────────────────────────────────────
+        $r->get('/admin/ai-contexts',                  [AiCoverController::class, 'index']);
+        $r->get('/admin/ai-contexts/create',           [AiCoverController::class, 'create']);
+        $r->post('/admin/ai-contexts',                 [AiCoverController::class, 'store']);
+        $r->get('/admin/ai-contexts/{id}/edit',        [AiCoverController::class, 'edit']);
+        $r->post('/admin/ai-contexts/{id}/edit',       [AiCoverController::class, 'update']);
+        $r->post('/admin/ai-contexts/{id}/delete',     [AiCoverController::class, 'delete']);
+        $r->post('/admin/ai-contexts/{id}/default',    [AiCoverController::class, 'setDefault']);
+        $r->post('/admin/posts/{id}/generate-cover',   [AiCoverController::class, 'generateCover']);
+
         // ── Admin tags ─────────────────────────────────────────────────────
         $r->get('/admin/tags',             [TagController::class, 'index']);
         $r->get('/admin/tags/create',      [TagController::class, 'create']);

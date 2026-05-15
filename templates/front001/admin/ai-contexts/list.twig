@@ -10,6 +10,10 @@
   </a>
 </div>
 
+<p class="text-sm text-gray-600 mb-6">
+  Les contextes IA définissent le style visuel utilisé pour générer les images de couverture des articles via l'API Gemini + Imagen.
+</p>
+
 {% if contexts is empty %}
   <div class="border-2 border-black bg-amber-50 p-6 text-center font-semibold">
     Aucun contexte IA configuré.
@@ -55,7 +59,7 @@
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
               <button type="submit"
                       class="border-2 border-black bg-amber-100 font-black text-xs px-3 py-1 shadow-[2px_2px_0_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-                Def. défaut
+                Déf. défaut
               </button>
             </form>
             {% endif %}
@@ -63,7 +67,7 @@
                   onsubmit="return confirm('Supprimer ce contexte ?')">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
               <button type="submit"
-                      class="border-2 border-red-600 bg-red-50 text-red-700 font-black text-xs px-3 py-1 shadow-[2px_2px_0_red] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                      class="border-2 border-red-600 bg-red-50 text-red-700 font-black text-xs px-3 py-1 shadow-[2px_2px_0_#f00] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
                 Supprimer
               </button>
             </form>

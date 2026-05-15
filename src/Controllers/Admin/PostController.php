@@ -112,6 +112,7 @@ class PostController extends AdminCrudController
             'tags'          => $tags,
             'tag_ids'       => $tagIds,
             'all_tags'      => $allTags,
+            'ai_contexts'   => \App\Models\AiImageContext::all(),
         ]);
     }
 
