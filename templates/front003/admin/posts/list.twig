@@ -91,6 +91,7 @@
         <th class="px-4 py-3 font-black w-20" aria-label="Couverture"></th>
         <th class="text-left px-4 py-3 font-black">Titre</th>
         <th class="text-left px-4 py-3 font-black">Statut</th>
+        <th class="text-left px-4 py-3 font-black">Slider</th>
         <th class="text-left px-4 py-3 font-black">Date</th>
         <th class="px-4 py-3" aria-label="Actions"></th>
       </tr>
@@ -115,6 +116,15 @@
           </div>
         </td>
         <td class="px-4 py-3">{{ m.status_badge(post.is_published, 'Publié', 'Brouillon') }}</td>
+        <td class="px-4 py-3">
+          <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/toggle-slider') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" title="{{ post.is_slider ? 'Retirer du slider' : 'Épingler dans le slider' }}"
+                    class="border-2 px-2 py-1 text-xs font-bold transition {{ post.is_slider ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white' : 'border-gray-300 text-gray-400 hover:border-amber-400 hover:text-amber-600' }}">
+              📌 {{ post.is_slider ? 'Épinglé' : 'Épingler' }}
+            </button>
+          </form>
+        </td>
         <td class="px-4 py-3 text-gray-500 text-xs">{{ post.published_at|date_fr }}</td>
         <td class="px-4 py-3">
           {{ m.action_buttons(

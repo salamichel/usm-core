@@ -62,6 +62,12 @@
                class="w-5 h-5 border-2 border-black">
         <label class="font-black" for="is_published">Publié</label>
       </div>
+      <div class="flex items-center gap-3 pt-7">
+        <input type="checkbox" id="is_slider" name="is_slider" value="1"
+               {% if post and post.is_slider %}checked{% endif %}
+               class="w-5 h-5 border-2 border-amber-500">
+        <label class="font-black" for="is_slider">📌 Épingler dans le slider</label>
+      </div>
     </div>
 
     <div>
