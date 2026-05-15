@@ -96,7 +96,7 @@ class AiCoverController
     public function index(array $params): void
     {
         Auth::require();
-        View::render('admin/ai-contexts/list', ['contexts' => AiImageContext::all()]);
+        View::render('admin/ai-contexts/list.twig', ['contexts' => AiImageContext::all()]);
     }
 
     /**
@@ -105,7 +105,7 @@ class AiCoverController
     public function create(array $params): void
     {
         Auth::require();
-        View::render('admin/ai-contexts/form', [
+        View::render('admin/ai-contexts/form.twig', [
             'context' => null,
             'action'  => BASE_URL . '/admin/ai-contexts',
         ]);
@@ -119,7 +119,7 @@ class AiCoverController
         Auth::require();
         if (empty(trim($_POST['name'] ?? ''))) {
             View::flash('error', 'Le nom est obligatoire.');
-            View::render('admin/ai-contexts/form', [
+            View::render('admin/ai-contexts/form.twig', [
                 'context' => $_POST,
                 'action'  => BASE_URL . '/admin/ai-contexts',
             ]);
@@ -148,7 +148,7 @@ class AiCoverController
             View::render('error.twig', ['error' => 'Contexte introuvable.']);
             return;
         }
-        View::render('admin/ai-contexts/form', [
+        View::render('admin/ai-contexts/form.twig', [
             'context' => $context,
             'action'  => BASE_URL . '/admin/ai-contexts/' . $params['id'] . '/edit',
         ]);
@@ -168,7 +168,7 @@ class AiCoverController
         }
         if (empty(trim($_POST['name'] ?? ''))) {
             View::flash('error', 'Le nom est obligatoire.');
-            View::render('admin/ai-contexts/form', [
+            View::render('admin/ai-contexts/form.twig', [
                 'context' => array_merge($context, $_POST),
                 'action'  => BASE_URL . '/admin/ai-contexts/' . $params['id'] . '/edit',
             ]);
