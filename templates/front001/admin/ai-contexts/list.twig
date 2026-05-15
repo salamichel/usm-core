@@ -1,0 +1,78 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Contextes IA{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between gap-4 mb-6">
+  <h1 class="text-3xl font-black">Contextes IA</h1>
+  <a href="{{ url('admin/ai-contexts/create') }}"
+     class="border-4 border-black bg-usm-brown text-white font-black px-5 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-sm">
+    + Nouveau contexte
+  </a>
+</div>
+
+{% if contexts is empty %}
+  <div class="border-2 border-black bg-amber-50 p-6 text-center font-semibold">
+    Aucun contexte IA configuré.
+  </div>
+{% else %}
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="px-4 py-3 text-left font-black">Nom</th>
+        <th class="px-4 py-3 text-left font-black">Modèles</th>
+        <th class="px-4 py-3 text-left font-black">Style (aperçu)</th>
+        <th class="px-4 py-3 text-left font-black">Défaut</th>
+        <th class="px-4 py-3 text-left font-black">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y-2 divide-black">
+      {% for ctx in contexts %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 font-semibold">{{ ctx.name }}</td>
+        <td class="px-4 py-3 font-mono text-xs text-gray-600">
+          <div>G: {{ ctx.gemini_model }}</div>
+          <div>I: {{ ctx.imagen_model }}</div>
+        </td>
+        <td class="px-4 py-3 text-gray-700 max-w-xs">
+          {{ ctx.style_prompt|slice(0, 80) }}{% if ctx.style_prompt|length > 80 %}…{% endif %}
+        </td>
+        <td class="px-4 py-3">
+          {% if ctx.is_default %}
+            <span class="bg-green-100 text-green-800 border-2 border-green-600 px-2 py-0.5 text-xs font-black">OUI</span>
+          {% else %}
+            <span class="text-gray-400 text-xs">non</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex flex-wrap gap-2">
+            <a href="{{ url('admin/ai-contexts/' ~ ctx.id ~ '/edit') }}"
+               class="border-2 border-black bg-white font-black text-xs px-3 py-1 shadow-[2px_2px_0_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+              Modifier
+            </a>
+            {% if not ctx.is_default %}
+            <form method="POST" action="{{ url('admin/ai-contexts/' ~ ctx.id ~ '/default') }}" class="inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit"
+                      class="border-2 border-black bg-amber-100 font-black text-xs px-3 py-1 shadow-[2px_2px_0_#000] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                Def. défaut
+              </button>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url('admin/ai-contexts/' ~ ctx.id ~ '/delete') }}" class="inline"
+                  onsubmit="return confirm('Supprimer ce contexte ?')">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit"
+                      class="border-2 border-red-600 bg-red-50 text-red-700 font-black text-xs px-3 py-1 shadow-[2px_2px_0_red] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                Supprimer
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

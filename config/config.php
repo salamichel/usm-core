@@ -40,6 +40,8 @@ define('BREVO_FROM_EMAIL', getenv('BREVO_FROM_EMAIL') ?: 'noreply@usm-volley.fr'
 define('BREVO_FROM_NAME', getenv('BREVO_FROM_NAME') ?: 'USM Volley');
 
 // ── Upload ────────────────────────────────────────────────────────────────────
+define('GEMINI_API_KEY',  getenv('GEMINI_API_KEY') ?: '');
+
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');
 define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024); // 10 MB
 define('UPLOAD_ALLOWED_TYPES', ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
