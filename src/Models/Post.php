@@ -35,6 +35,36 @@ class Post
         return $stmt->fetch() ?: null;
     }
 
+    public static function getNeighbors(int $id): array
+    {
+        $db   = Database::get();
+        $self = $db->prepare("SELECT published_at FROM posts WHERE id = ? LIMIT 1");
+        $self->execute([$id]);
+        $row  = $self->fetch();
+        if (!$row) {
+            return ['prev' => null, 'next' => null];
+        }
+        $date = $row['published_at'];
+
+        $prev = $db->prepare(
+            "SELECT id, title, slug FROM posts
+             WHERE is_published = 1
+               AND (published_at < ? OR (published_at = ? AND id < ?))
+             ORDER BY published_at DESC, id DESC LIMIT 1"
+        );
+        $prev->execute([$date, $date, $id]);
+
+        $next = $db->prepare(
+            "SELECT id, title, slug FROM posts
+             WHERE is_published = 1
+               AND (published_at > ? OR (published_at = ? AND id > ?))
+             ORDER BY published_at ASC, id ASC LIMIT 1"
+        );
+        $next->execute([$date, $date, $id]);
+
+        return ['prev' => $prev->fetch() ?: null, 'next' => $next->fetch() ?: null];
+    }
+
     public static function findByCanalblogId(string $canalblogId): ?array
     {
         $stmt = Database::get()->prepare("SELECT * FROM posts WHERE canalblog_id = ? LIMIT 1");

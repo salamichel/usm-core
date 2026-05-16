@@ -94,10 +94,37 @@
   {{ components.gallery(photos) }}
 
   <div class="mt-16 pt-8 border-t border-slate-200">
-    <a href="{{ url('blog') }}" class="text-sm font-medium text-slate-600 hover:text-[var(--primary)] inline-flex items-center gap-1 transition">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      Toutes les actualités
-    </a>
+    <div class="grid grid-cols-3 items-center gap-4">
+      <div>
+        {% if prev_post %}
+        <a href="{{ url('blog/' ~ prev_post.slug) }}"
+           class="group flex flex-col gap-1 p-4 border border-slate-200 hover:border-[var(--primary)] rounded-lg transition">
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-medium inline-flex items-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Précédent
+          </span>
+          <span class="text-sm font-serif font-semibold text-slate-800 group-hover:text-[var(--primary)] leading-snug transition line-clamp-2">{{ prev_post.title }}</span>
+        </a>
+        {% endif %}
+      </div>
+      <div class="text-center">
+        <a href="{{ url('blog') }}" class="text-xs uppercase tracking-wider text-slate-500 hover:text-[var(--primary)] font-medium transition">
+          Toutes les actualités
+        </a>
+      </div>
+      <div class="text-right">
+        {% if next_post %}
+        <a href="{{ url('blog/' ~ next_post.slug) }}"
+           class="group flex flex-col gap-1 p-4 border border-slate-200 hover:border-[var(--primary)] rounded-lg transition items-end">
+          <span class="text-xs uppercase tracking-wider text-slate-400 font-medium inline-flex items-center gap-1">
+            Suivant
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+          <span class="text-sm font-serif font-semibold text-slate-800 group-hover:text-[var(--primary)] leading-snug transition line-clamp-2">{{ next_post.title }}</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </article>
 {% endblock %}

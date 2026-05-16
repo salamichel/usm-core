@@ -43,6 +43,30 @@
       {% endif %}
 
       {{ components.gallery(photos) }}
+
+      {# Navigation précédent / suivant #}
+      {% if prev_post or next_post %}
+      <div class="mt-10 pt-8 border-t-2 border-gray-200 grid grid-cols-2 gap-4">
+        <div>
+          {% if prev_post %}
+          <a href="{{ url('blog/' ~ prev_post.slug) }}"
+             class="flex flex-col gap-1 border-2 border-black p-4 hover:bg-amber-50 transition group">
+            <span class="text-xs font-black uppercase tracking-wide text-gray-500">← Article précédent</span>
+            <span class="text-sm font-bold leading-snug group-hover:underline">{{ prev_post.title }}</span>
+          </a>
+          {% endif %}
+        </div>
+        <div>
+          {% if next_post %}
+          <a href="{{ url('blog/' ~ next_post.slug) }}"
+             class="flex flex-col gap-1 border-2 border-black p-4 hover:bg-amber-50 transition group text-right">
+            <span class="text-xs font-black uppercase tracking-wide text-gray-500">Article suivant →</span>
+            <span class="text-sm font-bold leading-snug group-hover:underline">{{ next_post.title }}</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
     </div>
   </article>
 </div>
