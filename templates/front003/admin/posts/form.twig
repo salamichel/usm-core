@@ -49,6 +49,9 @@
       <div class="pt-7">
         {{ m.field_checkbox('is_published', 'is_published', 'Publié', post is null or post.is_published, '1') }}
       </div>
+      <div class="pt-7">
+        {{ m.field_checkbox('is_slider', 'is_slider', '📌 Épingler dans le slider', post and post.is_slider, '1') }}
+      </div>
     </div>
 
     <div>

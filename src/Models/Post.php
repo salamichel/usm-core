@@ -17,6 +17,15 @@ class Post
         return $stmt->fetchAll();
     }
 
+    public static function forSlider(): array
+    {
+        $stmt = Database::get()->query(
+            "SELECT * FROM posts WHERE is_slider = 1 AND is_published = 1 AND (published_at IS NULL OR published_at <= NOW())
+             ORDER BY published_at DESC, created_at DESC"
+        );
+        return $stmt->fetchAll();
+    }
+
     public static function findBySlug(string $slug): ?array
     {
         $stmt = Database::get()->prepare(
@@ -164,8 +173,8 @@ class Post
         $slug = SlugManager::makeUnique($baseSlug, 'posts');
 
         $stmt = $db->prepare(
-            "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at, canalblog_id)
-             VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at, :canalblog_id)"
+            "INSERT INTO posts (title, slug, excerpt, content, is_published, published_at, canalblog_id, is_slider)
+             VALUES (:title, :slug, :excerpt, :content, :is_published, :published_at, :canalblog_id, :is_slider)"
         );
         $stmt->execute([
             ':title'         => $data['title'],
@@ -175,6 +184,7 @@ class Post
             ':is_published'  => (int)($data['is_published'] ?? 0),
             ':published_at'  => $data['published_at'] ?: null,
             ':canalblog_id'  => $data['canalblog_id'] ?? null,
+            ':is_slider'     => (int)($data['is_slider'] ?? 0),
         ]);
         return (int)$db->lastInsertId();
     }
@@ -200,7 +210,7 @@ class Post
 
         Database::get()->prepare(
             "UPDATE posts SET title=:title, slug=:slug, excerpt=:excerpt, content=:content,
-             is_published=:is_published, published_at=:published_at, updated_at=NOW()
+             is_published=:is_published, published_at=:published_at, is_slider=:is_slider, updated_at=NOW()
              WHERE id=:id"
         )->execute([
             ':title'        => $data['title'],
@@ -209,6 +219,7 @@ class Post
             ':content'      => $data['content'] ?? '',
             ':is_published' => (int)($data['is_published'] ?? 0),
             ':published_at' => $data['published_at'] ?: null,
+            ':is_slider'    => (int)($data['is_slider'] ?? 0),
             ':id'           => $id,
         ]);
     }
@@ -217,6 +228,12 @@ class Post
     {
         Database::get()->prepare("UPDATE posts SET content = ?, updated_at = NOW() WHERE id = ?")
             ->execute([$content, $id]);
+    }
+
+    public static function setSlider(int $id, bool $value): void
+    {
+        Database::get()->prepare("UPDATE posts SET is_slider = ?, updated_at = NOW() WHERE id = ?")
+            ->execute([(int)$value, $id]);
     }
 
     public static function delete(int $id): void

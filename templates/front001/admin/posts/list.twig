@@ -82,6 +82,12 @@
     <div class="flex flex-wrap gap-2">
       <a href="{{ url('blog/' ~ post.slug) }}" target="_blank" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Voir</a>
       <a href="{{ url('admin/posts/' ~ post.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+      <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/toggle-slider') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="border-2 px-2 py-1 text-xs font-bold transition {{ post.is_slider ? 'border-amber-500 bg-amber-50 text-amber-700' : 'border-gray-300 text-gray-400' }}">
+          📌 {{ post.is_slider ? 'Épinglé' : 'Épingler' }}
+        </button>
+      </form>
       <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/delete') }}"
             onsubmit="return confirm('Supprimer cet article ?')">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
@@ -100,6 +106,7 @@
         <th class="px-4 py-3 font-black w-20"></th>
         <th class="text-left px-4 py-3 font-black">Titre</th>
         <th class="text-left px-4 py-3 font-black">Statut</th>
+        <th class="text-left px-4 py-3 font-black">Slider</th>
         <th class="text-left px-4 py-3 font-black">Date</th>
         <th class="px-4 py-3"></th>
       </tr>
@@ -128,6 +135,15 @@
           {% else %}
             <span class="bg-gray-100 text-gray-600 border border-gray-400 px-2 py-0.5 text-xs font-bold rounded">Brouillon</span>
           {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/toggle-slider') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" title="{{ post.is_slider ? 'Retirer du slider' : 'Épingler dans le slider' }}"
+                    class="border-2 px-2 py-1 text-xs font-bold transition {{ post.is_slider ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white' : 'border-gray-300 text-gray-400 hover:border-amber-400 hover:text-amber-600' }}">
+              📌 {{ post.is_slider ? 'Épinglé' : 'Épingler' }}
+            </button>
+          </form>
         </td>
         <td class="px-4 py-3 text-gray-500 text-xs">{{ post.published_at|date_fr }}</td>
         <td class="px-4 py-3 flex gap-2 justify-end">

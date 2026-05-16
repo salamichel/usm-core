@@ -24,7 +24,10 @@ class HomeController
         $latestPostsCount = (int)SiteConfig::get('home_latest_posts_count', '3');
 
         $allPublished = Post::allPublished();
-        $sliderPosts = array_slice($allPublished, 0, $sliderCount);
+        $sliderPosts = Post::forSlider();
+        if (empty($sliderPosts)) {
+            $sliderPosts = array_slice($allPublished, 0, $sliderCount);
+        }
         $latestPosts = array_slice($allPublished, 0, $latestPostsCount);
 
         // Fetch agenda — silently returns [] on API failure

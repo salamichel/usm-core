@@ -63,7 +63,8 @@ class SiteConfigController
         }
         if (!empty($_FILES['logo_file']['name'])) {
             try {
-                $logoUrl = Photo::uploadSingle($_FILES['logo_file'], 'site');
+                $result = Photo::uploadSingle($_FILES['logo_file'], 'site');
+                $logoUrl = $result['path'];
             } catch (\Throwable $e) {
                 View::flash('error', 'Logo : ' . $e->getMessage());
                 header('Location: ' . BASE_URL . '/admin/site-config');
@@ -77,7 +78,8 @@ class SiteConfigController
                 $data[$key] = $logoUrl;
                 continue;
             }
-            $val = trim($_POST[$key] ?? '');
+            $raw = $_POST[$key] ?? '';
+            $val = trim(is_array($raw) ? '' : (string)$raw);
             if (in_array($key, ['home_slider_posts_count', 'home_latest_posts_count'])) {
                 $val = max(1, (int)$val);
             } elseif ($key === 'theme') {

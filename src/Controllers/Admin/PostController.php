@@ -229,7 +229,22 @@ class PostController extends AdminCrudController
             'content'      => $_POST['content'] ?? '',
             'is_published' => isset($_POST['is_published']) ? 1 : 0,
             'published_at' => trim($_POST['published_at'] ?? '') ?: null,
+            'is_slider'    => isset($_POST['is_slider']) ? 1 : 0,
         ];
+    }
+
+    public function toggleSlider(array $params): void
+    {
+        \App\Core\Auth::require();
+        $id = (int)$params['id'];
+        $post = Post::find($id);
+        if (!$post) {
+            $this->notFound();
+            return;
+        }
+        Post::setSlider($id, !(bool)$post['is_slider']);
+        header('Location: ' . BASE_URL . '/admin/posts');
+        exit;
     }
 
     private function saveTags(int $postId): void

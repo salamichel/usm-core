@@ -105,7 +105,8 @@ class App
         $r->post('/admin/posts/create',     [PostController::class, 'store']);
         $r->get('/admin/posts/{id}/edit',   [PostController::class, 'edit']);
         $r->post('/admin/posts/{id}/edit',  [PostController::class, 'update']);
-        $r->post('/admin/posts/{id}/delete',[PostController::class, 'delete']);
+        $r->post('/admin/posts/{id}/delete',         [PostController::class, 'delete']);
+        $r->post('/admin/posts/{id}/toggle-slider', [PostController::class, 'toggleSlider']);
 
         // ── Admin pages ───────────────────────────────────────────────────────
         $r->get('/admin/pages',             [PageAdminController::class, 'index']);
