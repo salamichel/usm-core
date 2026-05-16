@@ -26,6 +26,7 @@ use App\Controllers\Admin\ContactAdminController;
 use App\Controllers\Admin\LocationController;
 use App\Controllers\Admin\ContactMessageController;
 use App\Controllers\Admin\MediaUploadController;
+use App\Controllers\Admin\PhotoAdminController;
 
 class App
 {
@@ -43,10 +44,20 @@ class App
         $uri    = $_SERVER['REQUEST_URI'];
 
         // Validate CSRF token on POST requests (except login)
-        if ($method === 'POST' && !$this->isLoginRoute($uri) && !CsrfToken::validateFromPost()) {
-            http_response_code(403);
-            View::render('error.twig', ['error' => 'Token CSRF invalide.']);
-            return;
+        if ($method === 'POST' && !$this->isLoginRoute($uri)) {
+            $token = $_POST['_csrf_token'] ?? null;
+            if (!$token) {
+                $ct = $_SERVER['CONTENT_TYPE'] ?? '';
+                if (str_contains($ct, 'application/json')) {
+                    $body  = json_decode(file_get_contents('php://input'), true);
+                    $token = $body['_csrf_token'] ?? null;
+                }
+            }
+            if (!CsrfToken::validate($token)) {
+                http_response_code(403);
+                View::render('error.twig', ['error' => 'Token CSRF invalide.']);
+                return;
+            }
         }
 
         $this->router->dispatch($method, $uri);
@@ -200,6 +211,9 @@ class App
         $r->post('/admin/home-blocks/{id}/delete',    [HomeBlockController::class, 'delete']);
         $r->post('/admin/home-blocks/{id}/move-up',   [HomeBlockController::class, 'moveUp']);
         $r->post('/admin/home-blocks/{id}/move-down', [HomeBlockController::class, 'moveDown']);
+
+        // ── Admin photos (partagé) ───────────────────────────────────────────
+        $r->post('/admin/photos/reorder', [PhotoAdminController::class, 'reorder']);
 
         // ── Admin photos (posts) ──────────────────────────────────────────────
         $r->post('/admin/posts/{id}/photos/upload',           [PostController::class, 'uploadPhoto']);
