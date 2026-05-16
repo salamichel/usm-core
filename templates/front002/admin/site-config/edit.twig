@@ -78,6 +78,18 @@
         <div class="text-xs text-gray-500 mt-1">Entre 16 et 200 px (par défaut : 40).</div>
       </div>
     </div>
+
+    <div>
+      <label class="block font-black mb-1" for="logo_footer_display_mode">Affichage dans le footer</label>
+      <select id="logo_footer_display_mode" name="logo_footer_display_mode"
+              class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        {% set _fmode = config.logo_footer_display_mode|default('hidden') %}
+        <option value="hidden"         {% if _fmode == 'hidden' %}selected{% endif %}>Masqué (pas de logo dans le footer)</option>
+        <option value="image_only"     {% if _fmode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
+        <option value="image_and_text" {% if _fmode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
+      </select>
+      <div class="text-xs text-gray-500 mt-1">Choisissez si le logo apparaît dans le bas de page.</div>
+    </div>
   </div>
 
   {# ── Identité ── #}
