@@ -63,7 +63,8 @@ class SiteConfigController
         }
         if (!empty($_FILES['logo_file']['name'])) {
             try {
-                $logoUrl = Photo::uploadSingle($_FILES['logo_file'], 'site');
+                $result = Photo::uploadSingle($_FILES['logo_file'], 'site');
+                $logoUrl = $result['path'];
             } catch (\Throwable $e) {
                 View::flash('error', 'Logo : ' . $e->getMessage());
                 header('Location: ' . BASE_URL . '/admin/site-config');
