@@ -123,12 +123,15 @@
       --footer-bg:          {{ site_config.footer_bg_color|default('#0f172a') }};
       --footer-text:        {{ site_config.footer_text_color|default('#cbd5e1') }};
       --footer-heading:     {{ site_config.footer_heading_color|default('#ffffff') }};
+      --header-h:           max(76px, calc({{ site_config.logo_height|default('40') }}px + 36px));
     }
     body {
       color: var(--text);
       background: var(--surface);
       font-family: '{{ site_config.font_family|default('Inter') }}', ui-sans-serif, system-ui, sans-serif;
     }
+    .header-inner { height: var(--header-h); }
+    #mobile-menu:not(.hidden) { top: var(--header-h); max-height: calc(100vh - var(--header-h)); }
   </style>
 
   {% block head %}{% endblock %}

@@ -136,12 +136,13 @@
       --footer-bg:      {{ site_config.footer_bg_color|default(site_config.primary_color|default('#94674d')) }};
       --footer-text:    {{ site_config.footer_text_color|default('#ffffff') }};
       --footer-heading: {{ site_config.footer_heading_color|default('#ffffff') }};
+      --header-h: max(90px, calc({{ site_config.logo_height|default('40') }}px + 50px));
     }
 
     /* Neobrutalism Header */
     .header-brutal {
       background-color: var(--header-bg);
-      height: 90px;
+      min-height: var(--header-h);
       display: flex;
       align-items: center;
       padding: 0 5%;
@@ -226,7 +227,7 @@
 
     .mega-menu {
       position: absolute;
-      top: 90px;
+      top: var(--header-h);
       left: 0;
       width: 100%;
       background-color: var(--header-bg);
@@ -301,11 +302,11 @@
 
     #mobile-menu:not(.hidden) {
       position: fixed;
-      top: 90px;
+      top: var(--header-h);
       left: 0;
       right: 0;
       z-index: 999;
-      max-height: calc(100vh - 90px);
+      max-height: calc(100vh - var(--header-h));
       overflow-y: auto;
     }
 
