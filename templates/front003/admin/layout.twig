@@ -7,6 +7,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
   <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}">
+  <style>
+    :root {
+      --primary:   {{ site_config.primary_color|default('#E34226') }};
+      --secondary: {{ site_config.secondary_color|default('#A6221C') }};
+      --ink:       {{ site_config.text_color|default('#1A1A1A') }};
+      --bone:      {{ site_config.background_color|default('#F7F4EE') }};
+      --paper:     {{ site_config.surface_color|default('#FFFFFF') }};
+      --frame-dark-bg: {{ site_config.frame_dark_bg_color|default('#1A1A1A') }};
+    }
+  </style>
   {% block head %}{% endblock %}
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen">
