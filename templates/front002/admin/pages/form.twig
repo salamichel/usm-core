@@ -57,28 +57,6 @@
       language: 'fr',
       height: 500,
       toolbarButtonSize: 'small',
-      iframe: true,
-      iframeStyle: `
-        :root {
-          --primary: {{ site_config.primary_color|default('#1d4ed8') }};
-          --text: #0f172a;
-          --surface: #ffffff;
-          --surface-alt: #f8fafc;
-          --border: #e2e8f0;
-          --frame-dark-bg: {{ site_config.frame_dark_bg_color|default('#0f172a') }};
-        }
-        body {
-          font-family: '{{ site_config.font_family|default('Inter') }}', sans-serif;
-          color: var(--text);
-          background: var(--surface);
-          padding: 20px !important;
-        }
-      `,
-      iframeCSSLinks: [
-        'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap',
-        '{{ asset("content-styles.css") }}',
-        '{{ asset(theme ~ "/frames.css") }}'
-      ],
       buttons: 'bold,italic,underline,strikethrough,eraser,|,ul,ol,|,align,|,fontsize,paragraph,|,link,image,file,|,table,|,undo,redo,|,source',
       controls: {
         paragraph: {
