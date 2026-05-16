@@ -234,6 +234,22 @@
       </div>
     </div>
 
+    {# Couleur Frame Dark #}
+    <div class="pt-4 border-t-2 border-black">
+      <label class="block font-black mb-2" for="frame_dark_bg_color">Couleur des cadres sombres (.frame-dark)</label>
+      <div class="flex items-center gap-3">
+        <input type="color" id="frame_dark_bg_color" name="frame_dark_bg_color"
+               value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
+               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
+               oninput="document.getElementById('hex_input_fd').value=this.value">
+        <input type="text" id="hex_input_fd" placeholder="#0f172a" maxlength="7"
+               value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
+               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
+               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('frame_dark_bg_color').value=this.value}">
+        <span class="text-xs text-gray-500">Défaut front002 : #0f172a</span>
+      </div>
+    </div>
+
     {# Couleurs du header #}
     <div class="border-2 border-black p-4 bg-gray-50 space-y-5">
       <p class="font-black text-sm uppercase">Couleurs du header</p>

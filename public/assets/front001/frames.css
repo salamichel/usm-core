@@ -38,7 +38,7 @@
 }
 
 .frame-dark {
-  background-color: #000;
+  background-color: var(--frame-dark-bg, #000);
   color: #fff;
 }
 

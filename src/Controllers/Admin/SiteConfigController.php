@@ -24,6 +24,7 @@ class SiteConfigController
         'footer_bg_color', 'footer_text_color', 'footer_heading_color',
         // front003 — palette éditoriale
         'secondary_color', 'text_color', 'background_color', 'surface_color',
+        'frame_dark_bg_color',
         'display_font_family',
         // front003 — contenu home
         'adherer_url', 'essai_url',
