@@ -18,6 +18,7 @@ services:
     image: mariadb:11.4.10
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
+      TZ: ${TZ}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASS}
@@ -41,6 +42,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      TZ: ${TZ}
       MYSQL_PWD: ${DB_PASS}
     command: sh /scripts/migrate.sh db ${DB_USER} ${DB_NAME}
     volumes:
@@ -53,6 +55,7 @@ services:
     image: mariadb:11.4.10
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
+      TZ: ${TZ}
       MYSQL_DATABASE: ${EXT_DB_NAME}
       MYSQL_USER: ${EXT_DB_USER}
       MYSQL_PASSWORD: ${EXT_DB_PASS}
@@ -74,6 +77,7 @@ services:
       db_external:
         condition: service_healthy
     environment:
+      TZ: ${TZ}
       MYSQL_PWD: ${EXT_DB_PASS}
     command: sh /scripts/migrate_external.sh db_external ${EXT_DB_USER} ${EXT_DB_NAME}
     volumes:
@@ -86,6 +90,7 @@ services:
     ports:
       - "8081:80"
     environment:
+      TZ: ${TZ}
       PMA_ARBITRARY: 1
       PMA_HOSTS: db,db_external
       PMA_USER: root
