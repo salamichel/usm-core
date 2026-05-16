@@ -280,6 +280,16 @@ h1, h2, h3, h4, .serif { font-family: 'Playfair Display', Georgia, serif; letter
   transform: translateX(2px);
 }
 
+#mobile-menu-toggle {
+  color: var(--header-text);
+  border-color: currentColor;
+  opacity: 0.8;
+}
+#mobile-menu-toggle:hover {
+  background-color: rgba(128, 128, 128, 0.1);
+  opacity: 1;
+}
+
 /* Mobile drawer */
 #mobile-menu:not(.hidden) {
   position: fixed;
