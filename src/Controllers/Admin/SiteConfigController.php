@@ -77,7 +77,8 @@ class SiteConfigController
                 $data[$key] = $logoUrl;
                 continue;
             }
-            $val = trim($_POST[$key] ?? '');
+            $raw = $_POST[$key] ?? '';
+            $val = trim(is_array($raw) ? '' : (string)$raw);
             if (in_array($key, ['home_slider_posts_count', 'home_latest_posts_count'])) {
                 $val = max(1, (int)$val);
             } elseif ($key === 'theme') {
