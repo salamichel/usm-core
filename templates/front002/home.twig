@@ -69,7 +69,9 @@
         <div class="max-w-6xl mx-auto px-6 sm:px-8 pb-14 sm:pb-20 w-full text-white">
           <span class="inline-block text-xs uppercase tracking-[0.2em] text-white/70 mb-3 font-medium">À la une</span>
           <h2 class="font-serif text-3xl sm:text-5xl font-semibold leading-tight mb-4 max-w-3xl">
-            {{ slide.title }}
+            <a href="{{ slide.url }}" class="hover:underline underline-offset-8 decoration-2 decoration-[var(--primary)] transition-all">
+              {{ slide.title }}
+            </a>
           </h2>
           {% if slide.excerpt %}
             <p class="text-base sm:text-lg max-w-2xl mb-6 text-white/85 leading-relaxed">{{ slide.excerpt }}</p>
