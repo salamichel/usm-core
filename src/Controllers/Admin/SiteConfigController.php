@@ -20,7 +20,7 @@ class SiteConfigController
         'header_hover_bg_color', 'header_hover_text_color',
         'header_active_bg_color', 'header_active_text_color',
         'logo_bg_color', 'logo_text_color',
-        'logo_url', 'logo_display_mode', 'logo_height',
+        'logo_url', 'logo_display_mode', 'logo_footer_display_mode', 'logo_height',
         'footer_bg_color', 'footer_text_color', 'footer_heading_color',
         // front003 — palette éditoriale
         'secondary_color', 'text_color', 'background_color', 'surface_color',
@@ -39,6 +39,10 @@ class SiteConfigController
 
     private const ALLOWED_DISPLAY_MODES = [
         'text_only', 'image_only', 'image_and_text', 'image_desktop_text_mobile',
+    ];
+
+    private const ALLOWED_FOOTER_DISPLAY_MODES = [
+        'hidden', 'image_only', 'image_and_text',
     ];
 
     public function edit(array $params): void
@@ -88,6 +92,9 @@ class SiteConfigController
             }
             if ($key === 'logo_display_mode' && !in_array($val, self::ALLOWED_DISPLAY_MODES, true)) {
                 $val = 'text_only';
+            }
+            if ($key === 'logo_footer_display_mode' && !in_array($val, self::ALLOWED_FOOTER_DISPLAY_MODES, true)) {
+                $val = 'hidden';
             }
             if ($key === 'logo_height') {
                 $h = (int)$val;

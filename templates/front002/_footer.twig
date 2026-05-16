@@ -4,7 +4,17 @@
     <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-2 md:grid-cols-3 pb-8 md:pb-10 border-b footer-border">
 
       <div class="col-span-2 md:col-span-1">
+        {% set _fmode = site_config.logo_url ? (site_config.logo_footer_display_mode|default('hidden')) : 'hidden' %}
+        {% if site_config.logo_url and _fmode != 'hidden' %}
+          <a href="{{ url('/') }}" class="inline-block mb-3">
+            <img src="{{ asset('uploads/' ~ site_config.logo_url) }}"
+                 alt="{{ site_config.club_name|default('USM Volley') }}"
+                 style="height:{{ site_config.logo_height|default('40') }}px; width:auto; max-width:200px; display:block;">
+          </a>
+        {% endif %}
+        {% if _fmode == 'hidden' or _fmode == 'image_and_text' %}
         <h3 class="footer-heading font-serif text-lg md:text-xl mb-2 md:mb-3 font-semibold">{{ site_config.club_name|default('USM Volley') }}</h3>
+        {% endif %}
         {% if site_config.club_tagline %}
           <p class="text-xs md:text-sm leading-relaxed mb-3 md:mb-5">{{ site_config.club_tagline }}</p>
         {% endif %}
