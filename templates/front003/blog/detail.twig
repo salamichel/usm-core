@@ -76,12 +76,17 @@
       <div>
         {% if prev_post %}
         <a href="{{ url('blog/' ~ prev_post.slug) }}"
-           class="group flex flex-col gap-1">
-          <span class="text-xs font-bold uppercase tracking-wider text-ink/40 inline-flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            Précédent
-          </span>
-          <span class="text-sm font-bold text-ink group-hover:text-flame transition leading-snug line-clamp-2">{{ prev_post.title }}</span>
+           class="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 hover:border-flame transition">
+          {% if prev_post.cover %}
+            <img src="{{ image_variant(prev_post.cover, 'thumb') }}" alt="" class="w-full h-24 object-cover">
+          {% endif %}
+          <div class="p-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-ink/40 inline-flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Précédent
+            </span>
+            <p class="text-sm font-bold text-ink group-hover:text-flame transition leading-snug line-clamp-2 mt-1">{{ prev_post.title }}</p>
+          </div>
         </a>
         {% endif %}
       </div>
@@ -93,12 +98,17 @@
       <div class="text-right">
         {% if next_post %}
         <a href="{{ url('blog/' ~ next_post.slug) }}"
-           class="group flex flex-col gap-1 items-end">
-          <span class="text-xs font-bold uppercase tracking-wider text-ink/40 inline-flex items-center gap-1">
-            Suivant
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
-          <span class="text-sm font-bold text-ink group-hover:text-flame transition leading-snug line-clamp-2">{{ next_post.title }}</span>
+           class="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 hover:border-flame transition items-end">
+          {% if next_post.cover %}
+            <img src="{{ image_variant(next_post.cover, 'thumb') }}" alt="" class="w-full h-24 object-cover">
+          {% endif %}
+          <div class="p-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-ink/40 inline-flex items-center gap-1">
+              Suivant
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+            <p class="text-sm font-bold text-ink group-hover:text-flame transition leading-snug line-clamp-2 mt-1">{{ next_post.title }}</p>
+          </div>
         </a>
         {% endif %}
       </div>

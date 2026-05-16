@@ -137,6 +137,12 @@ class BlogController
         );
 
         $neighbors = Post::getNeighbors($post['id']);
+        if ($neighbors['prev']) {
+            $neighbors['prev']['cover'] = Photo::getEntityCover('post', $neighbors['prev']['id']);
+        }
+        if ($neighbors['next']) {
+            $neighbors['next']['cover'] = Photo::getEntityCover('post', $neighbors['next']['id']);
+        }
 
         View::render('blog/detail.twig', [
             'meta'      => $meta,

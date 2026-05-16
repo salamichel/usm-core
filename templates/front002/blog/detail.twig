@@ -98,12 +98,17 @@
       <div>
         {% if prev_post %}
         <a href="{{ url('blog/' ~ prev_post.slug) }}"
-           class="group flex flex-col gap-1 p-4 border border-slate-200 hover:border-[var(--primary)] rounded-lg transition">
-          <span class="text-xs uppercase tracking-wider text-slate-400 font-medium inline-flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            Précédent
-          </span>
-          <span class="text-sm font-serif font-semibold text-slate-800 group-hover:text-[var(--primary)] leading-snug transition line-clamp-2">{{ prev_post.title }}</span>
+           class="group flex flex-col border border-slate-200 hover:border-[var(--primary)] rounded-lg transition overflow-hidden">
+          {% if prev_post.cover %}
+            <img src="{{ image_variant(prev_post.cover, 'thumb') }}" alt="" class="w-full h-24 object-cover">
+          {% endif %}
+          <div class="p-4">
+            <span class="text-xs uppercase tracking-wider text-slate-400 font-medium inline-flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Précédent
+            </span>
+            <p class="text-sm font-serif font-semibold text-slate-800 group-hover:text-[var(--primary)] leading-snug transition line-clamp-2 mt-1">{{ prev_post.title }}</p>
+          </div>
         </a>
         {% endif %}
       </div>
@@ -115,12 +120,17 @@
       <div class="text-right">
         {% if next_post %}
         <a href="{{ url('blog/' ~ next_post.slug) }}"
-           class="group flex flex-col gap-1 p-4 border border-slate-200 hover:border-[var(--primary)] rounded-lg transition items-end">
-          <span class="text-xs uppercase tracking-wider text-slate-400 font-medium inline-flex items-center gap-1">
-            Suivant
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
-          <span class="text-sm font-serif font-semibold text-slate-800 group-hover:text-[var(--primary)] leading-snug transition line-clamp-2">{{ next_post.title }}</span>
+           class="group flex flex-col border border-slate-200 hover:border-[var(--primary)] rounded-lg transition overflow-hidden items-end">
+          {% if next_post.cover %}
+            <img src="{{ image_variant(next_post.cover, 'thumb') }}" alt="" class="w-full h-24 object-cover">
+          {% endif %}
+          <div class="p-4">
+            <span class="text-xs uppercase tracking-wider text-slate-400 font-medium inline-flex items-center gap-1">
+              Suivant
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+            <p class="text-sm font-serif font-semibold text-slate-800 group-hover:text-[var(--primary)] leading-snug transition line-clamp-2 mt-1">{{ next_post.title }}</p>
+          </div>
         </a>
         {% endif %}
       </div>
