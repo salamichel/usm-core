@@ -37,7 +37,7 @@ class GeminiService
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$geminiModel}:generateContent?key={$this->apiKey}";
         $payload = json_encode([
             'contents'        => [['parts' => $parts]],
-            'generationConfig' => ['maxOutputTokens' => 200, 'temperature' => 0.7],
+            'generationConfig' => ['maxOutputTokens' => 250, 'temperature' => 0.7],
         ]);
 
         $context = stream_context_create([
@@ -45,7 +45,7 @@ class GeminiService
                 'method'  => 'POST',
                 'header'  => "Content-Type: application/json\r\n",
                 'content' => $payload,
-                'timeout' => 30,
+                'timeout' => 45,
             ],
         ]);
 
@@ -76,7 +76,7 @@ class GeminiService
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$geminiModel}:generateContent?key={$this->apiKey}";
         $payload = json_encode([
             'contents'         => [['parts' => [['text' => $userMessage]]]],
-            'generationConfig' => ['maxOutputTokens' => 150, 'temperature' => 0.6],
+            'generationConfig' => ['maxOutputTokens' => 300, 'temperature' => 0.6],
         ]);
 
         $context = stream_context_create([
@@ -84,7 +84,7 @@ class GeminiService
                 'method'  => 'POST',
                 'header'  => "Content-Type: application/json\r\n",
                 'content' => $payload,
-                'timeout' => 30,
+                'timeout' => 45,
             ],
         ]);
 
@@ -99,6 +99,11 @@ class GeminiService
         if (!$excerpt) {
             Logger::errors()->error('GeminiService: empty excerpt response', ['response' => $response]);
             throw new \RuntimeException('L\'API Gemini n\'a pas retourné de description.');
+        }
+
+        $finishReason = $data['candidates'][0]['finishReason'] ?? 'UNKNOWN';
+        if ($finishReason === 'MAX_TOKENS') {
+            Logger::errors()->warning('GeminiService: excerpt truncated at MAX_TOKENS', ['excerpt' => $excerpt, 'finishReason' => $finishReason]);
         }
 
         return trim($excerpt);
