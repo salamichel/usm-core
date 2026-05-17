@@ -339,6 +339,31 @@
     </div>
   </div>
 
+  {# ── IA — Modèles disponibles ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 class="font-black text-lg">IA — Modèles disponibles</h2>
+        <p class="text-xs text-gray-500 mt-1">Un modèle par ligne. Ces listes alimentent les dropdowns lors de la création/édition d'un contexte IA.</p>
+      </div>
+      <a href="{{ url('admin/ai-contexts') }}" class="border-2 border-black bg-white font-black px-3 py-1.5 text-sm shadow-[3px_3px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all whitespace-nowrap">✨ Gérer les contextes</a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <label class="block font-black mb-1" for="ai_gemini_models">Modèles Gemini (analyse)</label>
+        <textarea id="ai_gemini_models" name="ai_gemini_models" rows="6"
+                  class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
+                  placeholder="gemini-2.5-flash&#10;gemini-2.0-flash&#10;gemini-1.5-pro">{{ config.ai_gemini_models|default('gemini-2.5-flash\ngemini-2.0-flash\ngemini-1.5-flash\ngemini-1.5-pro') }}</textarea>
+      </div>
+      <div>
+        <label class="block font-black mb-1" for="ai_imagen_models">Modèles Imagen (génération)</label>
+        <textarea id="ai_imagen_models" name="ai_imagen_models" rows="6"
+                  class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
+                  placeholder="gemini-2.5-flash-image&#10;imagen-3.0-generate-002">{{ config.ai_imagen_models|default('gemini-2.5-flash-image\nimagen-3.0-generate-002\nimagen-3.0-fast-generate-001') }}</textarea>
+      </div>
+    </div>
+  </div>
+
   {# ── Apparence (front002 legacy) ── #}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
     <h2 class="font-black text-lg">Apparence (front002)</h2>

@@ -33,17 +33,18 @@
         <label class="block font-black mb-1" for="gemini_model">Modèle Gemini (prompt)</label>
         <select id="gemini_model" name="gemini_model"
                 class="w-full border-2 border-black bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-          <option value="gemini-2.0-flash"  {{ (context.gemini_model ?? 'gemini-2.0-flash') == 'gemini-2.0-flash'  ? 'selected' : '' }}>gemini-2.0-flash</option>
-          <option value="gemini-1.5-flash"  {{ (context.gemini_model ?? '') == 'gemini-1.5-flash'  ? 'selected' : '' }}>gemini-1.5-flash</option>
-          <option value="gemini-1.5-pro"    {{ (context.gemini_model ?? '') == 'gemini-1.5-pro'    ? 'selected' : '' }}>gemini-1.5-pro</option>
+          {% for m in gemini_models %}
+            <option value="{{ m }}" {{ (context.gemini_model ?? gemini_models[0]) == m ? 'selected' : '' }}>{{ m }}</option>
+          {% endfor %}
         </select>
       </div>
       <div>
         <label class="block font-black mb-1" for="imagen_model">Modèle Imagen (génération)</label>
         <select id="imagen_model" name="imagen_model"
                 class="w-full border-2 border-black bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-          <option value="imagen-3.0-generate-002"      {{ (context.imagen_model ?? 'imagen-3.0-generate-002') == 'imagen-3.0-generate-002'      ? 'selected' : '' }}>imagen-3.0-generate-002 (qualité)</option>
-          <option value="imagen-3.0-fast-generate-001" {{ (context.imagen_model ?? '') == 'imagen-3.0-fast-generate-001' ? 'selected' : '' }}>imagen-3.0-fast-generate-001 (rapide)</option>
+          {% for m in imagen_models %}
+            <option value="{{ m }}" {{ (context.imagen_model ?? imagen_models[0]) == m ? 'selected' : '' }}>{{ m }}</option>
+          {% endfor %}
         </select>
       </div>
     </div>

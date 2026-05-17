@@ -8,6 +8,7 @@ use App\Core\View;
 use App\Models\AiImageContext;
 use App\Models\Photo;
 use App\Models\Post;
+use App\Models\SiteConfig;
 use App\Services\GeminiService;
 use App\Services\ImageResizer;
 use App\Services\Logger;
@@ -105,10 +106,10 @@ class AiCoverController
     public function create(array $params): void
     {
         Auth::require();
-        View::render('admin/ai-contexts/form.twig', [
+        View::render('admin/ai-contexts/form.twig', array_merge(self::modelLists(), [
             'context' => null,
             'action'  => BASE_URL . '/admin/ai-contexts',
-        ]);
+        ]));
     }
 
     /**
@@ -119,10 +120,10 @@ class AiCoverController
         Auth::require();
         if (empty(trim($_POST['name'] ?? ''))) {
             View::flash('error', 'Le nom est obligatoire.');
-            View::render('admin/ai-contexts/form.twig', [
+            View::render('admin/ai-contexts/form.twig', array_merge(self::modelLists(), [
                 'context' => $_POST,
                 'action'  => BASE_URL . '/admin/ai-contexts',
-            ]);
+            ]));
             return;
         }
         AiImageContext::create([
@@ -148,10 +149,10 @@ class AiCoverController
             View::render('error.twig', ['error' => 'Contexte introuvable.']);
             return;
         }
-        View::render('admin/ai-contexts/form.twig', [
+        View::render('admin/ai-contexts/form.twig', array_merge(self::modelLists(), [
             'context' => $context,
             'action'  => BASE_URL . '/admin/ai-contexts/' . $params['id'] . '/edit',
-        ]);
+        ]));
     }
 
     /**
@@ -168,10 +169,10 @@ class AiCoverController
         }
         if (empty(trim($_POST['name'] ?? ''))) {
             View::flash('error', 'Le nom est obligatoire.');
-            View::render('admin/ai-contexts/form.twig', [
+            View::render('admin/ai-contexts/form.twig', array_merge(self::modelLists(), [
                 'context' => array_merge($context, $_POST),
                 'action'  => BASE_URL . '/admin/ai-contexts/' . $params['id'] . '/edit',
-            ]);
+            ]));
             return;
         }
         AiImageContext::update((int) $params['id'], [
@@ -205,5 +206,22 @@ class AiCoverController
         AiImageContext::setDefault((int) $params['id']);
         View::flash('success', 'Contexte défini par défaut.');
         header('Location: ' . BASE_URL . '/admin/ai-contexts');
+    }
+
+    private static function modelLists(): array
+    {
+        return [
+            'gemini_models' => SiteConfig::getModelList('ai_gemini_models', [
+                'gemini-2.5-flash',
+                'gemini-2.0-flash',
+                'gemini-1.5-flash',
+                'gemini-1.5-pro',
+            ]),
+            'imagen_models' => SiteConfig::getModelList('ai_imagen_models', [
+                'gemini-2.5-flash-image',
+                'imagen-3.0-generate-002',
+                'imagen-3.0-fast-generate-001',
+            ]),
+        ];
     }
 }

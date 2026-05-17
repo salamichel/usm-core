@@ -67,4 +67,14 @@ class SiteConfig
             throw $e;
         }
     }
+
+    public static function getModelList(string $key, array $default): array
+    {
+        $raw = self::get($key);
+        if ($raw === null) {
+            return $default;
+        }
+        $lines = array_filter(array_map('trim', explode("\n", $raw)));
+        return $lines ?: $default;
+    }
 }
