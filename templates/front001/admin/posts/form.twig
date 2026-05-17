@@ -39,7 +39,35 @@
     </div>
 
     <div>
-      <label class="block font-black mb-1" for="excerpt">Extrait</label>
+      <div class="flex items-center justify-between mb-1">
+        <label class="font-black" for="excerpt">Extrait</label>
+        {% if post and post.id %}
+        <div class="relative" id="excerpt-ai-wrapper">
+          <button type="button" id="btn-excerpt-ai"
+                  class="border-2 border-black bg-white font-black px-3 py-1 text-xs shadow-[2px_2px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-px hover:translate-y-px transition-all">
+            ✨ IA
+          </button>
+          <div id="excerpt-ai-panel" class="hidden absolute right-0 top-8 z-20 bg-white border-4 border-black shadow-[6px_6px_0_#000] p-4 w-72 space-y-3">
+            {% if ai_contexts|length %}
+            <select id="excerpt-ctx-select"
+                    class="w-full border-2 border-black bg-white px-2 py-1.5 text-sm focus:outline-none">
+              {% for ctx in ai_contexts %}
+                <option value="{{ ctx.id }}" {% if ctx.is_default %}selected{% endif %}>{{ ctx.name }}</option>
+              {% endfor %}
+            </select>
+            {% else %}
+            <p class="text-xs text-amber-700">Aucun contexte IA. <a href="{{ url('admin/ai-contexts/create') }}" class="underline" target="_blank">Créer</a>.</p>
+            {% endif %}
+            <button type="button" id="btn-excerpt-generate"
+                    class="w-full border-2 border-black bg-usm-brown text-white font-black px-3 py-1.5 text-sm shadow-[3px_3px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-px hover:translate-y-px transition-all">
+              Générer
+            </button>
+            <div id="excerpt-loader" class="hidden text-center text-sm text-gray-500">Génération…</div>
+            <div id="excerpt-error" class="hidden text-xs text-red-600 font-semibold"></div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
       <textarea id="excerpt" name="excerpt" rows="3"
                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ post.excerpt ?? '' }}</textarea>
     </div>
@@ -98,6 +126,87 @@
     upload_url:  post ? url('admin/posts/' ~ post.id ~ '/photos/upload') : '',
     photos:      photos
   } %}
+
+  {# ── Générateur de couverture IA ── #}
+  {% if post and post.id %}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-black text-lg">Couverture IA</h2>
+      <button type="button" id="btn-open-ai-modal"
+              class="border-4 border-black bg-black text-white font-black px-4 py-2 shadow-[4px_4px_0_#888] hover:shadow-[2px_2px_0_#888] hover:translate-x-1 hover:translate-y-1 transition-all text-sm">
+        Générer une couverture IA
+      </button>
+    </div>
+    <p class="text-xs text-gray-500">Génère automatiquement une image de couverture adaptée au contenu de l'article via l'API Gemini + Imagen.</p>
+  </div>
+
+  {# Modal IA #}
+  <div id="ai-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden">
+    <div class="bg-white border-4 border-black shadow-[8px_8px_0_#000] w-full max-w-lg mx-4 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-black text-xl">Générer une couverture IA</h3>
+        <button type="button" id="btn-close-ai-modal" class="font-black text-xl hover:text-red-600">&times;</button>
+      </div>
+
+      <div class="space-y-4">
+        {% if ai_contexts|length %}
+        <div>
+          <label class="block font-black mb-1 text-sm" for="ai-context-select">Contexte de style</label>
+          <select id="ai-context-select"
+                  class="w-full border-2 border-black bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+            {% for ctx in ai_contexts %}
+              <option value="{{ ctx.id }}" {% if ctx.is_default %}selected{% endif %}>{{ ctx.name }}{% if ctx.is_default %} (défaut){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% else %}
+        <div class="bg-amber-50 border-2 border-amber-300 p-3 text-sm text-amber-800">
+          Aucun contexte IA configuré. <a href="{{ url('admin/ai-contexts/create') }}" class="underline font-bold" target="_blank">Créer un contexte</a>.
+        </div>
+        {% endif %}
+
+        {# Option logo #}
+        <div class="flex items-start gap-2 py-1">
+          <input type="checkbox" id="ai-include-logo" name="include_logo" value="1"
+                 {% if site_config.logo_url is not empty %}checked{% endif %}
+                 {% if site_config.logo_url is empty %}disabled{% endif %}
+                 class="mt-0.5 w-4 h-4 border-2 border-black">
+          <label for="ai-include-logo" class="text-sm font-semibold leading-tight
+                 {% if site_config.logo_url is empty %}text-gray-400{% endif %}">
+            Inclure le logo du site pour guider le style visuel
+            {% if site_config.logo_url is empty %}<span class="font-normal">(aucun logo configuré)</span>{% endif %}
+          </label>
+        </div>
+
+        <button type="button" id="btn-generate-ai"
+                class="w-full border-4 border-black bg-usm-brown text-white font-black px-4 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+          Générer l'image
+        </button>
+
+        {# Loader #}
+        <div id="ai-loader" class="hidden text-center py-4">
+          <div class="inline-block w-8 h-8 border-4 border-black border-t-usm-brown rounded-full animate-spin mb-2"></div>
+          <p class="text-sm font-semibold text-gray-600">Génération en cours… (peut prendre 15-30 secondes)</p>
+        </div>
+
+        {# Résultat #}
+        <div id="ai-result" class="hidden space-y-3">
+          <div>
+            <img id="ai-result-img" src="" alt="Image générée" class="w-full border-2 border-black object-cover max-h-64">
+          </div>
+          <div id="ai-result-prompt" class="text-xs text-gray-500 italic border-l-4 border-gray-300 pl-3"></div>
+          <button type="button" id="btn-use-ai-image"
+                  class="w-full border-4 border-black bg-green-600 text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+            Utiliser comme couverture
+          </button>
+        </div>
+
+        {# Erreur #}
+        <div id="ai-error" class="hidden border-2 border-red-600 bg-red-50 text-red-700 p-3 text-sm font-semibold"></div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <button type="submit"
           class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
@@ -230,4 +339,134 @@
 
   updateSlugPreview();
 </script>
+
+{% if post and post.id %}
+<script>
+(function () {
+  var modal       = document.getElementById('ai-modal');
+  var btnOpen     = document.getElementById('btn-open-ai-modal');
+  var btnClose    = document.getElementById('btn-close-ai-modal');
+  var btnGenerate = document.getElementById('btn-generate-ai');
+  var btnUse      = document.getElementById('btn-use-ai-image');
+  var loader      = document.getElementById('ai-loader');
+  var result      = document.getElementById('ai-result');
+  var resultImg   = document.getElementById('ai-result-img');
+  var resultPrompt= document.getElementById('ai-result-prompt');
+  var errorBox    = document.getElementById('ai-error');
+  var ctxSelect   = document.getElementById('ai-context-select');
+
+  if (!modal) return;
+
+  btnOpen.addEventListener('click', function () {
+    modal.classList.remove('hidden');
+  });
+
+  btnClose.addEventListener('click', function () {
+    modal.classList.add('hidden');
+  });
+
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+
+  btnGenerate.addEventListener('click', function () {
+    loader.classList.remove('hidden');
+    result.classList.add('hidden');
+    errorBox.classList.add('hidden');
+    btnGenerate.disabled = true;
+
+    var csrfInput = document.querySelector('input[name="_csrf_token"]');
+    var formData = new FormData();
+    formData.append('_csrf_token', csrfInput ? csrfInput.value : '');
+    if (ctxSelect) formData.append('context_id', ctxSelect.value);
+    var logoCheckbox = document.getElementById('ai-include-logo');
+    if (logoCheckbox && logoCheckbox.checked) formData.append('include_logo', '1');
+
+    fetch('{{ url('admin/posts/' ~ post.id ~ '/generate-cover') }}', {
+      method: 'POST',
+      body: formData
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      loader.classList.add('hidden');
+      btnGenerate.disabled = false;
+      if (data.success) {
+        resultImg.src = data.url;
+        resultPrompt.textContent = 'Prompt : ' + data.prompt;
+        result.classList.remove('hidden');
+      } else {
+        errorBox.textContent = data.error || 'Une erreur est survenue.';
+        errorBox.classList.remove('hidden');
+      }
+    })
+    .catch(function (err) {
+      loader.classList.add('hidden');
+      btnGenerate.disabled = false;
+      errorBox.textContent = 'Erreur réseau : ' + err.message;
+      errorBox.classList.remove('hidden');
+    });
+  });
+
+  btnUse.addEventListener('click', function () {
+    modal.classList.add('hidden');
+    window.location.reload();
+  });
+})();
+</script>
+{% endif %}
+
+{% if post and post.id %}
+<script>
+(function () {
+  var btn     = document.getElementById('btn-excerpt-ai');
+  var panel   = document.getElementById('excerpt-ai-panel');
+  var btnGen  = document.getElementById('btn-excerpt-generate');
+  var loader  = document.getElementById('excerpt-loader');
+  var errBox  = document.getElementById('excerpt-error');
+  var ctx     = document.getElementById('excerpt-ctx-select');
+  var textarea= document.getElementById('excerpt');
+
+  if (!btn) return;
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    panel.classList.toggle('hidden');
+  });
+  document.addEventListener('click', function (e) {
+    if (!document.getElementById('excerpt-ai-wrapper').contains(e.target)) {
+      panel.classList.add('hidden');
+    }
+  });
+
+  btnGen.addEventListener('click', function () {
+    loader.classList.remove('hidden');
+    errBox.classList.add('hidden');
+    btnGen.disabled = true;
+    var csrfInput = document.querySelector('input[name="_csrf_token"]');
+    var fd = new FormData();
+    fd.append('_csrf_token', csrfInput ? csrfInput.value : '');
+    if (ctx) fd.append('context_id', ctx.value);
+    fetch('{{ url('admin/posts/' ~ post.id ~ '/generate-excerpt') }}', { method: 'POST', body: fd })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      loader.classList.add('hidden');
+      btnGen.disabled = false;
+      if (d.success) {
+        textarea.value = d.excerpt;
+        panel.classList.add('hidden');
+      } else {
+        errBox.textContent = d.error || 'Erreur inconnue.';
+        errBox.classList.remove('hidden');
+      }
+    })
+    .catch(function (err) {
+      loader.classList.add('hidden');
+      btnGen.disabled = false;
+      errBox.textContent = 'Erreur réseau : ' + err.message;
+      errBox.classList.remove('hidden');
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

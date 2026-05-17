@@ -26,6 +26,8 @@ class SiteConfigController
         'secondary_color', 'text_color', 'background_color', 'surface_color',
         'frame_dark_bg_color',
         'display_font_family',
+        // IA — listes de modèles
+        'ai_gemini_models', 'ai_imagen_models',
         // front003 — contenu home
         'adherer_url', 'essai_url',
         'trust_badge_1_label', 'trust_badge_1_strong',

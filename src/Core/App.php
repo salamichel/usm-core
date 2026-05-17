@@ -27,6 +27,7 @@ use App\Controllers\Admin\LocationController;
 use App\Controllers\Admin\ContactMessageController;
 use App\Controllers\Admin\MediaUploadController;
 use App\Controllers\Admin\PhotoAdminController;
+use App\Controllers\Admin\AiCoverController;
 
 class App
 {
@@ -101,6 +102,18 @@ class App
 
         // ── Admin dashboard ───────────────────────────────────────────────────
         $r->get('/admin',         [DashboardController::class, 'index']);
+
+        // ── AI Cover ──────────────────────────────────────────────────────────
+        $r->get('/admin/ai-contexts',                  [AiCoverController::class, 'index']);
+        $r->get('/admin/ai-contexts/create',           [AiCoverController::class, 'create']);
+        $r->post('/admin/ai-contexts',                 [AiCoverController::class, 'store']);
+        $r->get('/admin/ai-contexts/{id}/edit',        [AiCoverController::class, 'edit']);
+        $r->post('/admin/ai-contexts/{id}/edit',       [AiCoverController::class, 'update']);
+        $r->post('/admin/ai-contexts/{id}/delete',     [AiCoverController::class, 'delete']);
+        $r->post('/admin/ai-contexts/{id}/default',    [AiCoverController::class, 'setDefault']);
+        $r->post('/admin/posts/{id}/generate-cover',    [AiCoverController::class, 'generateCover']);
+        $r->post('/admin/posts/{id}/generate-excerpt', [AiCoverController::class, 'generateExcerptPost']);
+        $r->post('/admin/pages/{id}/generate-excerpt', [AiCoverController::class, 'generateExcerptPage']);
 
         // ── Admin tags ─────────────────────────────────────────────────────
         $r->get('/admin/tags',             [TagController::class, 'index']);

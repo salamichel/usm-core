@@ -31,9 +31,10 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Contenu</div>
       <div class="space-y-0.5">
         {% set links = [
-          [url('admin/posts'), '📰 Articles',  '/admin/posts'],
-          [url('admin/tags'),  '🏷️ Tags',       '/admin/tags'],
-          [url('admin/pages'), '📄 Pages',      '/admin/pages'],
+          [url('admin/posts'),       '📰 Articles',    '/admin/posts'],
+          [url('admin/tags'),        '🏷️ Tags',         '/admin/tags'],
+          [url('admin/ai-contexts'), '✨ Contextes IA', '/admin/ai-contexts'],
+          [url('admin/pages'),       '📄 Pages',        '/admin/pages'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -139,9 +140,10 @@
     <div>
       <div class="text-xs font-black text-amber-400 uppercase mb-2 tracking-wider">Contenu</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/posts') }}" class="block py-1 hover:text-amber-400">📰 Articles</a>
-        <a href="{{ url('admin/tags') }}"  class="block py-1 hover:text-amber-400">🏷️ Tags</a>
-        <a href="{{ url('admin/pages') }}" class="block py-1 hover:text-amber-400">📄 Pages</a>
+        <a href="{{ url('admin/posts') }}"       class="block py-1 hover:text-amber-400">📰 Articles</a>
+        <a href="{{ url('admin/tags') }}"        class="block py-1 hover:text-amber-400">🏷️ Tags</a>
+        <a href="{{ url('admin/ai-contexts') }}" class="block py-1 hover:text-amber-400">✨ Contextes IA</a>
+        <a href="{{ url('admin/pages') }}"       class="block py-1 hover:text-amber-400">📄 Pages</a>
       </div>
     </div>
 

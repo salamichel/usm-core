@@ -1,0 +1,72 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ context ? 'Modifier' : 'Nouveau' }} contexte IA{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <a href="{{ url('admin/ai-contexts') }}" class="font-bold hover:underline text-sm">← Retour</a>
+  <h1 class="text-3xl font-black">{{ context ? 'Modifier le contexte IA' : 'Nouveau contexte IA' }}</h1>
+</div>
+
+<form method="POST" action="{{ action }}" class="space-y-6">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+
+    <div>
+      <label class="block font-black mb-1" for="name">Nom *</label>
+      <input type="text" id="name" name="name" required
+             value="{{ context.name ?? '' }}"
+             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown"
+             placeholder="ex: Volley Sport, Article Blog…">
+    </div>
+
+    <div>
+      <label class="block font-black mb-1" for="style_prompt">Style de l'image *</label>
+      <textarea id="style_prompt" name="style_prompt" rows="4" required
+                class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown font-mono text-sm"
+                placeholder="ex: Professional volleyball sport photography, dynamic action, bright court lighting, energetic atmosphere, vibrant colors">{{ context.style_prompt ?? '' }}</textarea>
+      <p class="text-xs text-gray-500 mt-1">Décrit le style visuel à appliquer. Ce texte est combiné avec le contenu de l'article pour générer le prompt final.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-black mb-1" for="gemini_model">Modèle Gemini (prompt)</label>
+        <select id="gemini_model" name="gemini_model"
+                class="w-full border-2 border-black bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% for m in gemini_models %}
+            <option value="{{ m }}" {{ (context.gemini_model ?? gemini_models[0]) == m ? 'selected' : '' }}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block font-black mb-1" for="imagen_model">Modèle Imagen (génération)</label>
+        <select id="imagen_model" name="imagen_model"
+                class="w-full border-2 border-black bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% for m in imagen_models %}
+            <option value="{{ m }}" {{ (context.imagen_model ?? imagen_models[0]) == m ? 'selected' : '' }}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <input type="checkbox" id="is_default" name="is_default" value="1"
+             {% if context.is_default ?? false %}checked{% endif %}
+             class="w-5 h-5 border-2 border-black">
+      <label class="font-black" for="is_default">Contexte par défaut</label>
+    </div>
+
+  </div>
+
+  <div class="flex gap-4">
+    <button type="submit"
+            class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      Enregistrer
+    </button>
+    <a href="{{ url('admin/ai-contexts') }}"
+       class="border-4 border-black bg-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      Annuler
+    </a>
+  </div>
+</form>
+{% endblock %}

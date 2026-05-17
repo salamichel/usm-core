@@ -41,11 +41,12 @@ class PageStatique
         $db   = Database::get();
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages');
         $stmt = $db->prepare(
-            "INSERT INTO pages (title, slug, content, is_published)
-             VALUES (:title, :slug, :content, :is_published)"
+            "INSERT INTO pages (title, excerpt, slug, content, is_published)
+             VALUES (:title, :excerpt, :slug, :content, :is_published)"
         );
         $stmt->execute([
             ':title'        => $data['title'],
+            ':excerpt'      => $data['excerpt'] ?? null,
             ':slug'         => $slug,
             ':content'      => $data['content'] ?? '',
             ':is_published' => (int)($data['is_published'] ?? 0),
@@ -57,10 +58,11 @@ class PageStatique
     {
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages', 'id', $id);
         Database::get()->prepare(
-            "UPDATE pages SET title=:title, slug=:slug, content=:content,
+            "UPDATE pages SET title=:title, excerpt=:excerpt, slug=:slug, content=:content,
              is_published=:is_published, updated_at=NOW() WHERE id=:id"
         )->execute([
             ':title'        => $data['title'],
+            ':excerpt'      => $data['excerpt'] ?? null,
             ':slug'         => $slug,
             ':content'      => $data['content'] ?? '',
             ':is_published' => (int)($data['is_published'] ?? 0),

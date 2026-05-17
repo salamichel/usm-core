@@ -41,5 +41,8 @@ define('BREVO_FROM_NAME', getenv('BREVO_FROM_NAME') ?: 'USM Volley');
 
 // ── Upload ────────────────────────────────────────────────────────────────────
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');
-define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024); // 10 MB
+define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024);
 define('UPLOAD_ALLOWED_TYPES', ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
+
+// ── Gemini / Imagen (AI cover image generator) ────────────────────────────────
+define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
