@@ -65,6 +65,14 @@ class Photo
         Database::get()->prepare("DELETE FROM photos WHERE id = ?")->execute([$id]);
     }
 
+    public static function reorder(array $ids): void
+    {
+        $stmt = Database::get()->prepare("UPDATE photos SET position = ? WHERE id = ?");
+        foreach (array_values($ids) as $pos => $id) {
+            $stmt->execute([$pos, (int)$id]);
+        }
+    }
+
     public static function deleteAllForEntity(string $type, int $id): void
     {
         $photos = self::forEntity($type, $id);

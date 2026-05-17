@@ -73,7 +73,7 @@
 .frame-lg   { padding: 2rem;    border-radius: 28px; }
 .frame-amber{ background: var(--bone); }
 .frame-dark {
-  background: var(--ink);
+  background: var(--frame-dark-bg);
   color: var(--paper);
   border-color: color-mix(in srgb, var(--paper) 10%, transparent);
 }

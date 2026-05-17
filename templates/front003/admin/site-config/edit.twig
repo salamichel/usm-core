@@ -78,6 +78,18 @@
         <div class="text-xs text-gray-500 mt-1">Entre 16 et 200 px (par défaut : 40).</div>
       </div>
     </div>
+
+    <div>
+      <label class="block font-black mb-1" for="logo_footer_display_mode">Affichage dans le footer</label>
+      <select id="logo_footer_display_mode" name="logo_footer_display_mode"
+              class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        {% set _fmode = config.logo_footer_display_mode|default('hidden') %}
+        <option value="hidden"         {% if _fmode == 'hidden' %}selected{% endif %}>Masqué (pas de logo dans le footer)</option>
+        <option value="image_only"     {% if _fmode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
+        <option value="image_and_text" {% if _fmode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
+      </select>
+      <div class="text-xs text-gray-500 mt-1">Choisissez si le logo apparaît dans le bas de page.</div>
+    </div>
   </div>
 
   {# ── Identité ── #}
@@ -198,7 +210,8 @@
         {key:'secondary_color',  label:'Ember (foncé)',   def:'#A6221C'},
         {key:'text_color',       label:'Ink (texte)',     def:'#1A1A1A'},
         {key:'background_color', label:'Bone (fond)',     def:'#F7F4EE'},
-        {key:'surface_color',    label:'Paper (cards)',   def:'#FFFFFF'}
+        {key:'surface_color',    label:'Paper (cards)',   def:'#FFFFFF'},
+        {key:'frame_dark_bg_color', label:'Frame Dark (fond)', def:'#1A1A1A'}
       ] %}
       {% for c in palette %}
         <div>
@@ -357,6 +370,22 @@
             <span class="w-3 h-3 border border-black/30 rounded-sm inline-block" style="background:{{ preset.v }}"></span>{{ preset.l }}
           </button>
         {% endfor %}
+      </div>
+    </div>
+
+    {# Couleur Frame Dark (front002) #}
+    <div class="pt-4 border-t-2 border-black">
+      <label class="block font-black mb-2" for="frame_dark_bg_color_002">Couleur des cadres sombres (.frame-dark)</label>
+      <div class="flex items-center gap-3">
+        <input type="color" id="frame_dark_bg_color_002" name="frame_dark_bg_color"
+               value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
+               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
+               oninput="document.getElementById('hex_input_fd').value=this.value">
+        <input type="text" id="hex_input_fd" placeholder="#0f172a" maxlength="7"
+               value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
+               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
+               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('frame_dark_bg_color_002').value=this.value}">
+        <span class="text-xs text-gray-500">Défaut front002 : #0f172a</span>
       </div>
     </div>
 

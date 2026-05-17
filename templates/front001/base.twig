@@ -136,12 +136,14 @@
       --footer-bg:      {{ site_config.footer_bg_color|default(site_config.primary_color|default('#94674d')) }};
       --footer-text:    {{ site_config.footer_text_color|default('#ffffff') }};
       --footer-heading: {{ site_config.footer_heading_color|default('#ffffff') }};
+      --header-h: max(90px, calc({{ site_config.logo_height|default('40') }}px + 50px));
+      --frame-dark-bg:  {{ site_config.frame_dark_bg_color|default('#000000') }};
     }
 
     /* Neobrutalism Header */
     .header-brutal {
       background-color: var(--header-bg);
-      height: 90px;
+      min-height: var(--header-h);
       display: flex;
       align-items: center;
       padding: 0 5%;
@@ -226,7 +228,7 @@
 
     .mega-menu {
       position: absolute;
-      top: 90px;
+      top: var(--header-h);
       left: 0;
       width: 100%;
       background-color: var(--header-bg);
@@ -301,11 +303,11 @@
 
     #mobile-menu:not(.hidden) {
       position: fixed;
-      top: 90px;
+      top: var(--header-h);
       left: 0;
       right: 0;
       z-index: 999;
-      max-height: calc(100vh - 90px);
+      max-height: calc(100vh - var(--header-h));
       overflow-y: auto;
     }
 
@@ -522,7 +524,17 @@
         {# Left: Logo + Contact Info + Social #}
         <div class="flex flex-col justify-between sm:border-r-2 sm:border-white/20 sm:pr-8">
           <div>
+            {% set _fmode = site_config.logo_url ? (site_config.logo_footer_display_mode|default('hidden')) : 'hidden' %}
+            {% if site_config.logo_url and _fmode != 'hidden' %}
+              <a href="{{ url('/') }}" class="inline-block mb-3">
+                <img src="{{ asset('uploads/' ~ site_config.logo_url) }}"
+                     alt="{{ site_config.club_name|default('USM Volley') }}"
+                     style="height:{{ site_config.logo_height|default('40') }}px; width:auto; max-width:200px; display:block;">
+              </a>
+            {% endif %}
+            {% if _fmode == 'hidden' or _fmode == 'image_and_text' %}
             <h3 class="text-lg font-black mb-2 uppercase" style="color:var(--footer-heading)">{{ site_config.club_name|default('USM Volley') }}</h3>
+            {% endif %}
 
             {# Tagline #}
             {% if site_config.club_tagline %}

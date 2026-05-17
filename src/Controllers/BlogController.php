@@ -136,11 +136,21 @@ class BlogController
             articleModifiedAt: !empty($post['updated_at']) ? date('c', strtotime($post['updated_at'])) : null,
         );
 
+        $neighbors = Post::getNeighbors($post['id']);
+        if ($neighbors['prev']) {
+            $neighbors['prev']['cover'] = Photo::getEntityCover('post', $neighbors['prev']['id']);
+        }
+        if ($neighbors['next']) {
+            $neighbors['next']['cover'] = Photo::getEntityCover('post', $neighbors['next']['id']);
+        }
+
         View::render('blog/detail.twig', [
-            'meta'   => $meta,
-            'post'   => $post,
-            'photos' => $photos,
-            'tags'   => $tags,
+            'meta'      => $meta,
+            'post'      => $post,
+            'photos'    => $photos,
+            'tags'      => $tags,
+            'prev_post' => $neighbors['prev'],
+            'next_post' => $neighbors['next'],
         ]);
     }
 }

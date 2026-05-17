@@ -43,6 +43,40 @@
       {% endif %}
 
       {{ components.gallery(photos) }}
+
+      {# Navigation précédent / suivant #}
+      {% if prev_post or next_post %}
+      <div class="mt-10 pt-8 border-t-2 border-gray-200 grid grid-cols-2 gap-4">
+        <div>
+          {% if prev_post %}
+          <a href="{{ url('blog/' ~ prev_post.slug) }}"
+             class="flex flex-col border-2 border-black hover:bg-amber-50 transition group overflow-hidden">
+            {% if prev_post.cover %}
+              <img src="{{ image_variant(prev_post.cover, 'thumb') }}" alt="" class="w-full h-24 object-cover">
+            {% endif %}
+            <div class="p-3">
+              <span class="text-xs font-black uppercase tracking-wide text-gray-500">← Article précédent</span>
+              <p class="text-sm font-bold leading-snug mt-1 group-hover:underline">{{ prev_post.title }}</p>
+            </div>
+          </a>
+          {% endif %}
+        </div>
+        <div>
+          {% if next_post %}
+          <a href="{{ url('blog/' ~ next_post.slug) }}"
+             class="flex flex-col border-2 border-black hover:bg-amber-50 transition group overflow-hidden text-right">
+            {% if next_post.cover %}
+              <img src="{{ image_variant(next_post.cover, 'thumb') }}" alt="" class="w-full h-24 object-cover">
+            {% endif %}
+            <div class="p-3">
+              <span class="text-xs font-black uppercase tracking-wide text-gray-500">Article suivant →</span>
+              <p class="text-sm font-bold leading-snug mt-1 group-hover:underline">{{ next_post.title }}</p>
+            </div>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
     </div>
   </article>
 </div>
