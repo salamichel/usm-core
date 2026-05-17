@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Core\Auth;
 use App\Core\View;
 use App\Models\AiImageContext;
+use App\Models\PageStatique;
 use App\Models\Photo;
 use App\Models\Post;
 use App\Models\SiteConfig;
@@ -41,12 +42,25 @@ class AiCoverController
                 throw new \RuntimeException('Aucun contexte IA sélectionné ou configuré.');
             }
 
+            // Resolve logo path if requested
+            $logoPath = null;
+            if (!empty($_POST['include_logo'])) {
+                $logoUrl = SiteConfig::get('logo_url');
+                if ($logoUrl) {
+                    $candidate = UPLOAD_DIR . '/' . ltrim($logoUrl, '/');
+                    if (file_exists($candidate)) {
+                        $logoPath = $candidate;
+                    }
+                }
+            }
+
             $gemini = new GeminiService();
             $imagePrompt = $gemini->buildImagePrompt(
                 $post['title'],
                 $post['content'] ?? '',
                 $context['style_prompt'],
-                $context['gemini_model']
+                $context['gemini_model'],
+                $logoPath
             );
 
             $imageData = $gemini->generateImage($imagePrompt, $context['imagen_model']);
@@ -206,6 +220,63 @@ class AiCoverController
         AiImageContext::setDefault((int) $params['id']);
         View::flash('success', 'Contexte défini par défaut.');
         header('Location: ' . BASE_URL . '/admin/ai-contexts');
+    }
+
+    /**
+     * POST /admin/posts/{id}/generate-excerpt
+     */
+    public function generateExcerptPost(array $params): void
+    {
+        Auth::require();
+        header('Content-Type: application/json');
+        try {
+            $post = Post::find((int) ($params['id'] ?? 0));
+            if (!$post) {
+                throw new \RuntimeException('Article introuvable.');
+            }
+            $excerpt = $this->doGenerateExcerpt($post['title'], $post['content'] ?? '', (int) ($_POST['context_id'] ?? 0));
+            echo json_encode(['success' => true, 'excerpt' => $excerpt]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * POST /admin/pages/{id}/generate-excerpt
+     */
+    public function generateExcerptPage(array $params): void
+    {
+        Auth::require();
+        header('Content-Type: application/json');
+        try {
+            $page = PageStatique::find((int) ($params['id'] ?? 0));
+            if (!$page) {
+                throw new \RuntimeException('Page introuvable.');
+            }
+            $excerpt = $this->doGenerateExcerpt($page['title'], $page['content'] ?? '', (int) ($_POST['context_id'] ?? 0));
+            echo json_encode(['success' => true, 'excerpt' => $excerpt]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    private function doGenerateExcerpt(string $title, string $content, int $contextId): string
+    {
+        if (GEMINI_API_KEY === '') {
+            throw new \RuntimeException('La clé API Gemini n\'est pas configurée (GEMINI_API_KEY).');
+        }
+        $context = $contextId ? AiImageContext::find($contextId) : AiImageContext::getDefault();
+        if (!$context) {
+            throw new \RuntimeException('Aucun contexte IA sélectionné ou configuré.');
+        }
+        return (new GeminiService())->generateExcerpt(
+            $title,
+            $content,
+            $context['style_prompt'],
+            $context['gemini_model']
+        );
     }
 
     private static function modelLists(): array

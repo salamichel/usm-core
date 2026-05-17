@@ -111,7 +111,9 @@ class App
         $r->post('/admin/ai-contexts/{id}/edit',       [AiCoverController::class, 'update']);
         $r->post('/admin/ai-contexts/{id}/delete',     [AiCoverController::class, 'delete']);
         $r->post('/admin/ai-contexts/{id}/default',    [AiCoverController::class, 'setDefault']);
-        $r->post('/admin/posts/{id}/generate-cover',   [AiCoverController::class, 'generateCover']);
+        $r->post('/admin/posts/{id}/generate-cover',    [AiCoverController::class, 'generateCover']);
+        $r->post('/admin/posts/{id}/generate-excerpt', [AiCoverController::class, 'generateExcerptPost']);
+        $r->post('/admin/pages/{id}/generate-excerpt', [AiCoverController::class, 'generateExcerptPage']);
 
         // ── Admin tags ─────────────────────────────────────────────────────
         $r->get('/admin/tags',             [TagController::class, 'index']);
@@ -222,16 +224,6 @@ class App
         $r->post('/admin/home-blocks/{id}/delete',    [HomeBlockController::class, 'delete']);
         $r->post('/admin/home-blocks/{id}/move-up',   [HomeBlockController::class, 'moveUp']);
         $r->post('/admin/home-blocks/{id}/move-down', [HomeBlockController::class, 'moveDown']);
-
-        // ── Admin AI cover generator ──────────────────────────────────────────
-        $r->get('/admin/ai-contexts',               [AiCoverController::class, 'index']);
-        $r->get('/admin/ai-contexts/create',        [AiCoverController::class, 'create']);
-        $r->post('/admin/ai-contexts',              [AiCoverController::class, 'store']);
-        $r->get('/admin/ai-contexts/{id}/edit',     [AiCoverController::class, 'edit']);
-        $r->post('/admin/ai-contexts/{id}/edit',    [AiCoverController::class, 'update']);
-        $r->post('/admin/ai-contexts/{id}/delete',  [AiCoverController::class, 'delete']);
-        $r->post('/admin/ai-contexts/{id}/default', [AiCoverController::class, 'setDefault']);
-        $r->post('/admin/posts/{id}/generate-cover',[AiCoverController::class, 'generateCover']);
 
         // ── Admin photos (partagé) ───────────────────────────────────────────
         $r->post('/admin/photos/reorder', [PhotoAdminController::class, 'reorder']);
