@@ -143,8 +143,8 @@ class AiCoverController
         AiImageContext::create([
             'name'         => trim($_POST['name']),
             'style_prompt' => trim($_POST['style_prompt'] ?? ''),
-            'gemini_model' => $_POST['gemini_model'] ?? 'gemini-2.0-flash',
-            'imagen_model' => $_POST['imagen_model'] ?? 'imagen-3.0-generate-002',
+            'gemini_model' => $_POST['gemini_model'] ?? 'gemini-3-flash-preview',
+            'imagen_model' => $_POST['imagen_model'] ?? 'gemini-2.5-flash-image',
             'is_default'   => !empty($_POST['is_default']) ? 1 : 0,
         ]);
         View::flash('success', 'Contexte créé.');
@@ -192,8 +192,8 @@ class AiCoverController
         AiImageContext::update((int) $params['id'], [
             'name'         => trim($_POST['name']),
             'style_prompt' => trim($_POST['style_prompt'] ?? ''),
-            'gemini_model' => $_POST['gemini_model'] ?? 'gemini-2.0-flash',
-            'imagen_model' => $_POST['imagen_model'] ?? 'imagen-3.0-generate-002',
+            'gemini_model' => $_POST['gemini_model'] ?? 'gemini-3-flash-preview',
+            'imagen_model' => $_POST['imagen_model'] ?? 'gemini-2.5-flash-image',
             'is_default'   => !empty($_POST['is_default']) ? 1 : 0,
         ]);
         View::flash('success', 'Contexte mis à jour.');
@@ -283,15 +283,15 @@ class AiCoverController
     {
         return [
             'gemini_models' => SiteConfig::getModelList('ai_gemini_models', [
+                'gemini-3-flash-preview',
+                'gemini-3.1-pro-preview',
+                'gemini-3.1-flash-lite',
                 'gemini-2.5-flash',
-                'gemini-2.0-flash',
-                'gemini-1.5-flash',
-                'gemini-1.5-pro',
             ]),
             'imagen_models' => SiteConfig::getModelList('ai_imagen_models', [
                 'gemini-2.5-flash-image',
-                'imagen-3.0-generate-002',
-                'imagen-3.0-fast-generate-001',
+                'gemini-3.1-flash-image-preview',
+                'gemini-3-pro-image-preview',
             ]),
         ];
     }

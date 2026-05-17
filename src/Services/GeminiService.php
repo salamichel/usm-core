@@ -12,7 +12,7 @@ class GeminiService
         $this->apiKey = GEMINI_API_KEY;
     }
 
-    public function buildImagePrompt(string $title, string $content, string $stylePrompt, string $geminiModel = 'gemini-2.0-flash', ?string $logoPath = null): string
+    public function buildImagePrompt(string $title, string $content, string $stylePrompt, string $geminiModel = 'gemini-3-flash-preview', ?string $logoPath = null): string
     {
         $textContent = strip_tags($content);
         $textContent = preg_replace('/\s+/', ' ', $textContent);
@@ -65,7 +65,7 @@ class GeminiService
         return trim($prompt);
     }
 
-    public function generateExcerpt(string $title, string $content, string $stylePrompt, string $geminiModel = 'gemini-2.0-flash'): string
+    public function generateExcerpt(string $title, string $content, string $stylePrompt, string $geminiModel = 'gemini-3-flash-preview'): string
     {
         $textContent = strip_tags($content);
         $textContent = preg_replace('/\s+/', ' ', $textContent);
@@ -104,7 +104,7 @@ class GeminiService
         return trim($excerpt);
     }
 
-    public function generateImage(string $imagePrompt, string $imagenModel = 'imagen-3.0-generate-002'): string
+    public function generateImage(string $imagePrompt, string $imagenModel = 'gemini-2.5-flash-image'): string
     {
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$imagenModel}:predict?key={$this->apiKey}";
         $payload = json_encode([
