@@ -111,10 +111,10 @@ class GeminiService
 
     public function generateImage(string $imagePrompt, string $imagenModel = 'gemini-2.5-flash-image'): string
     {
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$imagenModel}:predict?key={$this->apiKey}";
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$imagenModel}:generateContent?key={$this->apiKey}";
         $payload = json_encode([
-            'instances'  => [['prompt' => $imagePrompt]],
-            'parameters' => ['sampleCount' => 1],
+            'contents' => [['parts' => [['text' => $imagePrompt]]]],
+            'generationConfig' => ['maxOutputTokens' => 1024],
         ]);
 
         $context = stream_context_create([
@@ -122,23 +122,28 @@ class GeminiService
                 'method'  => 'POST',
                 'header'  => "Content-Type: application/json\r\n",
                 'content' => $payload,
-                'timeout' => 60,
+                'timeout' => 90,
             ],
         ]);
 
         $response = @file_get_contents($url, false, $context);
         if ($response === false) {
-            Logger::errors()->error('GeminiService: generateImage failed', ['prompt' => $imagePrompt]);
+            Logger::errors()->error('GeminiService: generateImage failed', ['prompt' => mb_substr($imagePrompt, 0, 100)]);
             throw new \RuntimeException('Erreur lors de la connexion à l\'API Imagen.');
         }
 
         $data = json_decode($response, true);
-        $b64 = $data['predictions'][0]['bytesBase64Encoded'] ?? null;
-        if (!$b64) {
-            Logger::errors()->error('GeminiService: no image in response', ['response' => mb_substr($response, 0, 500)]);
-            throw new \RuntimeException('L\'API Imagen n\'a pas retourné d\'image.');
+        $imagePart = $data['candidates'][0]['content']['parts'][0] ?? null;
+
+        // Check for inlineData (base64 encoded image)
+        if ($imagePart && isset($imagePart['inlineData'])) {
+            $b64 = $imagePart['inlineData']['data'] ?? null;
+            if ($b64) {
+                return base64_decode($b64);
+            }
         }
 
-        return base64_decode($b64);
+        Logger::errors()->error('GeminiService: no image in response', ['response' => mb_substr($response, 0, 500), 'model' => $imagenModel]);
+        throw new \RuntimeException('L\'API Imagen n\'a pas retourné d\'image.');
     }
 }
