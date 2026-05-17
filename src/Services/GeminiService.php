@@ -114,36 +114,45 @@ class GeminiService
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$imagenModel}:generateContent?key={$this->apiKey}";
         $payload = json_encode([
             'contents' => [['parts' => [['text' => $imagePrompt]]]],
-            'generationConfig' => ['maxOutputTokens' => 1024],
+            'generationConfig' => ['responseModalities' => ['IMAGE'], 'maxOutputTokens' => 8192],
         ]);
 
         $context = stream_context_create([
             'http' => [
-                'method'  => 'POST',
-                'header'  => "Content-Type: application/json\r\n",
-                'content' => $payload,
-                'timeout' => 90,
+                'method'        => 'POST',
+                'header'        => "Content-Type: application/json\r\n",
+                'content'       => $payload,
+                'timeout'       => 90,
+                'ignore_errors' => true,
             ],
         ]);
 
-        $response = @file_get_contents($url, false, $context);
-        if ($response === false) {
-            Logger::errors()->error('GeminiService: generateImage failed', ['prompt' => mb_substr($imagePrompt, 0, 100)]);
-            throw new \RuntimeException('Erreur lors de la connexion à l\'API Imagen.');
+        $response = file_get_contents($url, false, $context);
+        $httpCode = 0;
+        if (isset($http_response_header)) {
+            preg_match('/HTTP\/\S+ (\d+)/', $http_response_header[0] ?? '', $m);
+            $httpCode = (int) ($m[1] ?? 0);
+        }
+
+        if ($response === false || $httpCode >= 400) {
+            Logger::errors()->error('GeminiService: generateImage HTTP error', [
+                'httpCode' => $httpCode,
+                'response' => $response ? mb_substr($response, 0, 1000) : 'false',
+                'model'    => $imagenModel,
+            ]);
+            $apiError = $response ? (json_decode($response, true)['error']['message'] ?? null) : null;
+            throw new \RuntimeException('Erreur API Imagen' . ($apiError ? " : {$apiError}" : " (HTTP {$httpCode})."));
         }
 
         $data = json_decode($response, true);
-        $imagePart = $data['candidates'][0]['content']['parts'][0] ?? null;
-
-        // Check for inlineData (base64 encoded image)
-        if ($imagePart && isset($imagePart['inlineData'])) {
-            $b64 = $imagePart['inlineData']['data'] ?? null;
-            if ($b64) {
-                return base64_decode($b64);
+        $parts = $data['candidates'][0]['content']['parts'] ?? [];
+        foreach ($parts as $part) {
+            if (isset($part['inlineData']['data'])) {
+                return base64_decode($part['inlineData']['data']);
             }
         }
 
-        Logger::errors()->error('GeminiService: no image in response', ['response' => mb_substr($response, 0, 500), 'model' => $imagenModel]);
+        Logger::errors()->error('GeminiService: no image in response', ['response' => mb_substr($response, 0, 1000), 'model' => $imagenModel]);
         throw new \RuntimeException('L\'API Imagen n\'a pas retourné d\'image.');
     }
 }
