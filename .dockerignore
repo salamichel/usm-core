@@ -15,3 +15,4 @@ composer.lock
 composer.json
 node_modules/
 vendor/
+public/assets/uploads/
