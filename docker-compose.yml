@@ -1,3 +1,7 @@
+networks:
+  frontend:
+  backend:
+
 services:
 
   app:
@@ -6,13 +10,18 @@ services:
       - "8000:80"
     volumes:
       - .:/var/www/html
-      - /var/www/html/vendor   # exclure vendor du bind mount
+      - ./public/assets/uploads:/var/www/html/public/assets/uploads
+      - ./logs:/var/www/html/logs
     depends_on:
       migrate:
         condition: service_completed_successfully
       migrate_external:
         condition: service_completed_successfully
     env_file: .env
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
 
   db:
     image: mariadb:11.4.10
@@ -30,10 +39,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - backend
+    restart: unless-stopped
 
   # ── Migrations base locale ──────────────────────────────────────────────────
-  # Tourne à chaque "docker compose up", applique tous les fichiers SQL dans l'ordre.
-  # Idempotent : CREATE TABLE IF NOT EXISTS + INSERT IGNORE.
   migrate:
     image: mariadb:11.4.10
     depends_on:
@@ -46,6 +56,8 @@ services:
     volumes:
       - ./database:/sql:ro
       - ./docker:/scripts:ro
+    networks:
+      - backend
     restart: "no"
 
   # ── Base externe simulée ────────────────────────────────────────────────────
@@ -65,6 +77,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - backend
+    restart: unless-stopped
 
   # ── Migrations base externe ─────────────────────────────────────────────────
   migrate_external:
@@ -79,6 +94,8 @@ services:
     volumes:
       - ./database:/sql:ro
       - ./docker:/scripts:ro
+    networks:
+      - backend
     restart: "no"
 
   phpmyadmin:
@@ -89,8 +106,12 @@ services:
       TZ: ${TZ}
       PMA_ARBITRARY: 1
       PMA_HOSTS: db,db_external
-      PMA_USER: root
-      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASS}
     depends_on:
       - db
       - db_external
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
