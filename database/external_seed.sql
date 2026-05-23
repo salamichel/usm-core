@@ -5,14 +5,14 @@ SET NAMES utf8mb4;
 -- Joueurs (25 joueuses avec diverses combinaisons de flags)
 -- Colonnes : id_joueur, Nom, Prénom, Mel, NLicence,
 --            Adulte, Jeune, Compétition, Loisir, Débutant,
---            Eq_L1, Eq_L2, Eq_L3, Eq_L4, Eq_Open, DEP,
---            Eq_Heitz, Eq_Aico, CoupeLoisir,
+--            L1, L2, L3, L4, Open, DEP,
+--            Heitz, Aico, CoupeLoisir,
 --            UFOLEP_1, UFOLEP_2, UFOLEP_3, M18F, M15F, R2F
 INSERT IGNORE INTO Joueurs
   (id_joueur, Nom, `Prénom`, Mel, NLicence,
    Adulte, Jeune, `Compétition`, Loisir, `Débutant`,
-   Eq_L1, Eq_L2, Eq_L3, Eq_L4, Eq_Open, DEP,
-   Eq_Heitz, Eq_Aico, CoupeLoisir,
+   L1, L2, L3, L4, Open, DEP,
+   Heitz, Aico, CoupeLoisir,
    UFOLEP_1, UFOLEP_2, UFOLEP_3, M18F, M15F, R2F)
 VALUES
 (1,  'Martin',   'Sophie',    'sophie.martin@example.com',    12001,  1,0,1,0,0,  1,0,0,0,0,0, 1,0,0, 0,0,0,0,0,0),

@@ -701,10 +701,10 @@ class AgendaService
     private static function teamColumn(string $team): ?string
     {
         $allowed = [
-            'Eq_L1', 'Eq_L2', 'Eq_L3', 'Eq_L4', 'Eq_Open',
-            'CoupeLoisir', 'Eq_Heitz', 'Eq_Aico',
+            'L1', 'L2', 'L3', 'L4', 'Open',
+            'CoupeLoisir', 'Heitz', 'Aico',
             'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3',
-            'DEP', 'Adulte', 'Jeune', 'M18F', 'M15F', 'R2F',
+            'DEP', 'Adulte', 'Jeune', 'M18F', 'M13F', 'M15F', 'M15F6', 'R2F',
             'Compétition', 'Loisir', 'Débutant',
         ];
         return in_array($team, $allowed, true) ? $team : null;
@@ -861,7 +861,7 @@ class AgendaService
      * Optionally filters by manifestation name (e.g., "Match L2").
      * Returns matches with participation stats (may be zero if no records exist yet).
      *
-     * @param string $teamCode Team identifier (e.g., 'Eq_L1')
+     * @param string $teamCode Team identifier (e.g., 'L1')
      * @param int $limit Maximum number of matches to return
      * @param string|null $manifestationFilter Optional filter on ManifestationTypée (e.g., "Match L2")
      * @return array List of match events with participation stats
