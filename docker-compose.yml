@@ -106,8 +106,6 @@ services:
       TZ: ${TZ}
       PMA_ARBITRARY: 1
       PMA_HOSTS: db,db_external
-      PMA_USER: ${DB_USER}
-      PMA_PASSWORD: ${DB_PASS}
     depends_on:
       - db
       - db_external
