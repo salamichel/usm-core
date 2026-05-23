@@ -57,8 +57,8 @@
   <div class="hero-carousel h-full" id="hero-carousel">
     {% for slide in slides %}
     <article class="hero-slide">
-      {% if slide.image %}
-        <img src="{{ asset('uploads/' ~ slide.image) }}" alt="{{ slide.title }}"
+      {% if slide.photo %}
+        <img src="{{ image_variant(slide.photo, 'large') }} " alt="{{ slide.title }}"
              loading="{{ loop.first ? 'eager' : 'lazy' }}" decoding="async"
              class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/10"></div>

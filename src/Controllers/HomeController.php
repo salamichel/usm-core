@@ -43,6 +43,7 @@ class HomeController
                 'excerpt'    => $post['excerpt'] ?? '',
                 'url'        => BASE_URL . '/blog/' . $post['slug'],
                 'image'      => !empty($photos) ? $photos[0]['filename'] : null,
+                'photo'      => !empty($photos) ? $photos[0] : null,
             ];
         }
 
