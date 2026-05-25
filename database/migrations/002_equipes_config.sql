@@ -2,7 +2,7 @@ SET NAMES utf8mb4;
 
 -- Extend ENUM to support equipe_saison photos
 ALTER TABLE photos
-  MODIFY COLUMN entity_type ENUM('post','page','equipe_saison') NOT NULL;
+  MODIFY COLUMN entity_type ENUM('post','page','equipe_saison','home_block') NOT NULL;
 
 -- Équipes (config permanente, indépendante de la saison)
 CREATE TABLE IF NOT EXISTS equipes_config (
