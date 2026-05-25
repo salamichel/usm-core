@@ -188,7 +188,8 @@ h1, h2, h3, h4, .serif { font-family: 'Playfair Display', Georgia, serif; letter
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   border-radius: 6px;
   transition: var(--transition, all 0.2s ease);
   display: inline-flex;
@@ -264,6 +265,7 @@ h1, h2, h3, h4, .serif { font-family: 'Playfair Display', Georgia, serif; letter
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  text-transform: uppercase;
 }
 .mega-links-classic a {
   display: block;

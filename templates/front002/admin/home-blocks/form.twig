@@ -65,12 +65,12 @@
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
     <h2 class="font-black text-lg mb-4">Image d'illustration</h2>
 
-    <input type="hidden" id="image" name="image" value="{{ block.image ?? '' }}">
+    <input type="hidden" id="photo_id" name="photo_id" value="{{ block.cover_photo.id ?? '' }}">
 
-    <div id="image-preview" class="mb-4 {% if not block or not block.image %}hidden{% endif %}">
+    <div id="image-preview" class="mb-4 {% if not block or not block.cover_photo %}hidden{% endif %}">
       <div class="relative inline-block border-2 border-black">
         <img id="image-thumb"
-             src="{% if block and block.image %}{{ asset('uploads/' ~ block.image) }}{% endif %}"
+             src="{% if block and block.cover_photo %}{{ asset('uploads/' ~ block.cover_photo.filename) }}{% endif %}"
              alt="" class="block max-w-xs h-40 object-cover">
         <button type="button" id="image-clear"
                 class="absolute top-1 right-1 bg-black/80 text-white text-xs font-black px-2 py-1 hover:bg-red-600">
@@ -125,7 +125,7 @@
 
   // ── Dropzone image unique ───────────────────────────────────────────────────
   Dropzone.autoDiscover = false;
-  const imgInput   = document.getElementById('image');
+  const imgInput   = document.getElementById('photo_id');
   const previewBox = document.getElementById('image-preview');
   const previewImg = document.getElementById('image-thumb');
   const clearBtn   = document.getElementById('image-clear');
@@ -146,7 +146,7 @@
     init() {
       this.on('success', (file, resp) => {
         if (!resp.ok) { alert(resp.error || 'Erreur upload'); return; }
-        imgInput.value      = resp.filename;
+        imgInput.value      = resp.photo_id;
         previewImg.src      = resp.url;
         previewBox.classList.remove('hidden');
         this.removeFile(file);

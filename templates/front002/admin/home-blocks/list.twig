@@ -79,8 +79,8 @@
         <td class="px-4 py-3 font-mono text-gray-400">{{ loop.index }}</td>
         <td class="px-4 py-3 font-semibold">{{ block.titre }}</td>
         <td class="px-4 py-3">
-          {% if block.image %}
-            <img src="{{ asset('uploads/' ~ block.image) }}" alt="" class="w-16 h-12 object-cover border-2 border-black">
+          {% if block.cover_photo %}
+            <img src="{{ image_variant(block.cover_photo, 'medium') }}" alt="" class="w-16 h-12 object-cover border-2 border-black">
           {% else %}
             <span class="text-xs text-gray-400 italic">aucune</span>
           {% endif %}

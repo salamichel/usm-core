@@ -34,7 +34,7 @@
     <tbody>
       {% for snap in snapshots %}
       {% set equipes = [] %}
-      {% for col in ['Eq_L1','Eq_L2','Eq_L3','Eq_L4','Eq_Open','DEP','Eq_Heitz','Eq_Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Débutant'] %}
+      {% for col in ['L1','L2','L3','L4','Open','DEP','Heitz','Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F','R2F','Loisir','Débutant'] %}
         {% if snap.data[col] is defined and snap.data[col] %}
           {% set equipes = equipes|merge([col]) %}
         {% endif %}
