@@ -43,6 +43,7 @@ class HomeController
                 'excerpt'    => $post['excerpt'] ?? '',
                 'url'        => BASE_URL . '/blog/' . $post['slug'],
                 'image'      => !empty($photos) ? $photos[0]['filename'] : null,
+                'photo'      => !empty($photos) ? $photos[0] : null,
             ];
         }
 
@@ -81,6 +82,14 @@ class HomeController
             $postCovers[$post['id']] = Photo::getEntityCover('post', (int)$post['id']);
         }
 
+        // Home block
+
+        $blocks = HomeBlock::allActive();
+        // Pour chaque bloc, récupérer sa photo de couverture
+        foreach ($blocks as &$block) {
+            $block['cover_photo'] = Photo::getEntityCover('home_block', (int)$block['id']);
+        }
+
         // SEO metadata
         $ogImage = null;
         if (!empty($slides) && !empty($slides[0]['image'])) {
@@ -106,7 +115,7 @@ class HomeController
             'meta'         => $meta,
             'slides'       => $slides,
             'stats'        => $stats,
-            'home_blocks'  => HomeBlock::allActive(),
+            'home_blocks'  => $blocks,
             'latest_posts' => $latestPosts,
             'post_covers'  => $postCovers,
             'matches'      => $matches,

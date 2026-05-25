@@ -591,7 +591,7 @@ schema.sql → seed.sql → add_photos.sql
 **Migrations récentes** :
 - `003_home_blocks.sql` — blocs accueil (contenu + position)
 - `004_site_config.sql` — config du site (nom, email, phone, réseaux)
-- `005_joueur_snapshots_nlicence.sql` — ajout colonne n_licence
+- `005_joueur_snapshots_nlicence.sql` — ajout colonne nlicence
 - `006_article_api.sql` — table pour intégration API article
 - `007_tags.sql` — table tags pour catégorisation articles
 - `008_contacts.sql` — messages de contact + réponses (Brevo)

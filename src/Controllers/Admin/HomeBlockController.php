@@ -7,15 +7,19 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\HomeBlock;
 use App\Models\Photo;
-use App\Services\UploadPathManager;
 
 class HomeBlockController
 {
     public function index(array $params): void
     {
         Auth::require();
+        $blocks = HomeBlock::all();
+        // Pour chaque bloc, récupérer sa photo de couverture
+        foreach ($blocks as &$block) {
+            $block['cover_photo'] = Photo::getEntityCover('home_block', (int)$block['id']);
+        }
         View::render('admin/home-blocks/list.twig', [
-            'blocks' => HomeBlock::all(),
+            'blocks' => $blocks,
         ]);
     }
 
@@ -41,6 +45,14 @@ class HomeBlockController
             return;
         }
         $id = HomeBlock::create($data);
+        // Si un photoId est présent dans les données, l'attacher au HomeBlock
+        if (isset($data['photo_id']) && $data['photo_id'] > 0) {
+            $newBlock = HomeBlock::find($id);
+            if ($newBlock) {                
+                // Un seul appel statique suffit, propre et direct !
+                HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
+            }
+        }
         View::flash('success', 'Bloc créé avec succès.');
         header('Location: ' . BASE_URL . '/admin/home-blocks/' . $id . '/edit');
         exit;
@@ -51,6 +63,10 @@ class HomeBlockController
         Auth::require();
         $block = HomeBlock::find((int)$params['id']);
         if (!$block) { $this->notFound(); return; }
+        // Récupérer les photos associées au bloc
+        $block['photos'] = Photo::forEntity('home_block', (int)$params['id']);
+        $block['cover_photo'] = Photo::getEntityCover('home_block', (int)$params['id']);
+
         View::render('admin/home-blocks/form.twig', [
             'block'  => $block,
             'action' => BASE_URL . '/admin/home-blocks/' . $block['id'] . '/edit',
@@ -72,14 +88,17 @@ class HomeBlockController
             ]);
             return;
         }
-        // Si l'admin a remplacé l'image et qu'une ancienne existait, supprimer le fichier
-        if (!empty($block['image']) && $block['image'] !== $data['image']) {
-            $oldPath = UploadPathManager::getFullPath($block['image']);
-            if (file_exists($oldPath)) {
-                unlink($oldPath);
+        HomeBlock::update($id, $data);
+        // Gérer l'attachement d'une nouvelle photo si fournie
+        if (isset($data['photo_id']) && $data['photo_id'] > 0) {
+            $updatedBlock = HomeBlock::find($id);
+            
+            // Gérer l'attachement d'une nouvelle photo si fournie
+            if (isset($data['photo_id']) && $data['photo_id'] > 0) {
+                // Appel direct de la méthode statique sur la classe HomeBlock
+                HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
             }
         }
-        HomeBlock::update($id, $data);
         View::flash('success', 'Bloc mis à jour.');
         header('Location: ' . BASE_URL . '/admin/home-blocks/' . $id . '/edit');
         exit;
@@ -112,18 +131,30 @@ class HomeBlockController
 
     /**
      * Endpoint Dropzone : upload une image, retourne `{ok, url, filename}`.
-     * Le filename est ensuite mis dans le champ caché `image` du form.
+     * Le photoId est ensuite mis dans le champ caché `photo_id` du form.
      */
     public function uploadImage(array $params): void
     {
         Auth::require();
         try {
-            $filename = Photo::uploadSingle($_FILES['file'] ?? null, 'home_block');
+            $uploaded = Photo::uploadSingle($_FILES['file'] ?? null, 'home_block');
+            
+            // Créer l'entrée dans la table photos (entity_id = 0 temporairement)
+            $pid = Photo::create(
+                'home_block',
+                0,
+                $uploaded['path'],
+                null,
+                0,
+                $uploaded['has_variants']
+            );
+
             header('Content-Type: application/json');
             echo json_encode([
-                'ok'       => true,
-                'filename' => $filename,
-                'url'      => BASE_URL . '/assets/uploads/' . $filename,
+                'ok'        => true,
+                'photo_id'  => $pid,
+                'filename'  => $uploaded['path'],
+                'url'       => BASE_URL . '/assets/uploads/' . $uploaded['path'],
             ]);
         } catch (\RuntimeException $e) {
             header('Content-Type: application/json');
@@ -138,11 +169,11 @@ class HomeBlockController
         return [
             'titre'     => trim($_POST['titre'] ?? ''),
             'contenu'   => $_POST['contenu'] ?? '',
-            'image'     => trim($_POST['image'] ?? '') ?: null,
             'cta_label' => trim($_POST['cta_label'] ?? '') ?: null,
             'cta_url'   => trim($_POST['cta_url'] ?? '') ?: null,
             'position'  => (int)($_POST['position'] ?? 0),
             'is_active' => isset($_POST['is_active']) ? 1 : 0,
+            'photo_id'  => (int)($_POST['photo_id'] ?? 0), // Pour l'image temporaire uploadée
         ];
     }
 

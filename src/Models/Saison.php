@@ -70,7 +70,7 @@ class Saison
     }
 
     /**
-     * Number of licenciés in the given season that did not exist (by n_licence)
+     * Number of licenciés in the given season that did not exist (by nlicence)
      * in any previous season. Falls back to snapshotCount if no previous season.
      */
     public static function newLicenciesCount(int $id): int
@@ -85,11 +85,11 @@ class Saison
         $stmt = $db->prepare(
             "SELECT COUNT(*) FROM joueur_snapshots s
              WHERE s.saison_id = ?
-               AND s.n_licence IS NOT NULL
-               AND s.n_licence <> ''
+               AND s.nlicence IS NOT NULL
+               AND s.nlicence <> ''
                AND NOT EXISTS (
                  SELECT 1 FROM joueur_snapshots p
-                 WHERE p.saison_id = ? AND p.n_licence = s.n_licence
+                 WHERE p.saison_id = ? AND p.nlicence = s.nlicence
                )"
         );
         $stmt->execute([$id, $prevId]);

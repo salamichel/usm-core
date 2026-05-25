@@ -57,8 +57,8 @@
   <div class="hero-carousel h-full" id="hero-carousel">
     {% for slide in slides %}
     <article class="hero-slide">
-      {% if slide.image %}
-        <img src="{{ asset('uploads/' ~ slide.image) }}" alt="{{ slide.title }}"
+      {% if slide.photo %}
+        <img src="{{ image_variant(slide.photo, 'large') }} " alt="{{ slide.title }}"
              loading="{{ loop.first ? 'eager' : 'lazy' }}" decoding="async"
              class="absolute inset-0 w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/10"></div>
@@ -142,8 +142,8 @@
     {% for block in home_blocks %}
     <article class="grid gap-10 md:gap-14 md:grid-cols-2 items-center {{ loop.index is divisible by(2) ? 'md:[&>*:first-child]:order-2' : '' }}">
       <div>
-        {% if block.image %}
-          <img src="{{ asset('uploads/' ~ block.image) }}" alt="{{ block.titre }}"
+        {% if block.cover_photo %}
+          <img src="{{ image_variant(block.cover_photo, 'medium') }}" alt="{{ block.titre }}"
                loading="lazy" decoding="async"
                class="w-full h-72 md:h-96 object-cover rounded-lg shadow-sm">
         {% else %}
@@ -218,8 +218,8 @@
 {% endif %}
 
 {# ── CTA REJOINDRE ────────────────────────────────────────────────────── #}
-{% set cta_img = slides|length > 1 and slides[1].image ? asset('uploads/' ~ slides[1].image) :
-                 (slides|length and slides[0].image ? asset('uploads/' ~ slides[0].image) : null) %}
+{% set cta_img = slides|length > 1 and slides[1].photo ? image_variant(slides[1].photo, 'large') :
+                 (slides|length and slides[0].photo ? image_variant(slides[0].photo, 'large') : null) %}
 <section class="relative bg-slate-900 text-white border-b border-slate-200"
          {% if cta_img %}style="background-image: url('{{ cta_img }}'); background-size: cover; background-position: center;"{% endif %}>
   <div class="absolute inset-0 bg-slate-900/80"></div>
@@ -258,7 +258,7 @@
         <article class="card card-hover overflow-hidden flex flex-col">
           <a href="{{ url('blog/' ~ post.slug) }}" class="block aspect-[16/10] overflow-hidden bg-slate-100">
             {% if cover %}
-              <img src="{{ asset('uploads/' ~ cover.filename) }}" alt="{{ post.title }}"
+              <img src="{{ image_variant(cover, 'medium') }}" alt="{{ post.title }}"
                    loading="lazy" decoding="async"
                    class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
             {% else %}

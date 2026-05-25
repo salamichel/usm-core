@@ -56,7 +56,7 @@
   <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
     {% if post_covers[post.id] %}
     <div class="mb-3 -mx-4 -mt-4">
-      <img src="{{ asset('uploads/' ~ post_covers[post.id].filename) }}" alt=""
+      <img src="{{ image_variant(post_covers[post.id], 'medium') }}" alt=""
            loading="lazy" class="w-full h-32 object-cover border-b-4 border-black">
     </div>
     {% endif %}
@@ -101,7 +101,7 @@
       <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
         <td class="px-4 py-3">
           {% if post_covers[post.id] %}
-            <img src="{{ asset('uploads/' ~ post_covers[post.id].filename) }}" alt=""
+            <img src="{{ image_variant(post_covers[post.id], 'thumb') }}" alt=""
                  loading="lazy" class="w-16 h-12 object-cover border-2 border-black">
           {% else %}
             <div class="w-16 h-12 bg-gray-100 border-2 border-gray-300 flex items-center justify-center text-xs text-gray-400">Pas d'image</div>

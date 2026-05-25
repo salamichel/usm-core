@@ -23,7 +23,16 @@ class EquipeConfig
 
     public static function groupedByCategorie(): array
     {
-        $rows   = self::allActive();
+        $rows   = Database::get()
+            ->query("
+                SELECT ec.* 
+                FROM equipes_config ec
+                LEFT JOIN categories_equipes ce ON ec.categorie = ce.nom
+                WHERE ec.is_active = 1 
+                ORDER BY ce.ordre ASC, ce.nom ASC, ec.ordre ASC
+            ")
+            ->fetchAll();
+
         $result = [];
         foreach ($rows as $row) {
             $result[$row['categorie']][] = $row;

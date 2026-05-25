@@ -48,7 +48,16 @@ class EquipesController
             $jsonLd[] = $breadcrumbSchema;
         }
 
-        $categorieDescriptions = CategorieEquipe::allKeyedByNom();
+        $categories = CategorieEquipe::all();
+        $categorieDescriptions = [];
+        $orderedResult = [];
+        
+        foreach ($categories as $cat) {
+            $categorieDescriptions[$cat['nom']] = $cat;
+            if (isset($result[$cat['nom']])) {
+                $orderedResult[$cat['nom']] = $result[$cat['nom']];
+            }
+        }
 
         $meta = new PageMetadata(
             title: SeoService::title('Équipes'),
@@ -65,7 +74,7 @@ class EquipesController
 
         View::render('equipes/index.twig', [
             'meta'                     => $meta,
-            'grouped'                  => $result,
+            'grouped'                  => $orderedResult,
             'saison'                   => $saison,
             'categorie_descriptions'   => $categorieDescriptions,
         ]);
