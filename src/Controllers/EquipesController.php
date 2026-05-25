@@ -21,7 +21,18 @@ class EquipesController
     use NotFoundHandler;
     public function index(array $params): void
     {
-        $saison  = Saison::getActive();
+        $saisonId = isset($_GET['saison']) ? (int)$_GET['saison'] : null;
+        $saison = null;
+
+        if ($saisonId) {
+            $saison = Saison::find($saisonId);
+        }
+
+        if (!$saison) {
+            $saison = Saison::getActive();
+        }
+
+        $allSaisons = Saison::all();
         $grouped = EquipeConfig::groupedByCategorie();
         $result  = [];
 
@@ -76,6 +87,7 @@ class EquipesController
             'meta'                     => $meta,
             'grouped'                  => $orderedResult,
             'saison'                   => $saison,
+            'allSaisons'               => $allSaisons,
             'categorie_descriptions'   => $categorieDescriptions,
         ]);
     }
@@ -88,7 +100,20 @@ class EquipesController
             return;
         }
 
-        $saison  = Saison::getActive();
+        // Get all seasons for this team
+        $allSaisons = EquipeSaison::findAllSaisonsByEquipe($equipe['id']);
+
+        $saisonId = isset($_GET['saison']) ? (int)$_GET['saison'] : null;
+        $saison = null;
+
+        if ($saisonId) {
+            $saison = Saison::find($saisonId);
+        }
+
+        if (!$saison) {
+            $saison = Saison::getActive();
+        }
+
         $es      = $saison ? EquipeSaison::findBySaisonAndEquipe($saison['id'], $equipe['id']) : null;
         $allPhotos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
         $cover   = $es ? Photo::getEntityCover('equipe_saison', $es['id']) : null;
@@ -166,6 +191,7 @@ class EquipesController
             'photos'            => $photos,
             'joueurs'           => $joueurs,
             'saison'            => $saison,
+            'allSaisons'        => $allSaisons,
             'otherEquipes'      => $otherEquipes,
             'mini_agenda_events' => $miniAgendaEvents,
             'agenda_filter_url' => $agendaFilterUrl,

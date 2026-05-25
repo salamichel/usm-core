@@ -39,9 +39,25 @@
     <div class="order-1 md:order-2">
       <span class="inline-block text-xs uppercase tracking-[0.2em] text-[var(--primary)] font-semibold mb-3">{{ equipe.categorie }}</span>
       <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold text-slate-900 leading-tight mb-5">{{ equipe.libelle }}</h1>
-      <div class="flex flex-wrap gap-x-6 gap-y-2 text-slate-600">
+      <div class="flex flex-wrap gap-x-6 gap-y-2 text-slate-600 items-center">
         {% if saison %}
-          <span><span class="text-slate-400">Saison</span> · <span class="font-medium">{{ saison.libelle }}</span></span>
+          <div class="relative inline-block text-left group">
+            <button type="button" class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-1 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition" id="menu-button" aria-expanded="false" aria-haspopup="true">
+              <span class="text-slate-400 font-normal">Saison</span>
+              <span class="font-medium">{{ saison.libelle }}</span>
+              <svg class="-mr-1 h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+              </svg>
+            </button>
+
+            <div class="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+              <div class="py-1" role="none">
+                {% for s in allSaisons %}
+                  <a href="{{ url('equipes/' ~ equipe.slug ~ '?saison=' ~ s.id ~ '&slug=' ~ s.libelle ) }}" class="block px-4 py-2 text-sm {{ s.id == saison.id ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}" role="menuitem" tabindex="-1" id="menu-item-{{ loop.index0 }}">{{ s.libelle }}</a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
         {% endif %}
         {% if joueurs|length %}
           <span><span class="text-slate-400">Effectif</span> · <span class="font-medium">{{ joueurs|length }} joueur{{ joueurs|length > 1 ? 's' : '' }}</span></span>

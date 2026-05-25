@@ -46,6 +46,19 @@ class EquipeSaison
         return $stmt->fetchAll();
     }
 
+    public static function findAllSaisonsByEquipe(int $equipeId): array
+    {
+        $stmt = Database::get()->prepare(
+            "SELECT s.* 
+               FROM saisons s
+               JOIN equipe_saison es ON es.saison_id = s.id
+              WHERE es.equipe_id = ?
+              ORDER BY s.id DESC"
+        );
+        $stmt->execute([$equipeId]);
+        return $stmt->fetchAll();
+    }
+
     public static function countWithMembersForSaison(int $saisonId): int
     {
         $stmt = Database::get()->prepare(
