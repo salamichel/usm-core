@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
-use App\Services\UploadPathManager;
+use App\Models\Photo; // Ajout pour la gestion des photos
 
 class HomeBlock
 {
     public static function allActive(): array
     {
         $stmt = Database::get()->query(
-            "SELECT * FROM home_blocks WHERE is_active = 1 ORDER BY position ASC, id ASC"
+            "SELECT id, titre, contenu, cta_label, cta_url, position, is_active FROM home_blocks WHERE is_active = 1 ORDER BY position ASC, id ASC"
         );
         return $stmt->fetchAll();
     }
@@ -19,14 +19,14 @@ class HomeBlock
     public static function all(): array
     {
         $stmt = Database::get()->query(
-            "SELECT * FROM home_blocks ORDER BY position ASC, id ASC"
+            "SELECT id, titre, contenu, cta_label, cta_url, position, is_active FROM home_blocks ORDER BY position ASC, id ASC"
         );
         return $stmt->fetchAll();
     }
 
     public static function find(int $id): ?array
     {
-        $stmt = Database::get()->prepare("SELECT * FROM home_blocks WHERE id = ? LIMIT 1");
+        $stmt = Database::get()->prepare("SELECT id, titre, contenu, cta_label, cta_url, position, is_active FROM home_blocks WHERE id = ? LIMIT 1");
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
     }
@@ -35,13 +35,12 @@ class HomeBlock
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO home_blocks (titre, contenu, image, cta_label, cta_url, position, is_active)
-             VALUES (:titre, :contenu, :image, :cta_label, :cta_url, :position, :is_active)"
+            "INSERT INTO home_blocks (titre, contenu, cta_label, cta_url, position, is_active)
+             VALUES (:titre, :contenu, :cta_label, :cta_url, :position, :is_active)"
         );
         $stmt->execute([
             ':titre'     => $data['titre'],
             ':contenu'   => $data['contenu'] ?? '',
-            ':image'     => $data['image'] ?? null,
             ':cta_label' => $data['cta_label'] ?? null,
             ':cta_url'   => $data['cta_url'] ?? null,
             ':position'  => (int)($data['position'] ?? self::nextPosition()),
@@ -54,14 +53,13 @@ class HomeBlock
     {
         Database::get()->prepare(
             "UPDATE home_blocks
-             SET titre=:titre, contenu=:contenu, image=:image,
+             SET titre=:titre, contenu=:contenu,
                  cta_label=:cta_label, cta_url=:cta_url,
                  position=:position, is_active=:is_active
              WHERE id=:id"
         )->execute([
             ':titre'     => $data['titre'],
             ':contenu'   => $data['contenu'] ?? '',
-            ':image'     => $data['image'] ?? null,
             ':cta_label' => $data['cta_label'] ?? null,
             ':cta_url'   => $data['cta_url'] ?? null,
             ':position'  => (int)($data['position'] ?? 0),
@@ -72,13 +70,7 @@ class HomeBlock
 
     public static function delete(int $id): void
     {
-        $block = self::find($id);
-        if ($block && !empty($block['image'])) {
-            $path = UploadPathManager::getFullPath($block['image']);
-            if (file_exists($path)) {
-                unlink($path);
-            }
-        }
+        Photo::deleteAllForEntity('home_block', $id);
         Database::get()->prepare("DELETE FROM home_blocks WHERE id = ?")->execute([$id]);
     }
 
@@ -148,5 +140,33 @@ class HomeBlock
             $db->rollBack();
             throw $e;
         }
+    }
+
+    // NOTE: Ces méthodes devraient idéalement être appelées sur une instance de HomeBlock,
+    // mais étant donné que HomeBlock::find() retourne un array, on les rend statiques
+    // et on passe l'ID directement.
+    public static function getCoverPhoto(int $homeBlockId): ?array
+    {
+        return Photo::getEntityCover('home_block', $homeBlockId);
+    }
+
+    public static function getPhotos(int $homeBlockId): array
+    {
+        return Photo::forEntity('home_block', $homeBlockId);
+    }
+
+    public static function attachPhoto(int $homeBlockId, int $photoId): void
+    {
+        // Vérifier si la photo existe et n'est pas déjà attachée au bon bloc
+        $photo = Photo::find($photoId);
+        if ($photo && $photo['entity_type'] === 'home_block' && (int)$photo['entity_id'] === $homeBlockId) {
+            // Photo déjà attachée ou déjà associée au bloc
+            return;
+        }
+        
+        // Mettre à jour la photo pour la lier à ce HomeBlock
+        Database::get()->prepare(
+            "UPDATE photos SET entity_type = 'home_block', entity_id = ? WHERE id = ?"
+        )->execute([$homeBlockId, $photoId]);
     }
 }
