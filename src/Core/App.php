@@ -9,7 +9,11 @@ use App\Controllers\ContactController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\SitemapController;
+use App\Controllers\JoueurController;
 use App\Controllers\AgendaController;
+use App\Controllers\AuthController as joueurAuthController;
+use App\Controllers\DashboardController as joueurDashboardController;
+use App\Controllers\ParticipationController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\CategorieEquipeController;
@@ -89,6 +93,22 @@ class App
         $r->get('/agenda/{id}',   [AgendaController::class, 'show']);
         $r->get('/contact',       [ContactController::class, 'show']);
         $r->post('/contact',      [ContactController::class, 'submit']);
+
+
+        // Espace Adhérent Public
+        $r->get('/login', [joueurAuthController::class, 'loginForm']);
+        $r->post('/login', [joueurAuthController::class, 'login']);
+        $r->post('/logout', [joueurAuthController::class, 'logout']);
+
+        // Espace Adhérent : Participations
+        $r->get('/participations/update', [ParticipationController::class, 'updateForm']);
+        $r->post('/participations/update', [ParticipationController::class, 'store']);
+        $r->get('/dashboard', [joueurDashboardController::class, 'index']);        
+
+        // Back-Office Webmaster : Gestion des joueurs (Base externe)
+        $r->get('/joueurs/edit', [JoueurController::class, 'index']);
+        $r->post('/joueurs/store', [JoueurController::class, 'store']);
+        $r->post('/joueurs/delete/{id}', [JoueurController::class, 'delete']);        
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->options('/api/articles', [ArticleApiController::class, 'create']);

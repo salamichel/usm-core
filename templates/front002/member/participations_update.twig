@@ -1,0 +1,123 @@
+{% extends "base.twig" %}
+
+{% block title %}Mise à jour de mes participations{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <div class="sm:flex sm:items-center justify-between mb-8 border-b border-gray-200 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Ma participation</h1>
+            <p class="mt-2 text-sm text-gray-700">Déclarez vos disponibilités pour les prochains événements du club.</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="{{ url('dashboard') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+                &larr; Retour à mon espace
+            </a>
+        </div>
+    </div>
+
+    {% if flash.error %}
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6"><p class="text-sm text-red-700">{{ flash.error }}</p></div>
+    {% endif %}
+    {% if flash.success %}
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6"><p class="text-sm text-green-700">{{ flash.success }}</p></div>
+    {% endif %}
+
+    <form action="{{ url('participations/update') }}" method="POST">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-8">
+            <ul role="list" class="divide-y divide-gray-200">
+                {% for m in manifestations %}
+                    <li class="p-4 sm:px-6 hover:bg-gray-50 transition-colors">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                            <div class="flex-1 min-w-0 mb-4 sm:mb-0">
+                                <div class="flex items-center text-sm font-medium text-blue-600 truncate">
+                                    {{ m.ManifestationTypée }}
+                                </div>
+                                <div class="mt-1 flex items-center text-sm text-gray-500">
+                                    <span class="truncate mr-4">📅 {{ m.Date|date('d/m/Y à H:i') }}</span>
+                                    <span class="truncate">📍 {{ m.Lieu }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-2 sm:mt-0 w-full sm:w-auto">
+                                <label for="part_{{ m.id_manifestation }}" class="sr-only">Statut</label>
+                                <select 
+                                    id="part_{{ m.id_manifestation }}" 
+                                    name="participations[{{ m.id_manifestation }}]"
+                                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
+                                >
+                                    <option value=".">--- Non renseigné ---</option>
+                                    
+                                    {% if m.is_match %}
+                                        {# Options spécifiques aux matchs #}
+                                        <option value="Disponible" {% if m.user_status == 'Disponible' %}selected{% endif %}>Disponible</option>
+                                        <option value="Disponible si nécessaire" {% if m.user_status == 'Disponible si nécessaire' %}selected{% endif %}>Disponible si nécessaire</option>
+                                        <option value="Indisponible" {% if m.user_status == 'Indisponible' %}selected{% endif %}>Indisponible</option>
+                                        <option value="Ne sait pas encore" {% if m.user_status == 'Ne sait pas encore' %}selected{% endif %}>Ne sait pas encore</option>
+                                        {% if is_capitaine or m.user_status == 'Sélectionné(e)' %}
+                                            <option value="Sélectionné(e)" {% if m.user_status == 'Sélectionné(e)' %}selected{% endif %}>Sélectionné(e)</option>
+                                        {% endif %}
+                                    {% else %}
+                                        {# Options spécifiques aux entraînements / autres #}
+                                        <option value="Présent" {% if m.user_status == 'Présent' %}selected{% endif %}>Présent</option>
+                                        <option value="Absent" {% if m.user_status == 'Absent' %}selected{% endif %}>Absent</option>
+                                        <option value="Ne sait pas encore" {% if m.user_status == 'Ne sait pas encore' %}selected{% endif %}>Ne sait pas encore</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="p-6 text-center text-gray-500">
+                        Aucun événement à venir dans l'agenda.
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {% if manifestations|length > 0 %}
+            <div class="flex justify-end mb-12">
+                <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Enregistrer mes disponibilités
+                </button>
+            </div>
+        {% endif %}
+    </form>
+
+    {# SECTION LÉGENDE / AIDE (Issue de l'ancien fichier) #}
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg mt-8">
+        <h3 class="text-lg font-bold text-blue-900 mb-4">💡 Comment remplir sa disponibilité pour un match ?</h3>
+        <p class="text-sm text-blue-800 mb-4 text-justify">
+            Une sélection se passe "à peu près" comme ça : les personnes <strong>"Disponible"</strong> sont sélectionnées en priorité, puis le capitaine pioche parmi les <strong>"Disponible si nécessaire"</strong> pour compléter au besoin. 
+            Dans tous les cas, le capitaine a plein pouvoir sur sa sélection (cohérence de l'équipe, nombre de matchs déjà joués par joueur, présence aux matchs à l'extérieur, etc.).
+        </p>
+        <p class="text-sm text-blue-800 font-medium mb-6">
+            Si vous <u>pouvez</u> et <u>voulez</u> jouer le match, mettez "Disponible" et non "Disponible si nécessaire". Ne vous "auto-excluez" pas, le capitaine s'en chargera ! :-)
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-gray-900 border-b pb-2 mb-3">Cas d'un match</h4>
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li><span class="inline-block w-6 text-center font-bold text-green-600">✓</span> <strong>Disponible :</strong> Je peux et je veux faire le match.</li>
+                    <li><span class="inline-block w-6 text-center font-bold text-yellow-500">◐</span> <strong>Disponible si nécessaire :</strong> Je veux bien venir en cas de sous-effectif pour éviter un forfait.</li>
+                    <li><span class="inline-block w-6 text-center font-bold text-red-600">✗</span> <strong>Indisponible :</strong> Ne peut pas se libérer.</li>
+                    <li><span class="inline-block w-6 text-center font-bold text-gray-500">?</span> <strong>Ne sait pas encore :</strong> Répondra dès que possible.</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900 border-b pb-2 mb-3">Entraînement & Autres</h4>
+                <ul class="space-y-3 text-sm text-gray-700">
+                    <li><span class="inline-block w-6 text-center font-bold text-green-600">✓</span> <strong>Présent :</strong> Sera présent à l'événement.</li>
+                    <li><span class="inline-block w-6 text-center font-bold text-red-600">✗</span> <strong>Absent :</strong> Ne sera pas présent.</li>
+                    <li><span class="inline-block w-6 text-center font-bold text-gray-500">?</span> <strong>Ne sait pas encore :</strong> Répondra dès que possible.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

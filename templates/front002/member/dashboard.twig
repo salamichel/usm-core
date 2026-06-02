@@ -1,0 +1,83 @@
+{% extends "base.twig" %}
+
+{% block title %}Mon Espace Adhérent{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-gray-200">
+        <div class="mb-4 sm:mb-0">
+            <h1 class="text-3xl font-bold text-gray-900">Mon Espace</h1>
+            <p class="text-sm text-gray-500 mt-1">Connecté en tant que <strong>{{ user_name }}</strong> ({{ user_email }})</p>
+        </div>
+        <form action="{{ url('logout') }}" method="POST" class="inline">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm">
+                Déconnexion
+            </button>
+        </form>
+    </div>
+
+    {# ESPACE JOUEUR #}
+    <div class="bg-white shadow-sm rounded-lg mb-8 overflow-hidden border border-gray-200">
+        <div class="px-4 py-5 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Espace Joueur & Agenda</h3>
+        </div>
+        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{{ url('agenda') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                <span class="font-semibold text-blue-700 block">Agenda du Club</span>
+                <span class="text-sm text-gray-500">Consulter tous les événements à venir.</span>
+            </a>
+            <a href="{{ url('participations/update') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                <span class="font-semibold text-blue-700 block">Ma participation</span>
+                <span class="text-sm text-gray-500">Mettre à jour vos présences aux événements.</span>
+            </a>
+            <a href="{{ url('annuaire') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                <span class="font-semibold text-blue-700 block">Annuaire du club</span>
+                <span class="text-sm text-gray-500">Consulter les contacts des membres.</span>
+            </a>
+            <a href="{{ url('intranet/membres') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                <span class="font-semibold text-blue-700 block">Fichiers Intranet</span>
+                <span class="text-sm text-gray-500">Documents réservés aux adhérents.</span>
+            </a>
+        </div>
+    </div>
+
+    {# ESPACE CAPITAINE #}
+    {% if is_capitaine %}
+    <div class="bg-white shadow-sm rounded-lg mb-8 overflow-hidden border border-yellow-200">
+        <div class="px-4 py-5 border-b border-yellow-200 bg-yellow-50">
+            <h3 class="text-lg leading-6 font-medium text-yellow-800">Espace Capitaine d'équipe</h3>
+        </div>
+        <div class="p-4 space-y-4">
+            <a href="{{ url('manifestations') }}" class="block p-4 border border-yellow-100 rounded-md hover:bg-yellow-50 transition-colors">
+                <span class="font-semibold text-yellow-700 block">Gestion de l'Agenda</span>
+                <span class="text-sm text-gray-600">Ajout / Modification / Suppression des entrées</span>
+            </a>
+            
+            <div class="mt-6 border-t border-yellow-100 pt-4">
+                <p class="text-sm font-medium text-gray-700 mb-3">Sélections d'équipes pour les matchs :</p>
+                <div class="flex flex-wrap gap-2">
+                    {% set equipes = ['L1', 'L2', 'L3', 'L4', 'Aico', 'Heitz', 'DEP', 'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3', 'UFOLEP_4', 'M15F6', 'M15F', 'M13F'] %}
+                    {% for equipe in equipes %}
+                        <a href="{{ url('participations/equipe?nom=' ~ equipe) }}" class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white border border-yellow-300 text-yellow-800 hover:bg-yellow-100 transition-colors shadow-sm">
+                            {{ equipe }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ACCÈS RAPIDE ADMIN (Si le joueur est aussi Admin Web) #}
+    {% if is_admin_web %}
+    <div class="mt-8 text-center">
+        <a href="{{ url('admin/dashboard') }}" class="inline-flex items-center text-sm font-medium text-red-600 hover:text-red-800 transition-colors">
+            Basculer vers le Back-Office Administrateur &rarr;
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

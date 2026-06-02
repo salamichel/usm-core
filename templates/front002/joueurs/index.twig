@@ -1,0 +1,120 @@
+{% extends "base.twig" %}
+
+{% block title %}Gestion des Joueurs - Back-Office{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="sm:flex sm:items-center justify-between mb-8 pb-4 border-b border-gray-200">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Base de données des Joueurs</h1>
+            <p class="mt-2 text-sm text-gray-700">Ajout et suppression des membres dans la base de données principale.</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="{{ url('dashboard') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+                &larr; Retour au Dashboard Webmaster
+            </a>
+        </div>
+    </div>
+
+    {% if flash.error %}
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6"><p class="text-sm text-red-700">{{ flash.error }}</p></div>
+    {% endif %}
+    {% if flash.success %}
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6"><p class="text-sm text-green-700">{{ flash.success }}</p></div>
+    {% endif %}
+
+    {# FORMULAIRE D'AJOUT #}
+    <div class="bg-white shadow rounded-lg mb-10 overflow-hidden border border-gray-200">
+        <div class="px-4 py-5 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Ajouter un nouveau joueur</h3>
+        </div>
+        <div class="p-6">
+            <form action="{{ url('joueurs/store') }}" method="POST" class="sm:flex sm:items-end gap-4">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                
+                <div class="w-full sm:max-w-xs">
+                    <label for="Nom" class="block text-sm font-medium text-gray-700">Nom</label>
+                    <input type="text" name="Nom" id="Nom" required class="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm">
+                </div>
+                
+                <div class="w-full sm:max-w-xs mt-4 sm:mt-0">
+                    <label for="Prenom" class="block text-sm font-medium text-gray-700">Prénom</label>
+                    <input type="text" name="Prenom" id="Prenom" required class="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm">
+                </div>
+
+                <div class="mt-4 sm:mt-0">
+                    <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
+            <p class="text-xs text-gray-500 mt-3">💡 Un mot de passe aléatoire sera généré automatiquement lors de la création.</p>
+        </div>
+    </div>
+
+    {# LISTE DES JOUEURS #}
+    <div class="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
+        <div class="px-4 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Liste des adhérents ({{ joueurs|length }})</h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Identité</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Équipes / Catégories</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for joueur in joueurs %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ joueur.Nom|upper }} {{ joueur.Prénom }}</div>
+                                {% if joueur.Mel %}
+                                    <div class="text-sm text-gray-500">{{ joueur.Mel }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-wrap gap-1">
+                                    {# Remplacement de l'ancien tableau géant par des badges visuels #}
+                                    {% set equipes = ['Jeune', 'M15F6', 'M15F', 'M13F', 'Adulte', 'L1', 'L2', 'L3', 'L4', 'Aico', 'Heitz', 'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3', 'DEP', 'Loisir'] %}
+                                    
+                                    {% set has_equipe = false %}
+                                    {% for equipe in equipes %}
+                                        {% if joueur[equipe] and joueur[equipe] != '0' and joueur[equipe] != '' %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                                {{ equipe }}
+                                            </span>
+                                            {% set has_equipe = true %}
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if not has_equipe %}
+                                        <span class="text-xs text-gray-400 italic">Aucune affectation</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <form action="{{ url('joueurs/delete/' ~ joueur.id_joueur) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer {{ joueur.Prénom }} {{ joueur.Nom }} de la base de données ? Cette action est irréversible.');">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="text-red-600 hover:text-red-900 font-semibold">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
+                                Aucun joueur dans la base de données.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

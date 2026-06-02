@@ -1,0 +1,50 @@
+{% extends "base.twig" %}
+
+{% block title %}Connexion - Espace Adhérent{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <div>
+            <h2 class="mt-2 text-center text-3xl font-extrabold text-blue-900">
+                Espace Adhérent
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Connectez-vous pour gérer votre agenda et accéder à l'intranet.
+            </p>
+        </div>
+
+        {% if flash.error %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+                <p class="text-sm text-red-700">{{ flash.error }}</p>
+            </div>
+        {% endif %}
+        {% if flash.success %}
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+                <p class="text-sm text-green-700">{{ flash.success }}</p>
+            </div>
+        {% endif %}
+
+        <form class="mt-8 space-y-6" action="{{ url('login') }}" method="POST">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="id_email" class="sr-only">Adresse email</label>
+                    <input id="id_email" name="Id" type="email" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Adresse email">
+                </div>
+                <div>
+                    <label for="id_password" class="sr-only">Mot de passe</label>
+                    <input id="id_password" name="IdPassword" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Mot de passe">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    Se connecter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
