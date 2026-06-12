@@ -54,6 +54,7 @@ class PageAdminController extends AdminCrudController
         $title = trim($_POST['title'] ?? '');
         return [
             'title'        => $title,
+            'category'     => $_POST['category'],
             'slug'         => SlugManager::generate(trim($_POST['slug'] ?? '') ?: $title),
             'content'      => $_POST['content'] ?? '',
             'is_published' => isset($_POST['is_published']) ? 1 : 0,

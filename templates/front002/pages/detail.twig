@@ -13,7 +13,7 @@
   </nav>
 
   <header class="mb-12 pb-10 border-b border-slate-200">
-    <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">Page</span>
+    <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">{{ page.category | default('-')  }}</span>
     <h1 class="font-serif text-4xl md:text-5xl font-semibold leading-tight text-slate-900">{{ page.title }}</h1>
   </header>
 
