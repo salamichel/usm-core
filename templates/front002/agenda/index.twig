@@ -1,9 +1,10 @@
 {% extends "base.twig" %}
 {% block title %}Agenda — USM Volley{% endblock %}
 
+{% block head %}
+
 {% include '_pwa_tags.twig' %}
 
-{% block head %}
 {# JSON-LD : EventSeries pour l'ensemble des manifestations à venir #}
 {% if manifestations is defined and manifestations|length %}
 <script type="application/ld+json">
