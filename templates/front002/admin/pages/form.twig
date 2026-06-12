@@ -24,6 +24,11 @@
              placeholder="généré automatiquement depuis le titre">
     </div>
 
+    <div class="form-group">
+        <label for="rubrique">Catégorie</label>        
+        <input type="text" name="category" id="category" value="{{ page.category ?? '' }}" class="form-control">
+    </div>    
+
     <div>
       <label class="block font-black mb-1" for="content">Contenu</label>
       <textarea id="content" name="content">{{ page.content ?? '' }}</textarea>
