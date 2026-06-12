@@ -13,6 +13,7 @@ deploy_ftp:
     - apk add lftp
   script:
     - echo "Démarrage du déploiement vers InfinityFree..."
+    
     # Commande de synchronisation FTP
     - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=2 --no-perms --exclude-glob .git* --exclude .* exclude *.md --exclude public/  --exclude .gitlab-ci.yml --exclude .git/ --exclude vendor/ --exclude docker/ --exclude docs/ --exclude scripts/ --exclude tests/ --exclude logs/ --exclude database/ --exclude config/"
 
