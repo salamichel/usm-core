@@ -14,7 +14,7 @@ deploy_ftp:
   script:
       - echo "Démarrage du déploiement vers InfinityFree..."    
       # Commande 1 : Synchronisation du projet (en ignorant les dossiers spécifiques)
-      - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=1 --no-perms --exclude-glob '.*' --exclude-glob '*.md' --exclude-glob 'public/' --exclude-glob 'vendor/' --exclude-glob 'docker/' --exclude-glob 'docs/' --exclude-glob 'scripts/' --exclude-glob 'tests/' --exclude-glob 'logs/' --exclude-glob 'database/' --exclude-glob 'config/'"
+      - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=1 --no-perms --exclude-glob '.*' --exclude-glob '*.md' --exclude-glob 'composer*' --exclude-glob '*.yml' --exclude-glob 'Dockerfile*' --exclude '.git/' --exclude-glob 'public/' --exclude-glob 'vendor/' --exclude-glob 'docker/' --exclude-glob 'docs/' --exclude-glob 'scripts/' --exclude-glob 'tests/' --exclude-glob 'logs/' --exclude-glob 'database/' --exclude-glob 'config/'"
       
       - echo "Démarrage du déploiement Dossier Public vers InfinityFree..."    
       # Commande 2 : Synchronisation du contenu du dossier public
