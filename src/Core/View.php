@@ -27,14 +27,12 @@ class View
                 'auto_reload' => true,
             ]);
 
-            $saisonActive = Saison::getActive();
-
             // Global variables available in every template
             $twig->addGlobal('menu_items', MenuItem::getTree());
             $twig->addGlobal('base_url',   BASE_URL);
             $twig->addGlobal('admin_logged_in', Auth::check());
             $twig->addGlobal('flash', self::getFlash());
-            $twig->addGlobal('saison_active', $saisonActive['libelle'] );
+            $twig->addGlobal('saison_active', Saison::getActive()['libelle']);
             $twig->addGlobal('site_config', SiteConfig::all());
             $twig->addGlobal('csrf_token', CsrfToken::generate());
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
