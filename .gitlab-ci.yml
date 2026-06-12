@@ -14,7 +14,7 @@ deploy_ftp:
   script:
     - echo "Démarrage du déploiement vers InfinityFree..."
     # Commande de synchronisation FTP
-    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /htdocs --ignore-time --parallel=10 --exclude-glob .git* --exclude .gitlab-ci.yml"
+    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=10 --exclude-glob .git* --exclude .gitlab-ci.yml"
     - echo "Déploiement terminé avec succès !"
   environment:
     name: production
