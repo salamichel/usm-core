@@ -4,9 +4,9 @@ stages:
 deploy_ftp:
   stage: deploy
   image: alpine:latest
-  #rules:
+  rules:
     # Le pipeline ne s'exécutera que sur la branche main
-  #  - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "main"
   before_script:
     # Installation du client FTP lftp
     - apk update
