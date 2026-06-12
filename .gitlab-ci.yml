@@ -1,0 +1,20 @@
+stages:
+  - deploy
+
+deploy_ftp:
+  stage: deploy
+  image: alpine:latest
+  rules:
+    # Le pipeline ne s'exécutera que sur la branche main
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    # Installation du client FTP lftp
+    - apk update
+    - apk add lftp
+  script:
+    - echo "Démarrage du déploiement vers InfinityFree..."
+    # Commande de synchronisation FTP
+    - lftp -c "set ftp:ssl-allow no; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /htdocs --ignore-time --parallel=10 --exclude-glob .git* --exclude .gitlab-ci.yml"
+    - echo "Déploiement terminé avec succès !"
+  environment:
+    name: production
