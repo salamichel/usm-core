@@ -53,7 +53,9 @@ pull_from_ftp:
 # =========================================================
 extract_to_local:
   stage: local_extract
-  image: alpine:latest
+    # On remplace 'latest' par '3.16' qui accepte parfaitement les clés RSA
+  image: alpine:3.16 
+  
   rules:
     # S'exécute à la suite du job de sauvegarde s'il est lancé manuellement ou planifié
     - if: $CI_PIPELINE_SOURCE == "web"
