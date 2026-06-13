@@ -57,11 +57,12 @@ class PageStatique
     {
         $slug = SlugManager::makeUnique($data['slug'] ?? SlugManager::generate($data['title']), 'pages', 'id', $id);
         Database::get()->prepare(
-            "UPDATE pages SET title=:title, slug=:slug, content=:content,
+            "UPDATE pages SET title=:title, slug=:slug, content=:content, category=:category,
              is_published=:is_published, updated_at=NOW() WHERE id=:id"
         )->execute([
             ':title'        => $data['title'],
             ':slug'         => $slug,
+            ':category'     => $data['category'] ?? null,
             ':content'      => $data['content'] ?? '',
             ':is_published' => (int)($data['is_published'] ?? 0),
             ':id'           => $id,

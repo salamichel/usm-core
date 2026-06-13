@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5">
+  {% block pwa_meta %}{% endblock %}
 
   {% set page_title = block('title')|trim %}
   <title>{{ page_title ?: site_config.club_name|default('USM Volley') }}</title>
@@ -122,6 +123,7 @@
 
   {% include '_footer.twig' %}
 
+  {% block pwa_scripts %}{% endblock %}
   {% block scripts %}{% endblock %}
 </body>
 </html>

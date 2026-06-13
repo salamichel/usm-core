@@ -1,0 +1,22 @@
+{
+  "short_name": "Agenda USM",
+  "name": "Agenda - USM",
+  "icons": [
+    {
+      "src": "/assets/icons/icon_192.svg",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/icons/icon_512.svg",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/agenda",
+  "scope": "/agenda",
+  "background_color": "#ffffff",
+  "theme_color": "#4a154b",
+  "display": "standalone",
+  "orientation": "portrait"
+}

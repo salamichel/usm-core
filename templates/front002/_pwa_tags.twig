@@ -1,0 +1,22 @@
+{% block pwa_meta %}
+  <meta name="theme-color" content="{{ site_config.primary_color|default('#1d4ed8') }}">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/icons/content.png">
+{% endblock %}
+
+{% block pwa_scripts %}
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Enregistrement du Service Worker limité au scope /agenda
+        navigator.serviceWorker.register('/service-worker.js', { scope: '/agenda' })
+          .then((reg) => {
+            console.log('Service Worker de la section Agenda enregistré avec succès sur le scope :', reg.scope);
+          })
+          .catch((err) => {
+            console.error('Échec de l\'enregistrement du Service Worker de l\'agenda :', err);
+          });
+      });
+    }
+  </script>
+{% endblock %}
