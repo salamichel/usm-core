@@ -27,7 +27,7 @@ deploy_ftp:
 # =========================================================
 # JOB 2 : SAUVEGARDE DEPUIS LE FTP (Manuel / Planifié)
 # =========================================================
-pull_from_ftp:
+backup_site:
   stage: backup
   image: alpine:latest
   rules:
@@ -43,7 +43,7 @@ pull_from_ftp:
     - 'echo "Horodatage généré : $DATE_STR"'
     - echo "Démarrage du téléchargement depuis InfinityFree..."
     - mkdir -p ./sauvegarde_locale
-    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v /htdocs ./sauvegarde_locale --parallel=2"
+    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v /$FTP_HOME ./sauvegarde_locale --parallel=2"
     
     - echo "Compression des fichiers..."
     # On utilise la variable d'horodatage dans le nom du fichier zip
