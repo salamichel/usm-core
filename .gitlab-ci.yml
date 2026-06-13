@@ -40,8 +40,7 @@ pull_from_ftp:
   script:
     # Génération de l'horodatage au format ANNEE-MOIS-JOUR_HEUREhMINUTE (ex: 2026-06-13_18h50)
     - DATE_STR=$(date +%Y-%m-%d_%Hh%M)
-    - echo "Horodatage généré : $DATE_STR"
-    
+    - 'echo "Horodatage généré : $DATE_STR"'
     - echo "Démarrage du téléchargement depuis InfinityFree..."
     - mkdir -p ./sauvegarde_locale
     - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v /htdocs ./sauvegarde_locale --parallel=2"
@@ -53,6 +52,5 @@ pull_from_ftp:
   artifacts:
     name: "Sauvegarde-InfinityFree-$CI_COMMIT_SHORT_SHA"
     paths:
-      # Wildcard (*) pour capturer le fichier zip quel que soit son horodatage
       - backup_*.zip
     expire_in: 1 week
