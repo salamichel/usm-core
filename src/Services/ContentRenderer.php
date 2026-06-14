@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Core\View;
 use App\Models\SiteConfig;
 use Twig\Error\TwigError;
+use App\Models\Saison;
 
 class ContentRenderer
 {
@@ -17,7 +18,10 @@ class ContentRenderer
 
         try {
             $twig = View::getInstance();
-            $context = ['site_config' => SiteConfig::all()];
+            $context = [
+                'site_config' => SiteConfig::all(),
+                'saison_active' => Saison::getActive()['libelle']
+            ];
             return $twig->createTemplate($content)->render($context);
         } catch (TwigError $e) {
             // Log the error but don't expose it to prevent information leakage
