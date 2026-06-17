@@ -122,6 +122,27 @@
         </a>
       </div>
     </div>
+
+    {# Période #}
+    <div class="pt-5 border-t border-slate-200">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Période</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_week = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'this_week' %}{% set _no_week = _no_week|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_week = '/agenda' ~ (_no_week is not empty ? '?' ~ _no_week|join('&') : '') %}
+        {% set _sep_week = _no_week is not empty ? '&' : '?' %}
+
+        <a href="{{ _base_week }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Tous les événements
+        </a>
+        <a href="{{ _base_week ~ _sep_week ~ 'this_week=1' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Semaine courante
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
