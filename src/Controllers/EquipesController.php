@@ -99,6 +99,24 @@ class EquipesController
     {
         $categorie = CategorieEquipe::findBySlug($params['slug']);
         if (!$categorie) {
+            $equipe = EquipeConfig::findBySlug($params['slug']);
+            if ($equipe) {
+                $category = CategorieEquipe::findByNom($equipe['categorie']);
+                if ($category) {
+                    $location = SeoService::absoluteUrl(
+                        '/equipes/' . SlugManager::generate($category['nom']) . '/' . $equipe['slug']
+                    );
+                    $query = $_SERVER['QUERY_STRING'] ?? '';
+                    if ($query !== '') {
+                        $location .= '?' . $query;
+                    }
+
+                    header('HTTP/1.1 301 Moved Permanently');
+                    header('Location: ' . $location);
+                    exit;
+                }
+            }
+
             $this->notFound();
             return;
         }
