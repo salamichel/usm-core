@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Post;
-use App\Models\PageStatique;
+use App\Models\CategorieEquipe;
 use App\Models\EquipeConfig;
-use App\Models\Saison;
 use App\Models\EquipeSaison;
 use App\Models\EquipeSaisonJoueur;
+use App\Models\PageStatique;
+use App\Models\Post;
+use App\Models\Saison;
 
 /**
  * XML Sitemap generator for search engines.
@@ -94,6 +95,34 @@ class SitemapService
             return $entries;
         }
 
+        // Add category index pages
+        $categories = CategorieEquipe::all();
+        foreach ($categories as $cat) {
+            $categorySlug = SlugManager::generate($cat['nom']);
+            
+            // Check if category has any teams with members
+            $hasTeams = false;
+            foreach (EquipeConfig::findByCategory($cat['nom']) as $eq) {
+                if (!$eq['is_active']) continue;
+                $es = EquipeSaison::findBySaisonAndEquipe($saison['id'], $eq['id']);
+                if (!$es) continue;
+                $memberCount = EquipeSaisonJoueur::countByEquipeSaison($es['id']);
+                if ($memberCount > 0) {
+                    $hasTeams = true;
+                    break;
+                }
+            }
+
+            if ($hasTeams) {
+                $entries[] = [
+                    'loc'        => SeoService::absoluteUrl('/equipes/' . $categorySlug),
+                    'changefreq' => 'weekly',
+                    'priority'   => '0.8',
+                ];
+            }
+        }
+
+        // Add team detail pages with category slug
         $equipes = EquipeConfig::all();
         foreach ($equipes as $eq) {
             if (!$eq['is_active']) continue;
@@ -102,8 +131,13 @@ class SitemapService
             $memberCount = EquipeSaisonJoueur::countByEquipeSaison($es['id']);
             if ($memberCount === 0) continue;
 
+            $categorie = CategorieEquipe::findByNom($eq['categorie']);
+            if (!$categorie) continue;
+            
+            $categorySlug = SlugManager::generate($categorie['nom']);
+
             $entries[] = [
-                'loc'        => SeoService::absoluteUrl('/equipes/' . $eq['slug']),
+                'loc'        => SeoService::absoluteUrl('/equipes/' . $categorySlug . '/' . $eq['slug']),
                 'changefreq' => 'monthly',
                 'priority'   => '0.6',
             ];
