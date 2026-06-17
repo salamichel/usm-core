@@ -81,25 +81,21 @@ class AgendaService
 
         $conditions = [];
         $bindings = [];
-        foreach ($needles as $index => $needle) {
-            $param = ':pat' . $index;
-            $conditions[] = "(`ManifestationTypée` LIKE $param OR `Lieu` LIKE $param)";
-            $bindings[$param] = '%' . $needle . '%';
+        foreach ($needles as $needle) {
+            $conditions[] = "(`ManifestationTypée` LIKE ? OR `Lieu` LIKE ?)";
+            $bindings[] = '%' . $needle . '%';
+            $bindings[] = '%' . $needle . '%';
         }
 
         $sql = "SELECT * FROM Manifestation
                  WHERE (" . implode(' OR ', $conditions) . ")
                    AND `Date` >= CURDATE()
                  ORDER BY `Date` ASC
-                 LIMIT :limit";
+                 LIMIT " . (int) $limit;
 
         try {
             $stmt = ExternalDatabase::get()->prepare($sql);
-            foreach ($bindings as $param => $value) {
-                $stmt->bindValue($param, $value);
-            }
-            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
-            $stmt->execute();
+            $stmt->execute($bindings);
             $rows = $stmt->fetchAll();
         } catch (\Throwable) {
             return [];
