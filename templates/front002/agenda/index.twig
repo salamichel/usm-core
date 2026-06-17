@@ -43,18 +43,20 @@
 {% block content %}
 <div class="max-w-6xl mx-auto px-6 py-16">
 
-  {# Breadcrumb #}
-  <nav aria-label="Fil d'Ariane" class="text-sm text-slate-500 mb-10">
-    <a href="{{ url('') }}" class="hover:text-[var(--primary)] transition-colors">Accueil</a>
-    <span class="mx-2 text-slate-300">/</span>
-    <span class="text-slate-900">Agenda</span>
-  </nav>
+  <div id="agenda-header-block">
+    {# Breadcrumb #}
+    <nav aria-label="Fil d'Ariane" class="text-sm text-slate-500 mb-10">
+      <a href="{{ url('') }}" class="hover:text-[var(--primary)] transition-colors">Accueil</a>
+      <span class="mx-2 text-slate-300">/</span>
+      <span class="text-slate-900">Agenda</span>
+    </nav>
 
-  {# Header #}
-  <header class="mb-10 pb-10 border-b border-slate-200">
-    <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">Calendrier</span>
-    <h1 class="font-serif text-4xl md:text-5xl font-semibold text-slate-900 leading-tight">Agenda — événements à venir</h1>
-  </header>
+    {# Header #}
+    <header class="mb-10 pb-10 border-b border-slate-200">
+      <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">Calendrier</span>
+      <h1 class="font-serif text-4xl md:text-5xl font-semibold text-slate-900 leading-tight">Agenda — événements à venir</h1>
+    </header>
+  </div>
 
   {% include 'agenda/filters.twig' %}
 
@@ -68,6 +70,12 @@
         <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">65%</button>
         <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">50%</button>
       </div>
+    </div>
+
+    <div class="ml-auto flex items-center gap-2">
+      <button id="toggle-agenda-header" type="button" class="px-3 py-2 text-xs rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 font-medium text-slate-700 transition">
+        Masquer l'en-tête
+      </button>
     </div>
   </div>
 
@@ -424,7 +432,9 @@
 (function() {
   var table = document.querySelector('.agenda-table');
   var buttons = document.querySelectorAll('.zoom-btn');
-  if (!table || !buttons.length) return;
+  var headerBlock = document.getElementById('agenda-header-block');
+  var toggleHeaderBtn = document.getElementById('toggle-agenda-header');
+  if (!table || !buttons.length || !headerBlock || !toggleHeaderBtn) return;
 
   function applyZoom(z) {
     table.style.zoom = z;
@@ -432,12 +442,28 @@
     try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
   }
 
-  var stored = null;
-  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
-  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
-  applyZoom(initial);
+  function setHeaderVisible(visible) {
+    headerBlock.style.display = visible ? '' : 'none';
+    toggleHeaderBtn.textContent = visible ? 'Masquer l\'en-tête' : 'Afficher l\'en-tête';
+    try { localStorage.setItem('agendaHeaderVisible', visible ? '1' : '0'); } catch (e) {}
+  }
+
+  var storedZoom = null;
+  try { storedZoom = localStorage.getItem('agendaZoom'); } catch (e) {}
+  var initialZoom = storedZoom ? parseFloat(storedZoom) : (window.innerWidth < 768 ? 0.65 : 1);
+  applyZoom(initialZoom);
+
+  var storedHeader = null;
+  try { storedHeader = localStorage.getItem('agendaHeaderVisible'); } catch (e) {}
+  var visibleHeader = storedHeader !== '0';
+  setHeaderVisible(visibleHeader);
+
   buttons.forEach(function(b) {
     b.addEventListener('click', function() { applyZoom(parseFloat(b.dataset.zoom)); });
+  });
+
+  toggleHeaderBtn.addEventListener('click', function() {
+    setHeaderVisible(headerBlock.style.display === 'none' ? true : false);
   });
 })();
 </script>
