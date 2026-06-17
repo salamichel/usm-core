@@ -20,69 +20,34 @@
     {% endif %}
   </header>
 
-  {% if grouped|length %}
-    {% for cat, equipes in grouped %}
-    <section class="mb-20">
-      <div class="flex items-baseline justify-between flex-wrap gap-4 mb-8">
-        <h2 class="font-serif text-3xl md:text-4xl font-semibold text-slate-900">{{ cat }}</h2>
-      </div>
-
-      {% if categorie_descriptions[cat] is defined and categorie_descriptions[cat].description %}
-        <div class="prose prose-slate mb-8 text-slate-700">
-          {{ categorie_descriptions[cat].description|render_with_config|raw }}
-        </div>
-      {% endif %}
-
-      {% if categorie_descriptions[cat] is defined and (categorie_descriptions[cat].type or categorie_descriptions[cat].hauteur_filet) %}
-        <div class="card p-6 mb-10 max-w-2xl">
-          <div class="grid sm:grid-cols-2 gap-6">
-            {% if categorie_descriptions[cat].type %}
-              <div>
-                <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-1">Type</p>
-                <p class="font-serif text-lg font-semibold text-slate-900">{{ categorie_descriptions[cat].type }}</p>
-              </div>
-            {% endif %}
-            {% if categorie_descriptions[cat].hauteur_filet %}
-              <div>
-                <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-1">Hauteur du filet</p>
-                <p class="font-serif text-lg font-semibold text-slate-900">{{ categorie_descriptions[cat].hauteur_filet }}</p>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-      {% endif %}
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for eq in equipes %}
-        <a href="{{ url('equipes/' ~ eq.slug) }}" class="group block">
-          <div class="aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-5">
-            {% if eq.cover %}
-              <img src="{{ image_variant(eq.cover, 'medium') }}" alt="{{ eq.libelle }}"
-                   loading="lazy" decoding="async"
-                   class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-            {% else %}
-              <div class="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-5xl text-slate-400">🏐</div>
-            {% endif %}
-          </div>
-          <h3 class="font-serif text-xl font-semibold text-slate-900 leading-tight mb-2 group-hover:text-[var(--primary)] transition">
-            {{ eq.libelle }}
-          </h3>
-
-          {% if eq.type or eq.hauteur_filet %}
-          <div class="flex gap-4 text-xs text-slate-500 mb-3">
-            {% if eq.type %}<span><span class="text-slate-400">Type</span> · {{ eq.type }}</span>{% endif %}
-            {% if eq.hauteur_filet %}<span><span class="text-slate-400">Filet</span> · {{ eq.hauteur_filet }}</span>{% endif %}
-          </div>
-          {% endif %}
-
-          {% if eq.description_courte %}
-            <p class="text-sm text-slate-600 leading-relaxed italic">{{ eq.description_courte }}</p>
-          {% endif %}
-        </a>
-        {% endfor %}
-      </div>
-    </section>
-    {% endfor %}
+  {% if categories|length %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for cat in categories %}
+        {% if cat.team_count > 0 %}
+        <article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+          <a href="{{ url('equipes/' ~ cat.slug) }}" class="block">
+            <div class="aspect-[4/3] overflow-hidden bg-slate-100">
+              {% if cat.cover %}
+                <img src="{{ image_variant(cat.cover, 'medium') }}" alt="{{ cat.nom }}"
+                     loading="lazy" decoding="async"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+              {% else %}
+                <div class="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-5xl text-slate-400">🏐</div>
+              {% endif %}
+            </div>
+            <div class="p-6">
+              <h2 class="font-serif text-3xl font-semibold text-slate-900 mb-3">{{ cat.nom }}</h2>
+              <p class="text-sm text-slate-500 mb-4">{{ cat.team_count }} équipe{{ cat.team_count > 1 ? 's' : '' }} disponibles</p>
+              {% if cat.description %}
+                <p class="text-sm text-slate-600 line-clamp-3">{{ cat.description|render_with_config|striptags }}</p>
+              {% endif %}
+              <span class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] mt-5">Voir la catégorie →</span>
+            </div>
+          </a>
+        </article>
+        {% endif %}
+      {% endfor %}
+    </div>
   {% else %}
     <div class="card p-10 text-center">
       <p class="text-slate-600 text-lg">Aucune équipe disponible pour cette saison.</p>

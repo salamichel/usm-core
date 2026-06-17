@@ -19,6 +19,8 @@
     <span class="mx-2 text-slate-300">/</span>
     <a href="{{ url('equipes') }}" class="hover:text-[var(--primary)] transition">Équipes</a>
     <span class="mx-2 text-slate-300">/</span>
+    <a href="{{ url('equipes/' ~ categorie_slug) }}" class="hover:text-[var(--primary)] transition">{{ equipe.categorie }}</a>
+    <span class="mx-2 text-slate-300">/</span>
     <span class="text-slate-700">{{ equipe.libelle }}</span>
   </nav>
 
@@ -53,7 +55,7 @@
             <div class="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
               <div class="py-1" role="none">
                 {% for s in allSaisons %}
-                  <a href="{{ url('equipes/' ~ equipe.slug ~ '?saison=' ~ s.id ~ '&slug=' ~ s.libelle ) }}" class="block px-4 py-2 text-sm {{ s.id == saison.id ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}" role="menuitem" tabindex="-1" id="menu-item-{{ loop.index0 }}">{{ s.libelle }}</a>
+                  <a href="{{ url('equipes/' ~ categorie_slug ~ '/' ~ equipe.slug ~ '?saison=' ~ s.id ~ '&slug=' ~ s.libelle ) }}" class="block px-4 py-2 text-sm {{ s.id == saison.id ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-slate-50' }}" role="menuitem" tabindex="-1" id="menu-item-{{ loop.index0 }}">{{ s.libelle }}</a>
                 {% endfor %}
               </div>
             </div>
@@ -140,7 +142,7 @@
     <h2 class="font-serif text-3xl font-semibold text-slate-900 mb-8">Autres équipes — {{ equipe.categorie }}</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {% for eq in otherEquipes %}
-      <a href="{{ url('equipes/' ~ eq.slug) }}" class="group block">
+      <a href="{{ url('equipes/' ~ categorie_slug ~ '/' ~ eq.slug) }}" class="group block">
         <div class="aspect-[4/3] overflow-hidden rounded-lg bg-slate-100 mb-4">
           {% if eq.cover %}
             <img src="{{ image_variant(eq.cover, 'medium') }}" alt="{{ eq.libelle }}"
