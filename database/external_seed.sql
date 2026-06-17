@@ -62,4 +62,8 @@ VALUES
 (12, 'Disponibilités - Entraînement - Entraînement L1',    '', DATE_ADD(NOW(), INTERVAL  5 DAY), '1h30', 'Gymnase Mios',                    0, '', 'Gymnase indisponible',    'Annulé'),
 (13, 'Disponibilités - Entraînement - Entraînement L3/L4', '', DATE_ADD(NOW(), INTERVAL  8 DAY), '1h30', 'Gymnase Mios',                    1, '', NULL,                      'Confirmé'),
 (14, 'Disponibilités - Tournoi - Tournoi Open',            '', DATE_ADD(NOW(), INTERVAL 15 DAY), '8h',   'Gymnase Mios',                    4, '', 'Journée complète',        'Confirmé'),
-(15, 'Disponibilités - Stage - Stage jeunes',              '', DATE_ADD(NOW(), INTERVAL 18 DAY), '8h',   'Gymnase Mios',                    2, '', 'Inscription obligatoire', 'Confirmé');
+(15, 'Disponibilités - Stage - Stage jeunes',              '', DATE_ADD(NOW(), INTERVAL 18 DAY), '8h',   'Gymnase Mios',                    2, '', 'Inscription obligatoire', 'Confirmé'),
+(16, 'Présences - Beach - BEACH CAP33 Tournoi',              '', DATE_ADD(NOW(), INTERVAL 10 DAY), '4h',   'Plage CAP33',                     0, '', 'Tournoi beach en été',        'Confirmé'),
+(17, 'Présences - Beach - BEACH CAP33 Famille',              '', DATE_ADD(NOW(), INTERVAL 12 DAY), '4h',   'Plage CAP33',                     0, '', 'Ouvert aux membres et familles','Confirmé'),
+(18, 'Présences - Club - AG',                                '', DATE_ADD(NOW(), INTERVAL 7 DAY),  '2h',   'Salle CAP33',                     0, '', 'Assemblée générale du club',   'Confirmé'),
+(19, 'Présences - Club - Forum ASSO',                        '', DATE_ADD(NOW(), INTERVAL 9 DAY),  '4h',   'Forum CAP33',                     0, '', 'Stand et rencontres associatives','Confirmé');

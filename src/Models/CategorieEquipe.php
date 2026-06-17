@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Services\SlugManager;
 
 class CategorieEquipe
 {
@@ -39,6 +40,26 @@ class CategorieEquipe
         );
         $stmt->execute([$nom]);
         return $stmt->fetch() ?: null;
+    }
+
+    public static function findBySlug(string $slug): ?array
+    {
+        foreach (self::all() as $row) {
+            if (SlugManager::generate($row['nom']) === $slug) {
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    public static function allKeyedBySlug(): array
+    {
+        $result = [];
+        foreach (self::all() as $row) {
+            $result[SlugManager::generate($row['nom'])] = $row;
+        }
+        return $result;
     }
 
     public static function create(array $data): int

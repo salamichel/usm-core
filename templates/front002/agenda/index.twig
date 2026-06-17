@@ -43,19 +43,6 @@
 {% block content %}
 <div class="max-w-6xl mx-auto px-6 py-16">
 
-  {# Breadcrumb #}
-  <nav aria-label="Fil d'Ariane" class="text-sm text-slate-500 mb-10">
-    <a href="{{ url('') }}" class="hover:text-[var(--primary)] transition-colors">Accueil</a>
-    <span class="mx-2 text-slate-300">/</span>
-    <span class="text-slate-900">Agenda</span>
-  </nav>
-
-  {# Header #}
-  <header class="mb-10 pb-10 border-b border-slate-200">
-    <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">Calendrier</span>
-    <h1 class="font-serif text-4xl md:text-5xl font-semibold text-slate-900 leading-tight">Agenda — événements à venir</h1>
-  </header>
-
   {% include 'agenda/filters.twig' %}
 
   {# Toolbar #}
@@ -424,7 +411,8 @@
 (function() {
   var table = document.querySelector('.agenda-table');
   var buttons = document.querySelectorAll('.zoom-btn');
-  if (!table || !buttons.length) return;
+
+  if (!table || !buttons.length ) return;
 
   function applyZoom(z) {
     table.style.zoom = z;
@@ -432,13 +420,6 @@
     try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
   }
 
-  var stored = null;
-  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
-  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
-  applyZoom(initial);
-  buttons.forEach(function(b) {
-    b.addEventListener('click', function() { applyZoom(parseFloat(b.dataset.zoom)); });
-  });
 })();
 </script>
 {% endblock %}

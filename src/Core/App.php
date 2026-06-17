@@ -83,9 +83,10 @@ class App
         $r->get('/blog/tag/{tag}', [BlogController::class, 'list']);
         $r->get('/blog/{slug+}',  [BlogController::class, 'show']);
         $r->get('/p/{slug}',      [PageController::class, 'show']);
-        $r->get('/equipes',       [EquipesController::class, 'index']);
-        $r->get('/equipes/{slug}', [EquipesController::class, 'show']);
-        $r->get('/agenda',        [AgendaController::class, 'index']);
+        $r->get('/equipes',                    [EquipesController::class, 'index']);
+        $r->get('/equipes/{slug}',             [EquipesController::class, 'category']);
+        $r->get('/equipes/{categorie}/{slug}', [EquipesController::class, 'show']);
+        $r->get('/agenda',                     [AgendaController::class, 'index']);
         $r->get('/agenda/{id}',   [AgendaController::class, 'show']);
         $r->get('/contact',       [ContactController::class, 'show']);
         $r->post('/contact',      [ContactController::class, 'submit']);
