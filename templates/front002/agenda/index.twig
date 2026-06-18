@@ -411,8 +411,7 @@
 (function() {
   var table = document.querySelector('.agenda-table');
   var buttons = document.querySelectorAll('.zoom-btn');
-
-  if (!table || !buttons.length ) return;
+  if (!table || !buttons.length) return;
 
   function applyZoom(z) {
     table.style.zoom = z;
@@ -420,6 +419,13 @@
     try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
   }
 
+  var stored = null;
+  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
+  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
+  applyZoom(initial);
+  buttons.forEach(function(b) {
+    b.addEventListener('click', function() { applyZoom(parseFloat(b.dataset.zoom)); });
+  });
 })();
 </script>
 {% endblock %}
