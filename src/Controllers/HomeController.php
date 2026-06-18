@@ -62,10 +62,10 @@ class HomeController
             $newLicencies       = Saison::newLicenciesCount((int)$saisonActive['id']);
         }
 
-        $locations  = Location::all();
-        $beachEvents = AgendaService::getUpcomingByType('Beach', 5);
-        $nextMatch   = $matches[0] ?? null;
-        $matchPhotos = [];
+        $locations   = Location::all();
+        $summerEvents = AgendaService::getUpcomingByTypes(['Beach', 'Club', 'Tournoi'], 7);
+        $nextMatch    = $matches[0] ?? null;
+        $matchPhotos  = [];
         // Cover du prochain match : on tente d'utiliser la photo de couverture
         // de la 1ère équipe-saison ayant des membres (fallback visuel).
         if ($saisonActive) {
@@ -112,20 +112,20 @@ class HomeController
         );
 
         View::render('home.twig', [
-            'meta'         => $meta,
-            'slides'       => $slides,
-            'stats'        => $stats,
-            'home_blocks'  => $blocks,
-            'latest_posts' => $latestPosts,
-            'post_covers'  => $postCovers,
-            'matches'      => $matches,
-            'trainings'    => $trainings,
-            'beach_events' => $beachEvents,
-            'next_match'   => $nextMatch,
-            'match_cover'  => $matchPhotos[0] ?? null,
-            'new_licencies'=> $newLicencies,
-            'locations'    => $locations,
-            'saison_active'=> $saisonActive,
+            'meta'          => $meta,
+            'slides'        => $slides,
+            'stats'         => $stats,
+            'home_blocks'   => $blocks,
+            'latest_posts'  => $latestPosts,
+            'post_covers'   => $postCovers,
+            'matches'       => $matches,
+            'trainings'     => $trainings,
+            'summer_events' => $summerEvents,
+            'next_match'    => $nextMatch,
+            'match_cover'   => $matchPhotos[0] ?? null,
+            'new_licencies' => $newLicencies,
+            'locations'     => $locations,
+            'saison_active' => $saisonActive,
         ]);
     }
 }

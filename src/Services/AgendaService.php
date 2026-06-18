@@ -69,6 +69,42 @@ class AgendaService
     }
 
     /**
+     * Get upcoming events filtered by several type fragments.
+     *
+     * Useful for grouping summer event categories like Beach, Club and Tournoi.
+     */
+    public static function getUpcomingByTypes(array $needles, int $limit = 5): array
+    {
+        if (empty($needles)) {
+            return [];
+        }
+
+        $conditions = [];
+        $bindings = [];
+        foreach ($needles as $needle) {
+            $conditions[] = "(`ManifestationTypée` LIKE ? OR `Lieu` LIKE ?)";
+            $bindings[] = '%' . $needle . '%';
+            $bindings[] = '%' . $needle . '%';
+        }
+
+        $sql = "SELECT * FROM Manifestation
+                 WHERE (" . implode(' OR ', $conditions) . ")
+                   AND `Date` >= CURDATE()
+                 ORDER BY `Date` ASC
+                 LIMIT " . (int) $limit;
+
+        try {
+            $stmt = ExternalDatabase::get()->prepare($sql);
+            $stmt->execute($bindings);
+            $rows = $stmt->fetchAll();
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return array_map([self::class, 'buildEvent'], $rows);
+    }
+
+    /**
      * Build a cross-table of players × events with participation data.
      *
      * Fetches all players, all upcoming manifestations, and their participation statuses,

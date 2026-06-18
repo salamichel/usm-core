@@ -54,6 +54,24 @@ class EquipeConfig
         return $stmt->fetch() ?: null;
     }
 
+    public static function findByCategory(string $categorie): array
+    {
+        $stmt = Database::get()->prepare(
+            "SELECT * FROM equipes_config WHERE categorie = ? AND is_active = 1 ORDER BY ordre ASC"
+        );
+        $stmt->execute([$categorie]);
+        return $stmt->fetchAll();
+    }
+
+    public static function findByCategoryAndSlug(string $categorie, string $slug): ?array
+    {
+        $stmt = Database::get()->prepare(
+            "SELECT * FROM equipes_config WHERE categorie = ? AND slug = ? AND is_active = 1 LIMIT 1"
+        );
+        $stmt->execute([$categorie, $slug]);
+        return $stmt->fetch() ?: null;
+    }
+
     public static function create(array $data): int
     {
         $db   = Database::get();

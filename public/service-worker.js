@@ -1,6 +1,5 @@
 const CACHE_NAME = 'usm-agenda-cache-v1';
 const ASSETS_TO_CACHE = [
-  '/agenda',
   '/manifest.json',
   '/assets/icons/content.png'
 ];
@@ -28,7 +27,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Limiter le Service Worker uniquement aux requêtes sous /agenda
   const url = new URL(event.request.url);
   if (!url.pathname.startsWith('/agenda')) {
     return;
@@ -39,22 +37,16 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
         return response;
-      }).catch(() => {
-        // En cas d'erreur de réseau (hors ligne)
-      });
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
