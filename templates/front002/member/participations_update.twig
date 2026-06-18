@@ -27,6 +27,33 @@
     <form action="{{ url('member/participations/update') }}" method="POST">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
+        {# Boutons de filtre dynamiques #}
+        {% set event_types = [] %}
+        {% for m in manifestations %}
+            {% set type = '' %}
+            {% if m.is_match %}
+                {% set type = 'Match' %}
+            {% elseif m.type_libelle is defined %}
+                {# Assuming 'type_libelle' holds other specific types like 'Beach Volley' #}
+                {% set type = m.type_libelle %}
+            {% else %}
+                {% set type = 'Entraînement' %} {# Fallback if not match and no specific type_libelle #}
+            {% endif %}
+
+            {% if type and type not in event_types %}
+                {% set event_types = event_types|merge([type]) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if event_types|length > 1 %}
+            <div class="mb-6 flex flex-wrap gap-2">
+                <button type="button" class="filter-button btn-secondary active" data-filter="all">Tous</button>
+                {% for type in event_types %}
+                    <button type="button" class="filter-button btn-secondary" data-filter="{{ type|lower|replace({' ': '-'}) }}">{{ type }}</button>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -62,9 +89,17 @@
         </div>
 
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-8">
-            <ul role="list" class="divide-y divide-gray-200">
+            <ul role="list" class="divide-y divide-gray-200" id="event-list">
                 {% for m in manifestations %}
-                    <li class="p-4 sm:px-6 hover:bg-gray-50 transition-colors">
+                    {% set item_type = '' %}
+                    {% if m.is_match %}
+                        {% set item_type = 'Match' %}
+                    {% elseif m.type_libelle is defined %}
+                        {% set item_type = m.type_libelle %}
+                    {% else %}
+                        {% set item_type = 'Entraînement' %}
+                    {% endif %}
+                    <li class="p-4 sm:px-6 hover:bg-gray-50 transition-colors" data-event-filter="{{ item_type|lower|replace({' ': '-'}) }}">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                             <div class="flex-1 min-w-0 mb-4 sm:mb-0">
                                 <div class="flex items-center text-sm font-medium text-blue-600 truncate">
@@ -195,6 +230,29 @@
 
     document.getElementById('bulk-reset-all')?.addEventListener('click', function() {
       document.querySelectorAll('select[data-event-type]').forEach(select => select.value = '.');
+    });
+
+    // Logique de filtrage des événements
+    const filterButtons = document.querySelectorAll('.filter-button');
+    const eventListItems = document.querySelectorAll('#event-list li');
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const filterType = this.dataset.filter;
+
+        // Mettre à jour la classe 'active' sur les boutons de filtre
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+
+        // Filtrer les événements
+        eventListItems.forEach(item => {
+          if (filterType === 'all' || item.dataset.eventFilter === filterType) {
+            item.style.display = ''; // Afficher l'élément
+          } else {
+            item.style.display = 'none'; // Masquer l'élément
+          }
+        });
+      });
     });
   })();
 </script>
