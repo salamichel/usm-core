@@ -1,209 +1,161 @@
-{% extends "base.twig" %}
+{# Agenda filter panel - editorial style #}
+<div class="card p-6 mb-6">
+  <div class="flex justify-between items-center mb-5">
+    <h2 class="font-serif text-lg font-semibold text-slate-900">Filtres</h2>
+    {% if filters is not empty %}
+      <a href="/agenda" class="text-sm text-slate-600 hover:text-[var(--primary)] underline underline-offset-4 transition">Réinitialiser</a>
+    {% endif %}
+  </div>
 
-{% block title %}Agenda - Filtres{% endblock %}
+  {# Mobile toggle #}
+  <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-sm font-medium text-slate-700 flex items-center justify-between transition">
+    <span>Filtres</span>
+    <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+  </button>
 
-{% block content %}
-{# --- MACRO DE CONSTRUCTION D'URL (Inchangée) --- #}
-{% macro buildUrl(currentFilters, keyToRemove, keyToAdd, valueToAdd) %}
-    {%- set queryParams = [] -%}
-    {%- for k, v in currentFilters -%}
-        {%- if k != keyToRemove -%}
-            {%- set enc_val = v is same as(true) ? '1' : v|url_encode -%}
-            {%- set queryParams = queryParams|merge([k ~ '=' ~ enc_val]) -%}
-        {%- endif -%}
-    {%- endfor -%}
-    {%- if keyToAdd is not null and valueToAdd is not null -%}
-        {%- set queryParams = queryParams|merge([keyToAdd ~ '=' ~ valueToAdd|url_encode]) -%}
-    {%- endif -%}
-    {%- if queryParams is not empty -%}
-        /agenda?{{ queryParams|join('&') }}
-    {%- else -%}
-        /agenda
-    {%- endif -%}
-{% endmacro %}
+  <div id="filters-content" class="hidden md:block space-y-6">
 
-<div class="max-w-6xl mx-auto px-6 py-16">
+    {# Type d'évènement #}
+    <div>
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Type d'évènement</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_type = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'type' %}{% set _no_type = _no_type|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_type = '/agenda' ~ (_no_type is not empty ? '?' ~ _no_type|join('&') : '') %}
+        {% set _sep_type = _no_type is not empty ? '&' : '?' %}
 
-    {# Bouton d'ouverture du Sidebar sur Mobile (Masqué sur Desktop) #}
-    <div class="mb-6 md:hidden">
-        <button id="filters-open-btn" class="w-full px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 shadow-sm rounded-lg text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors">
-            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-            Afficher les filtres
-        </button>
+        <a href="{{ _base_type }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Tous
+        </a>
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Match' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.type == 'Match' %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Matchs
+        </a>
+        <a href="{{ _base_type ~ _sep_type ~ 'type=Pr%C3%A9sences%20-%20Entrainement' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.type == 'Présences - Entrainement' %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Entraînements
+        </a>
+      </div>
     </div>
 
-    {# Overlay sombre pour mobile (Cliquable pour fermer) #}
-    <div id="filter-backdrop" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden transition-opacity backdrop-blur-sm"></div>
-
-    {# Panneau de filtres : Sidebar sur Mobile / Boîte sur Desktop #}
-    <div id="filter-sidebar" class="
-        fixed inset-y-0 left-0 z-50 w-[85%] max-w-sm h-full overflow-y-auto bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out
-        md:relative md:w-full md:max-w-none md:h-auto md:overflow-visible md:transform-none md:shadow-sm md:rounded-xl md:border md:border-slate-200 md:z-0 md:mb-8 md:block
-    ">
-        <div class="p-6">
-            
-            {# En-tête du panneau #}
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="font-serif text-xl md:text-lg font-semibold text-slate-900">Filtres</h2>
-                
-                <div class="flex items-center gap-4">
-                    {% if filters is not empty %}
-                        <a href="/agenda" class="text-sm text-slate-600 hover:text-blue-600 underline underline-offset-4 transition-colors">Réinitialiser</a>
-                    {% endif %}
-                    
-                    {# Bouton de fermeture (Uniquement sur Mobile) #}
-                    <button id="filters-close-btn" class="md:hidden p-2 -mr-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                        <span class="sr-only">Fermer les filtres</span>
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="space-y-8 md:space-y-6">
-
-                {# Type d'évènement #}
-                <div>
-                    <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Type d'évènement</p>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ _self.buildUrl(filters, 'type', null, null) }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if not filters.type %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Tous
-                        </a>
-                        <a href="{{ _self.buildUrl(filters, 'type', 'type', 'Match') }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if filters.type == 'Match' %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Matchs
-                        </a>
-                        <a href="{{ _self.buildUrl(filters, 'type', 'type', 'Présences - Entrainement') }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if filters.type == 'Présences - Entrainement' %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Entraînements
-                        </a>
-                    </div>
-                </div>
-
-                {# Menus déroulants (Manifestation, Équipe, Lieu) #}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    
-                    {% if filterOptions.manifestationNames %}
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Manifestation</p>
-                        {% set url_without_manif = _self.buildUrl(filters, 'manifestation', null, null) %}
-                        {% set sep_manif = url_without_manif ends with '/agenda' ? '?' : '&' %}
-                        <select onchange="window.location.href = this.value ? '{{ url_without_manif ~ sep_manif }}manifestation=' + encodeURIComponent(this.value) : '{{ url_without_manif }}';"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 md:py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.7rem_0.7rem] bg-[right_0.75rem_center] bg-no-repeat pr-8">
-                            <option value="">Tous les événements</option>
-                            {% for name in filterOptions.manifestationNames %}
-                                <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-
-                    {% if filterOptions.teams %}
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Équipe</p>
-                        {% set url_without_team = _self.buildUrl(filters, 'team', null, null) %}
-                        {% set sep_team = url_without_team ends with '/agenda' ? '?' : '&' %}
-                        <select onchange="window.location.href = this.value ? '{{ url_without_team ~ sep_team }}team=' + encodeURIComponent(this.value) : '{{ url_without_team }}';"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 md:py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.7rem_0.7rem] bg-[right_0.75rem_center] bg-no-repeat pr-8">
-                            <option value="">Toutes les équipes</option>
-                            {% for team in filterOptions.teams %}
-                                <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-
-                    {% if filterOptions.locations %}
-                    <div>
-                        <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Lieu</p>
-                        {% set url_without_location = _self.buildUrl(filters, 'location', null, null) %}
-                        {% set sep_location = url_without_location ends with '/agenda' ? '?' : '&' %}
-                        <select onchange="window.location.href = this.value ? '{{ url_without_location ~ sep_location }}location=' + encodeURIComponent(this.value) : '{{ url_without_location }}';"
-                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 md:py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.7rem_0.7rem] bg-[right_0.75rem_center] bg-no-repeat pr-8">
-                            <option value="">Tous les lieux</option>
-                            {% for location in filterOptions.locations %}
-                                <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-                </div>
-
-                {# Affichage #}
-                <div class="pt-6 md:pt-5 border-t border-slate-200">
-                    <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Affichage</p>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ _self.buildUrl(filters, 'hide_empty_players', null, null) }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if not filters.hide_empty_players %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Liste complète
-                        </a>
-                        <a href="{{ _self.buildUrl(filters, 'hide_empty_players', 'hide_empty_players', '1') }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if filters.hide_empty_players %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Ayant répondu
-                        </a>
-                    </div>
-                </div>
-
-                {# Période #}
-                <div class="pt-6 md:pt-5 border-t border-slate-200">
-                    <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Période</p>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ _self.buildUrl(filters, 'this_week', null, null) }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if not filters.this_week %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Tous les événements
-                        </a>
-                        <a href="{{ _self.buildUrl(filters, 'this_week', 'this_week', '1') }}" 
-                           class="px-4 py-2 md:px-3 md:py-1.5 text-sm md:text-xs rounded-full font-medium transition-colors {% if filters.this_week %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
-                            Semaine courante
-                        </a>
-                    </div>
-                </div>
-                
-            </div>
+    {# Dropdowns #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {% if filterOptions.manifestationNames %}
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Manifestation</p>
+          {% set _no_manif = [] %}
+          {% for k, v in filters %}
+            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+            {% if k != 'manifestation' %}{% set _no_manif = _no_manif|merge([k ~ '=' ~ _enc]) %}{% endif %}
+          {% endfor %}
+          {% set _base_manif = '/agenda' ~ (_no_manif is not empty ? '?' ~ _no_manif|join('&') : '') %}
+          {% set _sep_manif = _no_manif is not empty ? '&' : '?' %}
+          <select onchange="if(this.value) window.location.href = '{{ _base_manif }}' + (this.value ? '{{ _sep_manif }}manifestation=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_manif }}';"
+                  class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <option value="">Tous les événements</option>
+            {% for name in filterOptions.manifestationNames %}
+              <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
         </div>
+      {% endif %}
+
+      {% if filterOptions.teams %}
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Équipe</p>
+          {% set _no_team = [] %}
+          {% for k, v in filters %}
+            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+            {% if k != 'team' %}{% set _no_team = _no_team|merge([k ~ '=' ~ _enc]) %}{% endif %}
+          {% endfor %}
+          {% set _base_team = '/agenda' ~ (_no_team is not empty ? '?' ~ _no_team|join('&') : '') %}
+          {% set _sep_team = _no_team is not empty ? '&' : '?' %}
+          <select onchange="if(this.value) window.location.href = '{{ _base_team }}' + (this.value ? '{{ _sep_team }}team=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_team }}';"
+                  class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <option value="">Toutes les équipes</option>
+            {% for team in filterOptions.teams %}
+              <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      {% if filterOptions.locations %}
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Lieu</p>
+          {% set _no_location = [] %}
+          {% for k, v in filters %}
+            {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+            {% if k != 'location' %}{% set _no_location = _no_location|merge([k ~ '=' ~ _enc]) %}{% endif %}
+          {% endfor %}
+          {% set _base_location = '/agenda' ~ (_no_location is not empty ? '?' ~ _no_location|join('&') : '') %}
+          {% set _sep_location = _no_location is not empty ? '&' : '?' %}
+          <select onchange="if(this.value) window.location.href = '{{ _base_location }}' + (this.value ? '{{ _sep_location }}location=' + encodeURIComponent(this.value) : ''); else window.location.href = '{{ _base_location }}';"
+                  class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+            <option value="">Tous les lieux</option>
+            {% for location in filterOptions.locations %}
+              <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
     </div>
 
-    {# --- LISTE DES MANIFESTATIONS (Exemple d'espace de contenu) --- #}
-    {# <div class="bg-white shadow overflow-hidden sm:rounded-md"> ... </div> #}
+    {# Affichage #}
+    <div class="pt-5 border-t border-slate-200">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Affichage</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_empty = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'hide_empty_players' %}{% set _no_empty = _no_empty|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_empty = '/agenda' ~ (_no_empty is not empty ? '?' ~ _no_empty|join('&') : '') %}
+        {% set _sep_empty = _no_empty is not empty ? '&' : '?' %}
 
+        <a href="{{ _base_empty }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Liste complète
+        </a>
+        <a href="{{ _base_empty ~ _sep_empty ~ 'hide_empty_players=1' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Ayant répondu
+        </a>
+      </div>
+    </div>
+
+    {# Période #}
+    <div class="pt-5 border-t border-slate-200">
+      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Période</p>
+      <div class="flex flex-wrap gap-2">
+        {% set _no_week = [] %}
+        {% for k, v in filters %}
+          {% set _enc = v is same as(true) ? '1' : v|url_encode %}
+          {% if k != 'this_week' %}{% set _no_week = _no_week|merge([k ~ '=' ~ _enc]) %}{% endif %}
+        {% endfor %}
+        {% set _base_week = '/agenda' ~ (_no_week is not empty ? '?' ~ _no_week|join('&') : '') %}
+        {% set _sep_week = _no_week is not empty ? '&' : '?' %}
+
+        <a href="{{ _base_week }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Tous les événements
+        </a>
+        <a href="{{ _base_week ~ _sep_week ~ 'this_week=1' }}" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Semaine courante
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const openBtn = document.getElementById('filters-open-btn');
-    const closeBtn = document.getElementById('filters-close-btn');
-    const sidebar = document.getElementById('filter-sidebar');
-    const backdrop = document.getElementById('filter-backdrop');
-
-    // Ouvre le menu latéral
-    function openFilters() {
-        backdrop.classList.remove('hidden');
-        // Un très léger délai pour permettre à Tailwind de gérer la transition après avoir retiré "hidden"
-        setTimeout(() => {
-            sidebar.classList.remove('-translate-x-full');
-            document.body.style.overflow = 'hidden'; // Empêche de scroller la page derrière le menu
-        }, 10);
+  document.addEventListener('DOMContentLoaded', function() {
+    var toggle = document.getElementById('filters-toggle');
+    var content = document.getElementById('filters-content');
+    if (toggle && content) {
+      toggle.addEventListener('click', function() {
+        var hidden = content.classList.toggle('hidden');
+        var svg = toggle.querySelector('svg');
+        if (svg) svg.style.transform = hidden ? 'rotate(0deg)' : 'rotate(180deg)';
+      });
     }
-
-    // Ferme le menu latéral
-    function closeFilters() {
-        sidebar.classList.add('-translate-x-full');
-        document.body.style.overflow = ''; // Restaure le scroll
-        
-        // Attend la fin de l'animation pour cacher le fond sombre
-        setTimeout(() => {
-            backdrop.classList.add('hidden');
-        }, 300);
-    }
-
-    if (openBtn && closeBtn && sidebar && backdrop) {
-        openBtn.addEventListener('click', openFilters);
-        closeBtn.addEventListener('click', closeFilters);
-        // Fermer le menu si on clique sur le fond sombre
-        backdrop.addEventListener('click', closeFilters);
-    }
-});
+  });
 </script>
-{% endblock %}
