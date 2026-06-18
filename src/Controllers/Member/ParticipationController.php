@@ -30,6 +30,8 @@ class ParticipationController
             $m['is_match'] = str_contains($typeLower, 'match') || 
                              str_contains($typeLower, 'champ') || 
                              str_contains($typeLower, 'plateau');
+            // Ajout d'un libellé simplifié pour le type de manifestation
+            $m['type_libelle'] = explode(' - ', $m['ManifestationTypée'])[1] ?? '';
         }
 
         View::render('member/participations_update.twig', [
