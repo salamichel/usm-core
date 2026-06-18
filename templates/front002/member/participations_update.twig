@@ -11,7 +11,7 @@
             <p class="mt-2 text-sm text-gray-700">Déclarez vos disponibilités pour les prochains événements du club.</p>
         </div>
         <div class="mt-4 sm:mt-0">
-            <a href="{{ url('dashboard') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+                <a href="{{ url('member/dashboard') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
                 &larr; Retour à mon espace
             </a>
         </div>
@@ -24,7 +24,7 @@
         <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6"><p class="text-sm text-green-700">{{ flash.success }}</p></div>
     {% endif %}
 
-    <form action="{{ url('participations/update') }}" method="POST">
+    <form action="{{ url('member/participations/update') }}" method="POST">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-8">

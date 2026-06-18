@@ -68,4 +68,42 @@ class Joueur
         $stmt = $db->prepare("DELETE FROM Joueurs WHERE id_joueur = ?");
         $stmt->execute([$id]);
     }
+
+    /**
+     * Récupère un joueur par son ID.
+     *
+     * @param int $id L'ID du joueur
+     * @return array|null Les données du joueur ou null si non trouvé
+     */
+    public static function findById(int $id): ?array
+    {
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare("SELECT * FROM Joueurs WHERE id_joueur = ? LIMIT 1");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /**
+     * Met à jour un joueur.
+     *
+     * @param int $id L'ID du joueur
+     * @param array $data Les données à mettre à jour (Prénom, Nom, Mel, etc.)
+     */
+    public static function update(int $id, array $data): void
+    {
+        $db = ExternalDatabase::get();
+        
+        $setClause = [];
+        $values = [];
+        
+        foreach ($data as $column => $value) {
+            $setClause[] = "$column = ?";
+            $values[] = $value;
+        }
+        $values[] = $id;
+        
+        $sql = "UPDATE Joueurs SET " . implode(', ', $setClause) . " WHERE id_joueur = ?";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($values);
+    }
 }

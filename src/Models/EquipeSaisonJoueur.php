@@ -71,4 +71,28 @@ class EquipeSaisonJoueur
             "DELETE FROM equipe_saison_joueur WHERE equipe_saison_id = ? AND snapshot_id = ?"
         )->execute([$equipeSaisonId, $snapshotId]);
     }
+
+    /**
+     * Retrouve les équipes d'un joueur pour une saison donnée.
+     * Retourne les détails de chaque équipe-saison.
+     *
+     * @param int $joueurId L'ID du joueur (id_joueur de la base externe)
+     * @param int $saisonId L'ID de la saison
+     * @return array Liste des équipes avec détails (equipes_config + equipe_saison)
+     */
+    public static function findEquipesByJoueur(int $joueurId, int $saisonId): array
+    {
+        $stmt = Database::get()->prepare(
+            "SELECT ec.id, ec.libelle, ec.description_courte, ec.description, ec.categorie,
+                    es.id as equipe_saison_id, es.saison_id
+             FROM equipe_saison_joueur esj
+             JOIN joueur_snapshots js ON js.id = esj.snapshot_id
+             JOIN equipe_saison es ON es.id = esj.equipe_saison_id
+             JOIN equipes_config ec ON ec.id = es.equipe_id
+             WHERE js.id_joueur = ? AND es.saison_id = ?
+             ORDER BY ec.categorie ASC, ec.libelle ASC"
+        );
+        $stmt->execute([$joueurId, $saisonId]);
+        return $stmt->fetchAll();
+    }
 }

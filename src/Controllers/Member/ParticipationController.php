@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Member;
 
 use App\Core\View;
 use App\Models\Participation;
@@ -9,14 +9,14 @@ class ParticipationController
 {
     /**
      * Affiche le formulaire de mise à jour des participations de l'adhérent.
-     * Route: GET /participations/update
+     * Route: GET /member/participations/update
      */
     public function updateForm(): void
     {
         // Sécurisation de l'espace adhérent
         if (!isset($_SESSION['LogIn']) || $_SESSION['LogIn'] !== true) {
             View::flash('error', 'Veuillez vous connecter pour accéder à cette page.');
-            header('Location: /login');
+            header('Location: /member/login');
             exit;
         }
 
@@ -40,13 +40,13 @@ class ParticipationController
 
     /**
      * Traite l'enregistrement des modifications.
-     * Route: POST /participations/update
+     * Route: POST /member/participations/update
      */
     public function store(): void
     {
         // Sécurisation
         if (!isset($_SESSION['LogIn']) || $_SESSION['LogIn'] !== true) {
-            header('Location: /login');
+            header('Location: /member/login');
             exit;
         }
 
@@ -55,7 +55,7 @@ class ParticipationController
 
         if (!is_array($participations)) {
             View::flash('error', 'Données invalides.');
-            header('Location: /participations/update');
+            header('Location: /member/participations/update');
             exit;
         }
 
@@ -71,7 +71,7 @@ class ParticipationController
         }
 
         View::flash('success', 'Vos participations ont été enregistrées avec succès.');
-        header('Location: /participations/update');
+        header('Location: /member/participations/update');
         exit;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Member;
 
 use App\Core\View;
 use App\Models\Joueur;
@@ -10,13 +10,13 @@ class AuthController
 {
     /**
      * Affiche le formulaire de connexion de l'espace adhérent.
-     * Route: GET /login
+     * Route: GET /member/login
      */
     public function loginForm(): void
     {
         // Redirection si l'adhérent est déjà connecté
         if (isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
-            header('Location: /dashboard');
+            header('Location: /member/dashboard');
             exit;
         }
 
@@ -26,7 +26,7 @@ class AuthController
 
     /**
      * Traite la connexion.
-     * Route: POST /login
+     * Route: POST /member/login
      */
     public function login(): void
     {
@@ -36,7 +36,7 @@ class AuthController
 
         if ($v->fails()) {
             View::flash('error', $v->firstError());
-            header('Location: /login');
+            header('Location: /member/login');
             exit;
         }
 
@@ -54,18 +54,18 @@ class AuthController
             $_SESSION['AdminWeb'] = str_contains($caracteristiques, 'Web');
 
             View::flash('success', 'Bienvenue ' . $user['Prénom'] . ' !');
-            header('Location: /dashboard');
+            header('Location: /member/dashboard');
             exit;
         }
 
         View::flash('error', 'Mot de passe ou email incorrect.');
-        header('Location: /login');
+        header('Location: /member/login');
         exit;
     }
 
     /**
      * Déconnecte l'adhérent.
-     * Route: POST /logout
+     * Route: POST /member/logout
      */
     public function logout(): void
     {
@@ -75,7 +75,7 @@ class AuthController
         
         unset($_SESSION['LogInId'], $_SESSION['user_name'], $_SESSION['user_email']);
         
-        header('Location: /login');
+        header('Location: /member/login');
         exit;
     }
 }

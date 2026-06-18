@@ -18,7 +18,7 @@ class JoueurController
 
         if (empty($_SESSION['AdminWeb'])) {
             View::flash('error', 'Vous n\'avez pas les privilèges "Admin Web" pour accéder à cette page.');
-            header('Location: /dashboard');
+            header('Location: /member/dashboard');
             exit;
         }
     }

@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Mon Espace</h1>
             <p class="text-sm text-gray-500 mt-1">Connecté en tant que <strong>{{ user_name }}</strong> ({{ user_email }})</p>
         </div>
-        <form action="{{ url('logout') }}" method="POST" class="inline">
+        <form action="{{ url('member/logout') }}" method="POST" class="inline">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
             <button type="submit" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm">
                 Déconnexion
@@ -28,15 +28,15 @@
                 <span class="font-semibold text-blue-700 block">Agenda du Club</span>
                 <span class="text-sm text-gray-500">Consulter tous les événements à venir.</span>
             </a>
-            <a href="{{ url('participations/update') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+            <a href="{{ url('member/participations/update') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
                 <span class="font-semibold text-blue-700 block">Ma participation</span>
                 <span class="text-sm text-gray-500">Mettre à jour vos présences aux événements.</span>
             </a>
-            <a href="{{ url('annuaire') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                <span class="font-semibold text-blue-700 block">Annuaire du club</span>
-                <span class="text-sm text-gray-500">Consulter les contacts des membres.</span>
+            <a href="{{ url('member/profile') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                <span class="font-semibold text-blue-700 block">Mon Profil</span>
+                <span class="text-sm text-gray-500">Consulter et modifier vos informations.</span>
             </a>
-            <a href="{{ url('intranet/membres') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
+            <a href="{{ url('member/intranet') }}" class="block p-4 border rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors">
                 <span class="font-semibold text-blue-700 block">Fichiers Intranet</span>
                 <span class="text-sm text-gray-500">Documents réservés aux adhérents.</span>
             </a>
@@ -60,7 +60,7 @@
                 <div class="flex flex-wrap gap-2">
                     {% set equipes = ['L1', 'L2', 'L3', 'L4', 'Aico', 'Heitz', 'DEP', 'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3', 'UFOLEP_4', 'M15F6', 'M15F', 'M13F'] %}
                     {% for equipe in equipes %}
-                        <a href="{{ url('participations/equipe?nom=' ~ equipe) }}" class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white border border-yellow-300 text-yellow-800 hover:bg-yellow-100 transition-colors shadow-sm">
+                        <a href="{{ url('member/participations/equipe?nom=' ~ equipe) }}" class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white border border-yellow-300 text-yellow-800 hover:bg-yellow-100 transition-colors shadow-sm">
                             {{ equipe }}
                         </a>
                     {% endfor %}
