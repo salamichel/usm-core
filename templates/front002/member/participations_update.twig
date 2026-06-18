@@ -47,9 +47,9 @@
         
         {% if event_types|length > 1 %}
             <div class="mb-6 flex flex-wrap gap-2">
-                <button type="button" class="filter-button btn-secondary active" data-filter="all">Tous</button>
+                <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-[var(--primary)] text-white" data-filter="all">Tous</button>
                 {% for type in event_types %}
-                    <button type="button" class="filter-button btn-secondary" data-filter="{{ type|lower|replace({' ': '-'}) }}">{{ type }}</button>
+                    <button type="button" class="filter-button filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200]" data-filter="{{ type|lower|replace({' ': '-'}) }}">{{ type }}</button>
                 {% endfor %}
             </div>
         {% endif %}
@@ -238,8 +238,10 @@
     const eventListItems = document.querySelectorAll('#event-list li');
 
     // Définition des classes Tailwind pour l'état actif et inactif
-    const activeClasses = ['bg-blue-600', 'text-white', 'border-blue-600'];
-    const inactiveClasses = ['bg-white', 'text-gray-700', 'border-gray-300'];
+    const activeClasses = ['bg-[var(--primary)]', 'text-white'];
+    const inactiveClasses = ['bg-slate-100','text-slate-700', 'hover:bg-slate-200'];
+
+px-3 py-1.5 text-xs rounded-full font-medium transition bg-[var(--primary)] text-white
 
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -247,8 +249,8 @@
 
             // 1. Réinitialiser tous les boutons à l'état "inactif"
             filterButtons.forEach(btn => {
-            btn.classList.remove(...activeClasses);
-            btn.classList.add(...inactiveClasses);
+                btn.classList.remove(...activeClasses);
+                btn.classList.add(...inactiveClasses);
             });
 
             // 2. Mettre le bouton cliqué à l'état "actif"
