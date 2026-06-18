@@ -3,7 +3,7 @@
 {% block title %}Mise à jour de mes participations{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-6xl mx-auto px-6 py-16">
     
     <div class="sm:flex sm:items-center justify-between mb-8 border-b border-gray-200 pb-4">
         <div>
@@ -237,23 +237,33 @@
     const filterButtons = document.querySelectorAll('.filter-button');
     const eventListItems = document.querySelectorAll('#event-list li');
 
+    // Définition des classes Tailwind pour l'état actif et inactif
+    const activeClasses = ['bg-blue-600', 'text-white', 'border-blue-600'];
+    const inactiveClasses = ['bg-white', 'text-gray-700', 'border-gray-300'];
+
     filterButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const filterType = this.dataset.filter;
+        button.addEventListener('click', function() {
+            const filterType = this.dataset.filter;
 
-        // Mettre à jour la classe 'active' sur les boutons de filtre
-        filterButtons.forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
+            // 1. Réinitialiser tous les boutons à l'état "inactif"
+            filterButtons.forEach(btn => {
+            btn.classList.remove(...activeClasses);
+            btn.classList.add(...inactiveClasses);
+            });
 
-        // Filtrer les événements
-        eventListItems.forEach(item => {
-          if (filterType === 'all' || item.dataset.eventFilter === filterType) {
-            item.style.display = ''; // Afficher l'élément
-          } else {
-            item.style.display = 'none'; // Masquer l'élément
-          }
+            // 2. Mettre le bouton cliqué à l'état "actif"
+            this.classList.remove(...inactiveClasses);
+            this.classList.add(...activeClasses);
+
+            // 3. Filtrer les événements (inchangé)
+            eventListItems.forEach(item => {
+                if (filterType === 'all' || item.dataset.eventFilter === filterType) {
+                    item.style.display = ''; 
+                } else {
+                    item.style.display = 'none'; 
+                }
+            });
         });
-      });
     });
   })();
 </script>
