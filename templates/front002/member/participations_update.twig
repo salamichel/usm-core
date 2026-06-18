@@ -27,6 +27,40 @@
     <form action="{{ url('member/participations/update') }}" method="POST">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
+        <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900">Actions groupées</h2>
+                    <p class="text-sm text-gray-600">Appliquez rapidement un statut à tous les matchs ou à tous les entraînements.</p>
+                </div>
+                <div class="grid gap-2 sm:grid-cols-2 md:grid-cols-3 w-full md:w-auto">
+                    <div class="flex items-center gap-2">
+                        <select id="bulk-match-status" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                            <option value="">Matchs : choisir</option>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Disponible si nécessaire">Disponible si nécessaire</option>
+                            <option value="Indisponible">Indisponible</option>
+                            <option value="Ne sait pas encore">Ne sait pas encore</option>
+                            {% if is_capitaine %}
+                                <option value="Sélectionné(e)">Sélectionné(e)</option>
+                            {% endif %}
+                        </select>
+                        <button type="button" id="bulk-match-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="bulk-training-status" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                            <option value="">Entraînements : choisir</option>
+                            <option value="Présent">Présent</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Ne sait pas encore">Ne sait pas encore</option>
+                        </select>
+                        <button type="button" id="bulk-training-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
+                    </div>
+                    <button type="button" id="bulk-reset-all" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors shadow-sm">Tout effacer</button>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white shadow overflow-hidden sm:rounded-md mb-8">
             <ul role="list" class="divide-y divide-gray-200">
                 {% for m in manifestations %}
@@ -47,6 +81,7 @@
                                 <select 
                                     id="part_{{ m.id_manifestation }}" 
                                     name="participations[{{ m.id_manifestation }}]"
+                                    data-event-type="{{ m.is_match ? 'match' : 'training' }}"
                                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
                                 >
                                     <option value=".">--- Non renseigné ---</option>
@@ -120,4 +155,40 @@
     </div>
 
 </div>
+
+{% block scripts %}
+<script>
+  (function() {
+    const setBulkStatus = (scope, value) => {
+      document.querySelectorAll(`select[data-event-type="${scope}"]`).forEach(select => {
+        if (!value) {
+          select.value = '.';
+          return;
+        }
+        const option = Array.from(select.options).find(opt => opt.value === value);
+        if (option) {
+          select.value = value;
+        }
+      });
+    };
+
+    document.getElementById('bulk-match-apply')?.addEventListener('click', function() {
+      const value = document.getElementById('bulk-match-status')?.value;
+      if (value) {
+        setBulkStatus('match', value);
+      }
+    });
+
+    document.getElementById('bulk-training-apply')?.addEventListener('click', function() {
+      const value = document.getElementById('bulk-training-status')?.value;
+      if (value) {
+        setBulkStatus('training', value);
+      }
+    });
+
+    document.getElementById('bulk-reset-all')?.addEventListener('click', function() {
+      document.querySelectorAll('select[data-event-type]').forEach(select => select.value = '.');
+    });
+  })();
+</script>
 {% endblock %}
