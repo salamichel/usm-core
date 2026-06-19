@@ -71,11 +71,11 @@
     </nav>
 
     <div class="ml-auto flex items-center gap-3">
-      {% if user_name is defined %}
+      {% if app.session.user_name is defined %}
         <div class="relative">
           <button class="btn-secondary" id="member-menu-toggle">
             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.59 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <span class="hidden sm:inline">{{ user_name }}</span>
+            <span class="hidden sm:inline">{{ app.session.user_name }}</span>
           </button>
           <div class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg hidden" id="member-menu">
             <a href="{{ url('member/dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mon espace</a>
