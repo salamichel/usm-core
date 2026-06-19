@@ -116,7 +116,7 @@
                     'Date': date_formatted,
                     'type_simple': m.type_simple|default(m.type_libelle|default('Événement'))
                 }) %}
-                {% include "front002/agenda/_event_card.twig" with {'m': normalized_m, 'allow_actions': true, 'show_link': false} %}
+                {% include "agenda/_event_card.twig" with {'m': normalized_m, 'allow_actions': true, 'show_link': false} %}
             {% endfor %}
         </div>
     {% else %}
