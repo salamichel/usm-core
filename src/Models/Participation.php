@@ -95,12 +95,33 @@ class Participation
 
         $db = ExternalDatabase::get();
 
-        // Construire conditions LIKE pour chaque catégorie
+        // Types d'événements spécifiques à toujours inclure, basés sur des motifs génériques.
+        $genericEventPatterns = [
+            '%Tournoi%',
+            '%club%',
+            '%beach%',
+        ];
+
         $conditions = [];
+        $bindings = [$userId];
+
+        // Conditions basées sur les catégories du joueur
         foreach ($categories as $cat) {
             $conditions[] = "`ManifestationTypée` LIKE ?";
+            $bindings[] = '%' . $cat;
+        }
+
+        // Conditions pour les types d'événements génériques
+        foreach ($genericEventPatterns as $pattern) {
+            $conditions[] = "`ManifestationTypée` LIKE ?";
+            $bindings[] = $pattern;
         }
         
+        // Si aucune condition n'est présente (pas de catégories et pas de motifs génériques), retourner vide.
+        if (empty($conditions)) {
+            return [];
+        }
+
         $sql = "SELECT 
                     m.id_manifestation, 
                     m.ManifestationTypée, 
@@ -116,11 +137,6 @@ class Participation
                 WHERE (" . implode(' OR ', $conditions) . ")
                   AND m.Date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
                 ORDER BY m.Date ASC";
-
-        $bindings = [$userId];
-        foreach ($categories as $cat) {
-            $bindings[] = '%' . $cat;
-        }
 
         $stmt = $db->prepare($sql);
         $stmt->execute($bindings);
