@@ -46,8 +46,9 @@
         {% if event_types|length > 1 %}
             <div class="mb-6 flex flex-wrap gap-2">
                 <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-[var(--primary)] text-white" data-filter="all">Tous</button>
-                <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200" data-filter="match">Matchs</button>
-                <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200" data-filter="training">Entraînements</button>
+                {% for type in event_types %}
+                    <button type="button" class="filter-button filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200]" data-filter="{{ type|lower|replace({' ': '-'}) }}">{{ type }}</button>
+                {% endfor %}
             </div>
         {% endif %}
 
