@@ -79,6 +79,24 @@
                         </select>
                         <button type="button" id="bulk-training-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
+                    <div class="flex items-center gap-2">
+                        <select id="bulk-club-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                            <option value="">Club</option>
+                            <option value="Présent">Présent</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Ne sait pas encore">Ne sait pas encore</option>
+                        </select>
+                        <button type="button" id="bulk-club-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="bulk-beach-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                            <option value="">Beach Volley</option>
+                            <option value="Présent">Présent</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Ne sait pas encore">Ne sait pas encore</option>
+                        </select>
+                        <button type="button" id="bulk-beach-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
+                    </div>
                     <button type="button" id="bulk-reset-all" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors shadow-sm">Tout effacer</button>
                 </div>
             </div>
@@ -102,7 +120,7 @@
                 {% else %}
                     {% set card_border_class = 'border-gray-400' %} {# No status renseigné #}
                 {% endif %}
-                <div class="bg-white rounded-lg border {{ card_border_class }} shadow-sm overflow-hidden hover:shadow-md transition-shadow" data-manifestation-id="{{ m.id_manifestation }}" data-event-filter="{{ m.is_match ? 'match' : 'training' }}">
+                <div class="bg-white rounded-lg border {{ card_border_class }} shadow-sm overflow-hidden hover:shadow-md transition-shadow" data-manifestation-id="{{ m.id_manifestation }}" data-event-filter="{{ m.is_match ? 'match' : (m.type_libelle is defined ? m.type_libelle|lower|replace({' ': '-'}) : 'training') }}">
                     
                     {# Header #}
                     <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
@@ -153,7 +171,7 @@
 
                     {# Details #}
                     <div class="px-4 py-3 space-y-2 text-xs text-gray-600">
-                        <div class="flex items-center gap-2">📅 <span>{{ m.Date|date('d/m/Y') }}</span></div>
+                        <div class="flex items-center gap-2">📅 <span>{{ m.Date|date('d/m/Y') }} - {{ m.Date|date('H:i') }}</span></div>
                         {% if m.Durée_créneau %}<div class="flex items-center gap-2">🕐 <span>{{ m.Durée_créneau }}</span></div>{% endif %}
                         <div class="flex items-center gap-2">📍 <span>{{ m.Lieu }}</span></div>
                     </div>
@@ -216,7 +234,17 @@
 
     document.getElementById('bulk-training-apply')?.addEventListener('click', () => {
       const status = document.getElementById('bulk-training-status').value;
-      if (status) applyBulkStatus('training', status);
+      if (status) applyBulkStatus('entrainement', status);
+    });
+    
+    document.getElementById('bulk-club-apply')?.addEventListener('click', () => {
+      const status = document.getElementById('bulk-club-status').value;
+      if (status) applyBulkStatus('club', status);
+    });
+
+    document.getElementById('bulk-beach-apply')?.addEventListener('click', () => {
+      const status = document.getElementById('bulk-beach-status').value;
+      if (status) applyBulkStatus('beach', status);
     });
 
     document.getElementById('bulk-reset-all')?.addEventListener('click', () => {
