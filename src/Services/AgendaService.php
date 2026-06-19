@@ -697,7 +697,7 @@ class AgendaService
     /**
      * Normalise une ligne de Manifestation en un objet de manifestation agenda canonique.
      */
-    private static function normalizeManifestation(array $row, int $totalJoueurs = 0): array
+    public static function normalizeManifestation(array $row, int $totalJoueurs = 0): array
     {
         $id = (int) ($row['id_manifestation'] ?? 0);
         $parts = explode(' - ', $row['ManifestationTypée'] ?? '', 3);

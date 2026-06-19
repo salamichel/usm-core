@@ -124,8 +124,7 @@ class HomeController
             'next_match'    => $nextMatch,
             'match_cover'   => $matchPhotos[0] ?? null,
             'new_licencies' => $newLicencies,
-            'locations'     => $locations,
-            'saison_active' => $saisonActive,
+            'locations'     => $locations
         ]);
     }
 }

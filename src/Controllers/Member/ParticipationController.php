@@ -30,24 +30,16 @@ class ParticipationController
         // Récupérer les manifestations pertinentes pour ce joueur
         $manifestations = Participation::getUpcomingForMember($userId, $categories);
 
+        $normalizedManifestations = [];
         // Enrichissement des données pour la vue
-        foreach ($manifestations as &$m) {
-            $typeLower = strtolower($m['ManifestationTypée']);
-            // Détermine s'il s'agit d'un match pour adapter les choix du menu déroulant
-            $m['is_match'] = str_contains($typeLower, 'match') || 
-                             str_contains($typeLower, 'champ') || 
-                             str_contains($typeLower, 'plateau');
-            // Extraction du titre simplifié (segment 3 de "Disponibilités - Match - Match DEP")
-            $parts = explode(' - ', $m['ManifestationTypée'], 3);
-            $m['titre'] = $parts[2] ?? $m['ManifestationTypée'];
-            $m['type_simple'] = $parts[1] ?? '';
-            
-            // Ajout d'un libellé simplifié pour le type de manifestation
-            $m['type_libelle'] = explode(' - ', $m['ManifestationTypée'])[1] ?? '';
+        foreach ($manifestations as $m) {
+            $normalized = \App\Services\AgendaService::normalizeManifestation($m);
+            $normalized['user_status'] = $m['user_status'] ?? $m['Participation'] ?? null;
+            $normalizedManifestations[] = $normalized;
         }
 
         View::render('member/participations_update.twig', [
-            'manifestations' => $manifestations,
+            'manifestations' => $normalizedManifestations,
             'user_name' => $_SESSION['user_name'] ?? 'Joueur',
         ]);
     }

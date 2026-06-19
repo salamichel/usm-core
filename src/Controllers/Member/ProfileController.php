@@ -41,10 +41,7 @@ class ProfileController
         }
 
         View::render('member/profile.twig', [
-            'joueur' => $joueur,
-            'user_name' => $_SESSION['user_name'] ?? 'Joueur',
-            'user_email' => $_SESSION['user_email'] ?? '',
-            'saison_active' => $saisonActive,
+            'joueur' => $joueur,            
             'equipes' => $equipes,
         ]);
     }
