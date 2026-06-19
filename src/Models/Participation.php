@@ -78,4 +78,53 @@ class Participation
             $insert->execute([$userId, $manifestationId, $status]);
         }
     }
+
+    /**
+     * Récupère les événements à venir filtrés par catégories du joueur.
+     * N'affiche que les créneaux pertinents (où ManifestationTypée contient le segment 3 du nom de la catégorie).
+     *
+     * @param int $userId ID du joueur
+     * @param array $categories Liste des catégories du joueur (ex: ['DEP', 'L1', 'Adulte'])
+     * @return array Liste des manifestations avec statut de participation
+     */
+    public static function getUpcomingForMember(int $userId, array $categories): array
+    {
+        if (empty($categories)) {
+            return [];
+        }
+
+        $db = ExternalDatabase::get();
+
+        // Construire conditions LIKE pour chaque catégorie
+        $conditions = [];
+        foreach ($categories as $cat) {
+            $conditions[] = "`ManifestationTypée` LIKE ?";
+        }
+        
+        $sql = "SELECT 
+                    m.id_manifestation, 
+                    m.ManifestationTypée, 
+                    m.Date, 
+                    m.Lieu, 
+                    m.Statut,
+                    m.Durée_créneau,
+                    m.Nombre_terrain,
+                    m.Commentaire,
+                    p.Participation as user_status
+                FROM Manifestation m
+                LEFT JOIN Participation p ON m.id_manifestation = p.id_manifestation AND p.id_joueur = ?
+                WHERE (" . implode(' OR ', $conditions) . ")
+                  AND m.Date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+                ORDER BY m.Date ASC";
+
+        $bindings = [$userId];
+        foreach ($categories as $cat) {
+            $bindings[] = '%' . $cat;
+        }
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($bindings);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

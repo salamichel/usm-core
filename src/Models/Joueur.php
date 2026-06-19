@@ -106,4 +106,35 @@ class Joueur
         $stmt = $db->prepare($sql);
         $stmt->execute($values);
     }
+
+    /**
+     * Récupère les catégories/équipes actives d'un joueur (drapeaux = 1).
+     * Utilisé pour filtrer les événements pertinents pour le joueur.
+     *
+     * @param int $id L'ID du joueur
+     * @return array Liste des catégories (ex: ['DEP', 'L1', 'Adulte'])
+     */
+    public static function getCategories(int $id): array
+    {
+        $joueur = self::findById($id);
+        if (!$joueur) {
+            return [];
+        }
+
+        // Colonnes représentant les équipes/catégories (drapeaux TINYINT)
+        $categoryColumns = [
+            'L1', 'L2', 'L3', 'L4', 'Open', 'CoupeLoisir', 'Heitz', 'Aico',
+            'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3', 'M18F', 'M13F', 'M15F6', 'M15F', 'R2F', 'DEP',
+            'Adulte', 'Jeune', 'Compétition', 'Loisir', 'Débutant'
+        ];
+
+        $categories = [];
+        foreach ($categoryColumns as $col) {
+            if (!empty($joueur[$col]) && (int)$joueur[$col] === 1) {
+                $categories[] = $col;
+            }
+        }
+
+        return $categories;
+    }
 }

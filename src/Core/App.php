@@ -111,6 +111,7 @@ class App
         $r->post('/joueurs/delete/{id}', [JoueurController::class, 'delete']);        
 
         // ── API ───────────────────────────────────────────────────────────────
+        $r->post('/api/member/participations/upsert', [ParticipationController::class, 'apiUpsert']);
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
         $r->post('/api/articles',   [ArticleApiController::class, 'create']);
 

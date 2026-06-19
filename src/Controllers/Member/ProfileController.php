@@ -68,7 +68,17 @@ class ProfileController
             ->required('Prenom', 'Le prénom est requis.')
             ->required('Nom', 'Le nom est requis.')
             ->required('Mel', 'L\'email est requis.')
-            ->email('Mel', 'L\'email n\'est pas valide.');
+            ->email('Mel', 'L\'email n\'est pas valide.')
+            ->maxLength('Adresse', 200, 'L\'adresse ne peut pas dépasser 200 caractères.')
+            ->maxLength('Commune', 50, 'La commune ne peut pas dépasser 50 caractères.')
+            ->maxLength('Téléphone', 50, 'Le téléphone ne peut pas dépasser 50 caractères.')
+            ->custom('CodePostal', fn($value) => $value === '' || preg_match('/^\d{5}$/', $value), 'Le code postal doit contenir 5 chiffres.')
+            ->custom('DateNaissance', function ($value) {
+                if ($value === '' || $value === null) {
+                    return true;
+                }
+                return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) && strtotime($value) !== false;
+            }, 'La date de naissance est invalide.');
 
         if ($v->fails()) {
             View::flash('error', $v->firstError());
@@ -76,7 +86,7 @@ class ProfileController
             exit;
         }
 
-        $data = $v->getCleanData(['Prenom', 'Nom', 'Mel']);
+        $data = $v->getCleanData(['Prenom', 'Nom', 'Mel', 'Adresse', 'Commune', 'CodePostal', 'Téléphone', 'DateNaissance']);
 
         // Mise à jour du profil (si la méthode existe dans le modèle)
         try {
@@ -84,6 +94,11 @@ class ProfileController
                 'Prénom' => $data['Prenom'],
                 'Nom' => $data['Nom'],
                 'Mel' => $data['Mel'],
+                'Adresse' => $data['Adresse'] ?: null,
+                'Commune' => $data['Commune'] ?: null,
+                'CodePostal' => $data['CodePostal'] ?: null,
+                'Téléphone' => $data['Téléphone'],
+                'DateNaissance' => $data['DateNaissance'] ?: null,
             ]);
 
             // Mise à jour de la session avec le nouvel email/nom

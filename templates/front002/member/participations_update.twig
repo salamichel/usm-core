@@ -1,6 +1,6 @@
 {% extends "base.twig" %}
 
-{% block title %}Mise à jour de mes participations{% endblock %}
+{% block title %}Ma participation{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto px-6 py-16">
@@ -8,11 +8,11 @@
     <div class="sm:flex sm:items-center justify-between mb-8 border-b border-gray-200 pb-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Ma participation</h1>
-            <p class="mt-2 text-sm text-gray-700">Déclarez vos disponibilités pour les prochains événements du club.</p>
+            <p class="mt-2 text-sm text-gray-700">Déclarez votre statut pour chaque créneau en cliquant sur l'icône correspondant. La sauvegarde est automatique.</p>
         </div>
         <div class="mt-4 sm:mt-0">
-                <a href="{{ url('member/dashboard') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
-                &larr; Retour à mon espace
+            <a href="{{ url('member/dashboard') }}" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors">
+                ← Retour à mon espace
             </a>
         </div>
     </div>
@@ -24,247 +24,151 @@
         <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6"><p class="text-sm text-green-700">{{ flash.success }}</p></div>
     {% endif %}
 
-    <form action="{{ url('member/participations/update') }}" method="POST">
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-
-        {# Boutons de filtre dynamiques #}
-        {% set event_types = [] %}
-        {% for m in manifestations %}
-            {% set type = '' %}
-            {% if m.is_match %}
-                {% set type = 'Match' %}
-            {% elseif m.type_libelle is defined %}
-                {# Assuming 'type_libelle' holds other specific types like 'Beach Volley' #}
-                {% set type = m.type_libelle %}
-            {% else %}
-                {% set type = 'Entraînement' %} {# Fallback if not match and no specific type_libelle #}
-            {% endif %}
-
-            {% if type and type not in event_types %}
-                {% set event_types = event_types|merge([type]) %}
-            {% endif %}
-        {% endfor %}
-        
-        {% if event_types|length > 1 %}
-            <div class="mb-6 flex flex-wrap gap-2">
-                <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-[var(--primary)] text-white" data-filter="all">Tous</button>
-                {% for type in event_types %}
-                    <button type="button" class="filter-button filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200]" data-filter="{{ type|lower|replace({' ': '-'}) }}">{{ type }}</button>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h2 class="text-base font-semibold text-gray-900">Actions groupées</h2>
-                    <p class="text-sm text-gray-600">Appliquez rapidement un statut à tous les matchs ou à tous les entraînements.</p>
-                </div>
-                <div class="grid gap-2 sm:grid-cols-2 md:grid-cols-3 w-full md:w-auto">
-                    <div class="flex items-center gap-2">
-                        <select id="bulk-match-status" 
-                            class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                            <option value="">Matchs : choisir</option>
-                            <option value="Disponible">Disponible</option>
-                            <option value="Disponible si nécessaire">Disponible si nécessaire</option>
-                            <option value="Indisponible">Indisponible</option>
-                            <option value="Ne sait pas encore">Ne sait pas encore</option>
-                            {% if is_capitaine %}
-                                <option value="Sélectionné(e)">Sélectionné(e)</option>
-                            {% endif %}
-                        </select>
-                        <button type="button" id="bulk-match-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <select id="bulk-training-status" class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
-                            <option value="">Entraînements : choisir</option>
-                            <option value="Présent">Présent</option>
-                            <option value="Absent">Absent</option>
-                            <option value="Ne sait pas encore">Ne sait pas encore</option>
-                        </select>
-                        <button type="button" id="bulk-training-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
-                    </div>
-                    <button type="button" id="bulk-reset-all" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors shadow-sm">Tout effacer</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-8">
-            <ul role="list" class="divide-y divide-gray-200" id="event-list">
-                {% for m in manifestations %}
-                    {% set item_type = '' %}
-                    {% if m.is_match %}
-                        {% set item_type = 'Match' %}
-                    {% elseif m.type_libelle is defined %}
-                        {% set item_type = m.type_libelle %}
-                    {% else %}
-                        {% set item_type = 'Entraînement' %}
-                    {% endif %}
-                    <li class="p-4 sm:px-6 hover:bg-gray-50 transition-colors" data-event-filter="{{ item_type|lower|replace({' ': '-'}) }}">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                            <div class="flex-1 min-w-0 mb-4 sm:mb-0">
-                                <div class="flex items-center text-sm font-medium text-blue-600 truncate">
-                                    {% if m.is_match %}
-                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 mr-2">Match</span>
+    {% if manifestations|length > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {% for m in manifestations %}
+                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow" data-manifestation-id="{{ m.id_manifestation }}">
+                    
+                    {# Header #}
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-semibold text-gray-500 uppercase">{{ m.type_simple }}</span>
+                            <span id="status-{{ m.id_manifestation }}" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                {% if m.user_status %}
+                                    {% if m.is_match and m.user_status == 'Disponible' %}
+                                        ✓ Disponible
+                                    {% elseif m.is_match and m.user_status == 'Disponible si nécessaire' %}
+                                        ◐ Si nécessaire
+                                    {% elseif m.is_match and m.user_status == 'Indisponible' %}
+                                        ✗ Indisponible
+                                    {% elseif not m.is_match and m.user_status == 'Présent' %}
+                                        ✓ Présent
+                                    {% elseif not m.is_match and m.user_status == 'Absent' %}
+                                        ✗ Absent
                                     {% else %}
-                                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 mr-2">Entraînement</span>
+                                        {{ m.user_status }}
                                     {% endif %}
-                                    {{ m.ManifestationTypée|split(' - ')|last }}
-                                </div>
-                                <div class="mt-1 flex items-center text-sm text-gray-500">
-                                    <span class="truncate mr-4">📅 {{ m.Date|date('d/m/Y à H:i') }}</span>
-                                    <span class="truncate">📍 {{ m.Lieu }}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-2 sm:mt-0 w-full sm:w-auto">
-                                <label for="part_{{ m.id_manifestation }}" class="sr-only">Statut</label>
-                                <select 
-                                    id="part_{{ m.id_manifestation }}" 
-                                    name="participations[{{ m.id_manifestation }}]"
-                                    data-event-type="{{ m.is_match ? 'match' : 'training' }}"
-                                    class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                                >
-                                    <option value=".">--- Non renseigné ---</option>
-                                    
-                                    {% if m.is_match %}
-                                        {# Options spécifiques aux matchs #}
-                                        <option value="Disponible" {% if m.user_status == 'Disponible' %}selected{% endif %}>Disponible</option>
-                                        <option value="Disponible si nécessaire" {% if m.user_status == 'Disponible si nécessaire' %}selected{% endif %}>Disponible si nécessaire</option>
-                                        <option value="Indisponible" {% if m.user_status == 'Indisponible' %}selected{% endif %}>Indisponible</option>
-                                        <option value="Ne sait pas encore" {% if m.user_status == 'Ne sait pas encore' %}selected{% endif %}>Ne sait pas encore</option>
-                                        {% if is_capitaine or m.user_status == 'Sélectionné(e)' %}
-                                            <option value="Sélectionné(e)" {% if m.user_status == 'Sélectionné(e)' %}selected{% endif %}>Sélectionné(e)</option>
-                                        {% endif %}
-                                    {% else %}
-                                        {# Options spécifiques aux entraînements / autres #}
-                                        <option value="Présent" {% if m.user_status == 'Présent' %}selected{% endif %}>Présent</option>
-                                        <option value="Absent" {% if m.user_status == 'Absent' %}selected{% endif %}>Absent</option>
-                                        <option value="Ne sait pas encore" {% if m.user_status == 'Ne sait pas encore' %}selected{% endif %}>Ne sait pas encore</option>
-                                    {% endif %}
-                                </select>
-                            </div>
+                                {% else %}
+                                    ? Non renseigné
+                                {% endif %}
+                            </span>
                         </div>
-                    </li>
-                {% else %}
-                    <li class="p-6 text-center text-gray-500">
-                        Aucun événement à venir dans l'agenda.
-                    </li>
-                {% endfor %}
-            </ul>
+                        <h3 class="text-sm font-semibold text-gray-900">{{ m.titre }}</h3>
+                    </div>
+
+                    {# Details #}
+                    <div class="px-4 py-3 space-y-2 text-xs text-gray-600">
+                        <div class="flex items-center gap-2">📅 <span>{{ m.Date|date('d/m/Y') }}</span></div>
+                        {% if m.Durée_créneau %}<div class="flex items-center gap-2">🕐 <span>{{ m.Durée_créneau }}</span></div>{% endif %}
+                        <div class="flex items-center gap-2">📍 <span>{{ m.Lieu }}</span></div>
+                    </div>
+
+                    {# Buttons #}
+                    <div class="px-4 py-3 border-t border-gray-200 bg-gray-50 flex gap-2">
+                        {% if m.is_match %}
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Disponible">✓</button>
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Disponible si nécessaire">◐</button>
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Indisponible">✗</button>
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Ne sait pas encore">?</button>
+                        {% else %}
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Présent">✓</button>
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Absent">✗</button>
+                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Ne sait pas encore">?</button>
+                        {% endif %}
+                        <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300" data-status=".">⊘</button>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-
-        {% if manifestations|length > 0 %}
-            <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg flex justify-end">
-                <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Enregistrer mes disponibilités
-                </button>
-            </div>
-            <div class="pb-20"></div> {# Ajoute un padding pour que le contenu ne soit pas masqué par le bouton fixe #}
-        {% endif %}
-    </form>
-
-    {# SECTION LÉGENDE / AIDE (Issue de l'ancien fichier) #}
-    <div class="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg mt-8">
-        <h3 class="text-lg font-bold text-blue-900 mb-4">💡 Comment remplir sa disponibilité pour un match ?</h3>
-        <p class="text-sm text-blue-800 mb-4 text-justify">
-            Une sélection se passe "à peu près" comme ça : les personnes <strong>"Disponible"</strong> sont sélectionnées en priorité, puis le capitaine pioche parmi les <strong>"Disponible si nécessaire"</strong> pour compléter au besoin. 
-            Dans tous les cas, le capitaine a plein pouvoir sur sa sélection (cohérence de l'équipe, nombre de matchs déjà joués par joueur, présence aux matchs à l'extérieur, etc.).
-        </p>
-        <p class="text-sm text-blue-800 font-medium mb-6">
-            Si vous <u>pouvez</u> et <u>voulez</u> jouer le match, mettez "Disponible" et non "Disponible si nécessaire". Ne vous "auto-excluez" pas, le capitaine s'en chargera ! :-)
-        </p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h4 class="font-semibold text-gray-900 border-b pb-2 mb-3">Cas d'un match</h4>
-                <ul class="space-y-3 text-sm text-gray-700">
-                    <li><span class="inline-block w-6 text-center font-bold text-green-600">✓</span> <strong>Disponible :</strong> Je peux et je veux faire le match.</li>
-                    <li><span class="inline-block w-6 text-center font-bold text-yellow-500">◐</span> <strong>Disponible si nécessaire :</strong> Je veux bien venir en cas de sous-effectif pour éviter un forfait.</li>
-                    <li><span class="inline-block w-6 text-center font-bold text-red-600">✗</span> <strong>Indisponible :</strong> Ne peut pas se libérer.</li>
-                    <li><span class="inline-block w-6 text-center font-bold text-gray-500">?</span> <strong>Ne sait pas encore :</strong> Répondra dès que possible.</li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="font-semibold text-gray-900 border-b pb-2 mb-3">Entraînement & Autres</h4>
-                <ul class="space-y-3 text-sm text-gray-700">
-                    <li><span class="inline-block w-6 text-center font-bold text-green-600">✓</span> <strong>Présent :</strong> Sera présent à l'événement.</li>
-                    <li><span class="inline-block w-6 text-center font-bold text-red-600">✗</span> <strong>Absent :</strong> Ne sera pas présent.</li>
-                    <li><span class="inline-block w-6 text-center font-bold text-gray-500">?</span> <strong>Ne sait pas encore :</strong> Répondra dès que possible.</li>
-                </ul>
-            </div>
+    {% else %}
+        <div class="text-center py-12">
+            <h3 class="text-sm font-medium text-gray-900">Aucun créneau disponible</h3>
+            <p class="mt-1 text-sm text-gray-500">Aucun événement ne correspond à votre profil actuellement.</p>
         </div>
-    </div>
-
+    {% endif %}
 </div>
-{% endblock %}
 
 {% block scripts %}
 <script>
   (function() {
-    const setBulkStatus = (scope, value) => {
-      document.querySelectorAll(`select[data-event-type="${scope}"]`).forEach(select => {
-        if (!value) {
-          select.value = '.';
-          return;
-        }
-        const option = Array.from(select.options).find(opt => opt.value === value);
-        if (option) {
-          select.value = value;
-        }
-      });
+    // Status color mapping
+    const statusColors = {
+      'Disponible': 'bg-green-100 text-green-700 hover:bg-green-200',
+      'Disponible si nécessaire': 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+      'Indisponible': 'bg-red-100 text-red-700 hover:bg-red-200',
+      'Ne sait pas encore': 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+      'Présent': 'bg-green-100 text-green-700 hover:bg-green-200',
+      'Absent': 'bg-red-100 text-red-700 hover:bg-red-200',
+      '.': 'bg-gray-100 text-gray-600 hover:bg-gray-200'
     };
 
-    document.getElementById('bulk-match-apply')?.addEventListener('click', function() {
-      const value = document.getElementById('bulk-match-status')?.value;
-      if (value) {
-        setBulkStatus('match', value);
+    // Initialize button handlers
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const card = this.closest('[data-manifestation-id]');
+        const manifestationId = parseInt(card.dataset.manifestationId);
+        const status = this.dataset.status;
+
+        // Visual feedback
+        const allBtns = card.querySelectorAll('.status-btn');
+        allBtns.forEach(b => b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'));
+        this.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+
+        // Send AJAX request
+        fetch('/api/member/participations/upsert', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({manifestation_id: manifestationId, status: status})
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            // Update status badge
+            const badge = card.querySelector('#status-' + manifestationId);
+            if (status === '.') {
+              badge.textContent = '? Non renseigné';
+              badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700';
+            } else {
+              const colors = statusColors[status] || statusColors['Ne sait pas encore'];
+              const [bgClass, textClass] = colors.split(' ');
+              badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' + bgClass + ' ' + textClass;
+              const icon = status === 'Disponible' ? '✓' : status === 'Disponible si nécessaire' ? '◐' : status === 'Indisponible' ? '✗' : status === 'Présent' ? '✓' : status === 'Absent' ? '✗' : '?';
+              badge.textContent = icon + ' ' + status;
+            }
+            
+            // Pulse feedback
+            this.classList.add('animate-pulse');
+            setTimeout(() => this.classList.remove('animate-pulse'), 500);
+          }
+        })
+        .catch(err => console.error('Error:', err));
+      });
+
+      // Initialize button appearance based on current status
+      const card = btn.closest('[data-manifestation-id]');
+      const badge = card.querySelector('[id^="status-"]');
+      const badgeText = (badge?.textContent || '').trim();
+      const btnStatus = btn.dataset.status;
+
+      // Highlight current status button
+      if ((badgeText.includes('Disponible') && btnStatus === 'Disponible') ||
+          (badgeText.includes('Si nécessaire') && btnStatus === 'Disponible si nécessaire') ||
+          (badgeText.includes('Indisponible') && btnStatus === 'Indisponible') ||
+          (badgeText.includes('Présent') && btnStatus === 'Présent') ||
+          (badgeText.includes('Absent') && btnStatus === 'Absent') ||
+          (badgeText.includes('Non renseigné') && btnStatus === '.')) {
+        btn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
       }
-    });
 
-    document.getElementById('bulk-training-apply')?.addEventListener('click', function() {
-      const value = document.getElementById('bulk-training-status')?.value;
-      if (value) {
-        setBulkStatus('training', value);
-      }
-    });
-
-    document.getElementById('bulk-reset-all')?.addEventListener('click', function() {
-      document.querySelectorAll('select[data-event-type]').forEach(select => select.value = '.');
-    });
-
-    // Logique de filtrage des événements
-    const filterButtons = document.querySelectorAll('.filter-button');
-    const eventListItems = document.querySelectorAll('#event-list li');
-
-    // Définition des classes Tailwind pour l'état actif et inactif
-    const activeClasses = ['bg-[var(--primary)]', 'text-white'];
-    const inactiveClasses = ['bg-slate-100','text-slate-700', 'hover:bg-slate-200'];
-
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const filterType = this.dataset.filter;
-
-            // 1. Réinitialiser tous les boutons à l'état "inactif"
-            filterButtons.forEach(btn => {
-                btn.classList.remove(...activeClasses);
-                btn.classList.add(...inactiveClasses);
-            });
-
-            // 2. Mettre le bouton cliqué à l'état "actif"
-            this.classList.remove(...inactiveClasses);
-            this.classList.add(...activeClasses);
-
-            // 3. Filtrer les événements (inchangé)
-            eventListItems.forEach(item => {
-                if (filterType === 'all' || item.dataset.eventFilter === filterType) {
-                    item.style.display = ''; 
-                } else {
-                    item.style.display = 'none'; 
-                }
-            });
-        });
+      // Apply base colors
+      const colors = statusColors[btnStatus] || statusColors['Ne sait pas encore'];
+      btn.className = 'status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors ' + colors;
     });
   })();
 </script>
+{% endblock %}
+
+{% endblock %}
 {% endblock %}
