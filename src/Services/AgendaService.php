@@ -209,37 +209,7 @@ class AgendaService
             while ($row = $stmt->fetch()) {
                 $manifestationCount++;
                 $id  = (int) $row['id_manifestation'];
-                $parts = explode(' - ', $row['ManifestationTypée'], 3);
-                $type  = $parts[1] ?? '';
-                $titre = $parts[2] ?? $row['ManifestationTypée'];
-
-                // Calcul de la plage horaire
-                $timeRange = '';
-                if (!empty($row['Durée_créneau'])) {
-                    $hm = explode('h', $row['Durée_créneau'], 2);
-                    $h  = (int) ($hm[0] ?? 0);
-                    $m  = isset($hm[1]) && $hm[1] !== '' ? (int) $hm[1] : 0;
-                    $ts = strtotime($row['Date']);
-                    $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
-                }
-
-                $manifestations[$id] = [
-                    'id'          => $id,
-                    'type'        => $type,
-                    'titre'       => $titre,
-                    'date_display'=> self::formatDateDisplay(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $row['Date'])),
-                    'time_range'  => $timeRange,
-                    'nb_terrains' => (int) $row['Nombre_terrain'],
-                    'lieu'        => $row['Lieu'],
-                    'commentaire' => $row['Commentaire'] ?? '',
-                    'statut'      => $row['Statut'] ?? '',
-                    'annule'      => str_contains($row['Statut'] ?? '', 'Annulé'),
-                    'provisoire'  => str_contains($row['Statut'] ?? '', 'Provisoire'),
-                    'nb_present'  => 0, 'nb_absent' => 0, 'nb_disponible' => 0,
-                    'nb_disponible_si_necessaire' => 0, 'nb_indisponible' => 0,
-                    'nb_ne_sait_pas' => 0, 'nb_selection' => 0,
-                    'nb_pas_de_reponse' => count($joueurs),
-                ];
+                $manifestations[$id] = self::normalizeManifestation($row, count($joueurs));
             }
             error_log("getCrossTable: Fetched $manifestationCount Manifestation rows, stored " . count($manifestations) . " in array");
 
@@ -296,7 +266,17 @@ class AgendaService
                         }
                     }
 
-                    self::updateManifestationStats($manifestations[$mid], $status);
+                    self::updateManifestationStats($manifestations[$mid], $status, $jid, $joueurs[$jid], $part);
+                }
+            }
+
+            // Remplir le tableau pas_de_reponse avec les joueurs qui n'ont pas répondu
+            foreach ($manifestations as $mid => &$m) {
+                foreach ($joueurs as $jid => $nom) {
+                    $part = $cross[$jid][$mid] ?? '';
+                    if ($part === '') {
+                        $m['pas_de_reponse'][] = ['id' => $jid, 'nom' => $nom];
+                    }
                 }
             }
 
@@ -715,6 +695,76 @@ class AgendaService
     }
 
     /**
+     * Normalise une ligne de Manifestation en un objet de manifestation agenda canonique.
+     */
+    private static function normalizeManifestation(array $row, int $totalJoueurs = 0): array
+    {
+        $id = (int) ($row['id_manifestation'] ?? 0);
+        $parts = explode(' - ', $row['ManifestationTypée'] ?? '', 3);
+        $type = $parts[1] ?? '';
+        $titre = $parts[2] ?? ($row['ManifestationTypée'] ?? '');
+
+        // Calcul de la plage horaire
+        $timeRange = '';
+        if (!empty($row['Durée_créneau'])) {
+            $hm = explode('h', $row['Durée_créneau'], 2);
+            $h  = (int) ($hm[0] ?? 0);
+            $m  = isset($hm[1]) && $hm[1] !== '' ? (int) $hm[1] : 0;
+            $ts = strtotime($row['Date']);
+            $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
+        }
+
+        $dateStr = $row['Date'] ?? null;
+        $date = $dateStr
+            ? (\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateStr)
+               ?: \DateTimeImmutable::createFromFormat('Y-m-d', substr($dateStr, 0, 10)))
+            : null;
+
+        // Heure extraite du datetime (Creneau est vide dans la vraie base)
+        $timeDisplay = ($date && $date->format('H:i') !== '00:00') ? $date->format('H:i') : '';
+
+        $statut = $row['Statut'] ?? '';
+
+        return [
+            'id_manifestation'            => $id,
+            'id'                          => $id,
+            'type'                        => $type,
+            'titre'                       => $titre,
+            'date_display'                => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
+            'time_range'                  => $timeRange,
+            'time_display'                => $timeDisplay,
+            'location'                    => $row['Lieu'] ?? null,
+            'lieu'                        => $row['Lieu'] ?? null,
+            'comment'                     => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
+            'commentaire'                 => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
+            'status'                      => $statut,
+            'statut'                      => $statut,
+            'annule'                      => str_contains($statut, 'Annulé'),
+            'provisoire'                  => str_contains($statut, 'Provisoire'),
+            'nb_terrains'                 => (int) ($row['Nombre_terrain'] ?? 0),
+            'nb_present'                  => 0,
+            'nb_absent'                   => 0,
+            'nb_disponible'               => 0,
+            'nb_disponible_si_necessaire' => 0,
+            'nb_indisponible'             => 0,
+            'nb_selection'                => 0,
+            'nb_ne_sait_pas'              => 0,
+            'nb_pas_de_reponse'           => $totalJoueurs,
+            'presents'                    => [],
+            'absents'                     => [],
+            'disponibles'                 => [],
+            'disponibles_si_necessaire'   => [],
+            'indisponibles'               => [],
+            'selectionnes'                => [],
+            'ne_sait_pas'                 => [],
+            'pas_de_reponse'              => [],
+            'is_match'                    => (bool) (strpos($type, 'Match') !== false),
+            'type_simple'                 => $type,
+            'type_libelle'                => $type,
+        ];
+    }
+
+    /**
      * Update manifestation stats based on a single player's participation status.
      *
      * Increments the appropriate counter (present, available, etc.) and decrements no_response.
@@ -722,22 +772,60 @@ class AgendaService
      * @param array $manifestationStats Reference to the manifestation's stats array
      * @param ParticipationStatus $status Parsed participation status
      */
-    private static function updateManifestationStats(array &$manifestationStats, ParticipationStatus $status): void
+    private static function updateManifestationStats(array &$manifestationStats, ParticipationStatus $status, int $jid, string $nomJoueur, string $rawStatus): void
     {
         $category = $status->getCategory();
+        $playerInfo = ['id' => $jid, 'nom' => $nomJoueur];
 
-        match ($category) {
-            'selected' => $manifestationStats['nb_selection']++,
-            'available' => $manifestationStats['nb_disponible']++,
-            'unavailable' => $manifestationStats['nb_indisponible']++,
-            'absent' => $manifestationStats['nb_absent']++,
-            'present' => (function () use ($status, &$manifestationStats) {
-                $manifestationStats['nb_present']++;
-                $manifestationStats['nb_present'] += $status->getCompanionCount();
-            })(),
-            'unknown' => $manifestationStats['nb_ne_sait_pas']++,
-            default => null,
-        };
+        // S'assurer que les tableaux de joueurs existent
+        if (!isset($manifestationStats['presents'])) {
+            $manifestationStats['presents'] = [];
+            $manifestationStats['absents'] = [];
+            $manifestationStats['disponibles'] = [];
+            $manifestationStats['disponibles_si_necessaire'] = [];
+            $manifestationStats['indisponibles'] = [];
+            $manifestationStats['selectionnes'] = [];
+            $manifestationStats['ne_sait_pas'] = [];
+            $manifestationStats['pas_de_reponse'] = [];
+        }
+
+        // "Disponible si nécessaire"
+        $isDisponibleSiNecessaire = (strpos($rawStatus, 'Disponible si n') !== false);
+
+        if ($isDisponibleSiNecessaire) {
+            $manifestationStats['disponibles_si_necessaire'][] = $playerInfo;
+            $manifestationStats['nb_disponible_si_necessaire']++;
+        } else {
+            match ($category) {
+                'selected' => (function () use ($playerInfo, &$manifestationStats) {
+                    $manifestationStats['selectionnes'][] = $playerInfo;
+                    $manifestationStats['nb_selection']++;
+                })(),
+                'available' => (function () use ($playerInfo, &$manifestationStats) {
+                    $manifestationStats['disponibles'][] = $playerInfo;
+                    $manifestationStats['nb_disponible']++;
+                })(),
+                'unavailable' => (function () use ($playerInfo, &$manifestationStats) {
+                    $manifestationStats['indisponibles'][] = $playerInfo;
+                    $manifestationStats['nb_indisponible']++;
+                })(),
+                'absent' => (function () use ($playerInfo, &$manifestationStats) {
+                    $manifestationStats['absents'][] = $playerInfo;
+                    $manifestationStats['nb_absent']++;
+                })(),
+                'present' => (function () use ($status, $playerInfo, &$manifestationStats) {
+                    $manifestationStats['presents'][] = $playerInfo;
+                    $manifestationStats['nb_present']++;
+                    // Compagnons
+                    $manifestationStats['nb_present'] += $status->getCompanionCount();
+                })(),
+                'unknown' => (function () use ($playerInfo, &$manifestationStats) {
+                    $manifestationStats['ne_sait_pas'][] = $playerInfo;
+                    $manifestationStats['nb_ne_sait_pas']++;
+                })(),
+                default => null,
+            };
+        }
 
         if ($category !== 'no_response') {
             $manifestationStats['nb_pas_de_reponse']--;

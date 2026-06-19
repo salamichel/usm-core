@@ -34,8 +34,6 @@ class AgendaController
         $data = AgendaService::getCrossTable($filters);
 
         if ($view === 'cards') {
-            $manifestations = [];
-            
             // Enrich with user status if logged in
             $userStatuses = [];
             if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
@@ -48,27 +46,12 @@ class AgendaController
                 }
             }
 
-            foreach ($data['manifestations'] as $mid => $m) {
-                // Normalise la structure pour correspondre à celle attendue par le partial _event_card.twig
-                $manifestations[] = [
-                    'id_manifestation' => $mid,
-                    'is_match'         => (bool)(strpos($m['type'] ?? '', 'Match') !== false),
-                    'type_simple'      => $m['type'],
-                    'Date'             => $m['date_display'], 
-                    'Durée_créneau'    => $m['time_range'] ? explode(' - ', $m['time_range'])[0] : null, // extraction propre
-                    'Lieu'             => $m['lieu'],
-                    'titre'            => $m['titre'],
-                    'nb_present'       => $m['nb_present'] ?? 0,
-                    'nb_absent'        => $m['nb_absent'] ?? 0,
-                    'nb_disponible'    => $m['nb_disponible'] ?? 0,
-                    'nb_si_besoin'     => $m['nb_disponible_si_necessaire'] ?? 0,
-                    'nb_indisponible'  => $m['nb_indisponible'] ?? 0,
-                    'user_status'      => $userStatuses[$mid] ?? null,
-                ];
+            foreach ($data['manifestations'] as $mid => &$m) {
+                $m['user_status'] = $userStatuses[$mid] ?? null;
             }
 
             View::render('agenda/cards.twig', [
-                'manifestations' => $manifestations,
+                'manifestations' => $data['manifestations'],
                 'filters'        => $filters,
             ]);
             return;

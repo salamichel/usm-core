@@ -30,7 +30,7 @@
     {# Boutons de filtre dynamiques (simplifiés) #}
     {% set event_types = [] %}
     {% for m in manifestations %}
-        {% set type = m.is_match ? 'Match' : (m.type_libelle is defined ? m.type_libelle : (m.type_simple|default('Entraînement'))) %}
+        {% set type = m.type|default('Événement') %}
         {% if type not in event_types %}
             {% set event_types = event_types|merge([type]) %}
         {% endif %}         

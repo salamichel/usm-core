@@ -20,8 +20,8 @@
       "position": {{ loop.index }},
       "item": {
         "@type": "SportsEvent",
-        "name": "{{ m.libelle|replace({'"': '\\"'})|raw }}",
-        "startDate": "{{ m.date_heure|date('Y-m-d\\TH:i') }}",
+        "name": "{{ m.titre|replace({'"': '\\"'})|raw }}",
+        "startDate": "{{ m.date_display }}",
         "eventStatus": "{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
         "organizer": {
           "@type": "SportsOrganization",
