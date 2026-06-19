@@ -59,9 +59,9 @@
                     <h2 class="text-base font-semibold text-gray-900">Actions groupées</h2>
                     <p class="text-sm text-gray-600">Appliquez rapidement un statut à tous les matchs ou entraînements.</p>
                 </div>
-                <div class="grid gap-2 sm:grid-cols-2 md:grid-cols-3 w-full md:w-auto">
-                    <div class="flex items-center gap-2">
-                        <select id="bulk-match-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                <div class="flex flex-wrap gap-2 w-full md:w-auto md:justify-end md:items-center">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="bulk-match-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
                             <option value="">Matchs</option>
                             <option value="Disponible">Disponible</option>
                             <option value="Disponible si nécessaire">Disponible si nécessaire</option>
@@ -70,8 +70,8 @@
                         </select>
                         <button type="button" id="bulk-match-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <select id="bulk-training-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="bulk-training-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
                             <option value="">Entraînements</option>
                             <option value="Présent">Présent</option>
                             <option value="Absent">Absent</option>
@@ -79,8 +79,8 @@
                         </select>
                         <button type="button" id="bulk-training-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <select id="bulk-club-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="bulk-club-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
                             <option value="">Club</option>
                             <option value="Présent">Présent</option>
                             <option value="Absent">Absent</option>
@@ -88,8 +88,8 @@
                         </select>
                         <button type="button" id="bulk-club-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <select id="bulk-beach-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="bulk-beach-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
                             <option value="">Beach Volley</option>
                             <option value="Présent">Présent</option>
                             <option value="Absent">Absent</option>
@@ -97,100 +97,15 @@
                         </select>
                         <button type="button" id="bulk-beach-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
-                    <button type="button" id="bulk-reset-all" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors shadow-sm">Tout effacer</button>
+                    {# Reset All Button #}
+                    {# <button type="button" id="bulk-reset-all" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors shadow-sm w-full sm:w-auto">Tout effacer</button> #}
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="event-grid">
             {% for m in manifestations %}
-                {% set card_border_class = 'border-gray-200' %} {# Default border #}
-                {% if m.user_status %}
-                    {% if m.user_status == 'Disponible' or m.user_status == 'Présent' %}
-                        {% set card_border_class = 'border-green-400' %}
-                    {% elseif m.user_status == 'Disponible si nécessaire' %}
-                        {% set card_border_class = 'border-yellow-400' %}
-                    {% elseif m.user_status == 'Indisponible' or m.user_status == 'Absent' %}
-                        {% set card_border_class = 'border-red-400' %}
-                    {% elseif m.user_status == 'Ne sait pas encore' %}
-                        {% set card_border_class = 'border-gray-400' %}
-                    {% else %}
-                        {% set card_border_class = 'border-gray-200' %} {# Fallback for unknown status #}
-                    {% endif %}
-                {% else %}
-                    {% set card_border_class = 'border-gray-400' %} {# No status renseigné #}
-                {% endif %}
-                <div class="bg-white rounded-lg border {{ card_border_class }} shadow-sm overflow-hidden hover:shadow-md transition-shadow" data-manifestation-id="{{ m.id_manifestation }}" data-event-filter="{{ m.is_match ? 'match' : (m.type_libelle is defined ? m.type_libelle|lower|replace({' ': '-'}) : 'training') }}">
-                    
-                    {# Header #}
-                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-semibold text-gray-500 uppercase">{{ m.type_simple }}</span>
-                            <span id="status-{{ m.id_manifestation }}" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                {% if m.user_status %}
-                                    {% if m.is_match and m.user_status == 'Disponible' %}
-                                        bg-green-100 text-green-700
-                                    {% elseif m.is_match and m.user_status == 'Disponible si nécessaire' %}
-                                        bg-yellow-100 text-yellow-700
-                                    {% elseif m.is_match and m.user_status == 'Indisponible' %}
-                                        bg-red-100 text-red-700
-                                    {% elseif not m.is_match and m.user_status == 'Présent' %}
-                                        bg-green-100 text-green-700
-                                    {% elseif not m.is_match and m.user_status == 'Absent' %}
-                                        bg-red-100 text-red-700
-                                    {% elseif m.user_status == 'Ne sait pas encore' %}
-                                        bg-gray-200 text-gray-700
-                                    {% else %}
-                                        bg-gray-100 text-gray-700
-                                    {% endif %}
-                                {% else %}
-                                    bg-gray-100 text-gray-700
-                                {% endif %}
-                            ">
-                                {% if m.user_status %}
-                                    {% if m.is_match and m.user_status == 'Disponible' %}
-                                        ✓ Disponible
-                                    {% elseif m.is_match and m.user_status == 'Disponible si nécessaire' %}
-                                        ◐ Si nécessaire
-                                    {% elseif m.is_match and m.user_status == 'Indisponible' %}
-                                        ✗ Indisponible
-                                    {% elseif not m.is_match and m.user_status == 'Présent' %}
-                                        ✓ Présent
-                                    {% elseif not m.is_match and m.user_status == 'Absent' %}
-                                        ✗ Absent
-                                    {% else %}
-                                        {{ m.user_status }}
-                                    {% endif %}
-                                {% else %}
-                                    ? Non renseigné
-                                {% endif %}
-                            </span>
-                        </div>
-                        <h3 class="text-sm font-semibold text-gray-900">{{ m.titre }}</h3>
-                    </div>
-
-                    {# Details #}
-                    <div class="px-4 py-3 space-y-2 text-xs text-gray-600">
-                        <div class="flex items-center gap-2">📅 <span>{{ m.Date|date('d/m/Y') }} - {{ m.Date|date('H:i') }}</span></div>
-                        {% if m.Durée_créneau %}<div class="flex items-center gap-2">🕐 <span>{{ m.Durée_créneau }}</span></div>{% endif %}
-                        <div class="flex items-center gap-2">📍 <span>{{ m.Lieu }}</span></div>
-                    </div>
-
-                    {# Buttons #}
-                    <div class="px-4 py-3 border-t border-gray-200 bg-gray-50 flex gap-2">
-                        {% if m.is_match %}
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Disponible">✓</button>
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Disponible si nécessaire">◐</button>
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Indisponible">✗</button>
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Ne sait pas encore">?</button>
-                        {% else %}
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Présent">✓</button>
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Absent">✗</button>
-                            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Ne sait pas encore">?</button>
-                        {% endif %}
-                        <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300" data-status=".">⊘</button>
-                    </div>
-                </div>
+                {% include "front002/agenda/_event_card.twig" with {'m': m, 'allow_actions': true, 'show_link': false} %}
             {% endfor %}
         </div>
     {% else %}
@@ -203,150 +118,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-  (function() {
-    // Status color mapping
-    const statusColors = {
-      'Disponible': 'bg-green-100 text-green-700 hover:bg-green-200',
-      'Disponible si nécessaire': 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
-      'Indisponible': 'bg-red-100 text-red-700 hover:bg-red-200',
-      'Ne sait pas encore': 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-      'Présent': 'bg-green-100 text-green-700 hover:bg-green-200',
-      'Absent': 'bg-red-100 text-red-700 hover:bg-red-200',
-      '.': 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-    };
-
-    // Bulk actions
-    const applyBulkStatus = (filter, status) => {
-      if (!status) return;
-      const grid = document.getElementById('event-grid');
-      const cards = grid.querySelectorAll(`[data-event-filter="${filter}"]`);
-      cards.forEach(card => {
-        const btn = [...card.querySelectorAll('.status-btn')].find(b => b.dataset.status === status);
-        if (btn) btn.click();
-      });
-    };
-
-    document.getElementById('bulk-match-apply')?.addEventListener('click', () => {
-      const status = document.getElementById('bulk-match-status').value;
-      if (status) applyBulkStatus('match', status);
-    });
-
-    document.getElementById('bulk-training-apply')?.addEventListener('click', () => {
-      const status = document.getElementById('bulk-training-status').value;
-      if (status) applyBulkStatus('entrainement', status);
-    });
-    
-    document.getElementById('bulk-club-apply')?.addEventListener('click', () => {
-      const status = document.getElementById('bulk-club-status').value;
-      if (status) applyBulkStatus('club', status);
-    });
-
-    document.getElementById('bulk-beach-apply')?.addEventListener('click', () => {
-      const status = document.getElementById('bulk-beach-status').value;
-      if (status) applyBulkStatus('beach', status);
-    });
-
-    document.getElementById('bulk-reset-all')?.addEventListener('click', () => {
-      const grid = document.getElementById('event-grid');
-      const btns = grid.querySelectorAll('[data-status="."]');
-      btns.forEach(btn => btn.click());
-    });
-
-    // Filtrage des événements
-    const filterButtons = document.querySelectorAll('.filter-button');
-    const activeClasses = ['bg-[var(--primary)]', 'text-white'];
-    const inactiveClasses = ['bg-slate-100', 'text-slate-700', 'hover:bg-slate-200'];
-
-    filterButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const filter = this.dataset.filter;
-        const grid = document.getElementById('event-grid');
-        const cards = grid.querySelectorAll('[data-event-filter]');
-
-        // Update button states
-        filterButtons.forEach(b => {
-          b.classList.remove(...activeClasses);
-          b.classList.add(...inactiveClasses);
-        });
-        this.classList.remove(...inactiveClasses);
-        this.classList.add(...activeClasses);
-
-        // Filter cards
-        cards.forEach(card => {
-          if (filter === 'all' || card.dataset.eventFilter === filter) {
-            card.style.display = '';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      });
-    });
-
-    // Initialize button handlers
-    document.querySelectorAll('.status-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const card = this.closest('[data-manifestation-id]');
-        const manifestationId = parseInt(card.dataset.manifestationId);
-        const status = this.dataset.status;
-
-        // Visual feedback
-        const allBtns = card.querySelectorAll('.status-btn');
-        allBtns.forEach(b => b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'));
-        this.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
-
-        // Send AJAX request
-        fetch('/api/member/participations/upsert', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({manifestation_id: manifestationId, status: status})
-        })
-        .then(r => r.json())
-        .then(data => {
-          if (data.ok) {
-            // Update status badge
-            const badge = card.querySelector('#status-' + manifestationId);
-            if (status === '.') {
-              badge.textContent = '? Non renseigné';
-              badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700';
-            } else {
-              const colors = statusColors[status] || statusColors['Ne sait pas encore'];
-              const [bgClass, textClass] = colors.split(' ');
-              badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' + bgClass + ' ' + textClass;
-              const icon = status === 'Disponible' ? '✓' : status === 'Disponible si nécessaire' ? '◐' : status === 'Indisponible' ? '✗' : status === 'Présent' ? '✓' : status === 'Absent' ? '✗' : '?';
-              badge.textContent = icon + ' ' + status;
-            }
-            
-            // Pulse feedback
-            this.classList.add('animate-pulse');
-            setTimeout(() => this.classList.remove('animate-pulse'), 500);
-          }
-        })
-        .catch(err => console.error('Error:', err));
-      });
-
-      // Initialize button appearance based on current status
-      const card = btn.closest('[data-manifestation-id]');
-      const badge = card.querySelector('[id^="status-"]');
-      const badgeText = (badge?.textContent || '').trim();
-      const btnStatus = btn.dataset.status;
-
-      // Highlight current status button
-      if ((badgeText.includes('Disponible') && btnStatus === 'Disponible') ||
-          (badgeText.includes('Si nécessaire') && btnStatus === 'Disponible si nécessaire') ||
-          (badgeText.includes('Indisponible') && btnStatus === 'Indisponible') ||
-          (badgeText.includes('Présent') && btnStatus === 'Présent') ||
-          (badgeText.includes('Absent') && btnStatus === 'Absent') ||
-          (badgeText.includes('Non renseigné') && btnStatus === '.')) {
-        btn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
-      }
-
-      // Apply base colors
-      const colors = statusColors[btnStatus] || statusColors['Ne sait pas encore'];
-      btn.className = 'status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors ' + colors;
-    });
-  })();
-</script>
+<script src="{{ asset('front002/js/agenda-cards.js') }}"></script>
 {% endblock %}
