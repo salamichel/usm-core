@@ -317,69 +317,6 @@ class AgendaService
     }
 
     /**
-     * Fetch all manifestations with optional filters and pagination.
-     *
-     * @param array $filters Optional filters: type, location, date_from, date_to
-     * @param int $offset Pagination offset
-     * @param int $limit Pagination limit (default 50)
-     * @return array List of normalized event objects
-     */
-    public static function getAllManifestations(array $filters = [], int $offset = 0, int $limit = 50): array
-    {
-        try {
-            $type = $filters['type'] ?? null;
-            $location = $filters['location'] ?? null;
-            $dateFrom = $filters['date_from'] ?? null;
-            $dateTo   = $filters['date_to'] ?? null;
-
-            $sql = "SELECT * FROM Manifestation WHERE 1=1";
-
-            if ($type) {
-                $sql .= " AND ManifestationTypée LIKE ?";
-            }
-
-            if ($location) {
-                $sql .= " AND Lieu = ?";
-            }
-
-            if ($dateFrom) {
-                $sql .= " AND Date >= ?";
-            }
-
-            if ($dateTo) {
-                $sql .= " AND Date <= ?";
-            }
-
-            $sql .= " ORDER BY Date ASC LIMIT ? OFFSET ?";
-
-            $stmt = ExternalDatabase::get()->prepare($sql);
-            $bindings = [];
-
-            if ($type) {
-                $bindings[] = "% - $type - %";
-            }
-            if ($location) {
-                $bindings[] = $location;
-            }
-            if ($dateFrom) {
-                $bindings[] = $dateFrom;
-            }
-            if ($dateTo) {
-                $bindings[] = $dateTo;
-            }
-            $bindings[] = $limit;
-            $bindings[] = $offset;
-
-            $stmt->execute($bindings);
-            $rows = $stmt->fetchAll();
-        } catch (\Throwable) {
-            return [];
-        }
-
-        return array_map([self::class, 'buildEventWithId'], $rows);
-    }
-
-    /**
      * Fetch a single event by ID.
      *
      * @param int $id Event ID (id_manifestation)
@@ -662,7 +599,7 @@ class AgendaService
     /**
      * Build a normalized event object with ID and type (extends buildEvent).
      *
-     * Used by getAllManifestations() and getEventById().
+     * Used by getEventById().
      *
      * @param array $row Raw database row from Manifestation
      * @return array Normalized event structure including id, type, duration, nb_courts
