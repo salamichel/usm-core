@@ -105,7 +105,7 @@ class AgendaController
         $participationStats = AgendaService::getParticipationStats($id);
         $event['participation'] = $participationStats;
 
-        View::render('front002/agenda/detail.twig', [
+        View::render('agenda/detail.twig', [
             'event' => $event,
         ]);
     }
