@@ -84,7 +84,7 @@
 
     {# Details #}
     <div class="px-4 py-3 space-y-2 text-xs text-gray-600 flex-grow">
-        <div class="flex items-center gap-2">📅 <span>{% if m.Date matches '/^\\d{4}-\\d{2}-\\d{2}/' or m.Date is iterable or (m.Date|date('Y') is defined and m.Date|date('Y') != '1970') %}{{ m.Date|date('d/m/Y') }} - {{ m.Date|date('H:i') }}{% else %}{{ m.Date }}{% endif %}</span></div>
+        <div class="flex items-center gap-2">📅 <span>{% if m.Date matches '/^\\d{4}-\\d{2}-\\d{2}/' or m.Date is iterable %}{{ m.Date|date('d/m/Y') }} - {{ m.Date|date('H:i') }}{% else %}{{ m.Date }}{% endif %}</span></div>
         {% if m.Durée_créneau %}<div class="flex items-center gap-2">🕐 <span>{{ m.Durée_créneau }}</span></div>{% endif %}
         <div class="flex items-center gap-2">📍 <span>{{ m.Lieu }}</span></div>
         
