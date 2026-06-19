@@ -28,10 +28,18 @@
         {# Calcul des types d'événements pour les filtres #}
         {% set event_types = [] %}
         {% for m in manifestations %}
-            {% set type = m.is_match ? 'match' : 'training' %}
+            {% if m.is_match %}
+                {% set type = 'Match' %}
+            {% elseif m.type_libelle is defined %}
+                {# Assuming 'type_libelle' holds other specific types like 'Beach Volley' #}
+                {% set type = m.type_libelle %}
+            {% else %}
+                {% set type = 'Entraînement' %} {# Fallback if not match and no specific type_libelle #}
+            {% endif %}
+
             {% if type not in event_types %}
                 {% set event_types = event_types|merge([type]) %}
-            {% endif %}
+            {% endif %}         
         {% endfor %}
 
         {# Boutons de filtre dynamiques #}

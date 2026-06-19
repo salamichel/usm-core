@@ -41,6 +41,9 @@ class ParticipationController
             $parts = explode(' - ', $m['ManifestationTypée'], 3);
             $m['titre'] = $parts[2] ?? $m['ManifestationTypée'];
             $m['type_simple'] = $parts[1] ?? '';
+            
+            // Ajout d'un libellé simplifié pour le type de manifestation
+            $m['type_libelle'] = explode(' - ', $m['ManifestationTypée'])[1] ?? '';
         }
 
         View::render('member/participations_update.twig', [
