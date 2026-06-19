@@ -47,7 +47,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="event-grid">
         {% for m in manifestations %}
-            {% include "front002/agenda/_event_card.twig" with {
+            {% include "agenda/_event_card.twig" with {
                 'm': m, 
                 'allow_actions': session.LogIn is defined and session.LogIn, 
                 'show_link': true
@@ -65,7 +65,7 @@
 
 {% block scripts %}
 {% if session.LogIn is defined and session.LogIn %}
-    <script src="{{ asset('front002/js/agenda-cards.js') }}"></script>
+    <script src="{{ asset('js/agenda-cards.js') }}"></script>
 {% else %}
     <script>
     (function() {

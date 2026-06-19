@@ -105,7 +105,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="event-grid">
             {% for m in manifestations %}
-                {% include "front002/agenda/_event_card.twig" with {'m': m, 'allow_actions': true, 'show_link': false} %}
+                {% include "agenda/_event_card.twig" with {'m': m, 'allow_actions': true, 'show_link': false} %}
             {% endfor %}
         </div>
     {% else %}
@@ -118,5 +118,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ asset('front002/js/agenda-cards.js') }}"></script>
+<script src="{{ asset('js/agenda-cards.js') }}"></script>
 {% endblock %}
