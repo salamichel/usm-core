@@ -98,8 +98,8 @@ class Participation
         // Types d'événements spécifiques à toujours inclure, basés sur des motifs génériques.
         $genericEventPatterns = [
             '%Tournoi%',
-            '%club%',
-            '%beach%',
+            '%Club%',
+            '%Beach%',
         ];
 
         $conditions = [];
