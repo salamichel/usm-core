@@ -71,13 +71,13 @@
                         <button type="button" id="bulk-match-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <select id="bulk-training-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
+                        <select id="bulk-entrainement-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
                             <option value="">Entraînements</option>
                             <option value="Présent">Présent</option>
                             <option value="Absent">Absent</option>
                             <option value="Ne sait pas encore">Ne sait pas encore</option>
                         </select>
-                        <button type="button" id="bulk-training-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
+                        <button type="button" id="bulk-entrainement-apply" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">Appliquer</button>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <select id="bulk-club-status" class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 min-w-[120px]">
@@ -105,7 +105,18 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="event-grid">
             {% for m in manifestations %}
-                {% include "agenda/_event_card.twig" with {'m': m, 'allow_actions': true, 'show_link': false} %}
+                {# Normaliser la date pour la vue membre si elle vient d'un objet et n'est pas formatée en chaîne #}
+                {% set date_formatted = m.Date|date('d/m/Y') %}
+                {% if m.date_display is defined %}
+                    {% set date_formatted = m.date_display %}
+                {% elseif m.Date matches '/^\\d{4}-\\d{2}-\\d{2}/' or m.Date is iterable %}
+                    {% set date_formatted = m.Date|date('d/m/Y') ~ ' - ' ~ m.Date|date('H:i') %}
+                {% endif %}
+                {% set normalized_m = m|merge({
+                    'Date': date_formatted,
+                    'type_simple': m.type_simple|default(m.type_libelle|default('Événement'))
+                }) %}
+                {% include "front002/agenda/_event_card.twig" with {'m': normalized_m, 'allow_actions': true, 'show_link': false} %}
             {% endfor %}
         </div>
     {% else %}

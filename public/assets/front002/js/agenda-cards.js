@@ -27,9 +27,9 @@
         if (status) applyBulkStatus('match', status);
     });
 
-    document.getElementById('bulk-training-apply')?.addEventListener('click', () => {
-        const status = document.getElementById('bulk-training-status').value;
-        if (status) applyBulkStatus('training', status);
+    document.getElementById('bulk-entrainement-apply')?.addEventListener('click', () => {
+        const status = document.getElementById('bulk-entrainement-status').value;
+        if (status) applyBulkStatus('entrainement', status);
     });
     
     document.getElementById('bulk-club-apply')?.addEventListener('click', () => {

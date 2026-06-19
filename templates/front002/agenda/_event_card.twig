@@ -23,7 +23,7 @@
 
 <div class="bg-white rounded-lg border {{ card_border_class }} shadow-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col" 
      data-manifestation-id="{{ m.id_manifestation }}" 
-     data-event-filter="{{ m.is_match ? 'match' : (m.type_libelle is defined ? m.type_libelle|lower|replace({' ': '-'}) : 'training') }}">
+     data-event-filter="{{ m.is_match ? 'match' : (m.type_libelle is defined ? m.type_libelle|lower|replace({' ': '-'}) : 'entrainement') }}">
     
     {# Header #}
     <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
@@ -73,7 +73,7 @@
         </div>
         <h3 class="text-sm font-semibold text-gray-900">
             {% if show_link %}
-                <a href="{{ url('agenda/view', {id: m.id_manifestation}) }}" class="hover:text-[var(--primary)] transition-colors">
+                <a href="{{ url('agenda/' ~ m.id_manifestation) }}" class="hover:text-[var(--primary)] transition-colors">
                     {{ m.titre }}
                 </a>
             {% else %}
@@ -84,7 +84,7 @@
 
     {# Details #}
     <div class="px-4 py-3 space-y-2 text-xs text-gray-600 flex-grow">
-        <div class="flex items-center gap-2">📅 <span>{% if m.Date matches '/^\\d{4}-\\d{2}-\\d{2}/' or m.Date is iterable %}{{ m.Date|date('d/m/Y') }} - {{ m.Date|date('H:i') }}{% else %}{{ m.Date }}{% endif %}</span></div>
+        <div class="flex items-center gap-2">📅 <span>{{ m.Date }}</span></div>
         {% if m.Durée_créneau %}<div class="flex items-center gap-2">🕐 <span>{{ m.Durée_créneau }}</span></div>{% endif %}
         <div class="flex items-center gap-2">📍 <span>{{ m.Lieu }}</span></div>
         
@@ -120,7 +120,7 @@
     </div>
     {% elseif show_link %}
     <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
-        <a href="{{ url('agenda/view', {id: m.id_manifestation}) }}" class="block w-full text-center py-2 px-4 rounded-md bg-white border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        <a href="{{ url('agenda/' ~ m.id_manifestation) }}" class="block w-full text-center py-2 px-4 rounded-md bg-white border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             Voir le détail
         </a>
     </div>

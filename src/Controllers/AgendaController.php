@@ -39,7 +39,7 @@ class AgendaController
             // Enrich with user status if logged in
             $userStatuses = [];
             if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
-                $userId = $_SESSION['Member']['id_joueur'] ?? null;
+                $userId = (int) $_SESSION['LogInId'] ?? 0;
                 if ($userId) {
                     $upcoming = Participation::getUpcomingWithUserStatus((int)$userId);
                     foreach ($upcoming as $u) {
