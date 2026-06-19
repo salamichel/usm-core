@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\NotFoundHandler;
 use App\Services\AgendaService;
 use App\Core\View;
+use App\Models\Participation;
 
 class AgendaController
 {
@@ -27,6 +28,59 @@ class AgendaController
     public function index(array $params): void
     {
         $filters = $this->extractFilters();
+        $view = $_GET['view'] ?? 'table';
+
+        if ($view === 'cards') {
+            $manifestations = AgendaService::getAllManifestations($filters);
+            $ids = array_map(fn($m) => $m['id'], $manifestations);
+            
+            // Enrich with stats
+            $stats = AgendaService::getParticipationStatsBatch($ids);
+            
+            // Enrich with user status if logged in
+            $userStatuses = [];
+            if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
+                $userId = $_SESSION['Member']['id_joueur'] ?? null;
+                if ($userId) {
+                    $upcoming = Participation::getUpcomingWithUserStatus((int)$userId);
+                    foreach ($upcoming as $u) {
+                        $userStatuses[$u['id_manifestation']] = $u['user_status'];
+                    }
+                }
+            }
+
+            foreach ($manifestations as &$m) {
+                $id = $m['id'];
+                
+                // Normalise la structure pour correspondre à celle attendue par le partial _event_card.twig
+                $m['id_manifestation'] = $m['id'];
+                $m['is_match'] = (bool)(strpos($m['type'] ?? '', 'Match') !== false);
+                $m['type_simple'] = $m['type'];
+                // Dans getAllManifestations, date_display contient déjà la date formatée. 
+                // Mais le partial utilise m.Date|date('d/m/Y') si c'est un DateTime, ou le formate directement.
+                // Passons la valeur brute ou simulons. En PHP, on peut laisser passer la chaîne ou adapter :
+                $m['Date'] = $m['date_display']; 
+                $m['Durée_créneau'] = $m['duration'];
+                $m['Lieu'] = $m['location'];
+                $m['titre'] = $m['title'];
+                
+                if (isset($stats[$id])) {
+                    $m['nb_present'] = $stats[$id]['present'] ?? 0;
+                    $m['nb_absent'] = $stats[$id]['absent'] ?? 0;
+                    $m['nb_disponible'] = $stats[$id]['available'] ?? 0;
+                    $m['nb_si_besoin'] = $stats[$id]['available_if_needed'] ?? $stats[$id]['unknown'] ?? 0; // fallback stats
+                    $m['nb_indisponible'] = $stats[$id]['unavailable'] ?? 0;
+                }
+                $m['user_status'] = $userStatuses[$id] ?? null;
+            }
+
+            View::render('agenda/cards.twig', [
+                'manifestations' => $manifestations,
+                'filters'        => $filters,
+            ]);
+            return;
+        }
+
         $data = AgendaService::getCrossTable($filters);
 
         View::render('agenda/index.twig', [
