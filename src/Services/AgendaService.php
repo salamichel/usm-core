@@ -426,11 +426,11 @@ class AgendaService
     {
         try {
             $db = ExternalDatabase::get();
+            if (!$db) {
+                return self::defaultStats();
+            }
             $stmt = $db->prepare(
-                "SELECT Participation, COUNT(*) as cnt
-                 FROM Participation
-                 WHERE id_manifestation = ?
-                 GROUP BY Participation"
+                "SELECT Participation FROM Participation WHERE id_manifestation = ?"
             );
             $stmt->execute([$manifestationId]);
             $rows = $stmt->fetchAll();
@@ -439,21 +439,34 @@ class AgendaService
         }
 
         $stats = self::emptyStats();
+        $stats['available_if_needed'] = 0;
 
         foreach ($rows as $row) {
-            $statusStr = $row['Participation'] ?? '';
-            $count = (int) ($row['cnt'] ?? 0);
+            $statusStr = trim((string) ($row['Participation'] ?? ''));
+            if ($statusStr === '') {
+                continue;
+            }
             $status = new ParticipationStatus($statusStr);
             $category = $status->getCategory();
 
-            if (isset($stats[$category])) {
-                $stats[$category] += $count;
+            if (strpos($statusStr, 'Disponible si n') !== false) {
+                $stats['available_if_needed']++;
+            } else {
+                if (isset($stats[$category])) {
+                    $stats[$category]++;
+                    if ($category === 'present') {
+                        $stats[$category] += $status->getCompanionCount();
+                    }
+                }
             }
         }
 
-        $total_responses = array_sum($stats);
+        $total_responses = array_sum([
+            $stats['present'], $stats['available'], $stats['unavailable'],
+            $stats['selected'], $stats['absent'], $stats['unknown'], $stats['available_if_needed']
+        ]);
         $stats['total_responses'] = $total_responses;
-        $stats['enough_players'] = ($stats['present'] + $stats['available'] + $stats['selected']) >= 6;
+        $stats['enough_players'] = ($stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']) >= 6;
 
         return $stats;
     }
@@ -695,6 +708,26 @@ class AgendaService
     }
 
     /**
+     * Get normalized participation counts for an event, mapped to JS status names.
+     *
+     * @param int $manifestationId Event ID
+     * @return array Key-value counts matching JS expected statuses
+     */
+    public static function getNormalizedCounts(int $manifestationId): array
+    {
+        $stats = self::getParticipationStats($manifestationId);
+
+        return [
+            'Disponible'               => $stats['available'] ?? 0,
+            'Disponible si nécessaire' => $stats['available_if_needed'] ?? 0,
+            'Indisponible'             => $stats['unavailable'] ?? 0,
+            'Présent'                  => $stats['present'] ?? 0,
+            'Absent'                   => $stats['absent'] ?? 0,
+            'Ne sait pas encore'       => $stats['unknown'] ?? 0,
+        ];
+    }
+
+    /**
      * Normalise une ligne de Manifestation en un objet de manifestation agenda canonique.
      */
     public static function normalizeManifestation(array $row, int $totalJoueurs = 0): array
@@ -853,9 +886,9 @@ class AgendaService
             // Get unique event types
             $types = [];
             $stmt = $db->query(
-                "SELECT DISTINCT SUBSTRING_INDEX(ManifestationTypée, ' - ', 2) AS type_part
-                 FROM Manifestation
-                 WHERE id_manifestation > 0 AND Date >= CURDATE()
+                "SELECT DISTINCT SUBSTRING_INDEX(Mot, ' - ', 2) AS type_part
+                 FROM Mots_clef
+                 WHERE Catégorie = 'ManifestationTypée'
                  ORDER BY type_part"
             );
             while ($row = $stmt->fetch()) {

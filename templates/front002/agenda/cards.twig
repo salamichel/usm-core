@@ -1,93 +1,69 @@
 {% extends "base.twig" %}
-{% block title %}Agenda (Vue Cartes) — USM Volley{% endblock %}
+{% block title %}Agenda USM Volley — Mode Cartes{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-16">
+<div class="min-h-screen bg-slate-50/50">
+    <div class="max-w-6xl mx-auto px-6 py-16">
 
-  {% include 'agenda/filters.twig' %}
-
-  {# Toolbar #}
-  <div class="card p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <span class="text-xs uppercase tracking-wider text-slate-500 font-medium">Affichage</span>
-      <div class="flex gap-1">
-        <a href="{{ url('agenda?view=table') }}" class="px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-          Tableau
-        </a>
-        <a href="{{ url('agenda?view=cards') }}" class="px-3 py-1 text-xs rounded-md border border-[var(--primary)] bg-[var(--primary)] text-white font-medium transition flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-          Cartes
-        </a>
-      </div>
-    </div>
-  </div>
-
-  {% if manifestations is empty %}
-    <p class="text-slate-600 italic text-center py-16">Aucun événement à venir.</p>
-  {% else %}
-    
-    {# Boutons de filtre dynamiques (simplifiés) #}
-    {% set event_types = [] %}
-    {% for m in manifestations %}
-        {% set type = m.type|default('Événement') %}
-        {% if type not in event_types %}
-            {% set event_types = event_types|merge([type]) %}
-        {% endif %}         
-    {% endfor %}
-
-    {% if event_types|length > 1 %}
-        <div class="mb-6 flex flex-wrap gap-2">
-            <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-[var(--primary)] text-white" data-filter="all">Tous</button>
-            {% for type in event_types %}
-                <button type="button" class="filter-button px-3 py-1.5 text-xs rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200" data-filter="{{ type|lower|replace({' ': '-'}) }}">{{ type }}</button>
-            {% endfor %}
+        {# En-tête de page #}
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10 border-b border-slate-200 pb-8">
+            <div>
+                <span class="text-sm font-semibold text-[var(--primary)] uppercase tracking-wider">Saison {{ saison_active }}</span>
+                <h1 class="text-4xl font-extrabold text-slate-950 tracking-tight mt-1">Agenda du club</h1>
+            </div>
+            
+            {# Toolbar / Sélecteur de vue #}
+            <div class="flex items-center gap-1 bg-white p-1 rounded-full border border-slate-200 shadow-sm">
+                <a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-sm rounded-full font-medium text-slate-600 hover:text-[var(--primary)] transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    Liste
+                </a>
+                <a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-sm rounded-full bg-[var(--primary)] text-white font-semibold shadow transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Cartes
+                </a>
+            </div>
         </div>
-    {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="event-grid">
-        {% for m in manifestations %}
-            {% include "agenda/_event_card.twig" with {
-                'm': m, 
-                'allow_actions': session.LogIn is defined and session.LogIn, 
-                'show_link': true
-            } %}
-        {% endfor %}
+        {# 
+           ZONE DE FILTRES UNIQUE (Mutualisée avec Table) 
+           C'est elle qui gère l'URL via URLSearchParams
+        #}
+        {% include 'agenda/filters.twig' %}
+
+        {% if manifestations is empty %}
+            <div class="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm my-8">
+                <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <p class="text-xl font-semibold text-slate-700">Aucun événement à venir</p>
+                <p class="text-slate-500 mt-1">Revenez plus tard ou modifiez vos filtres.</p>
+            </div>
+        {% else %}
+            
+            {# Grille de cartes (affichage direct, sans filtre JS complexe) #}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12" id="event-grid">
+                {% for m in manifestations %}
+                    {% include "agenda/_event_card.twig" with {
+                        'm': m, 
+                        'allow_actions': app.session.LogIn is defined and app.session.LogIn, 
+                        'show_link': true
+                    } %}
+                {% endfor %}
+            </div>
+
+        {% endif %}
+
+        <div class="mt-16 border-t border-slate-200 pt-8 text-center">
+            <a href="/" class="group inline-flex items-center gap-2.5 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary)]/80 transition">
+                <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Retour à l'accueil
+            </a>
+        </div>
     </div>
-
-  {% endif %}
-
-  <div class="mt-12">
-    <a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
-  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-{% if session.LogIn is defined and session.LogIn %}
+{% if app.session.LogIn is defined and app.session.LogIn %}
     <script src="{{ asset('/front002/js/agenda-cards.js') }}"></script>
-{% else %}
-    <script>
-    (function() {
-        // Simple filtering for non-logged users
-        const filterButtons = document.querySelectorAll('.filter-button');
-        filterButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const filter = this.dataset.filter;
-                const grid = document.getElementById('event-grid');
-                const cards = grid.querySelectorAll('[data-event-filter]');
-                filterButtons.forEach(b => {
-                    b.classList.remove('bg-[var(--primary)]', 'text-white');
-                    b.classList.add('bg-slate-100', 'text-slate-700');
-                });
-                this.classList.remove('bg-slate-100', 'text-slate-700');
-                this.classList.add('bg-[var(--primary)]', 'text-white');
-                cards.forEach(card => {
-                    card.style.display = (filter === 'all' || card.dataset.eventFilter === filter) ? '' : 'none';
-                });
-            });
-        });
-    })();
-    </script>
 {% endif %}
 {% endblock %}

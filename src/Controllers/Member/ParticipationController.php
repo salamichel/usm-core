@@ -58,9 +58,9 @@ class ParticipationController
             echo json_encode(['ok' => false, 'message' => 'Non authentifié']);
             exit;
         }
-
+    
         header('Content-Type: application/json');
-
+    
         $userId = (int) $_SESSION['LogInId'];
         
         // Récupérer le JSON du corps de la requête
@@ -71,14 +71,27 @@ class ParticipationController
             echo json_encode(['ok' => false, 'message' => 'Données invalides']);
             exit;
         }
-
+    
         $manifestationId = (int) $input['manifestation_id'];
         $status = trim((string) $input['status']);
-
+    
         try {
-            // Mettre à jour la participation
+            // 1. Mettre à jour la participation (Votre code d'origine)
             Participation::upsert($userId, $manifestationId, $status);
-            echo json_encode(['ok' => true, 'message' => 'Participation mise à jour']);
+    
+            // ==========================================
+            // 2. RÉCUPÉRER LES COMPTEURS EXACTS NORMALISÉS POUR LE JS
+            // ==========================================
+            $counts = \App\Services\AgendaService::getNormalizedCounts($manifestationId);
+    
+            // 3. Renvoyer la réponse enrichie
+            echo json_encode([
+                'ok' => true, 
+                'message' => 'Participation mise à jour',
+                'new_status' => $status,
+                'counts' => $counts
+            ]);
+    
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['ok' => false, 'message' => 'Erreur serveur']);

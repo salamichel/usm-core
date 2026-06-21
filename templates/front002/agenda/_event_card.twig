@@ -4,76 +4,101 @@
     - m: The manifestation object
     - allow_actions: (bool) Whether to show participation action buttons
     - show_link: (bool) Whether to make the card or title link to the detail page
+    - terrain_alert: (bool) Variable à passer si l'alerte terrain est active
 #}
 
-{% set card_border_class = 'border-gray-200' %}
+{# 1. Détermination de la couleur de la bordure gauche selon le statut utilisateur #}
+{% set accent_color = 'border-l-slate-200' %}
 {% if m.user_status is defined and m.user_status %}
-    {% if m.user_status == 'Disponible' or m.user_status == 'Présent' %}
-        {% set card_border_class = 'border-green-400' %}
+    {% if m.user_status in ['Disponible', 'Présent'] %}
+        {% set accent_color = 'border-l-emerald-500' %}
     {% elseif m.user_status == 'Disponible si nécessaire' %}
-        {% set card_border_class = 'border-yellow-400' %}
-    {% elseif m.user_status == 'Indisponible' or m.user_status == 'Absent' %}
-        {% set card_border_class = 'border-red-400' %}
+        {% set accent_color = 'border-l-amber-400' %}
+    {% elseif m.user_status in ['Indisponible', 'Absent'] %}
+        {% set accent_color = 'border-l-rose-500' %}
     {% elseif m.user_status == 'Ne sait pas encore' %}
-        {% set card_border_class = 'border-gray-400' %}
+        {% set accent_color = 'border-l-slate-400' %}
     {% endif %}
-{% elseif m.user_status is defined %}
-    {% set card_border_class = 'border-gray-400' %}
 {% endif %}
 
-<div class="bg-white rounded-lg border {{ card_border_class }} shadow-sm overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col" 
+{# 2. Détermination du code couleur (badge) selon le TYPE d'événement #}
+{% set type_str = m.type_simple|default(m.type|default(''))|lower %}
+{% set badge_bg = 'bg-slate-100' %}
+{% set badge_text = 'text-slate-700' %}
+{% set badge_border = 'border-slate-200' %}
+
+{% if 'match' in type_str %}
+    {% set badge_bg = 'bg-blue-100' %}
+    {% set badge_text = 'text-blue-800' %}
+    {% set badge_border = 'border-blue-200' %}
+{% elseif 'entraînement' in type_str or 'entrainement' in type_str %}
+    {% set badge_bg = 'bg-orange-100' %}
+    {% set badge_text = 'text-orange-800' %}
+    {% set badge_border = 'border-orange-200' %}
+{% elseif 'tournoi' in type_str or 'plateau' in type_str %}
+    {% set badge_bg = 'bg-purple-100' %}
+    {% set badge_text = 'text-purple-800' %}
+    {% set badge_border = 'border-purple-200' %}
+{% elseif 'fête' in type_str or 'repas' in type_str or 'soirée' in type_str %}
+    {% set badge_bg = 'bg-pink-100' %}
+    {% set badge_text = 'text-pink-800' %}
+    {% set badge_border = 'border-pink-200' %}
+{% endif %}
+
+<div class="bg-white rounded-2xl border-y border-r border-slate-200 border-l-4 {{ accent_color }} shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col group relative" 
      data-manifestation-id="{{ m.id }}" 
-     data-event-filter="{{ m.is_match ? 'match' : (m.type|lower|replace({' ': '-'})) }}">
+     data-event-filter="{{ m.is_match ? 'match' : (m.type|lower|replace({' ': '-'})) }}"
+     data-current-status="{{ m.user_status|default('.') }}">
     
-    {# Header #}
-    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-gray-500 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
+    {# En-tête (Type, Titre et Statut Actuel) #}
+    <div class="px-5 pt-5 pb-3">
+        <div class="flex items-start justify-between gap-2 mb-4">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg border {{ badge_bg }} {{ badge_text }} {{ badge_border }} text-xs font-black tracking-widest uppercase shadow-sm">
+                {{ m.type_simple|default(m.type|default('Événement')) }}
+            </span>
+            
             {% if m.user_status is defined %}
-            <span id="status-{{ m.id }}" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+            <span id="status-{{ m.id }}" class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-bold shadow-sm border
                 {% if m.user_status %}
-                    {% if m.is_match and m.user_status == 'Disponible' %}
-                        bg-green-100 text-green-700
+                    {% if m.is_match and m.user_status == 'Disponible' or not m.is_match and m.user_status == 'Présent' %}
+                        bg-emerald-50 text-emerald-700 border-emerald-200
                     {% elseif m.is_match and m.user_status == 'Disponible si nécessaire' %}
-                        bg-yellow-100 text-yellow-700
-                    {% elseif m.is_match and m.user_status == 'Indisponible' %}
-                        bg-red-100 text-red-700
-                    {% elseif not m.is_match and m.user_status == 'Présent' %}
-                        bg-green-100 text-green-700
-                    {% elseif not m.is_match and m.user_status == 'Absent' %}
-                        bg-red-100 text-red-700
+                        bg-amber-50 text-amber-700 border-amber-200
+                    {% elseif m.is_match and m.user_status == 'Indisponible' or not m.is_match and m.user_status == 'Absent' %}
+                        bg-rose-50 text-rose-700 border-rose-200
                     {% elseif m.user_status == 'Ne sait pas encore' %}
-                        bg-gray-200 text-gray-700
+                        bg-slate-50 text-slate-700 border-slate-200
                     {% else %}
-                        bg-gray-100 text-gray-700
+                        bg-slate-50 text-slate-600 border-slate-200
                     {% endif %}
                 {% else %}
-                    bg-gray-100 text-gray-700
+                    bg-slate-50 text-slate-500 border-slate-200
                 {% endif %}
             ">
                 {% if m.user_status %}
                     {% if m.is_match and m.user_status == 'Disponible' %}
-                        ✓ Disponible
+                        <span class="mr-1 text-sm">✓</span> Disponible
                     {% elseif m.is_match and m.user_status == 'Disponible si nécessaire' %}
-                        ◐ Si nécessaire
+                        <span class="mr-1 text-sm">◐</span> Si besoin
                     {% elseif m.is_match and m.user_status == 'Indisponible' %}
-                        ✗ Indisponible
+                        <span class="mr-1 text-sm">✗</span> Indisponible
                     {% elseif not m.is_match and m.user_status == 'Présent' %}
-                        ✓ Présent
+                        <span class="mr-1 text-sm">✓</span> Présent
                     {% elseif not m.is_match and m.user_status == 'Absent' %}
-                        ✗ Absent
+                        <span class="mr-1 text-sm">✗</span> Absent
                     {% else %}
                         {{ m.user_status }}
                     {% endif %}
                 {% else %}
-                    ? Non renseigné
+                    <span class="mr-1 text-sm">?</span> Non renseigné
                 {% endif %}
             </span>
             {% endif %}
         </div>
-        <h3 class="text-sm font-semibold text-gray-900">
+        
+        <h3 class="text-xl font-extrabold text-slate-900 leading-tight">
             {% if show_link %}
-                <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors">
+                <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors after:absolute after:inset-0">
                     {{ m.titre }}
                 </a>
             {% else %}
@@ -82,45 +107,130 @@
         </h3>
     </div>
 
-    {# Details #}
-    <div class="px-4 py-3 space-y-2 text-xs text-gray-600 flex-grow">
-        <div class="flex items-center gap-2">📅 <span>{{ m.date_display }}</span></div>
-        {% if m.time_range %}<div class="flex items-center gap-2">🕐 <span>{{ m.time_range }}</span></div>{% endif %}
-        <div class="flex items-center gap-2">📍 <span>{{ m.lieu }}</span></div>
-        
-        {# Stats #}
-        <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1">
-            {% if m.is_match %}
-                <span class="text-green-600 font-medium" title="Disponibles">✓ {{ m.nb_disponible|default(0) }}</span>
-                <span class="text-yellow-600 font-medium" title="Si besoin">◐ {{ m.nb_disponible_si_necessaire|default(0) }}</span>
-                <span class="text-red-600 font-medium" title="Indisponibles">✗ {{ m.nb_indisponible|default(0) }}</span>
-            {% else %}
-                <span class="text-green-600 font-medium" title="Présents">✓ {{ m.nb_present|default(0) }}</span>
-                <span class="text-red-600 font-medium" title="Absents">✗ {{ m.nb_absent|default(0) }}</span>
+    {# Détails de l'événement (Date, Heure, Lieu, ALERTES et COMMENTAIRES) #}
+    <div class="px-5 pb-4 flex-grow">
+        <div class="space-y-3 mt-2 mb-2">
+            
+            {# Date #}
+            <div class="flex items-center gap-3 text-slate-600">
+                <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="font-semibold text-sm">{{ m.date_display }}</span>
+            </div>
+            
+            {# Heure #}
+            {% if m.time_range %}
+            <div class="flex items-center gap-3 text-slate-600">
+                <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-sm">{{ m.time_range }}</span>
+            </div>
             {% endif %}
+            
+            {# Lieu #}
+            <div class="flex items-start gap-3 text-slate-600">
+                <svg class="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-sm line-clamp-2 leading-snug">{{ m.lieu }}</span>
+            </div>
+
+            {# NOUVEAU : Alerte Terrain #}
+            {% if terrain_alert is defined and terrain_alert %}
+            <div class="flex items-center gap-2.5 mt-2 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-100 w-fit">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span class="text-xs font-bold">{{ m.nb_terrains }} terrains</span>
+            </div>
+            {% endif %}
+
+            {# NOUVEAU : Commentaire tronqué #}
+            {% if m.commentaire %}
+            <div class="flex items-start gap-3 text-slate-500 mt-2">
+                <svg class="w-4 h-4 text-slate-300 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                <span class="text-xs italic leading-snug">{{ m.commentaire|slice(0, 40) }}{% if m.commentaire|length > 40 %}...{% endif %}</span>
+            </div>
+            {% endif %}
+
         </div>
     </div>
 
-    {# Buttons #}
-    {% if allow_actions %}
-    <div class="px-4 py-3 border-t border-gray-200 bg-gray-50 flex gap-2">
-        {% if m.is_match %}
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Disponible" title="Disponible">✓</button>
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Disponible si nécessaire" title="Disponible si nécessaire">◐</button>
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Indisponible" title="Indisponible">✗</button>
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Ne sait pas encore" title="Ne sait pas encore">?</button>
+    {# Pied de carte : STATISTIQUES INTERACTIVES #}
+    <div class="mt-auto border-t border-slate-100 bg-slate-50/50 p-4 rounded-b-2xl relative z-10">
+        
+        {% if allow_actions %}
+            {# L'utilisateur PEUT cliquer (Statistiques = Boutons) #}
+            <div class="flex gap-2">
+                <div class="flex-grow flex gap-2">
+                    {% if m.is_match %}
+                        <button type="button" class="status-btn flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-emerald-200 bg-white shadow-sm text-emerald-600 hover:bg-emerald-50 hover:scale-105 transition-all group/btn" data-status="Disponible" title="Indiquer : Disponible">
+                            <span class="text-xl font-black leading-none group-hover/btn:-translate-y-0.5 transition-transform">✓</span> 
+                            <span class="text-lg font-bold leading-none mt-1">{{ m.nb_disponible|default(0) }}</span>
+                        </button>
+                        <button type="button" class="status-btn flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-amber-200 bg-white shadow-sm text-amber-500 hover:bg-amber-50 hover:scale-105 transition-all group/btn" data-status="Disponible si nécessaire" title="Indiquer : Disponible si besoin">
+                            <span class="text-xl font-black leading-none group-hover/btn:-translate-y-0.5 transition-transform">◐</span> 
+                            <span class="text-lg font-bold leading-none mt-1">{{ m.nb_disponible_si_necessaire|default(0) }}</span>
+                        </button>
+                        <button type="button" class="status-btn flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-rose-200 bg-white shadow-sm text-rose-500 hover:bg-rose-50 hover:scale-105 transition-all group/btn" data-status="Indisponible" title="Indiquer : Indisponible">
+                            <span class="text-xl font-black leading-none group-hover/btn:-translate-y-0.5 transition-transform">✗</span> 
+                            <span class="text-lg font-bold leading-none mt-1">{{ m.nb_indisponible|default(0) }}</span>
+                        </button>
+                    {% else %}
+                        <button type="button" class="status-btn flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-emerald-200 bg-white shadow-sm text-emerald-600 hover:bg-emerald-50 hover:scale-105 transition-all group/btn" data-status="Présent" title="Indiquer : Présent">
+                            <span class="text-xl font-black leading-none group-hover/btn:-translate-y-0.5 transition-transform">✓</span> 
+                            <span class="text-lg font-bold leading-none mt-1">{{ m.nb_present|default(0) }}</span>
+                        </button>
+                        <button type="button" class="status-btn flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-rose-200 bg-white shadow-sm text-rose-500 hover:bg-rose-50 hover:scale-105 transition-all group/btn" data-status="Absent" title="Indiquer : Absent">
+                            <span class="text-xl font-black leading-none group-hover/btn:-translate-y-0.5 transition-transform">✗</span> 
+                            <span class="text-lg font-bold leading-none mt-1">{{ m.nb_absent|default(0) }}</span>
+                        </button>
+                    {% endif %}
+                </div>
+                
+                {# Boutons secondaires (? et Reset) empilés à droite #}
+                <div class="flex flex-col gap-1.5 w-10 flex-shrink-0">
+                    <button type="button" class="status-btn flex-1 flex items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm text-slate-500 hover:bg-slate-100 transition-all" data-status="Ne sait pas encore" title="Ne sait pas encore">
+                        <span class="text-sm font-bold">?</span>
+                    </button>
+                    <button type="button" class="status-btn flex-1 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all" data-status="." title="Réinitialiser mon choix">
+                        <span class="text-sm font-bold">⊘</span>
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-3 mb-1">
+                Cliquez pour modifier votre statut
+            </p>
+
         {% else %}
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Présent" title="Présent">✓</button>
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Absent" title="Absent">✗</button>
-            <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors" data-status="Ne sait pas encore" title="Ne sait pas encore">?</button>
+            {# Mode Lecture Seule (Statistiques simples non cliquables) #}
+            <div class="flex gap-2">
+                {% if m.is_match %}
+                    <div class="flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-700" title="Disponibles">
+                        <span class="text-xl font-black leading-none">✓</span> 
+                        <span class="text-lg font-bold leading-none mt-1">{{ m.nb_disponible|default(0) }}</span>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-amber-100 bg-amber-50/50 text-amber-700" title="Si besoin">
+                        <span class="text-xl font-black leading-none">◐</span> 
+                        <span class="text-lg font-bold leading-none mt-1">{{ m.nb_disponible_si_necessaire|default(0) }}</span>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-rose-100 bg-rose-50/50 text-rose-700" title="Indisponibles">
+                        <span class="text-xl font-black leading-none">✗</span> 
+                        <span class="text-lg font-bold leading-none mt-1">{{ m.nb_indisponible|default(0) }}</span>
+                    </div>
+                {% else %}
+                    <div class="flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-700" title="Présents">
+                        <span class="text-xl font-black leading-none">✓</span> 
+                        <span class="text-lg font-bold leading-none mt-1">{{ m.nb_present|default(0) }}</span>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center items-center py-2 rounded-xl border border-rose-100 bg-rose-50/50 text-rose-700" title="Absents">
+                        <span class="text-xl font-black leading-none">✗</span> 
+                        <span class="text-lg font-bold leading-none mt-1">{{ m.nb_absent|default(0) }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if show_link %}
+                <div class="mt-4 text-center">
+                    <span class="text-sm font-bold text-[var(--primary)] group-hover:underline underline-offset-2">Voir tous les détails &rarr;</span>
+                </div>
+            {% endif %}
         {% endif %}
-        <button type="button" class="status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300" data-status="." title="Réinitialiser">⊘</button>
+        
     </div>
-    {% elseif show_link %}
-    <div class="px-4 py-3 border-t border-gray-200 bg-gray-50">
-        <a href="{{ url('agenda/' ~ m.id) }}" class="block w-full text-center py-2 px-4 rounded-md bg-white border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            Voir le détail
-        </a>
-    </div>
-    {% endif %}
 </div>

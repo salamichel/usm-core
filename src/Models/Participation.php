@@ -100,6 +100,7 @@ class Participation
             '%Tournoi%',
             '%Club%',
             '%Beach%',
+            '%Entra%',
         ];
 
         $conditions = [];

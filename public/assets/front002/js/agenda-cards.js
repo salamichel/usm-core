@@ -1,16 +1,7 @@
 (function() {
-    // Status color mapping
-    const statusColors = {
-        'Disponible': 'bg-green-100 text-green-700 hover:bg-green-200',
-        'Disponible si nécessaire': 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
-        'Indisponible': 'bg-red-100 text-red-700 hover:bg-red-200',
-        'Ne sait pas encore': 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-        'Présent': 'bg-green-100 text-green-700 hover:bg-green-200',
-        'Absent': 'bg-red-100 text-red-700 hover:bg-red-200',
-        '.': 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-    };
-
-    // Bulk actions
+    // ==========================================
+    // 1. ACTIONS DE MASSE (Bulk actions)
+    // ==========================================
     const applyBulkStatus = (filter, status) => {
         if (!status) return;
         const grid = document.getElementById('event-grid');
@@ -49,112 +40,118 @@
         btns.forEach(btn => btn.click());
     });
 
-    // Filtrage des événements (si présent sur la page)
-    const filterButtons = document.querySelectorAll('.filter-button');
-    const activeClasses = ['bg-[var(--primary)]', 'text-white'];
-    const inactiveClasses = ['bg-slate-100', 'text-slate-700', 'hover:bg-slate-200'];
+    // ==========================================
+    // 2. GESTION DES CLICS & MISE À JOUR LIVE
+    // ==========================================
+    document.addEventListener('click', function(e) {
+        // Capter le clic sur le bouton (ou ses icônes enfants)
+        const btn = e.target.closest('.status-btn');
+        if (!btn) return;
 
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filter = this.dataset.filter;
-            const grid = document.getElementById('event-grid');
-            if (!grid) return;
-            const cards = grid.querySelectorAll('[data-event-filter]');
+        e.preventDefault();
 
-            // Update button states
-            filterButtons.forEach(b => {
-                b.classList.remove(...activeClasses);
-                b.classList.add(...inactiveClasses);
-            });
-            this.classList.remove(...inactiveClasses);
-            this.classList.add(...activeClasses);
+        // Récupérer la carte parente
+        const card = btn.closest('[data-manifestation-id]');
+        if (!card) return;
 
-            // Filter cards
-            cards.forEach(card => {
-                if (filter === 'all' || card.dataset.eventFilter === filter) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    });
+        const manifestationId = parseInt(card.dataset.manifestationId);
+        const newStatus = btn.dataset.status;
+        const oldStatus = card.dataset.currentStatus || '.';
 
-    // Initialize button handlers
-    const initButtons = () => {
-        document.querySelectorAll('.status-btn').forEach(btn => {
-            // Avoid double binding
-            if (btn.dataset.initialized) return;
-            btn.dataset.initialized = "true";
+        // Si on clique sur le statut déjà sélectionné, on annule
+        if (newStatus === oldStatus) return;
 
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const card = this.closest('[data-manifestation-id]');
-                const manifestationId = parseInt(card.dataset.manifestationId);
-                const status = this.dataset.status;
+        // Effet visuel pendant le chargement
+        btn.classList.add('opacity-50', 'cursor-wait');
 
-                // Visual feedback
-                const allBtns = card.querySelectorAll('.status-btn');
-                allBtns.forEach(b => b.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50'));
-                this.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+        // Appel AJAX vers votre backend
+        fetch('/api/member/participations/upsert', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({manifestation_id: manifestationId, status: newStatus})
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.classList.remove('opacity-50', 'cursor-wait');
+            
+            if (data.ok) {
+                // ==========================================
+                // A. MISE À JOUR DES COMPTEURS (Données Serveur)
+                // ==========================================
+                if (data.counts && typeof data.counts === 'object') {
+                    
+                    // ÉTAPE 1 : Mettre tous les compteurs de la carte à "0"
+                    // (Indispensable car le SQL GROUP BY ne renvoie pas les statuts vides)
+                    card.querySelectorAll('.status-btn').forEach(b => {
+                        const spans = b.querySelectorAll('span');
+                        // S'il y a plus de 1 span, c'est que le 2ème est le chiffre du compteur
+                        if (spans.length > 1) {
+                            spans[1].textContent = '0';
+                        }
+                    });
 
-                // Send AJAX request
-                fetch('/api/member/participations/upsert', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({manifestation_id: manifestationId, status: status})
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.ok) {
-                        // Update status badge
-                        const badge = card.querySelector('#status-' + manifestationId);
-                        if (badge) {
-                            if (status === '.') {
-                                badge.textContent = '? Non renseigné';
-                                badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700';
-                            } else {
-                                const colors = statusColors[status] || statusColors['Ne sait pas encore'];
-                                const [bgClass, textClass] = colors.split(' ');
-                                badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' + bgClass + ' ' + textClass;
-                                const icon = status === 'Disponible' ? '✓' : status === 'Disponible si nécessaire' ? '◐' : status === 'Indisponible' ? '✗' : status === 'Présent' ? '✓' : status === 'Absent' ? '✗' : '?';
-                                badge.textContent = icon + ' ' + status;
+                    // ÉTAPE 2 : Appliquer les vrais chiffres renvoyés par PHP
+                    Object.entries(data.counts).forEach(([statName, statValue]) => {
+                        const targetBtn = card.querySelector(`[data-status="${statName}"]`);
+                        if (targetBtn) {
+                            const countSpan = targetBtn.querySelectorAll('span')[1];
+                            if (countSpan) {
+                                countSpan.textContent = statValue;
                             }
                         }
-                        
-                        // Pulse feedback
-                        this.classList.add('animate-pulse');
-                        setTimeout(() => this.classList.remove('animate-pulse'), 500);
-                    }
-                })
-                .catch(err => console.error('Error:', err));
-            });
-
-            // Initialize button appearance based on current status (only if badge exists)
-            const card = btn.closest('[data-manifestation-id]');
-            const badge = card.querySelector('[id^="status-"]');
-            if (badge) {
-                const badgeText = badge.textContent.trim();
-                const btnStatus = btn.dataset.status;
-
-                // Highlight current status button
-                if ((badgeText.includes('Disponible') && btnStatus === 'Disponible') ||
-                    (badgeText.includes('Si nécessaire') && btnStatus === 'Disponible si nécessaire') ||
-                    (badgeText.includes('Indisponible') && btnStatus === 'Indisponible') ||
-                    (badgeText.includes('Présent') && btnStatus === 'Présent') ||
-                    (badgeText.includes('Absent') && btnStatus === 'Absent') ||
-                    (badgeText.includes('Non renseigné') && btnStatus === '.')) {
-                    btn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+                    });
                 }
+
+                // ==========================================
+                // B. MISE À JOUR DES COULEURS & BADGES
+                // ==========================================
+                
+                // Mémoriser le nouveau statut
+                card.dataset.currentStatus = newStatus;
+
+                // Changer la bordure gauche épaisse
+                card.classList.remove('border-l-emerald-500', 'border-l-amber-400', 'border-l-rose-500', 'border-l-slate-400', 'border-l-slate-200');
+                if (['Disponible', 'Présent'].includes(newStatus)) card.classList.add('border-l-emerald-500');
+                else if (newStatus === 'Disponible si nécessaire') card.classList.add('border-l-amber-400');
+                else if (['Indisponible', 'Absent'].includes(newStatus)) card.classList.add('border-l-rose-500');
+                else if (newStatus === 'Ne sait pas encore') card.classList.add('border-l-slate-400');
+                else card.classList.add('border-l-slate-200');
+
+                // Changer le petit badge en haut à gauche
+                const badge = card.querySelector(`#status-${manifestationId}`);
+                if (badge) {
+                    let icon = '', bgClass = '', textClass = '', borderClass = '';
+                    
+                    if (['Disponible', 'Présent'].includes(newStatus)) {
+                        icon = '✓'; bgClass = 'bg-emerald-50'; textClass = 'text-emerald-700'; borderClass = 'border-emerald-200';
+                    } else if (newStatus === 'Disponible si nécessaire') {
+                        icon = '◐'; bgClass = 'bg-amber-50'; textClass = 'text-amber-700'; borderClass = 'border-amber-200';
+                    } else if (['Indisponible', 'Absent'].includes(newStatus)) {
+                        icon = '✗'; bgClass = 'bg-rose-50'; textClass = 'text-rose-700'; borderClass = 'border-rose-200';
+                    } else if (newStatus === 'Ne sait pas encore') {
+                        icon = '?'; bgClass = 'bg-slate-50'; textClass = 'text-slate-700'; borderClass = 'border-slate-200';
+                    } else {
+                        icon = '?'; bgClass = 'bg-slate-50'; textClass = 'text-slate-500'; borderClass = 'border-slate-200';
+                    }
+
+                    badge.className = `inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-bold shadow-sm border ${bgClass} ${textClass} ${borderClass}`;
+                    badge.innerHTML = newStatus === '.' 
+                        ? `<span class="mr-1 text-sm">?</span> Non renseigné` 
+                        : `<span class="mr-1 text-sm">${icon}</span> ${newStatus}`;
+                }
+
+                // Animation "Pulse" pour confirmer à l'utilisateur que le clic a marché
+                btn.classList.add('animate-pulse');
+                setTimeout(() => btn.classList.remove('animate-pulse'), 500);
+
+            } else {
+                alert("Erreur lors de l'enregistrement : " + (data.message || "Inconnue"));
             }
-
-            // Apply base colors
-            const btnStatus = btn.dataset.status;
-            const colors = statusColors[btnStatus] || statusColors['Ne sait pas encore'];
-            btn.className = 'status-btn flex-1 py-2 px-2 rounded-md text-xs font-medium transition-colors ' + colors;
+        })
+        .catch(err => {
+            console.error('Erreur AJAX:', err);
+            btn.classList.remove('opacity-50', 'cursor-wait');
+            alert("Erreur de communication avec le serveur.");
         });
-    };
-
-    initButtons();
+    });
 })();

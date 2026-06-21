@@ -53,6 +53,7 @@ class AgendaController
             View::render('agenda/cards.twig', [
                 'manifestations' => $data['manifestations'],
                 'filters'        => $filters,
+                'filterOptions'  => AgendaService::getFilterOptions(),
             ]);
             return;
         }
