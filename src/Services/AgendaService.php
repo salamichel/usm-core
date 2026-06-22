@@ -758,7 +758,7 @@ class AgendaService
 
         $statut = $row['Statut'] ?? '';
 
-        return [
+        $manifestation = [
             'id_manifestation'            => $id,
             'id'                          => $id,
             'type'                        => $type,
@@ -792,10 +792,42 @@ class AgendaService
             'ne_sait_pas'                 => [],
             'pas_de_reponse'              => [],
             'is_match'                    => (bool) (strpos($type, 'Match') !== false),
-            'is_training'                    => (bool) (strpos($type, 'Entra') !== false),
+            'is_training'                 => (bool) (strpos($type, 'Entra') !== false),
             'type_simple'                 => $type,
             'type_libelle'                => $type,
         ];
+
+        // Charger dynamiquement les listes de participations des joueurs pour cette manifestation
+        try {
+            $db = ExternalDatabase::get();
+            if ($db && $id > 0) {
+                $stmt = $db->prepare(
+                    "SELECT p.Participation, j.id_joueur, j.Nom, j.Prénom
+                     FROM Participation p
+                     JOIN Joueurs j ON p.id_joueur = j.id_joueur
+                     WHERE p.id_manifestation = ? AND j.id_joueur > 0"
+                );
+                $stmt->execute([$id]);
+                $rows = $stmt->fetchAll();
+
+                foreach ($rows as $pRow) {
+                    $rawStatus = trim((string)($pRow['Participation'] ?? ''));
+                    if ($rawStatus === '') {
+                        continue;
+                    }
+
+                    $status = new ParticipationStatus($rawStatus);
+                    $jid = (int) $pRow['id_joueur'];
+                    $nomJoueur = $pRow['Nom'] . ' ' . $pRow['Prénom'];
+
+                    self::updateManifestationStats($manifestation, $status, $jid, $nomJoueur, $rawStatus);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('normalizeManifestation participation loading failed: ' . $e->getMessage());
+        }
+
+        return $manifestation;
     }
 
     /**
