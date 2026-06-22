@@ -265,18 +265,6 @@ class AgendaService
                             $cross[$jid]['nb_ne_sait_pas_proche']++;
                         }
                     }
-
-                    self::updateManifestationStats($manifestations[$mid], $status, $jid, $joueurs[$jid], $part);
-                }
-            }
-
-            // Remplir le tableau pas_de_reponse avec les joueurs qui n'ont pas répondu
-            foreach ($manifestations as $mid => &$m) {
-                foreach ($joueurs as $jid => $nom) {
-                    $part = $cross[$jid][$mid] ?? '';
-                    if ($part === '') {
-                        $m['pas_de_reponse'][] = ['id' => $jid, 'nom' => $nom];
-                    }
                 }
             }
 
@@ -853,6 +841,12 @@ class AgendaService
             $manifestationStats['selectionnes'] = [];
             $manifestationStats['ne_sait_pas'] = [];
             $manifestationStats['pas_de_reponse'] = [];
+        }
+
+        // ma participation
+        $manifestationStats['ma_participation'] = 'pas_de_reponse';
+        if(isset($_SESSION['LogInId']) && $_SESSION['LogInId'] === $jid) {
+            $manifestationStats['ma_participation'] = $category;
         }
 
         // "Disponible si nécessaire"
