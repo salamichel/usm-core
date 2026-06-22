@@ -40,7 +40,6 @@ class ParticipationController
 
         View::render('member/participations_update.twig', [
             'manifestations' => $normalizedManifestations,
-            'user_name' => $_SESSION['user_name'] ?? 'Joueur',
         ]);
     }
 

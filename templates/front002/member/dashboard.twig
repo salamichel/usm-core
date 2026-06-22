@@ -1,74 +1,252 @@
 {% extends "base.twig" %}
-
-{% block title %}Mon Espace Adhérent{% endblock %}
+{% block title %}Mon Tableau de Bord — USM Volley{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-16">
+<div class="min-h-screen bg-slate-50/50 pb-12">
     
-    {# --- EN-TÊTE --- #}
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 pb-6 border-b border-gray-200">
-        <div class="mb-4 sm:mb-0">
-            <h1 class="text-3xl font-bold text-gray-900">Mon Espace</h1>
-            <p class="text-sm text-gray-500 mt-2">
-                Connecté en tant que <span class="font-semibold text-gray-700">{{ user_name }}</span> ({{ user_email }})
-            </p>
+    {# 1. EN-TÊTE ET ACCUEIL #}
+    <div class="bg-slate-900 text-white pt-12 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">Bonjour, {{ app.session.user_name }} 👋</h1>
+                    <p class="text-slate-400 mt-1">Voici le résumé de votre activité et des événements à venir.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    {# NOUVEAU LIEN : Profil #}
+                    <a href="{{ url('member/profile') }}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm shadow-sm">
+                        <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Mon profil
+                    </a>
+                    
+                    {# LIEN EXISTANT : Agenda #}
+                    <a href="{{ url('agenda') }}" class="bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Voir tout l'agenda
+                    </a>
+                </div>
+            </div>
         </div>
-        <form action="{{ url('member/logout') }}" method="POST" class="inline">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                Déconnexion
-            </button>
-        </form>
     </div>
 
-    {# --- GRILLE DE NAVIGATION --- #}
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Que souhaitez-vous faire ?</h2>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        {# Carte : Ma participation #}
-        <a href="{{ url('member/participations/update') }}" class="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-500 hover:ring-1 hover:ring-blue-500 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
+        
+        {# 2. KPI MÉTRIQUES RAPIDES (Semaine, Semaine Pro, À répondre) #}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            
+            {# KPI: Cette semaine #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition-transform">
+                <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Ma participation</h3>
-                    <p class="mt-1 text-sm text-gray-500">Gérez vos présences aux matchs et entraînements.</p>
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Cette semaine</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-3xl font-extrabold text-slate-900">{{ kpis.this_week }}</span>
+                        <span class="text-sm font-medium text-slate-500">événement{{ kpis.this_week > 1 ? 's' : '' }}</span>
+                    </div>
                 </div>
             </div>
-        </a>
 
-        {# Carte : Mon Profil #}
-        <a href="{{ url('member/profile') }}" class="group relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-500 hover:ring-1 hover:ring-blue-500 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-gray-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            {# KPI: Semaine prochaine #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition-transform">
+                <div class="w-14 h-14 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Mon Profil</h3>
-                    <p class="mt-1 text-sm text-gray-500">Consultez et modifiez vos informations.</p>
+                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Sem. prochaine</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-3xl font-extrabold text-slate-900">{{ kpis.next_week }}</span>
+                        <span class="text-sm font-medium text-slate-500">événement{{ kpis.next_week > 1 ? 's' : '' }}</span>
+                    </div>
                 </div>
             </div>
-        </a>
 
-        {# Carte : Administration (Visible uniquement pour les admins) #}
-        {% if is_admin_web %}
-        <a href="{{ url('admin/dashboard') }}" class="group relative rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm hover:shadow-md hover:bg-red-100 hover:border-red-400 transition-all">
-            <div class="flex items-center gap-4">
-                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-200 text-red-700 group-hover:bg-red-700 group-hover:text-white transition-colors">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            {# KPI: Action requise #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-amber-200 border-l-4 border-l-amber-500 flex items-center gap-5 hover:-translate-y-1 transition-transform">
+                <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-red-900 group-hover:text-red-800 transition-colors">Administration</h3>
-                    <p class="mt-1 text-sm text-red-700">Accéder au Back-Office du club.</p>
+                    <p class="text-sm font-semibold text-amber-700 uppercase tracking-wider">À répondre</p>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-3xl font-extrabold text-slate-900">{{ kpis.action_required }}</span>
+                        <span class="text-sm font-medium text-slate-500">invitation{{ kpis.action_required > 1 ? 's' : '' }} en attente</span>
+                    </div>
                 </div>
             </div>
-        </a>
-        {% endif %}
 
+        </div>
+
+        {# 3. CONTENU PRINCIPAL (Grille) #}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {# COLONNE GAUCHE : Prochains événements (Large) #}
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Imminent
+                    </h2>
+                    <a href="{{ url('agenda') }}" class="text-sm font-medium text-[var(--primary)] hover:underline">Gérer mes présences &rarr;</a>
+                </div>
+
+                {# Liste stylisée des prochains événements #}
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    {% if imminent_events is empty %}
+                        <div class="p-8 text-center text-slate-500">
+                            Aucun événement imminent.
+                        </div>
+                    {% else %}
+                        {% for m in imminent_events %}
+                            {% set is_action_required = m.user_status_category == 'unknown' or m.user_status_category == 'no_response' %}
+                            <div class="p-5 flex flex-col sm:flex-row sm:items-center gap-5 border-b border-slate-100 hover:bg-slate-50 transition relative {% if is_action_required %}bg-amber-50/30 hover:bg-amber-50/50{% endif %}">
+                                {% if is_action_required %}
+                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-400"></div>
+                                {% endif %}
+                                
+                                <div class="flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center 
+                                    {% if m.is_match %}bg-blue-50 border border-blue-100 text-blue-700
+                                    {% elseif m.is_training %}bg-orange-50 border border-orange-100 text-orange-700
+                                    {% else %}bg-purple-50 border border-purple-100 text-purple-700{% endif %}">
+                                    <span class="text-2xl font-black leading-none">{{ m.date_display|split(' ')[0] }}</span>
+                                    <span class="text-xs font-bold uppercase tracking-widest mt-1">{{ m.date_display|split(' ')[1]|slice(0, 4) }}</span>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest 
+                                            {% if m.is_match %}bg-blue-100 text-blue-800
+                                            {% elseif m.is_training %}bg-orange-100 text-orange-800
+                                            {% else %}bg-purple-100 text-purple-800{% endif %}">
+                                            {{ m.type }}
+                                        </span>
+                                        
+                                        {% if not is_action_required %}
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ m.user_status_color }}">
+                                                {{ m.user_status_icon }} {{ m.user_status }}
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border border-amber-300 text-amber-600">
+                                                Action requise
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-900">{{ m.titre }}</h3>
+                                    <p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        {{ m.lieu }} • {{ m.time_display }}
+                                    </p>
+                                </div>
+                                
+                                {# Boutons d'action rapides ou indicateur effectif #}
+                                {% if is_action_required %}
+                                    <div class="flex-shrink-0 flex gap-2 mt-3 sm:mt-0">
+                                        <button class="px-3 py-1.5 rounded bg-emerald-100 text-emerald-700 font-bold text-sm hover:bg-emerald-200 transition status-btn" data-manifestation-id="{{ m.id }}" data-status="Disponible">Présent</button>
+                                        <button class="px-3 py-1.5 rounded bg-rose-100 text-rose-700 font-bold text-sm hover:bg-rose-200 transition status-btn" data-manifestation-id="{{ m.id }}" data-status="Absent">Absent</button>
+                                    </div>
+                                {% elseif m.is_match %}
+                                    <div class="flex-shrink-0 text-right hidden sm:block">
+                                        <div class="text-sm font-medium text-slate-500">Effectif</div>
+                                        {% if m.enough_players %}
+                                            <div class="text-lg font-bold text-emerald-600">✓ Équipe OK</div>
+                                        {% else %}
+                                            <div class="text-lg font-bold text-rose-600">⚠️ Sous-effectif</div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {# COLONNE DROITE : Analytiques & Répartitions #}
+            <div class="space-y-6">
+                
+                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Statistiques de la saison
+                </h2>
+
+                {# Bloc : Ma présence #}
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Mon Taux de Présence</h3>
+                    
+                    <div class="mb-2 flex justify-between text-sm font-medium">
+                        <span class="text-slate-600">Matchs</span>
+                        <span class="text-slate-900 font-bold">{{ stats.presence_match }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 mb-4">
+                        <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ stats.presence_match }}%"></div>
+                    </div>
+
+                    <div class="mb-2 flex justify-between text-sm font-medium">
+                        <span class="text-slate-600">Entraînements</span>
+                        <span class="text-slate-900 font-bold">{{ stats.presence_training }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 mb-1">
+                        <div class="bg-orange-400 h-2.5 rounded-full" style="width: {{ stats.presence_training }}%"></div>
+                    </div>
+                </div>
+
+                {# Bloc : Par Type d'événement #}
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Événements par type</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-orange-400"></span>
+                                <span class="text-sm font-medium text-slate-700">Entraînements</span>
+                            </div>
+                            <span class="text-sm font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">{{ stats.type_counts.training }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                                <span class="text-sm font-medium text-slate-700">Matchs</span>
+                            </div>
+                            <span class="text-sm font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">{{ stats.type_counts.match }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+                                <span class="text-sm font-medium text-slate-700">Tournois / Autres</span>
+                            </div>
+                            <span class="text-sm font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">{{ stats.type_counts.other }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Bloc : Par Lieu #}
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Top Lieux (À venir)</h3>
+                    
+                    {% if stats.top_lieux is empty %}
+                        <p class="text-sm text-slate-500">Aucun lieu à venir enregistré.</p>
+                    {% else %}
+                        <ul class="space-y-3">
+                            {% for lieu in stats.top_lieux %}
+                                <li class="flex items-center justify-between group cursor-default">
+                                    <span class="text-sm text-slate-600 group-hover:text-slate-900 transition">{{ lieu.nom }}</span>
+                                    <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 rounded-full">{{ lieu.count }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    
+                    <a href="{{ url('agenda') }}" class="block text-center text-xs font-bold text-[var(--primary)] mt-4 hover:underline">Afficher tout l'agenda &rarr;</a>
+                </div>
+
+            </div>
+        </div>
     </div>
-
 </div>
+
+{# Phase 4 : Import du script JS d'agenda pour la délégation d'événements (boutons Disponibilité) #}
+{% block scripts %}
+<script src="{{ asset('js/agenda-cards.js') }}"></script>
+{% endblock %}
+
 {% endblock %}

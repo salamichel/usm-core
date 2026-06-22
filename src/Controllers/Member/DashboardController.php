@@ -19,9 +19,18 @@ class DashboardController
             exit;
         }
 
+        $userId = (int) $_SESSION['LogInId'];
+
+        $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
+        $imminentEvents = \App\Services\MemberDashboardService::getImminentEvents($userId, 3);
+        $stats = \App\Services\MemberDashboardService::getSeasonStats($userId);
+
         View::render('member/dashboard.twig', [
             'is_capitaine' => $_SESSION['Capitaine'] ?? false,
             'is_admin_web' => $_SESSION['AdminWeb'] ?? false,
+            'kpis' => $kpis,
+            'imminent_events' => $imminentEvents,
+            'stats' => $stats,
         ]);
     }
 }

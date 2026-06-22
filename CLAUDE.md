@@ -57,13 +57,22 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 │   │   ├── HomeController.php, BlogController.php, PageController.php
 │   │   ├── ContactController.php       ← formulaire public /contact
 │   │   ├── EquipesController.php  ← /equipes + /equipes/{id}
-│   │   └── Admin/
+│   │   ├── JoueurController.php, SitemapController.php
+│   │   ├── Admin/
+│   │   │   ├── AuthController.php, DashboardController.php
+│   │   │   ├── PostController.php, PageAdminController.php
+│   │   │   ├── MenuController.php, DocumentController.php
+│   │   │   ├── SaisonController.php       ← admin saisons + flash
+│   │   │   ├── EquipeConfigController.php ← admin équipes + photos + joueurs
+│   │   │   ├── ContactAdminController.php ← gestion messages de contact
+│   │   │   ├── CategorieEquipeController.php, TagController.php, HomeBlockController.php
+│   │   │   ├── LocationController.php, ContactMessageController.php
+│   │   │   ├── MediaUploadController.php, PhotoAdminController.php, SiteConfigController.php
+│   │   ├── Api/
+│   │   │   └── ArticleApiController.php ← API d'importation d'articles externes
+│   │   └── Member/
 │   │       ├── AuthController.php, DashboardController.php
-│   │       ├── PostController.php, PageAdminController.php
-│   │       ├── MenuController.php, DocumentController.php
-│   │       ├── SaisonController.php       ← admin saisons + flash
-│   │       ├── EquipeConfigController.php ← admin équipes + photos + joueurs
-│   │       └── ContactAdminController.php ← gestion messages de contact
+│   │       ├── ParticipationController.php, ProfileController.php ← espace adhérent
 │   ├── Helpers/
 │   │   └── ParticipationStatus.php  ← parsing centralisé des statuts de participation
 │   └── Services/
@@ -72,7 +81,11 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 │       ├── Validator.php      ← validation centralisée
 │       ├── Logger.php         ← logging multi-canal
 │       ├── SlugManager.php    ← génération slugs
-│       └── Pagination.php     ← pagination
+│       ├── Pagination.php     ← pagination
+│       ├── SeoService.php, SitemapService.php, StructuredDataService.php ← SEO & Sitemaps
+│       ├── ContentRenderer.php ← rendu CMS dynamique avec compilation Twig
+│       ├── ImageResizer.php, ImageVariant.php, ExternalImageDownloader.php ← gestion images / variantes
+│       └── UploadPathManager.php ← gestion des chemins de stockage uploads
 ├── config/config.php      ← constantes DB_*, EXT_DB_*, BASE_URL, etc.
 ├── database/
 │   ├── schema.sql, seed.sql, add_photos.sql  ← base locale initiale
@@ -553,6 +566,57 @@ Adresse: {{ site_config.address }}
 
 ---
 
+## Espace Adhérent / Membre
+
+L'espace adhérent permet aux joueurs du club de se connecter pour gérer leurs participations aux manifestations (matchs, entraînements) et modifier leur profil.
+
+### Authentification & Session
+
+Gérée par `Member\AuthController`. Un joueur se connecte avec son identifiant et son mot de passe.
+La session de l'adhérent stocke ses informations d'identification de joueur.
+
+### Tableau de bord & Participations
+
+- **Dashboard** (`/member/dashboard`) : Affiche le résumé des matchs et entraînements à venir, ainsi que l'état de ses réponses.
+- **Mise à jour des participations** (`/member/participations/update`) : Formulaire pour indiquer sa disponibilité sur chaque manifestation. Supporte l'enregistrement en base externe via `Participation::upsert()`.
+- **API** : Une route d'API `POST /api/member/participations/upsert` permet des mises à jour rapides et asynchrones des participations de l'adhérent.
+
+### Profil Adhérent
+
+Accessible via `/member/profile` pour permettre à l'adhérent de mettre à jour son mot de passe ou ses coordonnées.
+
+### Plan d'implémentation du Dashboard Dynamique (À réaliser)
+
+1. **Service de Données** : Créer `src/Services/MemberDashboardService.php` avec les méthodes :
+   - `getKPIs($userId)` : Événements de la semaine, de la semaine pro, et actions requises (participations vides ou `?`).
+   - `getImminentEvents($userId, $limit = 3)` : Les prochains événements du joueur avec son statut de participation actuel.
+   - `getSeasonStats($userId)` : Taux de présence aux matchs et entraînements, compte par type d'événement, et classement des lieux.
+2. **Contrôleur** : Mettre à jour `Member\DashboardController` pour faire appel au service et passer les variables à Twig.
+3. **Vue Twig** : Dynamiser `templates/front002/member/dashboard.twig` avec les KPI, la boucle des événements, les jauges de présence et le top des lieux.
+4. **Interactivité** : Intégrer les boutons "Présent/Absent" avec les classes `.status-btn` et `data-manifestation-id` pour déclencher les appels API en JS via `agenda-cards.js` grâce à la délégation d'événements.
+
+---
+
+## API Articles d'importation
+
+Le site propose un endpoint API pour la création ou la mise à jour d'articles depuis un système externe.
+
+- **Route** : `POST /api/articles` (géré par `ArticleApiController`)
+- **Authentification** : Requiert un token ou une clé API d'autorisation dans les headers (selon la configuration).
+- **Fonctionnement** : Reçoit un payload JSON avec le titre, contenu, catégorie, tag, et images de l'article pour les insérer directement dans la base locale `usm_volley`.
+
+---
+
+## Gestion des Images & Variantes
+
+Pour optimiser les temps de chargement du site public, un système de génération de variantes d'images est intégré.
+
+- **Services** : `ImageResizer` et `ImageVariant`
+- **Fonctionnement** : Lors de l'upload d'une photo via Dropzone ou l'éditeur, des formats réduits ou optimisés (ex. formats miniatures, formats de liste, formats WebP, etc.) sont automatiquement générés et référencés.
+- **Nettoyage/Migration** : Des scripts dans `scripts/` (ex. `generate_variants.php`) permettent de recalculer l'ensemble des variantes à la volée.
+
+---
+
 ## Variables d'environnement
 
 | Variable | Défaut dev | Description |
@@ -585,13 +649,30 @@ Les fichiers SQL sont **idempotents** (`IF NOT EXISTS`, `INSERT IGNORE`,
 Ordre d'application au démarrage :
 ```
 schema.sql → seed.sql → add_photos.sql
-→ 001_saisons.sql → 002_equipes_config.sql → ... → 008_contacts.sql
+→ 001_saisons.sql → 002_equipes_config.sql → ... → 021_page_add_category.sql
 ```
 
 **Migrations récentes** :
 - `003_home_blocks.sql` — blocs accueil (contenu + position)
 - `004_site_config.sql` — config du site (nom, email, phone, réseaux)
+- `005_blog_slug_cleanup.sql` — nettoyage des slugs des articles de blog
 - `005_joueur_snapshots_nlicence.sql` — ajout colonne nlicence
 - `006_article_api.sql` — table pour intégration API article
 - `007_tags.sql` — table tags pour catégorisation articles
 - `008_contacts.sql` — messages de contact + réponses (Brevo)
+- `008_locations.sql` — gestion des lieux de manifestations
+- `009_contact_messages.sql` — table pour messages du formulaire de contact
+- `010_categories_equipes.sql` — catégories des équipes (ex. séniors, jeunes)
+- `010_contact_phone.sql` — ajout du numéro de téléphone aux contacts
+- `011_equipes_config_description.sql` — ajout d'une description longue pour les équipes
+- `011_theme_config.sql` — configuration des thèmes d'affichage
+- `012_categories_equipes_fields.sql` — champs de description pour les catégories
+- `013_equipes_config_description_courte.sql` — description courte pour les équipes
+- `014_equipes_type_hauteur.sql` — type et hauteur du filet d'équipe
+- `015_site_config_front003.sql` — configuration spécifique du site pour le thème 3
+- `016_site_config_theme.sql` — liaison configuration / thème
+- `017_photos_has_variants.sql` — statut des variantes d'images générées
+- `018_post_slider_pin.sql` — possibilité d'épingler un article au slider
+- `019_equipe_config_autoincrement.sql` — correction auto_increment sur equipes_config
+- `020_home_block_photos.sql` — photos dédiées aux blocs d'accueil
+- `021_page_add_category.sql` — catégorisation des pages statiques
