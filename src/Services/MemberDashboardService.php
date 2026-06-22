@@ -108,7 +108,7 @@ class MemberDashboardService
             $timeDisplay = ($dateObj && $dateObj->format('H:i') !== '00:00') ? $dateObj->format('H:i') : '';
 
             // Participation du joueur
-            $statusStr = $m['ma_participation'] ?? '';
+            $statusStr = $normalized['ma_participation'] ?? '';
             $status = new ParticipationStatus($statusStr);
             $category = $status->getCategory();
 
