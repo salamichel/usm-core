@@ -122,7 +122,7 @@ class MemberDashboardService
             // Formater pour Twig
             $result[] = [
                 'id' => $m['id_manifestation'],
-                'titre' => $normalized['title'],
+                'titre' => $normalized['titre'],
                 'type' => $normalized['type'],
                 'is_match' => $normalized['is_match'],
                 'is_training' => $normalized['is_training'],

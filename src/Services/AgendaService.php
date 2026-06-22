@@ -792,6 +792,7 @@ class AgendaService
             'ne_sait_pas'                 => [],
             'pas_de_reponse'              => [],
             'is_match'                    => (bool) (strpos($type, 'Match') !== false),
+            'is_training'                    => (bool) (strpos($type, 'Entra') !== false),
             'type_simple'                 => $type,
             'type_libelle'                => $type,
         ];
