@@ -174,10 +174,18 @@
 
                     <div class="mb-1.5 flex justify-between text-sm font-medium">
                         <span class="text-slate-600">Entraînements</span>
-                        <span class="text-slate-900 font-bold">{{ stats.presence_entrainement }}%</span>
+                        <span class="text-slate-900 font-bold">{{ stats.presence_training }}%</span>
                     </div>
                     <div class="w-full bg-slate-100 rounded-full h-2 mb-1">
-                        <div class="bg-orange-400 h-2 rounded-full" style="width: {{ stats.presence_entrainement }}%"></div>
+                        <div class="bg-orange-400 h-2 rounded-full" style="width: {{ stats.presence_training }}%"></div>
+                    </div>
+
+                    <div class="mb-1.5 flex justify-between text-sm font-medium">
+                        <span class="text-slate-600">Tournois</span>
+                        <span class="text-slate-900 font-bold">{{ stats.presence_tournament }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2 mb-1">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: {{ stats.presence_tournament }}%"></div>
                     </div>
                 </div>
 
@@ -190,14 +198,14 @@
                                 <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
                                 <span class="text-sm font-medium text-slate-600">Entraînements</span>
                             </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.entrainements }}</span>
+                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.training }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                                 <span class="text-sm font-medium text-slate-600">Matchs</span>
                             </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.matchs }}</span>
+                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.match }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -205,6 +213,13 @@
                                 <span class="text-sm font-medium text-slate-600">Tournois / Plateaux</span>
                             </div>
                             <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.tournois }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                                <span class="text-sm font-medium text-slate-600">Autres</span>
+                            </div>
+                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.others }}</span>
                         </div>
                     </div>
                 </div>

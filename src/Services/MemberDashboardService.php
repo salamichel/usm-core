@@ -161,26 +161,31 @@ class MemberDashboardService
             WHERE p.id_joueur = ?
             and m.Date >= ? 
             and m.Date <= ?
+            and Statut in ('Confirmé', 'Provisoire')
         ";
         $stmt = $db->prepare($sql);
-        $stmt->execute([$userId, $saison['date_debut'], $saison['date_fin']]);
+        $stmt->execute([$userId, $saison['date_debut'], $saison['date_fin'] ?: '9999-12-31']);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $totalMatches = 0;
         $presentMatches = 0;
         $totalTrainings = 0;
         $presentTrainings = 0;
+        $totalTournaments = 0;
+        $presentTournaments = 0;
 
-        $typeCounts = [
+        $events_by_type = [
             'match' => 0,
             'training' => 0,
-            'other' => 0
+            'tournois' => 0,
+            'others' => 0
         ];
 
         foreach ($rows as $row) {
             $typeStr = $row['ManifestationTypée'] ?? '';
             $isMatch = stripos($typeStr, 'match') !== false;
             $isTraining = stripos($typeStr, 'entra') !== false;
+            $isTournament = stripos($typeStr, 'tournoi') !== false;
 
             $status = new ParticipationStatus($row['Participation'] ?? '');
             $isPresent = $status->isPresent();
@@ -190,20 +195,27 @@ class MemberDashboardService
                 if ($isPresent) {
                     $presentMatches++;
                 }
-                $typeCounts['match']++;
+                $events_by_type['match']++;
             } elseif ($isTraining) {
                 $totalTrainings++;
                 if ($isPresent) {
                     $presentTrainings++;
                 }
-                $typeCounts['training']++;
+                $events_by_type['training']++;
+            } elseif ($isTournament) {
+                $totalTournaments++;
+                if ($isPresent) {
+                    $presentTournaments++;
+                }
+                $events_by_type['tournois']++;            
             } else {
-                $typeCounts['other']++;
+                $events_by_type['others']++;
             }
         }
 
         $presenceMatch = $totalMatches > 0 ? (int) round(($presentMatches / $totalMatches) * 100) : 0;
         $presenceTraining = $totalTrainings > 0 ? (int) round(($presentTrainings / $totalTrainings) * 100) : 0;
+        $presenceTournament = $totalTournaments > 0 ? (int) round(($presentTournaments / $totalTournaments) * 100) : 0;
 
         // 2. Classement des lieux (top 3)
         $categories = Joueur::getCategories($userId);
@@ -234,7 +246,8 @@ class MemberDashboardService
         return [
             'presence_match' => $presenceMatch,
             'presence_training' => $presenceTraining,
-            'type_counts' => $typeCounts,
+            'presence_tournament' => $presenceTournament,
+            'events_by_type' => $events_by_type,
             'top_lieux' => $topLieux
         ];
     }
