@@ -7,6 +7,7 @@ use App\Core\ExternalDatabase;
 use App\Models\Joueur;
 use App\Models\Participation;
 use App\Helpers\ParticipationStatus;
+use App\Models\Saison;
 use PDO;
 
 class MemberDashboardService
@@ -148,6 +149,9 @@ class MemberDashboardService
     {
         $db = ExternalDatabase::get();
 
+        // Récupérer la saison active
+        $saison = saison::getActive();
+
         // 1. Calcul du taux de présence aux Matchs et Entraînements sur la saison courante (passée ou future)
         // Pour cela, on récupère les participations du joueur
         $sql = "
@@ -155,9 +159,11 @@ class MemberDashboardService
             FROM Participation p
             JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
             WHERE p.id_joueur = ?
+            and m.Date >= ? 
+            and m.Date <= ?
         ";
         $stmt = $db->prepare($sql);
-        $stmt->execute([$userId]);
+        $stmt->execute([$userId, $saison['date_debut'], $saison['date_fin']]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $totalMatches = 0;

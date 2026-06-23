@@ -29,15 +29,37 @@ class SaisonController
     public function store(array $params): void
     {
         Auth::require();
-        $libelle = trim($_POST['libelle'] ?? '');
+        $libelle   = trim($_POST['libelle'] ?? '');
+        $dateDebut = trim($_POST['date_debut'] ?? '');
+        $dateFin   = trim($_POST['date_fin'] ?? '');
+
         if ($libelle === '') {
             View::render('admin/saisons/create.twig', [
-                'saison' => ['libelle' => $libelle],
+                'saison' => ['libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
                 'error'  => 'Le libellé est obligatoire.',
             ]);
             return;
         }
-        Saison::create(['libelle' => $libelle]);
+        if ($dateDebut === '') {
+            View::render('admin/saisons/create.twig', [
+                'saison' => ['libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
+                'error'  => 'La date de début est obligatoire.',
+            ]);
+            return;
+        }
+        if ($dateFin === '') {
+            View::render('admin/saisons/create.twig', [
+                'saison' => ['libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
+                'error'  => 'La date de fin est obligatoire.',
+            ]);
+            return;
+        }
+
+        Saison::create([
+            'libelle'    => $libelle,
+            'date_debut' => $dateDebut,
+            'date_fin'   => $dateFin,
+        ]);
         View::flash('success', "Saison « {$libelle} » créée.");
         header('Location: ' . BASE_URL . '/admin/saisons');
         exit;

@@ -32,11 +32,13 @@ class Saison
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO saisons (libelle, is_active) VALUES (:libelle, :is_active)"
+            "INSERT INTO saisons (libelle, date_debut, date_fin, is_active) VALUES (:libelle, :date_debut, :date_fin, :is_active)"
         );
         $stmt->execute([
-            ':libelle'   => $data['libelle'],
-            ':is_active' => (int)($data['is_active'] ?? 0),
+            ':libelle'    => $data['libelle'],
+            ':date_debut' => $data['date_debut'],
+            ':date_fin'   => $data['date_fin'],
+            ':is_active'  => (int)($data['is_active'] ?? 0),
         ]);
         return (int)$db->lastInsertId();
     }
