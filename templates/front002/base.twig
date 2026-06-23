@@ -144,10 +144,14 @@
 
   {% include '_header.twig' %}
   {% include '_mobile_menu.twig' %}
+  {# 2. La barre d'application membre (Uniquement si connecté) #}
+  {% if app.session.LogIn %}
+    {% include '_member_bottom_bar.twig' %}
+  {% endif %}  
   {% include '_flash.twig' %}
 
   {# ── Main ── #}
-  <main class="flex-1">
+  <main class="flex-1 {% if app.session.LogIn %}pb-24 md:pb-0{% endif %}">
     {% block content %}{% endblock %}
   </main>
 
