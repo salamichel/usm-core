@@ -144,14 +144,17 @@
 
   {% include '_header.twig' %}
   {% include '_mobile_menu.twig' %}
-  {# 2. La barre d'application membre (Uniquement si connecté) #}
   {% if app.session.LogIn %}
-    {% include '_member_bottom_bar.twig' %}
-  {% endif %}  
-  {% include '_flash.twig' %}
+      {# Utilisateur connecté : Barre avec Dashboard, Stats, Agenda complet... #}
+      {% include '_member_bottom_bar.twig' %}
+  {% else %}
+      {# Visiteur : Barre avec Infos du club et gros bouton de Connexion #}
+      {% include '_visitor_bottom_bar.twig' %}
+  {% endif %}
+{% include '_flash.twig' %}
 
   {# ── Main ── #}
-  <main class="flex-1 {% if app.session.LogIn %}pb-24 md:pb-0{% endif %}">
+  <main class="flex-1 pb-24 md:pb-0">
     {% block content %}{% endblock %}
   </main>
 
