@@ -244,7 +244,7 @@ class AgendaService
             while ($row = $stmt->fetch()) {
                 $jid  = (int) $row['id_joueur'];
                 $mid  = (int) $row['id_manifestation'];
-                $part = trim((string) ($row['participation'] ?? ''));
+                $part = trim((string) ($row['Participation'] ?? ''));
                 if (!isset($cross[$jid]) || !isset($manifestations[$mid])) {
                     continue;
                 }
@@ -841,12 +841,6 @@ class AgendaService
             $manifestationStats['selectionnes'] = [];
             $manifestationStats['ne_sait_pas'] = [];
             $manifestationStats['pas_de_reponse'] = [];
-        }
-
-        // ma participation
-        $manifestationStats['ma_participation'] = 'pas_de_reponse';
-        if(isset($_SESSION['LogInId']) && $_SESSION['LogInId'] === $jid) {
-            $manifestationStats['ma_participation'] = $category;
         }
 
         // "Disponible si nécessaire"
