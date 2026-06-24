@@ -23,9 +23,11 @@ class EquipeConfig
     
     public static function getEquipesSlug(): array
     {
-        return Database::get()
+        $rows =  Database::get()
             ->query("SELECT distinct slug_colonne FROM equipes_config ORDER BY slug_colonne ASC")
             ->fetchAll();
+            
+        return array_column($rows, 'slug_colonne');
     }  
 
     public static function groupedByCategorie(): array
