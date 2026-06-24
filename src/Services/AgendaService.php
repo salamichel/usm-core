@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Core\ExternalDatabase;
 use App\Helpers\ParticipationStatus;
+use App\Models\EquipeConfig;
 
 class AgendaService
 {
@@ -654,13 +655,9 @@ class AgendaService
      */
     private static function teamColumn(string $team): ?string
     {
-        $allowed = [
-            'L1', 'L2', 'L3', 'L4', 'Open',
-            'CoupeLoisir', 'Heitz', 'Aico',
-            'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3',
-            'DEP', 'Adulte', 'Jeune', 'M18F', 'M13F', 'M15F', 'M15F6', 'R2F',
-            'Compétition', 'Loisir', 'Débutant',
-        ];
+        // Récupération des catégories d'équipes pour l'affichage
+        $categories = EquipeConfig::getEquipesSlug();    
+    
         return in_array($team, $allowed, true) ? $team : null;
     }
 

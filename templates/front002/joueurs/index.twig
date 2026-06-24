@@ -79,11 +79,9 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-wrap gap-1">
-                                    {# Remplacement de l'ancien tableau géant par des badges visuels #}
-                                    {% set equipes = ['Jeune', 'M15F6', 'M15F', 'M13F', 'Adulte', 'L1', 'L2', 'L3', 'L4', 'Aico', 'Heitz', 'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3', 'DEP', 'Loisir'] %}
                                     
                                     {% set has_equipe = false %}
-                                    {% for equipe in equipes %}
+                                    {% for equipe in categories %}
                                         {% if joueur[equipe] and joueur[equipe] != '0' and joueur[equipe] != '' %}
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                                                 {{ equipe }}

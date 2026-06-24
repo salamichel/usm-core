@@ -6,6 +6,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Joueur;
 use App\Services\Validator;
+use App\Models\EquipeConfig;
 
 class JoueurController
 {
@@ -33,8 +34,12 @@ class JoueurController
 
         $joueurs = Joueur::getAll();
 
+        // Récupération des catégories d'équipes pour l'affichage
+        $categories = EquipeConfig::getEquipesSlug(); 
+
         View::render('joueurs/index.twig', [
-            'joueurs' => $joueurs
+            'joueurs' => $joueurs,
+            'categories' => $categories
         ]);
     }
 

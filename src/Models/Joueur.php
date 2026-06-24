@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Core\ExternalDatabase;
-use App\Core\Database;
+use App\Models\CategorieEquipe;
 use PDO;
 
 class Joueur
@@ -122,9 +122,8 @@ class Joueur
             return [];
         }
 
-        $stmt = Database::get()->prepare("select distinct slug_colonne from equipes_config");
-        $stmt->execute();
-        $categoryColumns = $stmt->fetchAll() ?? [];
+        // Récupération des colonnes de catégories depuis la table CategorieEquipe
+        $categoryColumns = CategorieEquipe::getEquipesSlug();
 
         $categories = [];
         foreach ($categoryColumns as $col) {

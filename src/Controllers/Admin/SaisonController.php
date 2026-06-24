@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\JoueurSnapshot;
 use App\Models\Saison;
+use App\Models\EquipeConfig;
 
 class SaisonController
 {
@@ -96,7 +97,11 @@ class SaisonController
             $joueurs = [];
             $error   = 'Impossible de se connecter à la base externe : ' . $e->getMessage();
         }
-        View::render('admin/saisons/joueurs.twig', ['joueurs' => $joueurs, 'error' => $error]);
+
+        // Récupération des catégories d'équipes pour l'affichage
+        $categories = EquipeConfig::getEquipesSlug();
+
+        View::render('admin/saisons/joueurs.twig', ['joueurs' => $joueurs, 'error' => $error, 'categories' => $categories]);
     }
 
     public function flash(array $params): void
@@ -121,10 +126,15 @@ class SaisonController
         $id     = (int)$params['id'];
         $saison = Saison::find($id);
         if (!$saison) { $this->notFound(); return; }
-        $snapshots = \App\Models\JoueurSnapshot::findBySaison($id);
+        $snapshots = JoueurSnapshot::findBySaison($id);
+
+        // Récupération des catégories d'équipes pour l'affichage
+        $categories = EquipeConfig::getEquipesSlug();
+
         View::render('admin/saisons/snapshots.twig', [
             'saison'    => $saison,
             'snapshots' => $snapshots,
+            'categories' => $categories,
         ]);
     }
 

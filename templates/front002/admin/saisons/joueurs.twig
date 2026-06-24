@@ -27,7 +27,7 @@
     <tbody>
       {% for j in joueurs %}
       {% set flags = [] %}
-      {% for col in ['L1','L2','L3','L4','Open','DEP','Heitz','Aico','CoupeLoisir','UFOLEP_1','UFOLEP_2','UFOLEP_3','M18F','M15F', 'M15F6','M13F','R2F','Loisir','Débutant'] %}
+      {% for col in categories %}
         {% if j[col] is defined and j[col] %}
           {% set flags = flags|merge([col]) %}
         {% endif %}
