@@ -103,70 +103,77 @@
         {% endif %}
     </div>
 
-    {# --- LIGNE DU BAS : Statut utilisateur & Pastilles (Avatars) superposées --- #}
-    <div class="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between relative z-10">
+{# --- LIGNE DU BAS : Vote, Statut et Pastilles --- #}
+    <div class="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-4 relative z-10">
         
-        {# Info Gauche : Statut Actuel #}
-        <div class="flex flex-col">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mon Statut</span>
-            <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-bold {% if m.user_status %}{% if m.user_status in ['Disponible', 'Présent'] %}text-emerald-600{% elseif m.user_status == 'Disponible si nécessaire' %}text-amber-500{% elseif m.user_status in ['Indisponible', 'Absent'] %}text-rose-500{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
-                {% if m.user_status %}
-                    {% if m.user_status in ['Disponible', 'Présent'] %} <span class="mr-1">✓</span> {{ m.user_status }}
-                    {% elseif m.user_status == 'Disponible si nécessaire' %} <span class="mr-1">◐</span> Si besoin
-                    {% elseif m.user_status in ['Indisponible', 'Absent'] %} <span class="mr-1">✗</span> {{ m.user_status }}
-                    {% else %} {{ m.user_status }} {% endif %}
-                {% else %}
-                    Non renseigné
-                {% endif %}
-            </span>
-        </div>
-        
-        {# Info Droite : "Avatars" des statistiques superposés #}
-        <div class="flex items-center">
+        {# --- 1. LIGNE VOTE & MON STATUT --- #}
+        <div class="flex items-center justify-between">
+            <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mon Statut</span>
+                <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-bold {% if m.user_status %}{% if m.user_status in ['Disponible', 'Présent'] %}text-emerald-600{% elseif m.user_status == 'Disponible si nécessaire' %}text-amber-500{% elseif m.user_status in ['Indisponible', 'Absent'] %}text-rose-500{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
+                    {% if m.user_status %}
+                        {% if m.user_status in ['Disponible', 'Présent'] %} <span class="mr-1">✓</span> {{ m.user_status }}
+                        {% elseif m.user_status == 'Disponible si nécessaire' %} <span class="mr-1">◐</span> Si besoin
+                        {% elseif m.user_status in ['Indisponible', 'Absent'] %} <span class="mr-1">✗</span> {{ m.user_status }}
+                        {% else %} {{ m.user_status }} {% endif %}
+                    {% else %}
+                        Non renseigné
+                    {% endif %}
+                </span>
+            </div>
+            
             {% if allow_actions %}
-                {# BOUTONS CLIQUABLES #}
-                {% if m.is_match %}
-                    <button type="button" class="status-btn w-10 h-10 rounded-full border-[3px] border-white bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold relative z-30 hover:z-50 hover:scale-110 shadow-sm transition-all" data-status="Disponible" title="Indiquer : Disponible">
-                        {{ m.nb_disponible|default(0) }}
-                    </button>
-                    <button type="button" class="status-btn w-10 h-10 rounded-full border-[3px] border-white bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold -ml-3 relative z-20 hover:z-50 hover:scale-110 shadow-sm transition-all" data-status="Disponible si nécessaire" title="Indiquer : Disponible si besoin">
-                        {{ m.nb_disponible_si_necessaire|default(0) }}
-                    </button>
-                    <button type="button" class="status-btn w-10 h-10 rounded-full border-[3px] border-white bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold -ml-3 relative z-10 hover:z-50 hover:scale-110 shadow-sm transition-all" data-status="Indisponible" title="Indiquer : Indisponible">
-                        {{ m.nb_indisponible|default(0) }}
-                    </button>
-                    <button type="button" class="status-btn w-8 h-8 rounded-full border-[3px] border-white bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold ml-1 hover:bg-slate-200 shadow-sm transition-all" data-status="." title="Réinitialiser">⊘</button>
-                {% else %}
-                    <button type="button" class="status-btn w-10 h-10 rounded-full border-[3px] border-white bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold relative z-30 hover:z-50 hover:scale-110 shadow-sm transition-all" data-status="Présent" title="Indiquer : Présent">
-                        {{ m.nb_present|default(0) }}
-                    </button>
-                    <button type="button" class="status-btn w-10 h-10 rounded-full border-[3px] border-white bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold -ml-3 relative z-10 hover:z-50 hover:scale-110 shadow-sm transition-all" data-status="Absent" title="Indiquer : Absent">
-                        {{ m.nb_absent|default(0) }}
-                    </button>
-                    <button type="button" class="status-btn w-8 h-8 rounded-full border-[3px] border-white bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold ml-1 hover:bg-slate-200 shadow-sm transition-all" data-status="." title="Réinitialiser">⊘</button>
-                {% endif %}
-            {% else %}
-                {# PASTILLES STATIQUES #}
-                {% if m.is_match %}
-                    <div class="w-10 h-10 rounded-full border-[3px] border-white bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold relative z-30 shadow-sm" title="Disponibles">
-                        {{ m.nb_disponible|default(0) }}
-                    </div>
-                    <div class="w-10 h-10 rounded-full border-[3px] border-white bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold -ml-3 relative z-20 shadow-sm" title="Si besoin">
-                        {{ m.nb_disponible_si_necessaire|default(0) }}
-                    </div>
-                    <div class="w-10 h-10 rounded-full border-[3px] border-white bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-bold -ml-3 relative z-10 shadow-sm" title="Indisponibles">
-                        {{ m.nb_indisponible|default(0) }}
-                    </div>
-                {% else %}
-                    <div class="w-10 h-10 rounded-full border-[3px] border-white bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold relative z-30 shadow-sm" title="Présents">
-                        {{ m.nb_present|default(0) }}
-                    </div>
-                    <div class="w-10 h-10 rounded-full border-[3px] border-white bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-bold -ml-3 relative z-10 shadow-sm" title="Absents">
-                        {{ m.nb_absent|default(0) }}
-                    </div>
-                {% endif %}
+                {# BOUTONS DE VOTE INDÉPENDANTS #}
+                <div class="flex gap-1.5">
+                    {% if m.is_match %}
+                        <button type="button" class="status-btn w-8 h-8 rounded-xl border border-slate-200 bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 flex items-center justify-center transition-all shadow-sm" data-status="Disponible" title="Indiquer : Disponible">✓</button>
+                        <button type="button" class="status-btn w-8 h-8 rounded-xl border border-slate-200 bg-white text-amber-500 hover:bg-amber-50 hover:border-amber-300 flex items-center justify-center transition-all shadow-sm" data-status="Disponible si nécessaire" title="Indiquer : Disponible si besoin">◐</button>
+                        <button type="button" class="status-btn w-8 h-8 rounded-xl border border-slate-200 bg-white text-rose-500 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center transition-all shadow-sm" data-status="Indisponible" title="Indiquer : Indisponible">✗</button>
+                    {% else %}
+                        <button type="button" class="status-btn w-8 h-8 rounded-xl border border-slate-200 bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 flex items-center justify-center transition-all shadow-sm" data-status="Présent" title="Indiquer : Présent">✓</button>
+                        <button type="button" class="status-btn w-8 h-8 rounded-xl border border-slate-200 bg-white text-rose-500 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center transition-all shadow-sm" data-status="Absent" title="Indiquer : Absent">✗</button>
+                    {% endif %}
+                    <button type="button" class="status-btn w-8 h-8 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-600 flex items-center justify-center transition-all shadow-sm ml-1" data-status="." title="Réinitialiser">⊘</button>
+                </div>
             {% endif %}
         </div>
 
+        {# --- 2. LIGNE PASTILLES (Statistiques & Liste des joueurs) --- #}
+        <div class="flex items-center justify-between mt-1 pt-3 border-t border-slate-50">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Récapitulatif</span>
+            
+            <div class="flex items-center">
+                {% if m.is_match %}
+                    <div class="player-list-trigger cursor-pointer w-9 h-9 rounded-full border-[2px] border-white bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold relative z-30 shadow-sm hover:z-50 hover:scale-110 transition-all" 
+                         data-title="Joueurs disponibles" 
+                         data-players='{{ m.disponibles|default([])|json_encode|e('html_attr') }}'>
+                        {{ m.nb_disponible|default(0) }}
+                    </div>
+                    <div class="player-list-trigger cursor-pointer w-9 h-9 rounded-full border-[2px] border-white bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold -ml-2.5 relative z-20 shadow-sm hover:z-50 hover:scale-110 transition-all" 
+                         data-title="Joueurs (Si besoin)" 
+                         data-players='{{ m.disponibles_si_necessaire|default([])|json_encode|e('html_attr') }}'>
+                        {{ m.nb_disponible_si_necessaire|default(0) }}
+                    </div>
+                    <div class="player-list-trigger cursor-pointer w-9 h-9 rounded-full border-[2px] border-white bg-rose-100 text-rose-700 flex items-center justify-center text-xs font-bold -ml-2.5 relative z-10 shadow-sm hover:z-50 hover:scale-110 transition-all" 
+                         data-title="Joueurs indisponibles" 
+                         data-players='{{ m.indisponibles|default([])|json_encode|e('html_attr') }}'>
+                        {{ m.nb_indisponible|default(0) }}
+                    </div>
+                {% else %}
+                    <div class="player-list-trigger cursor-pointer w-9 h-9 rounded-full border-[2px] border-white bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold relative z-30 shadow-sm hover:z-50 hover:scale-110 transition-all" 
+                         data-title="Joueurs présents" 
+                         data-players='{{ m.presents|default([])|json_encode|e('html_attr') }}'>
+                        {{ m.nb_present|default(0) }}
+                    </div>
+                    <div class="player-list-trigger cursor-pointer w-9 h-9 rounded-full border-[2px] border-white bg-rose-100 text-rose-700 flex items-center justify-center text-xs font-bold -ml-2.5 relative z-10 shadow-sm hover:z-50 hover:scale-110 transition-all" 
+                         data-title="Joueurs absents" 
+                         data-players='{{ m.absents|default([])|json_encode|e('html_attr') }}'>
+                        {{ m.nb_absent|default(0) }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
     </div>
+</div>
 </div>

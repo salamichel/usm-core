@@ -154,4 +154,94 @@
             alert("Erreur de communication avec le serveur.");
         });
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Éléments de la modale
+        const modal = document.getElementById('player-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalList = document.getElementById('modal-list');
+        const closeBtn = document.getElementById('close-modal');
+
+        // Fonction pour ouvrir la modale
+        function openModal(title, names, colorClass) {
+            modalTitle.textContent = title;
+            modalList.innerHTML = ''; // On vide la liste
+
+            if (names.length === 0) {
+                modalList.innerHTML = '<li class="text-sm text-slate-400 italic text-center py-6 bg-slate-50 rounded-xl">Aucun joueur dans cette liste.</li>';
+            } else {
+                names.forEach(name => {
+                    // On crée une jolie ligne pour chaque joueur
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-100 transition-colors';
+                    
+                    // On extrait la première lettre pour faire un petit avatar
+                    const initial = name.charAt(0).toUpperCase();
+                    li.innerHTML = `
+                        <div class="w-8 h-8 rounded-full ${colorClass} flex items-center justify-center text-xs font-black shadow-sm">
+                            ${initial}
+                        </div>
+                        ${name}
+                    `;
+                    modalList.appendChild(li);
+                });
+            }
+
+            // Affichage avec animation
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Un tout petit délai pour que la transition CSS s'applique
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+            }, 10);
+        }
+
+        // Fonction pour fermer la modale
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300); // Correspond à la durée de la transition CSS (duration-300)
+        }
+
+        // Écouteurs pour fermer la modale
+        if(closeBtn) closeBtn.addEventListener('click', closeModal);
+        if(modal) {
+            modal.addEventListener('click', function(e) {
+                // Ferme si on clique en dehors de la boîte blanche
+                if (e.target === modal) closeModal(); 
+            });
+        }
+
+        // Écoute les clics sur les pastilles de statistiques
+        document.querySelectorAll('.player-list-trigger').forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const title = this.dataset.title;
+                const playersJson = this.dataset.players;
+                let names = [];
+
+                // Déduction de la couleur de l'avatar selon la couleur de la pastille cliquée
+                let colorClass = 'bg-slate-200 text-slate-600';
+                if (this.classList.contains('text-emerald-700')) colorClass = 'bg-emerald-100 text-emerald-700';
+                if (this.classList.contains('text-amber-700')) colorClass = 'bg-amber-100 text-amber-700';
+                if (this.classList.contains('text-rose-700')) colorClass = 'bg-rose-100 text-rose-700';
+
+                try {
+                    const playersArray = JSON.parse(playersJson);
+                    names = playersArray.map(p => p.nom);
+                } catch(err) {
+                    console.error("Erreur de parsing des joueurs", err);
+                }
+
+                openModal(title, names, colorClass);
+            });
+        });
+    });  
 })();
