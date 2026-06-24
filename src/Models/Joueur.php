@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Core\ExternalDatabase;
+use App\Core\Database;
 use PDO;
 
 class Joueur
@@ -121,12 +122,9 @@ class Joueur
             return [];
         }
 
-        // Colonnes représentant les équipes/catégories (drapeaux TINYINT)
-        $categoryColumns = [
-            'L1', 'L2', 'L3', 'L4', 'Open', 'CoupeLoisir', 'Heitz', 'Aico',
-            'UFOLEP_1', 'UFOLEP_2', 'UFOLEP_3', 'M18F', 'M13F', 'M15F6', 'M15F', 'R2F', 'DEP',
-            'Adulte', 'Jeune', 'Compétition', 'Loisir', 'Débutant'
-        ];
+        $stmt = Database::get()->prepare("select distinct slug_colonne from equipes_config");
+        $stmt->execute();
+        $categoryColumns = $stmt->fetchAll() ?? [];
 
         $categories = [];
         foreach ($categoryColumns as $col) {

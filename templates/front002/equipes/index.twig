@@ -37,7 +37,7 @@
             </div>
             <div class="p-6">
               <h2 class="font-serif text-3xl font-semibold text-slate-900 mb-3">{{ cat.nom }}</h2>
-              <p class="text-sm text-slate-500 mb-4">{{ cat.team_count }} équipe{{ cat.team_count > 1 ? 's' : '' }} disponibles</p>
+              <p class="text-sm text-slate-500 mb-4">{{ cat.team_count }} équipe{{ cat.team_count > 1 ? 's' : '' }}</p>
               {% if cat.description %}
                 <p class="text-sm text-slate-600 line-clamp-3">{{ cat.description|render_with_config|striptags }}</p>
               {% endif %}
