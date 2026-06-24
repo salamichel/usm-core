@@ -232,7 +232,7 @@ class AgendaService
             $dateTropProche = time() + 3 * 24 * 3600;
             $stmt = $db->query(
                 "SELECT j.id_joueur, m.id_manifestation,
-                        COALESCE(p.Participation, '') AS participation,
+                        COALESCE(p.Participation, '') AS Participation,
                         DATE_FORMAT(m.`Date`, '%Y-%m-%d %H:%i') AS date2
                  FROM Joueurs j
                  CROSS JOIN Manifestation m
