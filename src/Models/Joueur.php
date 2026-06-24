@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Core\ExternalDatabase;
-use App\Models\CategorieEquipe;
+use App\Models\EquipeConfig;
 use PDO;
 
 class Joueur
@@ -123,7 +123,7 @@ class Joueur
         }
 
         // Récupération des colonnes de catégories depuis la table CategorieEquipe
-        $categoryColumns = CategorieEquipe::getEquipesSlug();
+        $categoryColumns = EquipeConfig::getEquipesSlug();
 
         $categories = [];
         foreach ($categoryColumns as $col) {

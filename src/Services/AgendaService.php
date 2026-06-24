@@ -658,7 +658,7 @@ class AgendaService
         // Récupération des catégories d'équipes pour l'affichage
         $categories = EquipeConfig::getEquipesSlug();    
     
-        return in_array($team, $allowed, true) ? $team : null;
+        return in_array($team, $categories, true) ? $team : null;
     }
 
     /**
