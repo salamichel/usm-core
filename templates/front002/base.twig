@@ -100,8 +100,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
-  <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}">
+  <link rel="stylesheet" href="{{ asset('content-styles.css') }}?v={{ "now"|date("U") }}">
+  <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}?v={{ "now"|date("U") }}">
 
   {# CSS vars dynamiques (dépendent de site_config, doivent rester inline) #}
   <style>
@@ -138,7 +138,7 @@
 
   {% block head %}{% endblock %}
 
-  <script src="{{ asset(theme ~ '/base.js') }}" defer></script>
+  <script src="{{ asset(theme ~ '/base.js') }}?v={{ "now"|date("U") }}" defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
 
