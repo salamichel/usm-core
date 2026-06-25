@@ -16,6 +16,8 @@ class SiteConfigController
         'facebook_url', 'instagram_url', 'legal_text',
         'home_slider_posts_count', 'home_latest_posts_count',
         'font_family', 'primary_color',
+        'google_analytics_id',
+
         'header_bg_color', 'header_text_color',
         'header_hover_bg_color', 'header_hover_text_color',
         'header_active_bg_color', 'header_active_text_color',
