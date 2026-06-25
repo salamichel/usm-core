@@ -179,23 +179,22 @@ class MemberDashboardService
             $isTournament = stripos($typeStr, 'tournoi') !== false;
 
             $status = new ParticipationStatus($row['Participation'] ?? '');
-            $isPresent = $status->isPresent();
 
             if ($isMatch) {
                 $totalMatches++;
-                if ($isPresent) {
+                if ($status->isAvailable() || $status->isSelected() || $status->isPresent()) {
                     $presentMatches++;
                 }
                 $events_by_type['match']++;
             } elseif ($isTraining) {
                 $totalTrainings++;
-                if ($isPresent) {
+                if ($status->isPresent()) {
                     $presentTrainings++;
                 }
                 $events_by_type['training']++;
             } elseif ($isTournament) {
                 $totalTournaments++;
-                if ($isPresent) {
+                if ($status->isPresent() || $status->isAvailable()) {
                     $presentTournaments++;
                 }
                 $events_by_type['tournois']++;            

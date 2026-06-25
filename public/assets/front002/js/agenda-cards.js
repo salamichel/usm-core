@@ -15,22 +15,42 @@
 
     document.getElementById('bulk-match-apply')?.addEventListener('click', () => {
         const status = document.getElementById('bulk-match-status').value;
-        if (status) applyBulkStatus('match', status);
+        if (status) {
+            applyBulkStatus('match', status);
+            activeFilterType = 'type';
+            activeFilterValue = 'match';
+            applyDashboardFilters();
+        }
     });
 
     document.getElementById('bulk-entrainement-apply')?.addEventListener('click', () => {
         const status = document.getElementById('bulk-entrainement-status').value;
-        if (status) applyBulkStatus('entrainement', status);
+        if (status) {
+            applyBulkStatus('entrainement', status);
+            activeFilterType = 'type';
+            activeFilterValue = 'entrainement';
+            applyDashboardFilters();
+        }
     });
     
     document.getElementById('bulk-club-apply')?.addEventListener('click', () => {
         const status = document.getElementById('bulk-club-status').value;
-        if (status) applyBulkStatus('club', status);
+        if (status) {
+            applyBulkStatus('club', status);
+            activeFilterType = 'type';
+            activeFilterValue = 'club';
+            applyDashboardFilters();
+        }
     });
 
     document.getElementById('bulk-beach-apply')?.addEventListener('click', () => {
         const status = document.getElementById('bulk-beach-status').value;
-        if (status) applyBulkStatus('beach', status);
+        if (status) {
+            applyBulkStatus('beach', status);
+            activeFilterType = 'type';
+            activeFilterValue = 'beach';
+            applyDashboardFilters();
+        }
     });
 
     document.getElementById('bulk-reset-all')?.addEventListener('click', () => {
@@ -666,6 +686,8 @@
                               !filterVal.includes('entraîn') && 
                               !filterVal.includes('tournoi') && 
                               !filterVal.includes('plateau');
+                } else {
+                    matches = filterVal.includes(activeFilterValue);
                 }
                 card.style.display = matches ? '' : 'none';
             });
