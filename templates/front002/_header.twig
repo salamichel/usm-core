@@ -70,33 +70,62 @@
       </ul>
     </nav>
 
-    <div class="ml-auto flex items-center gap-3">
+    {# ── Actions desktop (connexion / compte) ─────────────────────────── #}
+    <div class="header-actions">
       {% if app.session.user_name is defined %}
-        <div class="relative">
-          <button class="btn-secondary" id="member-menu-toggle">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.59 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <div class="header-user-dropdown" id="header-user-wrapper">
+          <button class="btn-secondary header-user-btn" id="member-menu-toggle"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="member-menu">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.59 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
             <span class="hidden sm:inline">{{ app.session.user_name }}</span>
+            <svg class="w-3.5 h-3.5 header-user-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
           </button>
-          <div class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg hidden" id="member-menu">
-            <a href="{{ url('member/dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mon espace</a>
-            <form action="{{ url('member/logout') }}" method="POST" class="px-4 py-2">
+          <div class="header-user-menu" id="member-menu" role="menu" aria-hidden="true">
+            <a href="{{ url('member/dashboard') }}" class="header-user-menu-item" role="menuitem">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              Mon espace
+            </a>
+            <div class="header-user-divider" role="separator"></div>
+            <form action="{{ url('member/logout') }}" method="POST">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="w-full text-left text-sm text-red-600">Se déconnecter</button>
+              <button type="submit" class="header-user-menu-item header-user-menu-danger" role="menuitem">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Se déconnecter
+              </button>
             </form>
           </div>
         </div>
       {% else %}
-        <a href="{{ url('member/login') }}" class="btn-secondary">Se connecter</a>
+        <a href="{{ url('member/login') }}" class="btn-login-header">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+          <span class="hidden sm:inline">Se connecter</span>
+          <span class="sm:hidden" aria-label="Se connecter"></span>
+        </a>
       {% endif %}
     </div>
 
+    {# ── Burger mobile ────────────────────────────────────────────────── #}
     <button id="mobile-menu-toggle"
-            class="md:hidden ml-auto p-2 rounded-md border transition focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            class="md:hidden burger-btn"
             aria-label="Ouvrir le menu"
             aria-expanded="false"
             aria-controls="mobile-menu">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <svg class="icon-burger" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+      <svg class="icon-close" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
       </svg>
     </button>
   </div>
