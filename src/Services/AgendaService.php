@@ -748,6 +748,7 @@ class AgendaService
             'id'                          => $id,
             'type'                        => $type,
             'titre'                       => $titre,
+            'date'                        => $date->format('Y-m-d') ?? null,
             'date_display'                => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_range'                  => $timeRange,
             'time_display'                => $timeDisplay,

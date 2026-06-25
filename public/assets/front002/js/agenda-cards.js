@@ -362,21 +362,46 @@
     const frenchDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
     let isSliderScrolling = false;
     let sliderScrollTimeout;
+
+    // Fonctions d'aide pour gérer les dates en local (évite les décalages de fuseau horaire)
+    function parseLocalDate(dateStr) {
+        if (!dateStr) return new Date();
+        const parts = dateStr.split('-');
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+
+    function formatLocalDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     const observerOptions = {
         root: null,
-        rootMargin: '-15% 0px -50% 0px',
-        threshold: 0.1
+        threshold: [0, 0.05, 0.1, 0.2, 0.5, 0.8, 1.0]
     };
 
     const scrollObserver = new IntersectionObserver((entries) => {
         if (isSliderScrolling) return;
 
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const dateStr = entry.target.dataset.eventDate;
-                highlightSliderDate(dateStr);
-            }
+        // On cherche la carte visible la plus proche du haut de l'écran (sous le header fixe)
+        const visibleCards = Array.from(document.querySelectorAll('#event-grid > div:not([style*="display: none"])'));
+        const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 76;
+        const sliderHeight = 85; // hauteur approximative du slider de dates
+        const offsetLimit = headerHeight + sliderHeight + 20;
+
+        const intersecting = visibleCards.filter(card => {
+            const rect = card.getBoundingClientRect();
+            // La carte doit avoir dépassé le bas du slider mais ne doit pas être sortie par le bas de l'écran
+            return rect.bottom > offsetLimit && rect.top < window.innerHeight;
         });
+
+        if (intersecting.length > 0) {
+            const topCard = intersecting[0];
+            const dateStr = topCard.dataset.eventDate;
+            highlightSliderDate(dateStr);
+        }
     }, observerOptions);
 
     function buildDateSlider() {
@@ -401,8 +426,8 @@
         dates.sort();
 
         // Récupérer la date minimale et maximale pour créer une frise chronologique
-        const minDate = new Date(dates[0]);
-        const maxDate = new Date(dates[dates.length - 1]);
+        const minDate = parseLocalDate(dates[0]);
+        const maxDate = parseLocalDate(dates[dates.length - 1]);
         const diffTime = Math.abs(maxDate - minDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
@@ -412,7 +437,7 @@
         for (let i = 0; i < totalSliderDays; i++) {
             const d = new Date(minDate);
             d.setDate(minDate.getDate() + i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = formatLocalDate(d);
 
             const hasEvents = document.querySelectorAll(`#event-grid > div[data-event-date="${dateStr}"]:not([style*="display: none"])`).length > 0;
             const dayNum = d.getDate();
@@ -463,18 +488,20 @@
 
             if (itemDate === dateStr && isClickable) {
                 item.className = 'flex flex-col items-center justify-center min-w-[3.25rem] py-2.5 rounded-2xl bg-[var(--primary)] text-white shadow-md font-bold transition-all transform scale-105 select-none';
+                const parsedDate = parseLocalDate(itemDate);
                 item.innerHTML = `
-                    <span class="text-[9px] text-white/80 font-bold uppercase tracking-wider">${frenchDays[new Date(itemDate).getDay()]}</span>
-                    <span class="text-sm font-black mt-0.5">${new Date(itemDate).getDate()}</span>
+                    <span class="text-[9px] text-white/80 font-bold uppercase tracking-wider">${frenchDays[parsedDate.getDay()]}</span>
+                    <span class="text-sm font-black mt-0.5">${parsedDate.getDate()}</span>
                     <span class="w-1.5 h-1.5 rounded-full bg-white mt-1.5"></span>
                 `;
                 // Centrer l'élément dans le conteneur scrollable
                 item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             } else if (isClickable) {
                 item.className = 'flex flex-col items-center justify-center min-w-[3.25rem] py-2.5 rounded-2xl text-slate-800 font-extrabold hover:bg-slate-50 transition-all cursor-pointer select-none';
+                const parsedDate = parseLocalDate(itemDate);
                 item.innerHTML = `
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">${frenchDays[new Date(itemDate).getDay()]}</span>
-                    <span class="text-sm font-black mt-0.5">${new Date(itemDate).getDate()}</span>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">${frenchDays[parsedDate.getDay()]}</span>
+                    <span class="text-sm font-black mt-0.5">${parsedDate.getDate()}</span>
                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--primary)] mt-1.5"></span>
                 `;
             }
@@ -487,7 +514,14 @@
             isSliderScrolling = true;
             clearTimeout(sliderScrollTimeout);
 
-            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Scroll offset pour atterrir juste sous le slider et header fixes
+            const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 76;
+            const sliderHeight = 85;
+            const yOffset = -(headerHeight + sliderHeight - 10);
+            
+            const y = targetCard.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            
             highlightSliderDate(dateStr);
 
             sliderScrollTimeout = setTimeout(() => {
