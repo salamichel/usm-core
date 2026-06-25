@@ -102,9 +102,6 @@ class App
         $r->post('/member/login', [joueurAuthController::class, 'login']);
         $r->post('/member/logout', [joueurAuthController::class, 'logout']);
 
-        // Espace Adhérent : Participations
-        $r->get('/member/participations/update', [ParticipationController::class, 'updateForm']);
-        $r->post('/member/participations/update', [ParticipationController::class, 'store']);
         $r->get('/member/dashboard', [joueurDashboardController::class, 'index']);        
         $r->get('/member/profile', [ProfileController::class, 'show']);
         $r->post('/member/profile', [ProfileController::class, 'update']);

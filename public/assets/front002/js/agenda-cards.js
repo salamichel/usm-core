@@ -381,6 +381,9 @@
 
         // Initialisation du slider et des observateurs
         buildDateSlider();
+        
+        // Initialisation des filtres du tableau de bord adhérent
+        initDashboardFilters();
     });
 
     // GESTION DU SLIDER DE DATES HORIZONTAL
@@ -553,6 +556,202 @@
                 isSliderScrolling = false;
             }, 800);
         }
+    }
+
+    // ==========================================
+    // 5. FILTRES DU TABLEAU DE BORD (Dashboard)
+    // ==========================================
+    let activeFilterType = null;
+    let activeFilterValue = null;
+
+    function getWeekRange(offsetWeeks = 0) {
+        const today = new Date();
+        let day = today.getDay();
+        if (day === 0) day = 7; // Sunday is day 7
+        
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - (day - 1) + (offsetWeeks * 7));
+        monday.setHours(0, 0, 0, 0);
+        
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+        
+        return { start: monday, end: sunday };
+    }
+
+    function applyDashboardFilters() {
+        const cards = document.querySelectorAll('#event-grid > div[data-manifestation-id]');
+        const labelSpan = document.getElementById('active-filter-label');
+        const resetBtn = document.getElementById('reset-dashboard-filters');
+        
+        // Nettoyer les surbrillances
+        document.querySelectorAll('[data-kpi-filter]').forEach(el => {
+            el.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50/10');
+        });
+        document.querySelectorAll('[data-type-filter]').forEach(el => {
+            el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+        });
+        document.querySelectorAll('[data-lieu-filter]').forEach(el => {
+            el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+        });
+        
+        if (!activeFilterType) {
+            cards.forEach(card => card.style.display = '');
+            if (labelSpan) labelSpan.textContent = '';
+            if (resetBtn) resetBtn.classList.add('hidden');
+            
+            // Retirer le placeholder si présent
+            const placeholder = document.getElementById('no-filter-events-placeholder');
+            if (placeholder) placeholder.remove();
+            
+            return;
+        }
+        
+        if (resetBtn) resetBtn.classList.remove('hidden');
+        
+        // Appliquer la surbrillance sur les éléments actifs
+        if (activeFilterType === 'kpi') {
+            const el = document.querySelector(`[data-kpi-filter="${activeFilterValue}"]`);
+            if (el) el.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50/10');
+            
+            let label = '';
+            if (activeFilterValue === 'this-week') label = 'Cette semaine';
+            else if (activeFilterValue === 'next-week') label = 'Semaine prochaine';
+            else if (activeFilterValue === 'action-required') label = 'À répondre';
+            if (labelSpan) labelSpan.textContent = ` (Filtre : ${label})`;
+            
+            const thisWeekRange = getWeekRange(0);
+            const nextWeekRange = getWeekRange(1);
+            
+            cards.forEach(card => {
+                const dateStr = card.dataset.eventDate;
+                const eventDate = new Date(dateStr + 'T00:00:00');
+                const status = card.dataset.currentStatus || '.';
+                
+                let matches = false;
+                if (activeFilterValue === 'this-week') {
+                    matches = eventDate >= thisWeekRange.start && eventDate <= thisWeekRange.end;
+                } else if (activeFilterValue === 'next-week') {
+                    matches = eventDate >= nextWeekRange.start && eventDate <= nextWeekRange.end;
+                } else if (activeFilterValue === 'action-required') {
+                    matches = !status || status === '.' || status === 'Ne sait pas encore';
+                }
+                card.style.display = matches ? '' : 'none';
+            });
+        } else if (activeFilterType === 'type') {
+            document.querySelectorAll(`[data-type-filter="${activeFilterValue}"]`).forEach(el => {
+                el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+            });
+            
+            let label = activeFilterValue.charAt(0).toUpperCase() + activeFilterValue.slice(1);
+            if (activeFilterValue === 'entrainement') label = 'Entraînements';
+            else if (activeFilterValue === 'match') label = 'Matchs';
+            else if (activeFilterValue === 'tournois') label = 'Tournois / Plateaux';
+            else if (activeFilterValue === 'others') label = 'Autres';
+            if (labelSpan) labelSpan.textContent = ` (Filtre : ${label})`;
+            
+            cards.forEach(card => {
+                const filterVal = card.dataset.eventFilter || '';
+                let matches = false;
+                if (activeFilterValue === 'match') {
+                    matches = filterVal === 'match';
+                } else if (activeFilterValue === 'entrainement') {
+                    matches = filterVal.includes('entrain') || filterVal.includes('entraîn');
+                } else if (activeFilterValue === 'tournois') {
+                    matches = filterVal.includes('tournoi') || filterVal.includes('plateau');
+                } else if (activeFilterValue === 'others') {
+                    matches = filterVal !== 'match' && 
+                              !filterVal.includes('entrain') && 
+                              !filterVal.includes('entraîn') && 
+                              !filterVal.includes('tournoi') && 
+                              !filterVal.includes('plateau');
+                }
+                card.style.display = matches ? '' : 'none';
+            });
+        } else if (activeFilterType === 'lieu') {
+            document.querySelectorAll(`[data-lieu-filter="${activeFilterValue}"]`).forEach(el => {
+                el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+            });
+            
+            if (labelSpan) labelSpan.textContent = ` (Filtre : ${activeFilterValue})`;
+            
+            cards.forEach(card => {
+                const cardLieu = (card.dataset.eventLocation || '').trim().toLowerCase();
+                const filterLieu = activeFilterValue.trim().toLowerCase();
+                card.style.display = cardLieu === filterLieu ? '' : 'none';
+            });
+        }
+        
+        // Gérer le placeholder si aucun résultat
+        const visibleCards = Array.from(cards).filter(c => c.style.display !== 'none');
+        let placeholder = document.getElementById('no-filter-events-placeholder');
+        if (visibleCards.length === 0) {
+            if (!placeholder) {
+                placeholder = document.createElement('div');
+                placeholder.id = 'no-filter-events-placeholder';
+                placeholder.className = 'p-8 text-center bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm w-full';
+                placeholder.textContent = 'Aucun événement ne correspond à ce filtre.';
+                const grid = document.getElementById('event-grid');
+                if (grid) grid.appendChild(placeholder);
+            }
+        } else {
+            if (placeholder) placeholder.remove();
+        }
+    }
+
+    function initDashboardFilters() {
+        // Enregistrer les écouteurs de clics sur les KPIs
+        document.querySelectorAll('[data-kpi-filter]').forEach(el => {
+            el.addEventListener('click', () => {
+                const val = el.dataset.kpiFilter;
+                if (activeFilterType === 'kpi' && activeFilterValue === val) {
+                    activeFilterType = null;
+                    activeFilterValue = null;
+                } else {
+                    activeFilterType = 'kpi';
+                    activeFilterValue = val;
+                }
+                applyDashboardFilters();
+            });
+        });
+
+        // Enregistrer les écouteurs sur les types d'événements
+        document.querySelectorAll('[data-type-filter]').forEach(el => {
+            el.addEventListener('click', () => {
+                const val = el.dataset.typeFilter;
+                if (activeFilterType === 'type' && activeFilterValue === val) {
+                    activeFilterType = null;
+                    activeFilterValue = null;
+                } else {
+                    activeFilterType = 'type';
+                    activeFilterValue = val;
+                }
+                applyDashboardFilters();
+            });
+        });
+
+        // Enregistrer les écouteurs sur les lieux
+        document.querySelectorAll('[data-lieu-filter]').forEach(el => {
+            el.addEventListener('click', () => {
+                const val = el.dataset.lieuFilter;
+                if (activeFilterType === 'lieu' && activeFilterValue === val) {
+                    activeFilterType = null;
+                    activeFilterValue = null;
+                } else {
+                    activeFilterType = 'lieu';
+                    activeFilterValue = val;
+                }
+                applyDashboardFilters();
+            });
+        });
+
+        // Bouton réinitialiser
+        document.getElementById('reset-dashboard-filters')?.addEventListener('click', () => {
+            activeFilterType = null;
+            activeFilterValue = null;
+            applyDashboardFilters();
+        });
     }
 
 })();

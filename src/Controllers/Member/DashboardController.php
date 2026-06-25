@@ -22,7 +22,7 @@ class DashboardController
         $userId = (int) $_SESSION['LogInId'];
 
         $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
-        $imminentEvents = \App\Services\MemberDashboardService::getImminentEvents($userId, 10);
+        $imminentEvents = \App\Services\MemberDashboardService::getImminentEvents($userId, 100);
         $stats = \App\Services\MemberDashboardService::getSeasonStats($userId);
 
         View::render('member/dashboard.twig', [
