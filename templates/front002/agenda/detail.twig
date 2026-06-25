@@ -88,82 +88,90 @@
       </div>
 
       {# Stats des Participations #}
-      {% set part = event.participation_stats %}
       <div class="pt-2">
         <h2 class="font-serif text-2xl font-semibold text-slate-900 mb-6">Disponibilités des joueurs</h2>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div class="rounded-md border border-emerald-200 bg-emerald-50 p-4">
-            <div class="font-serif text-3xl font-semibold text-emerald-700">{{ part.present }}</div>
-            <div class="text-xs uppercase tracking-wider text-emerald-700 font-medium mt-1">Présents</div>
-          </div>
-          <div class="rounded-md border border-sky-200 bg-sky-50 p-4">
-            <div class="font-serif text-3xl font-semibold text-sky-700">{{ part.available }}</div>
-            <div class="text-xs uppercase tracking-wider text-sky-700 font-medium mt-1">Disponibles</div>
-          </div>
-          <div class="rounded-md border border-amber-200 bg-amber-50 p-4">
-            <div class="font-serif text-3xl font-semibold text-amber-700">{{ part.selected }}</div>
-            <div class="text-xs uppercase tracking-wider text-amber-700 font-medium mt-1">Sélectionnés</div>
-          </div>
-          <div class="rounded-md border border-rose-200 bg-rose-50 p-4">
-            <div class="font-serif text-3xl font-semibold text-rose-700">{{ part.unavailable }}</div>
-            <div class="text-xs uppercase tracking-wider text-rose-700 font-medium mt-1">Indisponibles</div>
-          </div>
+        <div class="grid grid-cols-2 {% if event.is_match %}md:grid-cols-4{% else %}md:grid-cols-3{% endif %} gap-4 mb-6">
+          {% if event.is_match %}
+            {# Match metrics #}
+            <div class="rounded-md border border-amber-200 bg-amber-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-amber-700">{{ event.nb_selection }}</div>
+              <div class="text-xs uppercase tracking-wider text-amber-700 font-medium mt-1">Sélectionnés</div>
+            </div>
+            <div class="rounded-md border border-emerald-200 bg-emerald-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-emerald-700">{{ event.nb_disponible }}</div>
+              <div class="text-xs uppercase tracking-wider text-emerald-700 font-medium mt-1">Disponibles</div>
+            </div>
+            <div class="rounded-md border border-sky-200 bg-sky-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-sky-700">{{ event.nb_disponible_si_necessaire }}</div>
+              <div class="text-xs uppercase tracking-wider text-sky-700 font-medium mt-1">Si besoin</div>
+            </div>
+            <div class="rounded-md border border-rose-200 bg-rose-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-rose-700">{{ event.nb_indisponible }}</div>
+              <div class="text-xs uppercase tracking-wider text-rose-700 font-medium mt-1">Indisponibles</div>
+            </div>
+          {% else %}
+            {# Training / Other metrics #}
+            <div class="rounded-md border border-emerald-200 bg-emerald-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-emerald-700">{{ event.nb_present }}</div>
+              <div class="text-xs uppercase tracking-wider text-emerald-700 font-medium mt-1">Présents</div>
+            </div>
+            <div class="rounded-md border border-rose-200 bg-rose-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-rose-700">{{ event.nb_absent }}</div>
+              <div class="text-xs uppercase tracking-wider text-rose-700 font-medium mt-1">Absents</div>
+            </div>
+            <div class="rounded-md border border-slate-200 bg-slate-50 p-4">
+              <div class="font-serif text-3xl font-semibold text-slate-700">{{ event.nb_pas_de_reponse }}</div>
+              <div class="text-xs uppercase tracking-wider text-slate-700 font-medium mt-1">Sans réponse</div>
+            </div>
+          {% endif %}
         </div>
 
-        {% set total_committed = part.present + part.available + part.selected %}
-        {% if part.enough_players %}
-          <div class="rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 px-4 py-3 font-medium mb-6">
-            ✓ Équipe complète — {{ total_committed }} joueurs engagés (≥ 6 requis)
-          </div>
+        {% if event.is_match %}
+          {% set total_committed = event.nb_present + event.nb_disponible + event.nb_selection %}
+          {% if total_committed >= 6 %}
+            <div class="rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 px-4 py-3 font-medium mb-6">
+              ✓ Équipe complète — {{ total_committed }} joueurs engagés (≥ 6 requis)
+            </div>
+          {% else %}
+            <div class="rounded-md border border-rose-200 bg-rose-50 text-rose-800 px-4 py-3 font-medium mb-6">
+              ⚠ Sous-effectif — {{ total_committed }} joueurs engagés (6 requis)
+            </div>
+          {% endif %}
         {% else %}
-          <div class="rounded-md border border-rose-200 bg-rose-50 text-rose-800 px-4 py-3 font-medium mb-6">
-            ⚠ Sous-effectif — {{ total_committed }} joueurs engagés (6 requis)
-          </div>
+          {% set total_presents = event.nb_present %}
+          {% if total_presents >= 12 %}
+            <div class="rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 px-4 py-3 font-medium mb-6">
+              ✓ Effectif suffisant — {{ total_presents }} joueurs présents (≥ 12 requis)
+            </div>
+          {% else %}
+            <div class="rounded-md border border-rose-200 bg-rose-50 text-rose-800 px-4 py-3 font-medium mb-6">
+              ⚠ Effectif insuffisant — {{ total_presents }} joueurs présents (12 requis pour un bon entraînement)
+            </div>
+          {% endif %}
         {% endif %}
 
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse text-sm">
-            <thead>
-              <tr class="bg-slate-50 border-b border-slate-200">
-                <th class="px-4 py-3 text-left text-xs uppercase tracking-wider font-semibold text-slate-600">Statut</th>
-                <th class="px-4 py-3 text-right text-xs uppercase tracking-wider font-semibold text-slate-600">Nombre</th>
-                <th class="px-4 py-3 text-center text-xs uppercase tracking-wider font-semibold text-slate-600">Pourcentage</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="border-b border-slate-100">
-                <td class="px-4 py-3 text-slate-700">✓ Présents</td>
-                <td class="px-4 py-3 text-right font-semibold text-slate-900">{{ part.present }}</td>
-                <td class="px-4 py-3 text-center text-slate-600">{% if part.total_responses > 0 %}{{ (part.present / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
-              </tr>
-              <tr class="border-b border-slate-100 bg-sky-50/50">
-                <td class="px-4 py-3 text-slate-700">◐ Disponibles</td>
-                <td class="px-4 py-3 text-right font-semibold text-slate-900">{{ part.available }}</td>
-                <td class="px-4 py-3 text-center text-slate-600">{% if part.total_responses > 0 %}{{ (part.available / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
-              </tr>
-              <tr class="border-b border-slate-100 bg-amber-50/50">
-                <td class="px-4 py-3 text-slate-700">★ Sélectionnés</td>
-                <td class="px-4 py-3 text-right font-semibold text-slate-900">{{ part.selected }}</td>
-                <td class="px-4 py-3 text-center text-slate-600">{% if part.total_responses > 0 %}{{ (part.selected / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
-              </tr>
-              <tr class="border-b border-slate-100 bg-rose-50/50">
-                <td class="px-4 py-3 text-slate-700">✗ Indisponibles</td>
-                <td class="px-4 py-3 text-right font-semibold text-slate-900">{{ part.unavailable }}</td>
-                <td class="px-4 py-3 text-center text-slate-600">{% if part.total_responses > 0 %}{{ (part.unavailable / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
-              </tr>
-              <tr class="border-b border-slate-100">
-                <td class="px-4 py-3 text-slate-700">✘ Absents</td>
-                <td class="px-4 py-3 text-right font-semibold text-slate-900">{{ part.absent }}</td>
-                <td class="px-4 py-3 text-center text-slate-600">{% if part.total_responses > 0 %}{{ (part.absent / part.total_responses * 100)|round(0) }}{% else %}0{% endif %}%</td>
-              </tr>
-              <tr class="bg-slate-50 font-semibold">
-                <td class="px-4 py-3 text-slate-900">Total avec réponse</td>
-                <td class="px-4 py-3 text-right text-slate-900">{{ part.total_responses }}</td>
-                <td class="px-4 py-3 text-center text-slate-700">100%</td>
-              </tr>
-            </tbody>
-          </table>
+        <h3 class="font-serif text-xl font-semibold text-slate-900 mb-4 mt-8">Répartition des joueurs</h3>
+        <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-3{% endif %} gap-6">
+          {% if event.is_match %}
+            {# 1. Sélectionnés #}
+            {{ _self.render_status_list('Sélectionnés', event.selectionnes, 'border-amber-200 text-amber-800', 'bg-amber-500', event.nb_selection) }}
+            {# 2. Disponibles #}
+            {{ _self.render_status_list('Disponibles', event.disponibles, 'border-emerald-200 text-emerald-800', 'bg-emerald-500', event.nb_disponible) }}
+            {# 3. Disponible si besoin #}
+            {{ _self.render_status_list('Si besoin', event.disponibles_si_necessaire, 'border-sky-200 text-sky-800', 'bg-sky-500', event.nb_disponible_si_necessaire) }}
+            {# 4. Indisponibles #}
+            {{ _self.render_status_list('Indisponibles', event.indisponibles, 'border-rose-200 text-rose-800', 'bg-rose-500', event.nb_indisponible) }}
+            {# 5. Sans réponse #}
+            {{ _self.render_status_list('Sans réponse', event.pas_de_reponse, 'border-slate-200 text-slate-800', 'bg-slate-400', event.nb_pas_de_reponse) }}
+          {% else %}
+            {# 1. Présents #}
+            {{ _self.render_status_list('Présents', event.presents, 'border-emerald-200 text-emerald-800', 'bg-emerald-500', event.nb_present) }}
+            {# 2. Absents #}
+            {{ _self.render_status_list('Absents', event.absents, 'border-rose-200 text-rose-800', 'bg-rose-500', event.nb_absent) }}
+            {# 3. Sans réponse #}
+            {{ _self.render_status_list('Sans réponse', event.pas_de_reponse, 'border-slate-200 text-slate-800', 'bg-slate-400', event.nb_pas_de_reponse) }}
+          {% endif %}
         </div>
       </div>
     </div>
@@ -175,3 +183,29 @@
   </div>
 </div>
 {% endblock %}
+
+{% macro render_status_list(label, players, card_classes, dot_color, count) %}
+  <div class="rounded-2xl border p-5 flex flex-col h-full bg-white shadow-sm {{ card_classes|default('border-slate-100') }}">
+    <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+      <h4 class="font-bold text-sm uppercase tracking-wider text-slate-700 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full {{ dot_color }}"></span>
+        {{ label }}
+      </h4>
+      <span class="px-2 py-0.5 rounded-full text-xs font-black bg-slate-50 border border-slate-100 text-slate-600">{{ count|default(0) }}</span>
+    </div>
+    <div class="flex-grow">
+      {% if players is empty %}
+        <p class="text-xs text-slate-400 italic py-2">Aucun joueur</p>
+      {% else %}
+        <div class="flex flex-wrap gap-2">
+          {% for p in players %}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200 text-slate-700" title="{{ p.nom }}">
+              <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span>
+              {{ p.nom }}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}

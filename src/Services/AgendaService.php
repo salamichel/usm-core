@@ -20,6 +20,29 @@ class AgendaService
         'Fri' => 'Ven', 'Sat' => 'Sam', 'Sun' => 'Dim',
     ];
 
+    private static ?array $allPlayersCache = null;
+
+    private static function getAllPlayers(): array
+    {
+        if (self::$allPlayersCache === null) {
+            self::$allPlayersCache = [];
+            try {
+                $db = ExternalDatabase::get();
+                if ($db) {
+                    $stmt = $db->query("SELECT id_joueur, Nom, `Prénom` FROM Joueurs WHERE id_joueur > 0 ORDER BY Nom");
+                    if ($stmt) {
+                        while ($row = $stmt->fetch()) {
+                            self::$allPlayersCache[(int) $row['id_joueur']] = $row['Nom'] . ' ' . $row['Prénom'];
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                error_log('getAllPlayers failed: ' . $e->getMessage());
+            }
+        }
+        return self::$allPlayersCache;
+    }
+
     /**
      * Get upcoming matches (events with "Match" type).
      *
@@ -303,7 +326,7 @@ class AgendaService
             return null;
         }
 
-        return $row ? self::buildEventWithId($row) : null;
+        return $row ? self::normalizeManifestation($row) : null;
     }
 
     /**
@@ -742,16 +765,22 @@ class AgendaService
         $timeDisplay = ($date && $date->format('H:i') !== '00:00') ? $date->format('H:i') : '';
 
         $statut = $row['Statut'] ?? '';
+        $today = new \DateTimeImmutable('today');
+        $isSoon = $date && $date->diff($today)->days <= 3 && $date >= $today;
 
         $manifestation = [
             'id_manifestation'            => $id,
             'id'                          => $id,
             'type'                        => $type,
             'titre'                       => $titre,
-            'date'                        => $date->format('Y-m-d') ?? null,
+            'title'                       => $titre,
+            'date'                        => $date ? $date->format('Y-m-d') : null,
             'date_display'                => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_range'                  => $timeRange,
             'time_display'                => $timeDisplay,
+            'duration'                    => $row['Durée_créneau'] ?? null,
+            'nb_courts'                   => (int) ($row['Nombre_terrain'] ?? 0),
+            'nb_terrains'                 => (int) ($row['Nombre_terrain'] ?? 0),
             'location'                    => $row['Lieu'] ?? null,
             'lieu'                        => $row['Lieu'] ?? null,
             'comment'                     => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
@@ -760,7 +789,7 @@ class AgendaService
             'statut'                      => $statut,
             'annule'                      => str_contains($statut, 'Annulé'),
             'provisoire'                  => str_contains($statut, 'Provisoire'),
-            'nb_terrains'                 => (int) ($row['Nombre_terrain'] ?? 0),
+            'is_soon'                     => $isSoon,
             'nb_present'                  => 0,
             'nb_absent'                   => 0,
             'nb_disponible'               => 0,
@@ -796,6 +825,7 @@ class AgendaService
                 $stmt->execute([$id]);
                 $rows = $stmt->fetchAll();
 
+                $respondedJoueurIds = [];
                 foreach ($rows as $pRow) {
                     $rawStatus = trim((string)($pRow['Participation'] ?? ''));
                     if ($rawStatus === '') {
@@ -807,7 +837,17 @@ class AgendaService
                     $nomJoueur = $pRow['Nom'] . ' ' . $pRow['Prénom'];
 
                     self::updateManifestationStats($manifestation, $status, $jid, $nomJoueur, $rawStatus);
+                    $respondedJoueurIds[] = $jid;
                 }
+
+                // Remplir le tableau pas_de_reponse
+                $allPlayers = self::getAllPlayers();
+                foreach ($allPlayers as $jid => $nom) {
+                    if (!in_array($jid, $respondedJoueurIds, true)) {
+                        $manifestation['pas_de_reponse'][] = ['id' => $jid, 'nom' => $nom];
+                    }
+                }
+                $manifestation['nb_pas_de_reponse'] = count($manifestation['pas_de_reponse']);
             }
         } catch (\Throwable $e) {
             error_log('normalizeManifestation participation loading failed: ' . $e->getMessage());
