@@ -117,7 +117,7 @@
                         <span class="text-[9px] font-black text-slate-400 tracking-wider uppercase">Membres</span>
                         <div class="flex items-center mt-1.5 avatar-stack">
                             {% set list_players = m.is_match ? (m.selectionnes|merge(m.disponibles)|merge(m.disponibles_si_necessaire)) : m.presents %}
-                            {% set max_avatars = 24 %}
+                            {% set max_avatars = 5 %}
                             
                             {% for p in list_players|slice(0, max_avatars) %}
                                 {% set parts = p.nom|split(' ') %}
