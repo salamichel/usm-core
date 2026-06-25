@@ -2,95 +2,85 @@
 {% block title %}Agenda USM Volley — Mode Cartes{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-50/60 py-8 px-4 md:py-12">
-    <div class="max-w-xl md:max-w-5xl mx-auto bg-white shadow-xl rounded-[32px] flex flex-col relative">
-
-        {# En-tête Moderne (couleurs du thème actuel) #}
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-6 pt-8 pb-10 text-white relative rounded-t-[32px]">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Saison {{ saison_active }}</span>
-                
-                {# Sélecteur de vue (Boutons Pilules) #}
-                <div class="flex items-center bg-white/10 p-0.5 rounded-full border border-white/5 text-xs">
-                    <a href="{{ url('agenda?view=table') }}" class="px-3 py-1 rounded-full font-semibold text-slate-300 hover:text-white transition flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        Liste
-                    </a>
-                    <a href="{{ url('agenda?view=cards') }}" class="px-3 py-1 rounded-full bg-white text-slate-900 font-bold shadow-sm transition flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                        Cartes
-                    </a>
-                </div>
-            </div>
-
-            <div class="flex items-baseline gap-2 mt-4">
-                <h1 class="text-3xl font-extrabold tracking-tight text-white">Événements</h1>
-                <span class="text-xl font-light text-white/40">/</span>
-                <span class="text-xl font-medium text-white/50">à venir</span>
-            </div>
-
-            {# Barre de recherche & Filtre #}
-            <div class="flex items-center gap-3 mt-6">
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/40">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </span>
-                    <input type="text" id="agenda-search" placeholder="Rechercher un événement, lieu..." class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white/10 text-white placeholder-white/40 border border-white/5 focus:outline-none focus:ring-2 focus:ring-white/20 text-sm transition-all">
-                </div>
-                <button id="toggle-filters-btn" class="w-10 h-10 rounded-2xl bg-[var(--primary)] text-white flex items-center justify-center hover:bg-[var(--primary)]/90 transition-all border border-white/10 shadow-md" title="Afficher les filtres">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                </button>
-            </div>
-        </div>
-
-        {# ZONE DE FILTRES COLLAPSIBLE #}
-        <div id="collapsible-filters" class="hidden border-b border-slate-100 bg-slate-50/50">
-            {% include 'agenda/filters.twig' %}
-        </div>
-
-        {# Conteneur principal blanc (coins arrondis chevauchant l'en-tête) #}
-        <div class="bg-white rounded-t-[32px] -mt-6 relative z-10 flex-1 flex flex-col">
-            
-            {# Slider horizontal de dates #}
-            <div id="date-slider" class="flex gap-3 overflow-x-auto no-scrollbar py-5 px-6 border-b border-slate-100 bg-white sticky z-20 shadow-sm" style="top: var(--header-h);">
-                {# Généré dynamiquement en JS #}
-            </div>
-
-            {% if manifestations is empty %}
-                <div class="text-center py-20 px-6 my-8">
-                    <svg class="w-16 h-16 text-slate-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    <p class="text-lg font-bold text-slate-700">Aucun événement à venir</p>
-                    <p class="text-sm text-slate-500 mt-2">Revenez plus tard ou modifiez vos filtres.</p>
-                </div>
-            {% else %}
-                
-                {# Liste verticale de cartes d'événements #}
-                <div class="space-y-6 p-6 flex-grow" id="event-grid" 
-                     data-logged-in-user-id="{{ currentUserId|default(0) }}" 
-                     data-logged-in-user-name="{{ currentUserName|default('') }}">
-                    {% for m in manifestations %}
-                        {% include "agenda/_event_card.twig" with {
-                            'm': m, 
-                            'allow_actions': app.session.LogIn is defined and app.session.LogIn, 
-                            'show_link': true,
-                            'is_first': loop.first
-                        } %}
-                    {% endfor %}
-                </div>
-
-            {% endif %}
-        </div>
-
-        {# Petit bouton retour à l'accueil #}
-        <div class="py-6 text-center border-t border-slate-50 bg-slate-50/50 rounded-b-[32px]">
-            <a href="/" class="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-bold text-slate-600 hover:text-[var(--primary)] hover:border-slate-300 transition-all">
-                <svg class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Retour à l'accueil
-            </a>
-        </div>
-
+<div class="max-w-6xl mx-auto px-6 py-16">
+    {# En-tête de page #}
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10 border-b border-slate-200 pb-8">
+      <div>
+          <span class="text-sm font-semibold text-[var(--primary)] uppercase tracking-wider">Saison {{ saison_active }}</span>
+          <h1 class="text-4xl font-extrabold text-slate-950 tracking-tight mt-1">Agenda du club</h1>
+      </div>
+      
+      {# Toolbar / Sélecteur de vue épuré #}
+      <div class="flex items-center gap-1 bg-white p-1 rounded-full border border-slate-200 shadow-sm">
+          <a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-sm rounded-full font-medium text-slate-600 hover:text-[var(--primary)] transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              Liste
+          </a>
+          <a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-sm rounded-full bg-[var(--primary)] text-white font-semibold shadow transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              Cartes
+          </a>
+      </div>
     </div>
-</div>
+
+    {# Toolbar: Recherche & Filtres #}
+    <div class="card p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-1 items-center gap-3">
+            <div class="relative flex-1 max-w-md">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+                <input type="text" id="agenda-search" placeholder="Rechercher un événement, lieu..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white text-sm transition-all">
+            </div>
+            <button id="toggle-filters-btn" class="px-4 py-2 rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-all border border-transparent shadow-sm text-sm font-semibold flex items-center gap-2 cursor-pointer" title="Afficher les filtres">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                Filtres
+            </button>
+        </div>
+    </div>
+
+    {# ZONE DE FILTRES COLLAPSIBLE #}
+    <div id="collapsible-filters" class="hidden mb-6">
+        {% include 'agenda/filters.twig' %}
+    </div>
+
+    {# Conteneur principal #}
+    <div class="card overflow-hidden flex flex-col relative z-10 mb-8">
+        
+        {# Slider horizontal de dates #}
+        <div id="date-slider" class="flex gap-3 overflow-x-auto no-scrollbar py-5 px-6 border-b border-slate-100 bg-white sticky z-20 shadow-sm" style="z-index: 900;">
+            {# Généré dynamiquement en JS #}
+        </div>
+
+        {% if manifestations is empty %}
+            <div class="text-center py-20 px-6 my-8">
+                <svg class="w-16 h-16 text-slate-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <p class="text-lg font-bold text-slate-700">Aucun événement à venir</p>
+                <p class="text-sm text-slate-500 mt-2">Revenez plus tard ou modifiez vos filtres.</p>
+            </div>
+        {% else %}
+            
+            {# Liste verticale de cartes d'événements #}
+            <div class="space-y-6 p-6 flex-grow" id="event-grid" 
+                 data-logged-in-user-id="{{ currentUserId|default(0) }}" 
+                 data-logged-in-user-name="{{ currentUserName|default('') }}">
+                {% for m in manifestations %}
+                    {% include "agenda/_event_card.twig" with {
+                        'm': m, 
+                        'allow_actions': app.session.LogIn is defined and app.session.LogIn, 
+                        'show_link': true,
+                        'is_first': loop.first
+                    } %}
+                {% endfor %}
+            </div>
+
+        {% endif %}
+    </div>
+
+    {# Bouton retour à l'accueil #}
+    <div class="mt-12">
+        <a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
+    </div>
 
 {% include "agenda/_player_modal.twig" %}
 
