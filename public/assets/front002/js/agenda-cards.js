@@ -607,7 +607,7 @@
         
         // Nettoyer les surbrillances
         document.querySelectorAll('[data-kpi-filter]').forEach(el => {
-            el.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50/10');
+            el.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50');
         });
         document.querySelectorAll('[data-type-filter]').forEach(el => {
             el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
@@ -633,7 +633,7 @@
         // Appliquer la surbrillance sur les éléments actifs
         if (activeFilterType === 'kpi') {
             const el = document.querySelector(`[data-kpi-filter="${activeFilterValue}"]`);
-            if (el) el.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50/10');
+            if (el) el.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50');
             
             let label = '';
             if (activeFilterValue === 'this-week') label = 'Cette semaine';
