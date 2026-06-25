@@ -44,13 +44,11 @@
     // 2. GESTION DES CLICS & MISE À JOUR LIVE
     // ==========================================
     document.addEventListener('click', function(e) {
-        // Capter le clic sur le bouton (ou ses icônes enfants)
         const btn = e.target.closest('.status-btn');
         if (!btn) return;
 
         e.preventDefault();
 
-        // Récupérer la carte parente
         const card = btn.closest('[data-manifestation-id]');
         if (!card) return;
 
@@ -58,13 +56,10 @@
         const newStatus = btn.dataset.status;
         const oldStatus = card.dataset.currentStatus || '.';
 
-        // Si on clique sur le statut déjà sélectionné, on annule
         if (newStatus === oldStatus) return;
 
-        // Effet visuel pendant le chargement
         btn.classList.add('opacity-50', 'cursor-wait');
 
-        // Appel AJAX vers votre backend
         fetch('/api/member/participations/upsert', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -75,72 +70,97 @@
             btn.classList.remove('opacity-50', 'cursor-wait');
             
             if (data.ok) {
-                // ==========================================
-                // A. MISE À JOUR DES COMPTEURS (Données Serveur)
-                // ==========================================
-                if (data.counts && typeof data.counts === 'object') {
-                    
-                    // ÉTAPE 1 : Mettre tous les compteurs de la carte à "0"
-                    // (Indispensable car le SQL GROUP BY ne renvoie pas les statuts vides)
-                    card.querySelectorAll('.status-btn').forEach(b => {
-                        const spans = b.querySelectorAll('span');
-                        // S'il y a plus de 1 span, c'est que le 2ème est le chiffre du compteur
-                        if (spans.length > 1) {
-                            spans[1].textContent = '0';
-                        }
-                    });
-
-                    // ÉTAPE 2 : Appliquer les vrais chiffres renvoyés par PHP
-                    Object.entries(data.counts).forEach(([statName, statValue]) => {
-                        const targetBtn = card.querySelector(`[data-status="${statName}"]`);
-                        if (targetBtn) {
-                            const countSpan = targetBtn.querySelectorAll('span')[1];
-                            if (countSpan) {
-                                countSpan.textContent = statValue;
-                            }
-                        }
-                    });
-                }
-
-                // ==========================================
-                // B. MISE À JOUR DES COULEURS & BADGES
-                // ==========================================
-                
-                // Mémoriser le nouveau statut
                 card.dataset.currentStatus = newStatus;
 
-                // Changer la bordure gauche épaisse
-                card.classList.remove('border-l-emerald-500', 'border-l-amber-400', 'border-l-rose-500', 'border-l-slate-400', 'border-l-slate-200');
-                if (['Disponible', 'Présent'].includes(newStatus)) card.classList.add('border-l-emerald-500');
-                else if (newStatus === 'Disponible si nécessaire') card.classList.add('border-l-amber-400');
-                else if (['Indisponible', 'Absent'].includes(newStatus)) card.classList.add('border-l-rose-500');
-                else if (newStatus === 'Ne sait pas encore') card.classList.add('border-l-slate-400');
-                else card.classList.add('border-l-slate-200');
-
-                // Changer le petit badge en haut à gauche
+                // Changer le badge textuel de statut
                 const badge = card.querySelector(`#status-${manifestationId}`);
                 if (badge) {
-                    let icon = '', bgClass = '', textClass = '', borderClass = '';
+                    let icon = '', textClass = '';
                     
                     if (['Disponible', 'Présent'].includes(newStatus)) {
-                        icon = '✓'; bgClass = 'bg-emerald-50'; textClass = 'text-emerald-700'; borderClass = 'border-emerald-200';
+                        icon = '✓'; textClass = 'text-emerald-600';
                     } else if (newStatus === 'Disponible si nécessaire') {
-                        icon = '◐'; bgClass = 'bg-amber-50'; textClass = 'text-amber-700'; borderClass = 'border-amber-200';
+                        icon = '◐'; textClass = 'text-amber-500';
                     } else if (['Indisponible', 'Absent'].includes(newStatus)) {
-                        icon = '✗'; bgClass = 'bg-rose-50'; textClass = 'text-rose-700'; borderClass = 'border-rose-200';
+                        icon = '✗'; textClass = 'text-rose-500';
                     } else if (newStatus === 'Ne sait pas encore') {
-                        icon = '?'; bgClass = 'bg-slate-50'; textClass = 'text-slate-700'; borderClass = 'border-slate-200';
+                        icon = '?'; textClass = 'text-slate-600';
                     } else {
-                        icon = '?'; bgClass = 'bg-slate-50'; textClass = 'text-slate-500'; borderClass = 'border-slate-200';
+                        icon = '?'; textClass = 'text-slate-400';
                     }
 
-                    badge.className = `inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-bold shadow-sm border ${bgClass} ${textClass} ${borderClass}`;
+                    badge.className = `inline-flex items-center text-xs font-black mt-0.5 ${textClass}`;
                     badge.innerHTML = newStatus === '.' 
-                        ? `<span class="mr-1 text-sm">?</span> Non renseigné` 
-                        : `<span class="mr-1 text-sm">${icon}</span> ${newStatus}`;
+                        ? `Non renseigné` 
+                        : `<span class="mr-1 text-xs">${icon}</span> ${newStatus === 'Disponible si nécessaire' ? 'Si besoin' : newStatus}`;
                 }
 
-                // Animation "Pulse" pour confirmer à l'utilisateur que le clic a marché
+                // A. MISE À JOUR DES COMPTEURS & BULLES STATS
+                if (data.counts && typeof data.counts === 'object') {
+                    card.querySelectorAll('[data-status-key]').forEach(bubble => {
+                        const countVal = bubble.querySelector('.count-value');
+                        if (countVal) countVal.textContent = '0';
+                    });
+
+                    Object.entries(data.counts).forEach(([statName, statValue]) => {
+                        const bubble = card.querySelector(`[data-status-key="${statName}"]`);
+                        if (bubble) {
+                            const countVal = bubble.querySelector('.count-value');
+                            if (countVal) countVal.textContent = statValue;
+                        }
+                    });
+                }
+
+                // B. MISE À JOUR DE LA BARRE DE PROGRESSION
+                const progressBar = card.querySelector('.progress-bar');
+                const progressLabel = card.querySelector('.progress-label');
+                if (progressBar && progressLabel) {
+                    const isMatch = card.dataset.eventFilter === 'match';
+                    if (isMatch) {
+                        const totalCount = (data.counts['Présent'] || 0) + (data.counts['Disponible'] || 0) + (data.counts['Disponible si nécessaire'] || 0);
+                        const pct = (totalCount >= 6) ? 100 : (totalCount / 6 * 100);
+                        progressBar.style.width = pct + '%';
+                        
+                        if (totalCount >= 6) {
+                            progressBar.className = 'progress-bar h-full rounded-full transition-all duration-500 bg-gradient-to-r from-emerald-400 to-teal-500';
+                            progressLabel.innerHTML = '<span class="text-emerald-600 flex items-center gap-1">✓ Équipe complète (' + totalCount + ')</span>';
+                        } else {
+                            progressBar.className = 'progress-bar h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-400 to-amber-500';
+                            progressLabel.innerHTML = '<span class="text-orange-500">⚠ Sous-effectif (' + totalCount + '/6)</span>';
+                        }
+                    } else {
+                        const totalPresents = data.counts['Présent'] || 0;
+                        const pct = (totalPresents >= 12) ? 100 : (totalPresents / 12 * 100);
+                        progressBar.style.width = pct + '%';
+                        progressLabel.innerHTML = '<span class="text-indigo-500">' + totalPresents + ' présent(s)</span>';
+                    }
+                }
+
+                // C. MISE À JOUR DES AVATARS EN DIRECT
+                const grid = document.getElementById('event-grid');
+                const currentUserId = parseInt(grid?.dataset.loggedInUserId || 0);
+                const currentUserName = grid?.dataset.loggedInUserName || '';
+
+                if (currentUserId && currentUserName) {
+                    card.querySelectorAll('[data-status-key]').forEach(bubble => {
+                        let players = [];
+                        try {
+                            players = JSON.parse(bubble.dataset.players || '[]');
+                        } catch(e) {}
+                        
+                        players = players.filter(p => p.id !== currentUserId);
+                        
+                        const key = bubble.dataset.statusKey;
+                        if (key === newStatus) {
+                            players.push({id: currentUserId, nom: currentUserName});
+                        }
+                        
+                        bubble.dataset.players = JSON.stringify(players);
+                    });
+                    
+                    rebuildAvatarStack(card);
+                }
+
                 btn.classList.add('animate-pulse');
                 setTimeout(() => btn.classList.remove('animate-pulse'), 500);
 
@@ -155,93 +175,325 @@
         });
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
+    // Reconstruire dynamiquement les avatars empilés d'une carte
+    function rebuildAvatarStack(card) {
+        const isMatch = card.dataset.eventFilter === 'match';
+        let activePlayers = [];
         
-        // Éléments de la modale
-        const modal = document.getElementById('player-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalList = document.getElementById('modal-list');
-        const closeBtn = document.getElementById('close-modal');
-
-        // Fonction pour ouvrir la modale
-        function openModal(title, names, colorClass) {
-            modalTitle.textContent = title;
-            modalList.innerHTML = ''; // On vide la liste
-
-            if (names.length === 0) {
-                modalList.innerHTML = '<li class="text-sm text-slate-400 italic text-center py-6 bg-slate-50 rounded-xl">Aucun joueur dans cette liste.</li>';
+        if (isMatch) {
+            const dispBubble = card.querySelector('[data-status-key="Disponible"]');
+            const sibBubble = card.querySelector('[data-status-key="Disponible si nécessaire"]');
+            
+            const dispPlayers = dispBubble ? JSON.parse(dispBubble.dataset.players || '[]') : [];
+            const sibPlayers = sibBubble ? JSON.parse(sibBubble.dataset.players || '[]') : [];
+            activePlayers = [...dispPlayers, ...sibPlayers];
+        } else {
+            const presBubble = card.querySelector('[data-status-key="Présent"]');
+            const presPlayers = presBubble ? JSON.parse(presBubble.dataset.players || '[]') : [];
+            activePlayers = [...presPlayers];
+        }
+        
+        const stackContainer = card.querySelector('.avatar-stack');
+        if (stackContainer) {
+            stackContainer.innerHTML = '';
+            const maxAvatars = 3;
+            const displayed = activePlayers.slice(0, maxAvatars);
+            
+            displayed.forEach(p => {
+                const parts = p.nom.split(' ');
+                const prenom = parts[parts.length - 1] || p.nom;
+                const initial = prenom.charAt(0).toUpperCase();
+                
+                const colors = [
+                    'bg-blue-100 text-blue-700',
+                    'bg-emerald-100 text-emerald-700',
+                    'bg-violet-100 text-violet-700',
+                    'bg-pink-100 text-pink-700',
+                    'bg-amber-100 text-amber-700',
+                    'bg-teal-100 text-teal-700'
+                ];
+                const colorClass = colors[p.id % colors.length];
+                
+                const avatar = document.createElement('div');
+                avatar.className = `w-7 h-7 rounded-full border-2 border-white ${colorClass} flex items-center justify-center text-[9px] font-black -ml-2.5 first:ml-0 shadow-sm relative z-30`;
+                avatar.title = p.nom;
+                avatar.textContent = initial;
+                stackContainer.appendChild(avatar);
+            });
+            
+            if (activePlayers.length > maxAvatars) {
+                const overflow = document.createElement('div');
+                overflow.className = `player-list-trigger cursor-pointer w-7 h-7 rounded-full border-2 border-white bg-slate-100 text-slate-700 flex items-center justify-center text-[9px] font-black -ml-2.5 relative z-30 shadow-sm hover:scale-110 hover:z-40 transition-all`;
+                overflow.dataset.title = 'Joueurs inscrits';
+                overflow.dataset.players = JSON.stringify(activePlayers);
+                overflow.textContent = `+${activePlayers.length - maxAvatars}`;
+                stackContainer.appendChild(overflow);
+            } else if (activePlayers.length > 0) {
+                const info = document.createElement('div');
+                info.className = `player-list-trigger cursor-pointer w-7 h-7 rounded-full border-2 border-white bg-slate-50 text-slate-400 flex items-center justify-center text-[9px] font-bold -ml-2.5 relative z-30 shadow-sm hover:scale-110 hover:z-40 transition-all`;
+                info.dataset.title = 'Joueurs inscrits';
+                info.dataset.players = JSON.stringify(activePlayers);
+                info.textContent = 'ℹ';
+                stackContainer.appendChild(info);
             } else {
-                names.forEach(name => {
-                    // On crée une jolie ligne pour chaque joueur
-                    const li = document.createElement('li');
-                    li.className = 'flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-100 transition-colors';
-                    
-                    // On extrait la première lettre pour faire un petit avatar
-                    const initial = name.charAt(0).toUpperCase();
-                    li.innerHTML = `
-                        <div class="w-8 h-8 rounded-full ${colorClass} flex items-center justify-center text-xs font-black shadow-sm">
-                            ${initial}
-                        </div>
-                        ${name}
-                    `;
-                    modalList.appendChild(li);
-                });
+                stackContainer.innerHTML = '<span class="text-[10px] text-slate-400 italic -ml-1">Aucun</span>';
             }
-
-            // Affichage avec animation
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            // Un tout petit délai pour que la transition CSS s'applique
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.querySelector('div').classList.remove('scale-95');
-            }, 10);
         }
+    }
 
-        // Fonction pour fermer la modale
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modal.querySelector('div').classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 300); // Correspond à la durée de la transition CSS (duration-300)
-        }
+    // ==========================================
+    // 3. GESTION DE LA MODALE & RECHERCHE & SLIDER
+    // ==========================================
+    const modal = document.getElementById('player-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalList = document.getElementById('modal-list');
+    const closeBtn = document.getElementById('close-modal');
 
-        // Écouteurs pour fermer la modale
-        if(closeBtn) closeBtn.addEventListener('click', closeModal);
-        if(modal) {
-            modal.addEventListener('click', function(e) {
-                // Ferme si on clique en dehors de la boîte blanche
-                if (e.target === modal) closeModal(); 
+    function openModal(title, names, colorClass) {
+        if (!modalTitle || !modalList || !modal) return;
+        modalTitle.textContent = title;
+        modalList.innerHTML = '';
+
+        if (names.length === 0) {
+            modalList.innerHTML = '<li class="text-sm text-slate-400 italic text-center py-6 bg-slate-50 rounded-xl">Aucun joueur dans cette liste.</li>';
+        } else {
+            names.forEach(name => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100 text-sm font-bold text-slate-700 hover:bg-slate-100 transition-colors';
+                const initial = name.charAt(0).toUpperCase();
+                li.innerHTML = `
+                    <div class="w-8 h-8 rounded-full ${colorClass} flex items-center justify-center text-xs font-black shadow-sm shrink-0">
+                        ${initial}
+                    </div>
+                    <span>${name}</span>
+                `;
+                modalList.appendChild(li);
             });
         }
 
-        // Écoute les clics sur les pastilles de statistiques
-        document.querySelectorAll('.player-list-trigger').forEach(trigger => {
-            trigger.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+    }
 
-                const title = this.dataset.title;
-                const playersJson = this.dataset.players;
-                let names = [];
+    function closeModal() {
+        if (!modal) return;
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
 
-                // Déduction de la couleur de l'avatar selon la couleur de la pastille cliquée
-                let colorClass = 'bg-slate-200 text-slate-600';
-                if (this.classList.contains('text-emerald-700')) colorClass = 'bg-emerald-100 text-emerald-700';
-                if (this.classList.contains('text-amber-700')) colorClass = 'bg-amber-100 text-amber-700';
-                if (this.classList.contains('text-rose-700')) colorClass = 'bg-rose-100 text-rose-700';
-
-                try {
-                    const playersArray = JSON.parse(playersJson);
-                    names = playersArray.map(p => p.nom);
-                } catch(err) {
-                    console.error("Erreur de parsing des joueurs", err);
-                }
-
-                openModal(title, names, colorClass);
-            });
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal(); 
         });
-    });  
+    }
+
+    // Écouteur global pour ouvrir la modale
+    document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.player-list-trigger');
+        if (!trigger) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const title = trigger.dataset.title;
+        const playersJson = trigger.dataset.players;
+        let names = [];
+
+        let colorClass = 'bg-slate-200 text-slate-600';
+        if (trigger.classList.contains('text-emerald-700') || trigger.classList.contains('bg-emerald-50')) colorClass = 'bg-emerald-100 text-emerald-700';
+        if (trigger.classList.contains('text-amber-700') || trigger.classList.contains('bg-amber-50') || trigger.classList.contains('text-amber-600')) colorClass = 'bg-amber-100 text-amber-700';
+        if (trigger.classList.contains('text-rose-700') || trigger.classList.contains('bg-rose-50')) colorClass = 'bg-rose-100 text-rose-700';
+
+        try {
+            const playersArray = JSON.parse(playersJson);
+            names = playersArray.map(p => p.nom);
+        } catch(err) {
+            console.error("Erreur de parsing des joueurs", err);
+        }
+
+        openModal(title, names, colorClass);
+    });
+
+    // ==========================================
+    // 4. INTERACTIVITÉ DU SLIDER & RECHERCHE
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle filtres
+        const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
+        const collapsibleFilters = document.getElementById('collapsible-filters');
+        if (toggleFiltersBtn && collapsibleFilters) {
+            toggleFiltersBtn.addEventListener('click', () => {
+                const isHidden = collapsibleFilters.classList.toggle('hidden');
+                toggleFiltersBtn.classList.toggle('bg-slate-800', !isHidden);
+            });
+        }
+
+        // Recherche dynamique client-side
+        const searchInput = document.getElementById('agenda-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase().trim();
+                const cards = document.querySelectorAll('#event-grid > div');
+                cards.forEach(card => {
+                    const title = card.querySelector('h3').textContent.toLowerCase();
+                    const location = card.querySelector('.text-slate-500')?.textContent.toLowerCase() || '';
+                    const matches = title.includes(val) || location.includes(val);
+                    card.style.display = matches ? '' : 'none';
+                });
+                // Régénérer le slider de dates selon les événements visibles
+                buildDateSlider();
+            });
+        }
+
+        // Initialisation du slider et des observateurs
+        buildDateSlider();
+    });
+
+    // GESTION DU SLIDER DE DATES HORIZONTAL
+    const frenchDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    let isSliderScrolling = false;
+    let sliderScrollTimeout;
+    const observerOptions = {
+        root: null,
+        rootMargin: '-15% 0px -50% 0px',
+        threshold: 0.1
+    };
+
+    const scrollObserver = new IntersectionObserver((entries) => {
+        if (isSliderScrolling) return;
+
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const dateStr = entry.target.dataset.eventDate;
+                highlightSliderDate(dateStr);
+            }
+        });
+    }, observerOptions);
+
+    function buildDateSlider() {
+        const slider = document.getElementById('date-slider');
+        if (!slider) return;
+        slider.innerHTML = '';
+
+        const cards = document.querySelectorAll('#event-grid > div:not([style*="display: none"])');
+        const dates = [];
+        cards.forEach(card => {
+            const dateStr = card.dataset.eventDate;
+            if (dateStr && !dates.includes(dateStr)) {
+                dates.push(dateStr);
+            }
+        });
+
+        if (dates.length === 0) {
+            slider.innerHTML = '<span class="text-xs text-slate-400 italic py-2">Aucune date disponible</span>';
+            return;
+        }
+
+        dates.sort();
+
+        // Récupérer la date minimale et maximale pour créer une frise chronologique
+        const minDate = new Date(dates[0]);
+        const maxDate = new Date(dates[dates.length - 1]);
+        const diffTime = Math.abs(maxDate - minDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Limiter l'affichage à 21 jours consécutifs pour la lisibilité
+        const totalSliderDays = Math.min(diffDays + 1, 21);
+
+        for (let i = 0; i < totalSliderDays; i++) {
+            const d = new Date(minDate);
+            d.setDate(minDate.getDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+
+            const hasEvents = document.querySelectorAll(`#event-grid > div[data-event-date="${dateStr}"]:not([style*="display: none"])`).length > 0;
+            const dayNum = d.getDate();
+            const dayName = frenchDays[d.getDay()];
+
+            const dayItem = document.createElement('div');
+            dayItem.dataset.date = dateStr;
+
+            if (hasEvents) {
+                dayItem.className = 'flex flex-col items-center justify-center min-w-[3.25rem] py-2.5 rounded-2xl text-slate-800 font-extrabold hover:bg-slate-50 transition-all cursor-pointer select-none';
+                dayItem.innerHTML = `
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">${dayName}</span>
+                    <span class="text-sm font-black mt-0.5">${dayNum}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[var(--primary)] mt-1.5"></span>
+                `;
+                dayItem.addEventListener('click', () => {
+                    scrollToDateCard(dateStr);
+                });
+            } else {
+                dayItem.className = 'flex flex-col items-center justify-center min-w-[3.25rem] py-2.5 rounded-2xl text-slate-300 font-medium opacity-50 cursor-not-allowed select-none';
+                dayItem.innerHTML = `
+                    <span class="text-[9px] uppercase tracking-wider">${dayName}</span>
+                    <span class="text-sm mt-0.5">${dayNum}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-1.5"></span>
+                `;
+            }
+            slider.appendChild(dayItem);
+        }
+
+        // Observer les cartes pour mettre à jour la sélection du slider lors du défilement
+        scrollObserver.disconnect();
+        cards.forEach(card => scrollObserver.observe(card));
+
+        // Sélectionner par défaut la première date
+        if (dates[0]) {
+            highlightSliderDate(dates[0]);
+        }
+    }
+
+    function highlightSliderDate(dateStr) {
+        const slider = document.getElementById('date-slider');
+        if (!slider) return;
+
+        const items = slider.querySelectorAll('div[data-date]');
+        items.forEach(item => {
+            const itemDate = item.dataset.date;
+            const isClickable = !item.classList.contains('cursor-not-allowed');
+
+            if (itemDate === dateStr && isClickable) {
+                item.className = 'flex flex-col items-center justify-center min-w-[3.25rem] py-2.5 rounded-2xl bg-[var(--primary)] text-white shadow-md font-bold transition-all transform scale-105 select-none';
+                item.innerHTML = `
+                    <span class="text-[9px] text-white/80 font-bold uppercase tracking-wider">${frenchDays[new Date(itemDate).getDay()]}</span>
+                    <span class="text-sm font-black mt-0.5">${new Date(itemDate).getDate()}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-white mt-1.5"></span>
+                `;
+                // Centrer l'élément dans le conteneur scrollable
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else if (isClickable) {
+                item.className = 'flex flex-col items-center justify-center min-w-[3.25rem] py-2.5 rounded-2xl text-slate-800 font-extrabold hover:bg-slate-50 transition-all cursor-pointer select-none';
+                item.innerHTML = `
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">${frenchDays[new Date(itemDate).getDay()]}</span>
+                    <span class="text-sm font-black mt-0.5">${new Date(itemDate).getDate()}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[var(--primary)] mt-1.5"></span>
+                `;
+            }
+        });
+    }
+
+    function scrollToDateCard(dateStr) {
+        const targetCard = document.querySelector(`#event-grid > div[data-event-date="${dateStr}"]:not([style*="display: none"])`);
+        if (targetCard) {
+            isSliderScrolling = true;
+            clearTimeout(sliderScrollTimeout);
+
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            highlightSliderDate(dateStr);
+
+            sliderScrollTimeout = setTimeout(() => {
+                isSliderScrolling = false;
+            }, 800);
+        }
+    }
+
 })();

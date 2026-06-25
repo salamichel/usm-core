@@ -36,12 +36,25 @@ class AgendaController
         if ($view === 'cards') {
             // Enrich with user status if logged in
             $userStatuses = [];
+            $userId = null;
+            $currentUserName = '';
             if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
-                $userId = (int) $_SESSION['LogInId'] ?? 0;
+                $userId = (int) ($_SESSION['LogInId'] ?? 0);
                 if ($userId) {
-                    $upcoming = Participation::getUpcomingWithUserStatus((int)$userId);
+                    $upcoming = Participation::getUpcomingWithUserStatus($userId);
                     foreach ($upcoming as $u) {
                         $userStatuses[$u['id_manifestation']] = $u['user_status'];
+                    }
+
+                    // Récupérer le nom/prénom exact du joueur pour le JS
+                    $db = \App\Core\ExternalDatabase::get();
+                    if ($db) {
+                        $stmt = $db->prepare("SELECT Nom, `Prénom` FROM Joueurs WHERE id_joueur = ?");
+                        $stmt->execute([$userId]);
+                        $row = $stmt->fetch();
+                        if ($row) {
+                            $currentUserName = $row['Nom'] . ' ' . $row['Prénom'];
+                        }
                     }
                 }
             }
@@ -54,6 +67,8 @@ class AgendaController
                 'manifestations' => $data['manifestations'],
                 'filters'        => $filters,
                 'filterOptions'  => AgendaService::getFilterOptions(),
+                'currentUserId'  => $userId,
+                'currentUserName'=> $currentUserName,
             ]);
             return;
         }
