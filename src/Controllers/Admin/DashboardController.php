@@ -10,7 +10,7 @@ use App\Core\View;
 use App\Models\Saison;
 use App\Models\Contact;
 
-class DashboardController
+class DashboardController extends BaseAdminController
 {
     public function index(array $params): void
     {

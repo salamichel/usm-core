@@ -8,26 +8,30 @@ use App\Core\View;
 use App\Models\Contact;
 use App\Models\ContactReply;
 use App\Services\BrevoService;
+use App\Services\Logger;
 use App\Services\Validator;
 
-class ContactAdminController
+class ContactAdminController extends BaseAdminController
 {
+    /** Statuts valides pour un contact. */
+    private const VALID_STATUSES = ['new', 'replied', 'archived'];
+
     public function index(array $params): void
     {
         Auth::require();
 
         $status = $_GET['status'] ?? 'new';
-        if (!in_array($status, ['new', 'replied', 'archived', 'all'])) {
+        if (!in_array($status, [...self::VALID_STATUSES, 'all'])) {
             $status = 'new';
         }
 
         $contacts = Contact::all($status);
 
         View::render('admin/contacts/list.twig', [
-            'contacts'    => $contacts,
+            'contacts'      => $contacts,
             'currentStatus' => $status,
-            'newCount'    => Contact::countByStatus('new'),
-            'repliedCount' => Contact::countByStatus('replied'),
+            'newCount'      => Contact::countByStatus('new'),
+            'repliedCount'  => Contact::countByStatus('replied'),
             'archivedCount' => Contact::countByStatus('archived'),
         ]);
     }
@@ -38,8 +42,7 @@ class ContactAdminController
 
         $contact = Contact::find((int)$params['id']);
         if (!$contact) {
-            http_response_code(404);
-            View::render('404.twig');
+            $this->notFound();
             return;
         }
 
@@ -54,16 +57,11 @@ class ContactAdminController
     public function reply(array $params): void
     {
         Auth::require();
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ' . BASE_URL . '/admin/contacts/' . $params['id']);
-            exit;
-        }
+        $this->requirePost('/admin/contacts/' . $params['id']);
 
         $contact = Contact::find((int)$params['id']);
         if (!$contact) {
-            http_response_code(404);
-            View::render('404.twig');
+            $this->notFound();
             return;
         }
 
@@ -73,8 +71,8 @@ class ContactAdminController
 
         if ($v->fails()) {
             View::flash('error', 'Erreur : ' . $v->firstError());
-            header('Location: ' . BASE_URL . '/admin/contacts/' . $params['id']);
-            exit;
+            $this->redirect('/admin/contacts/' . $params['id']);
+            return;
         }
 
         $replyText = trim($_POST['reply']);
@@ -88,87 +86,68 @@ class ContactAdminController
                 $brevo = new BrevoService();
                 $brevo->sendReplyToVisitor($contact['email'], $contact['name'], $replyText, $fromEmail);
             } catch (\Exception $e) {
-                \App\Services\Logger::errors()->error('Failed to send reply email', ['error' => $e->getMessage()]);
+                Logger::errors()->error('Failed to send reply email', ['error' => $e->getMessage()]);
             }
 
             View::flash('success', 'Réponse envoyée avec succès.');
-            header('Location: ' . BASE_URL . '/admin/contacts/' . $params['id']);
-            exit;
         } catch (\Exception $e) {
             View::flash('error', 'Une erreur est survenue.');
-            header('Location: ' . BASE_URL . '/admin/contacts/' . $params['id']);
-            exit;
         }
+
+        $this->redirect('/admin/contacts/' . $params['id']);
     }
 
     public function updateStatus(array $params): void
     {
         Auth::require();
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
-        }
+        $this->requirePost('/admin/contacts');
 
         $contact = Contact::find((int)$params['id']);
         if (!$contact) {
-            http_response_code(404);
+            $this->notFound();
             return;
         }
 
         $status = $_POST['status'] ?? 'new';
-        if (!in_array($status, ['new', 'replied', 'archived'])) {
+        if (!in_array($status, self::VALID_STATUSES)) {
             $status = 'new';
         }
 
         Contact::updateStatus((int)$params['id'], $status);
         View::flash('success', 'Statut mis à jour.');
-        header('Location: ' . BASE_URL . '/admin/contacts/' . $params['id']);
-        exit;
+        $this->redirect('/admin/contacts/' . $params['id']);
     }
 
     public function delete(array $params): void
     {
         Auth::require();
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
-        }
+        $this->requirePost('/admin/contacts');
 
         Contact::delete((int)$params['id']);
         View::flash('success', 'Message supprimé.');
-        header('Location: ' . BASE_URL . '/admin/contacts');
-        exit;
+        $this->redirect('/admin/contacts');
     }
 
     public function bulkAction(array $params): void
     {
         Auth::require();
+        $this->requirePost('/admin/contacts');
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
-        }
-
-        $action = $_POST['action'] ?? '';
+        $action     = $_POST['action'] ?? '';
         $contactIds = $_POST['contact_ids'] ?? [];
 
         if (!in_array($action, ['archive', 'delete']) || empty($contactIds)) {
             View::flash('error', 'Action invalide ou aucun message sélectionné.');
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
+            $this->redirect('/admin/contacts');
+            return;
         }
 
-        $contactIds = array_filter(array_map(function($id) {
-            $id = (int)$id;
-            return $id > 0 ? $id : null;
-        }, $contactIds));
+        $contactIds = array_values(array_filter(array_map(fn($id) => ($id = (int)$id) > 0 ? $id : null, $contactIds)));
 
         if (empty($contactIds)) {
             View::flash('error', 'IDs de messages invalides.');
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
+            $this->redirect('/admin/contacts');
+            return;
         }
 
         try {
@@ -182,14 +161,12 @@ class ContactAdminController
                 $count++;
             }
 
-            $actionLabel = $action === 'archive' ? 'archivé' : 'supprimé';
-            View::flash('success', "$count message" . ($count > 1 ? 's' : '') . " $actionLabel" . ($count > 1 ? 's' : '') . '.');
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
+            $label = $action === 'archive' ? 'archivé' : 'supprimé';
+            View::flash('success', "$count message" . ($count > 1 ? 's' : '') . " $label" . ($count > 1 ? 's' : '') . '.');
         } catch (\Exception $e) {
             View::flash('error', 'Une erreur est survenue lors du traitement.');
-            header('Location: ' . BASE_URL . '/admin/contacts');
-            exit;
         }
+
+        $this->redirect('/admin/contacts');
     }
 }

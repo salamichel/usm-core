@@ -7,7 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Tag;
 
-class TagController
+class TagController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -45,8 +45,7 @@ class TagController
 
         $id = Tag::create(['name' => $name, 'slug' => $slug]);
         View::flash('success', 'Tag créé avec succès.');
-        header('Location: ' . BASE_URL . '/admin/tags/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/tags/' . $id . '/edit');
     }
 
     public function edit(array $params): void
@@ -54,8 +53,7 @@ class TagController
         Auth::require();
         $tag = Tag::find((int)$params['id']);
         if (!$tag) {
-            http_response_code(404);
-            View::render('error.twig', ['error' => 'Tag non trouvé']);
+            $this->notFound('error.twig', ['error' => 'Tag non trouvé']);
             return;
         }
         $tag['post_count'] = Tag::getPostCount($tag['id']);
@@ -68,11 +66,10 @@ class TagController
     public function update(array $params): void
     {
         Auth::require();
-        $id = (int)$params['id'];
+        $id  = (int)$params['id'];
         $tag = Tag::find($id);
         if (!$tag) {
-            http_response_code(404);
-            View::render('error.twig', ['error' => 'Tag non trouvé']);
+            $this->notFound('error.twig', ['error' => 'Tag non trouvé']);
             return;
         }
 
@@ -91,24 +88,21 @@ class TagController
 
         Tag::update($id, ['name' => $name, 'slug' => $slug]);
         View::flash('success', 'Tag mis à jour avec succès.');
-        header('Location: ' . BASE_URL . '/admin/tags');
-        exit;
+        $this->redirect('/admin/tags');
     }
 
     public function delete(array $params): void
     {
         Auth::require();
-        $id = (int)$params['id'];
+        $id  = (int)$params['id'];
         $tag = Tag::find($id);
         if (!$tag) {
-            http_response_code(404);
-            View::render('error.twig', ['error' => 'Tag non trouvé']);
+            $this->notFound('error.twig', ['error' => 'Tag non trouvé']);
             return;
         }
 
         Tag::delete($id);
         View::flash('success', 'Tag supprimé avec succès.');
-        header('Location: ' . BASE_URL . '/admin/tags');
-        exit;
+        $this->redirect('/admin/tags');
     }
 }

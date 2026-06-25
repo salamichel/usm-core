@@ -196,7 +196,7 @@
         const stackContainer = card.querySelector('.avatar-stack');
         if (stackContainer) {
             stackContainer.innerHTML = '';
-            const maxAvatars = 3;
+            const maxAvatars = 24;
             const displayed = activePlayers.slice(0, maxAvatars);
             
             displayed.forEach(p => {

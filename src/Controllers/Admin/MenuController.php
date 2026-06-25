@@ -8,7 +8,7 @@ use App\Core\View;
 use App\Models\MenuItem;
 use App\Models\PageStatique;
 
-class MenuController
+class MenuController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -34,20 +34,28 @@ class MenuController
         Auth::require();
         $data = $this->formData();
         if (empty($data['label'])) {
-            View::render('admin/menu/form.twig', ['item' => $data, 'action' => BASE_URL . '/admin/menu/create', 'roots' => MenuItem::roots(), 'pages' => PageStatique::allPublished(), 'error' => 'Le libellé est obligatoire.']);
+            View::render('admin/menu/form.twig', [
+                'item'   => $data,
+                'action' => BASE_URL . '/admin/menu/create',
+                'roots'  => MenuItem::roots(),
+                'pages'  => PageStatique::allPublished(),
+                'error'  => 'Le libellé est obligatoire.',
+            ]);
             return;
         }
         MenuItem::create($data);
         View::flash('success', 'Élément de menu créé.');
-        header('Location: ' . BASE_URL . '/admin/menu');
-        exit;
+        $this->redirect('/admin/menu');
     }
 
     public function edit(array $params): void
     {
         Auth::require();
         $item = MenuItem::find((int)$params['id']);
-        if (!$item) { $this->notFound(); return; }
+        if (!$item) {
+            $this->notFound();
+            return;
+        }
         View::render('admin/menu/form.twig', [
             'item'   => $item,
             'action' => BASE_URL . '/admin/menu/' . $item['id'] . '/edit',
@@ -61,10 +69,19 @@ class MenuController
         Auth::require();
         $id   = (int)$params['id'];
         $item = MenuItem::find($id);
-        if (!$item) { $this->notFound(); return; }
+        if (!$item) {
+            $this->notFound();
+            return;
+        }
         $data = $this->formData();
         if (empty($data['label'])) {
-            View::render('admin/menu/form.twig', ['item' => array_merge($item, $data), 'action' => BASE_URL . '/admin/menu/' . $id . '/edit', 'roots' => MenuItem::roots(), 'pages' => PageStatique::allPublished(), 'error' => 'Le libellé est obligatoire.']);
+            View::render('admin/menu/form.twig', [
+                'item'   => array_merge($item, $data),
+                'action' => BASE_URL . '/admin/menu/' . $id . '/edit',
+                'roots'  => MenuItem::roots(),
+                'pages'  => PageStatique::allPublished(),
+                'error'  => 'Le libellé est obligatoire.',
+            ]);
             return;
         }
         // Prevent circular parent
@@ -73,8 +90,7 @@ class MenuController
         }
         MenuItem::update($id, $data);
         View::flash('success', 'Élément de menu mis à jour.');
-        header('Location: ' . BASE_URL . '/admin/menu');
-        exit;
+        $this->redirect('/admin/menu');
     }
 
     public function delete(array $params): void
@@ -82,8 +98,7 @@ class MenuController
         Auth::require();
         MenuItem::delete((int)$params['id']);
         View::flash('success', 'Élément de menu supprimé.');
-        header('Location: ' . BASE_URL . '/admin/menu');
-        exit;
+        $this->redirect('/admin/menu');
     }
 
     private function formData(): array
@@ -95,11 +110,5 @@ class MenuController
             'parent_id' => (int)($_POST['parent_id'] ?? 0) ?: null,
             'position'  => (int)($_POST['position'] ?? 0),
         ];
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

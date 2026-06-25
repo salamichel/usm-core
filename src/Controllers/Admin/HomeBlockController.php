@@ -8,7 +8,7 @@ use App\Core\View;
 use App\Models\HomeBlock;
 use App\Models\Photo;
 
-class HomeBlockController
+class HomeBlockController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -47,24 +47,22 @@ class HomeBlockController
         $id = HomeBlock::create($data);
         // Si un photoId est présent dans les données, l'attacher au HomeBlock
         if (isset($data['photo_id']) && $data['photo_id'] > 0) {
-            $newBlock = HomeBlock::find($id);
-            if ($newBlock) {                
-                // Un seul appel statique suffit, propre et direct !
-                HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
-            }
+            HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
         }
         View::flash('success', 'Bloc créé avec succès.');
-        header('Location: ' . BASE_URL . '/admin/home-blocks/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/home-blocks/' . $id . '/edit');
     }
 
     public function edit(array $params): void
     {
         Auth::require();
         $block = HomeBlock::find((int)$params['id']);
-        if (!$block) { $this->notFound(); return; }
+        if (!$block) {
+            $this->notFound();
+            return;
+        }
         // Récupérer les photos associées au bloc
-        $block['photos'] = Photo::forEntity('home_block', (int)$params['id']);
+        $block['photos']      = Photo::forEntity('home_block', (int)$params['id']);
         $block['cover_photo'] = Photo::getEntityCover('home_block', (int)$params['id']);
 
         View::render('admin/home-blocks/form.twig', [
@@ -78,7 +76,10 @@ class HomeBlockController
         Auth::require();
         $id    = (int)$params['id'];
         $block = HomeBlock::find($id);
-        if (!$block) { $this->notFound(); return; }
+        if (!$block) {
+            $this->notFound();
+            return;
+        }
         $data = $this->formData();
         if ($data['titre'] === '') {
             View::render('admin/home-blocks/form.twig', [
@@ -91,17 +92,10 @@ class HomeBlockController
         HomeBlock::update($id, $data);
         // Gérer l'attachement d'une nouvelle photo si fournie
         if (isset($data['photo_id']) && $data['photo_id'] > 0) {
-            $updatedBlock = HomeBlock::find($id);
-            
-            // Gérer l'attachement d'une nouvelle photo si fournie
-            if (isset($data['photo_id']) && $data['photo_id'] > 0) {
-                // Appel direct de la méthode statique sur la classe HomeBlock
-                HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
-            }
+            HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
         }
         View::flash('success', 'Bloc mis à jour.');
-        header('Location: ' . BASE_URL . '/admin/home-blocks/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/home-blocks/' . $id . '/edit');
     }
 
     public function delete(array $params): void
@@ -109,24 +103,21 @@ class HomeBlockController
         Auth::require();
         HomeBlock::delete((int)$params['id']);
         View::flash('success', 'Bloc supprimé.');
-        header('Location: ' . BASE_URL . '/admin/home-blocks');
-        exit;
+        $this->redirect('/admin/home-blocks');
     }
 
     public function moveUp(array $params): void
     {
         Auth::require();
         HomeBlock::moveUp((int)$params['id']);
-        header('Location: ' . BASE_URL . '/admin/home-blocks');
-        exit;
+        $this->redirect('/admin/home-blocks');
     }
 
     public function moveDown(array $params): void
     {
         Auth::require();
         HomeBlock::moveDown((int)$params['id']);
-        header('Location: ' . BASE_URL . '/admin/home-blocks');
-        exit;
+        $this->redirect('/admin/home-blocks');
     }
 
     /**
@@ -138,7 +129,7 @@ class HomeBlockController
         Auth::require();
         try {
             $uploaded = Photo::uploadSingle($_FILES['file'] ?? null, 'home_block');
-            
+
             // Créer l'entrée dans la table photos (entity_id = 0 temporairement)
             $pid = Photo::create(
                 'home_block',
@@ -157,9 +148,8 @@ class HomeBlockController
                 'url'       => BASE_URL . '/assets/uploads/' . $uploaded['path'],
             ]);
         } catch (\RuntimeException $e) {
-            header('Content-Type: application/json');
-            http_response_code(422);
-            echo json_encode(['error' => $e->getMessage()]);
+            $this->jsonError($e->getMessage());
+            return; // jsonError() appelle exit(), return pour la lisibilité statique
         }
         exit;
     }
@@ -175,11 +165,5 @@ class HomeBlockController
             'is_active' => isset($_POST['is_active']) ? 1 : 0,
             'photo_id'  => (int)($_POST['photo_id'] ?? 0), // Pour l'image temporaire uploadée
         ];
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

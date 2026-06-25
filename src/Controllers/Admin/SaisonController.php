@@ -9,7 +9,7 @@ use App\Models\JoueurSnapshot;
 use App\Models\Saison;
 use App\Models\EquipeConfig;
 
-class SaisonController
+class SaisonController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -62,8 +62,7 @@ class SaisonController
             'date_fin'   => $dateFin,
         ]);
         View::flash('success', "Saison « {$libelle} » créée.");
-        header('Location: ' . BASE_URL . '/admin/saisons');
-        exit;
+        $this->redirect('/admin/saisons');
     }
 
     public function activate(array $params): void
@@ -71,11 +70,13 @@ class SaisonController
         Auth::require();
         $id = (int)$params['id'];
         $s  = Saison::find($id);
-        if (!$s) { $this->notFound(); return; }
+        if (!$s) {
+            $this->notFound();
+            return;
+        }
         Saison::activate($id);
         View::flash('success', "Saison « {$s['libelle']} » activée.");
-        header('Location: ' . BASE_URL . '/admin/saisons');
-        exit;
+        $this->redirect('/admin/saisons');
     }
 
     public function delete(array $params): void
@@ -83,8 +84,7 @@ class SaisonController
         Auth::require();
         Saison::delete((int)$params['id']);
         View::flash('success', 'Saison supprimée.');
-        header('Location: ' . BASE_URL . '/admin/saisons');
-        exit;
+        $this->redirect('/admin/saisons');
     }
 
     public function joueurs(array $params): void
@@ -109,15 +109,17 @@ class SaisonController
         Auth::require();
         $id = (int)$params['id'];
         $s  = Saison::find($id);
-        if (!$s) { $this->notFound(); return; }
+        if (!$s) {
+            $this->notFound();
+            return;
+        }
         try {
             $count = JoueurSnapshot::flashForSaison($id);
             View::flash('success', "{$count} joueurs enregistrés pour la saison « {$s['libelle']} ».");
         } catch (\Throwable $e) {
             View::flash('error', 'Erreur lors du flash : ' . $e->getMessage());
         }
-        header('Location: ' . BASE_URL . '/admin/saisons/' . $id . '/snapshots');
-        exit;
+        $this->redirect('/admin/saisons/' . $id . '/snapshots');
     }
 
     public function snapshots(array $params): void
@@ -125,22 +127,19 @@ class SaisonController
         Auth::require();
         $id     = (int)$params['id'];
         $saison = Saison::find($id);
-        if (!$saison) { $this->notFound(); return; }
+        if (!$saison) {
+            $this->notFound();
+            return;
+        }
         $snapshots = JoueurSnapshot::findBySaison($id);
 
         // Récupération des catégories d'équipes pour l'affichage
         $categories = EquipeConfig::getEquipesSlug();
 
         View::render('admin/saisons/snapshots.twig', [
-            'saison'    => $saison,
-            'snapshots' => $snapshots,
+            'saison'     => $saison,
+            'snapshots'  => $snapshots,
             'categories' => $categories,
         ]);
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

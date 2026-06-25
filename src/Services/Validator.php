@@ -69,6 +69,20 @@ class Validator
         return $this;
     }
 
+    /**
+     * Valide qu'un champ HTML (ex: issu de l'éditeur Quill) n'est pas vide.
+     * Considère '<p><br></p>', '<p></p>' et '' comme des valeurs vides.
+     */
+    public function notEmptyHtml(string $field, ?string $message = null): self
+    {
+        $value = $this->data[$field] ?? '';
+        $emptyValues = ['', '<p><br></p>', '<p></p>', '<p> </p>'];
+        if (in_array(trim((string)$value), $emptyValues, true)) {
+            $this->errors[$field] = $message ?? ucfirst($field) . ' est obligatoire.';
+        }
+        return $this;
+    }
+
     public function passes(): bool
     {
         return empty($this->errors);

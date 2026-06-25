@@ -5,9 +5,10 @@ namespace App\Controllers\Admin;
 
 use App\Core\Auth;
 use App\Core\View;
+use App\Helpers\HtmlHelper;
 use App\Models\CategorieEquipe;
 
-class CategorieEquipeController
+class CategorieEquipeController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -40,8 +41,7 @@ class CategorieEquipeController
         }
         $id = CategorieEquipe::create($data);
         View::flash('success', "Catégorie « {$data['nom']} » créée.");
-        header('Location: ' . BASE_URL . '/admin/categories-equipes/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/categories-equipes/' . $id . '/edit');
     }
 
     public function edit(array $params): void
@@ -49,8 +49,7 @@ class CategorieEquipeController
         Auth::require();
         $categorie = CategorieEquipe::find((int)$params['id']);
         if (!$categorie) {
-            http_response_code(404);
-            View::render('error.twig', ['error' => 'Catégorie introuvable.']);
+            $this->notFound('error.twig', ['error' => 'Catégorie introuvable.']);
             return;
         }
         View::render('admin/categories-equipes/form.twig', [
@@ -65,8 +64,7 @@ class CategorieEquipeController
         $id        = (int)$params['id'];
         $categorie = CategorieEquipe::find($id);
         if (!$categorie) {
-            http_response_code(404);
-            View::render('error.twig', ['error' => 'Catégorie introuvable.']);
+            $this->notFound('error.twig', ['error' => 'Catégorie introuvable.']);
             return;
         }
         $data = $this->formData();
@@ -80,8 +78,7 @@ class CategorieEquipeController
         }
         CategorieEquipe::update($id, $data);
         View::flash('success', "Catégorie « {$data['nom']} » mise à jour.");
-        header('Location: ' . BASE_URL . '/admin/categories-equipes/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/categories-equipes/' . $id . '/edit');
     }
 
     public function delete(array $params): void
@@ -89,20 +86,14 @@ class CategorieEquipeController
         Auth::require();
         CategorieEquipe::delete((int)$params['id']);
         View::flash('success', 'Catégorie supprimée.');
-        header('Location: ' . BASE_URL . '/admin/categories-equipes');
-        exit;
+        $this->redirect('/admin/categories-equipes');
     }
 
     private function formData(): array
     {
-        $description = $_POST['description'] ?? null;
-        if ($description === '<p><br></p>') {
-            $description = null;
-        }
-
         return [
             'nom'         => trim($_POST['nom'] ?? ''),
-            'description' => $description,
+            'description' => HtmlHelper::nullIfEmptyHtml($_POST['description'] ?? null),
             'ordre'       => (int)($_POST['ordre'] ?? 0),
         ];
     }

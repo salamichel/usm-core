@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Auth;
 use App\Core\View;
+use App\Helpers\HtmlHelper;
 use App\Models\CategorieEquipe;
 use App\Models\EquipeConfig;
 use App\Models\EquipeSaison;
@@ -13,7 +14,7 @@ use App\Models\JoueurSnapshot;
 use App\Models\Photo;
 use App\Models\Saison;
 
-class EquipeConfigController
+class EquipeConfigController extends BaseAdminController
 {
     // ── CRUD config ──────────────────────────────────────────────────────────
 
@@ -50,15 +51,17 @@ class EquipeConfigController
         }
         EquipeConfig::create($data);
         View::flash('success', "Équipe « {$data['libelle']} » créée.");
-        header('Location: ' . BASE_URL . '/admin/equipes-config');
-        exit;
+        $this->redirect('/admin/equipes-config');
     }
 
     public function edit(array $params): void
     {
         Auth::require();
         $equipe = EquipeConfig::find((int)$params['id']);
-        if (!$equipe) { $this->notFound(); return; }
+        if (!$equipe) {
+            $this->notFound();
+            return;
+        }
 
         $saisons = Saison::all();
         foreach ($saisons as &$s) {
@@ -80,7 +83,10 @@ class EquipeConfigController
         Auth::require();
         $id     = (int)$params['id'];
         $equipe = EquipeConfig::find($id);
-        if (!$equipe) { $this->notFound(); return; }
+        if (!$equipe) {
+            $this->notFound();
+            return;
+        }
         $data = $this->formData();
         if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
             $saisons = Saison::all();
@@ -95,8 +101,7 @@ class EquipeConfigController
         }
         EquipeConfig::update($id, $data);
         View::flash('success', "Équipe « {$data['libelle']} » mise à jour.");
-        header('Location: ' . BASE_URL . '/admin/equipes-config/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/equipes-config/' . $id . '/edit');
     }
 
     public function delete(array $params): void
@@ -104,8 +109,7 @@ class EquipeConfigController
         Auth::require();
         EquipeConfig::delete((int)$params['id']);
         View::flash('success', 'Équipe supprimée.');
-        header('Location: ' . BASE_URL . '/admin/equipes-config');
-        exit;
+        $this->redirect('/admin/equipes-config');
     }
 
     // ── Photos saison ────────────────────────────────────────────────────────
@@ -114,7 +118,10 @@ class EquipeConfigController
     {
         Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
-        if (!$equipe || !$saison) { $this->notFound(); return; }
+        if (!$equipe || !$saison) {
+            $this->notFound();
+            return;
+        }
 
         $photos     = Photo::forEntity('equipe_saison', $es['id']);
         $upload_url = BASE_URL . '/admin/equipes-config/' . $equipe['id']
@@ -133,7 +140,8 @@ class EquipeConfigController
         Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
-            $this->jsonError('Équipe ou saison introuvable.', 404); return;
+            $this->jsonError('Équipe ou saison introuvable.', 404);
+            return;
         }
         try {
             $uploaded  = Photo::uploadSingle($_FILES['file'] ?? null, 'equipe_saison');
@@ -149,6 +157,7 @@ class EquipeConfigController
             ]);
         } catch (\RuntimeException $e) {
             $this->jsonError($e->getMessage());
+            return;
         }
         exit;
     }
@@ -163,9 +172,8 @@ class EquipeConfigController
             header('Content-Type: application/json');
             echo json_encode(['ok' => true]);
         } else {
-            header('Content-Type: application/json');
-            http_response_code(404);
-            echo json_encode(['error' => 'Photo introuvable.']);
+            $this->jsonError('Photo introuvable.', 404);
+            return;
         }
         exit;
     }
@@ -176,7 +184,10 @@ class EquipeConfigController
     {
         Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
-        if (!$equipe || !$saison) { $this->notFound(); return; }
+        if (!$equipe || !$saison) {
+            $this->notFound();
+            return;
+        }
 
         $joueurs   = EquipeSaisonJoueur::findByEquipeSaison($es['id']);
         $available = EquipeSaisonJoueur::getAvailableSnapshots($es['id'], $saison['id']);
@@ -193,28 +204,30 @@ class EquipeConfigController
     {
         Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
-        if (!$equipe || !$saison) { $this->notFound(); return; }
+        if (!$equipe || !$saison) {
+            $this->notFound();
+            return;
+        }
 
         $snapshotId = (int)($_POST['snapshot_id'] ?? 0);
         if ($snapshotId > 0) {
             EquipeSaisonJoueur::add($es['id'], $snapshotId);
         }
-        header('Location: ' . BASE_URL . '/admin/equipes-config/' . $equipe['id']
-               . '/saisons/' . $saison['id'] . '/joueurs');
-        exit;
+        $this->redirect('/admin/equipes-config/' . $equipe['id'] . '/saisons/' . $saison['id'] . '/joueurs');
     }
 
     public function removeJoueur(array $params): void
     {
         Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
-        if (!$equipe || !$saison) { $this->notFound(); return; }
+        if (!$equipe || !$saison) {
+            $this->notFound();
+            return;
+        }
 
         $snapshotId = (int)$params['jid'];
         EquipeSaisonJoueur::remove($es['id'], $snapshotId);
-        header('Location: ' . BASE_URL . '/admin/equipes-config/' . $equipe['id']
-               . '/saisons/' . $saison['id'] . '/joueurs');
-        exit;
+        $this->redirect('/admin/equipes-config/' . $equipe['id'] . '/saisons/' . $saison['id'] . '/joueurs');
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -223,45 +236,28 @@ class EquipeConfigController
     {
         $equipe = EquipeConfig::find((int)$params['id']);
         $saison = Saison::find((int)$params['sid']);
-        if (!$equipe || !$saison) return [null, null, null];
+        if (!$equipe || !$saison) {
+            return [null, null, null];
+        }
         $es = EquipeSaison::findOrCreate($equipe['id'], $saison['id']);
         return [$equipe, $saison, $es];
     }
 
     private function formData(): array
     {
-        $description = $_POST['description'] ?? null;
-        if ($description === '<p><br></p>') {
-            $description = null;
-        }
-
         return [
-            'slug_colonne'          => trim($_POST['slug_colonne'] ?? ''),
-            'libelle'               => trim($_POST['libelle'] ?? ''),
-            'categorie'             => trim($_POST['categorie'] ?? ''),
-            'ordre'                 => (int)($_POST['ordre'] ?? 0),
-            'is_active'             => isset($_POST['is_active']) ? 1 : 0,
-            'slug'                  => trim($_POST['slug'] ?? ''),
-            'team_filter'           => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
-            'manifestation_filter'  => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
-            'description'           => $description,
-            'description_courte'    => trim($_POST['description_courte'] ?? '') ?: null,
-            'type'                  => trim($_POST['type'] ?? '') ?: null,
-            'hauteur_filet'         => trim($_POST['hauteur_filet'] ?? '') ?: null,
+            'slug_colonne'         => trim($_POST['slug_colonne'] ?? ''),
+            'libelle'              => trim($_POST['libelle'] ?? ''),
+            'categorie'            => trim($_POST['categorie'] ?? ''),
+            'ordre'                => (int)($_POST['ordre'] ?? 0),
+            'is_active'            => isset($_POST['is_active']) ? 1 : 0,
+            'slug'                 => trim($_POST['slug'] ?? ''),
+            'team_filter'          => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
+            'manifestation_filter' => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
+            'description'          => HtmlHelper::nullIfEmptyHtml($_POST['description'] ?? null),
+            'description_courte'   => trim($_POST['description_courte'] ?? '') ?: null,
+            'type'                 => trim($_POST['type'] ?? '') ?: null,
+            'hauteur_filet'        => trim($_POST['hauteur_filet'] ?? '') ?: null,
         ];
-    }
-
-    private function jsonError(string $message, int $code = 422): void
-    {
-        header('Content-Type: application/json');
-        http_response_code($code);
-        echo json_encode(['error' => $message]);
-        exit;
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

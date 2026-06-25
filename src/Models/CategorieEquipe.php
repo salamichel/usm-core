@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\HtmlHelper;
 use App\Services\SlugManager;
 
 class CategorieEquipe
@@ -70,14 +71,9 @@ class CategorieEquipe
              VALUES (:nom, :description, :ordre)"
         );
 
-        $description = $data['description'] ?? null;
-        if ($description === '<p><br></p>') {
-            $description = null;
-        }
-
         $stmt->execute([
             ':nom'         => $data['nom'],
-            ':description' => $description,
+            ':description' => HtmlHelper::nullIfEmptyHtml($data['description'] ?? null),
             ':ordre'       => (int)($data['ordre'] ?? 0),
         ]);
         return (int)$db->lastInsertId();
@@ -85,18 +81,13 @@ class CategorieEquipe
 
     public static function update(int $id, array $data): void
     {
-        $description = $data['description'] ?? null;
-        if ($description === '<p><br></p>') {
-            $description = null;
-        }
-
         Database::get()->prepare(
             "UPDATE categories_equipes
              SET nom = :nom, description = :description, ordre = :ordre
              WHERE id = :id"
         )->execute([
             ':nom'         => $data['nom'],
-            ':description' => $description,
+            ':description' => HtmlHelper::nullIfEmptyHtml($data['description'] ?? null),
             ':ordre'       => (int)($data['ordre'] ?? 0),
             ':id'          => $id,
         ]);

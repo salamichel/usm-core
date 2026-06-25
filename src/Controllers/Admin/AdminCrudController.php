@@ -7,7 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Photo;
 
-abstract class AdminCrudController
+abstract class AdminCrudController extends BaseAdminController
 {
     protected string $entityType;
     protected string $itemName;
@@ -218,19 +218,5 @@ abstract class AdminCrudController
             'deleteUrl' => BASE_URL . '/admin/' . $this->itemsName . '/' . $entityId . '/photos/' . $pid . '/delete-xhr',
         ]);
         exit;
-    }
-
-    protected function jsonError(string $message, int $code = 422): void
-    {
-        header('Content-Type: application/json');
-        http_response_code($code);
-        echo json_encode(['error' => $message]);
-        exit;
-    }
-
-    protected function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

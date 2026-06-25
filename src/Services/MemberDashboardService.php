@@ -141,7 +141,7 @@ class MemberDashboardService
         $db = ExternalDatabase::get();
 
         // Récupérer la saison active
-        $saison = saison::getActive();
+        $saison = Saison::getActive();
 
         // 1. Calcul du taux de présence aux Matchs et Entraînements sur la saison courante (passée ou future)
         // Pour cela, on récupère les participations du joueur
