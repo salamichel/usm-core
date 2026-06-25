@@ -87,64 +87,16 @@
                 </div>
 
                 {# Liste des prochains événements #}
-                <div class="space-y-3">
+                <div class="space-y-4" id="event-grid" 
+                     data-logged-in-user-id="{{ app.session.LogInId|default(0) }}" 
+                     data-logged-in-user-name="{{ app.session.user_name|default('') }}">
                     {% for m in imminent_events %}
-                        {% set isActionRequired = (m.user_status ) %}
-                        
-                        <div class="bg-white rounded-2xl p-4 md:p-5 shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 {% if isActionRequired %}bg-amber-50/20 relative border-l-4 border-l-amber-400{% endif %} hover:shadow-md transition-all">
-                            
-                            <div class="flex items-center gap-4">
-                                {# Date Badge #}
-                                <div class="flex-shrink-0 w-14 h-14 bg-slate-900 text-white rounded-xl flex flex-col items-center justify-center shadow-sm">
-                                    <span class="text-xl font-black leading-none">{{ m.Date|date("d") }}</span>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-400">{{ m.Date|date("M") }}</span>
-                                </div>
-                                {# Métadonnées textuelles #}
-                                <div>
-                                    <div class="flex flex-wrap items-center gap-1.5 mb-1">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest {% if is_match %}bg-blue-100 text-blue-800{% else %}bg-orange-100 text-orange-800{% endif %}">
-                                            {% if is_match %}Match{% else %}Entraînement{% endif %}
-                                        </span>
-                                        {% if not isActionRequired %}
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                                ✓ {{ m.user_status }}
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    <h3 class="text-base font-bold text-slate-900 leading-tight">{{ m.ManifestationTypée }}</h3>
-                                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                                        <span class="truncate max-w-[180px] sm:max-w-[250px]">{{ m.Lieu }}</span>
-                                        • {{ m.Date|date("H\\hi") }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {# Actions UI tactiles : 100% de largeur sur mobile pour clic au pouce #}
-                            <div class="w-full sm:w-auto flex gap-2 pt-2 sm:pt-0 border-t border-slate-100 sm:border-0">
-                                {% if is_match %}
-                                    {# Actions MATCH #}
-                                    <button type="button" class="status-btn flex-1 sm:flex-none justify-center px-3 py-2.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border {% if m.user_status == 'Disponible' %}bg-emerald-600 text-white border-emerald-600 shadow-sm{% else %}bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100{% endif %}" data-manifestation-id="{{ m.id }}" data-status="Disponible">
-                                        <span>✓</span> Dispo
-                                    </button>
-                                    <button type="button" class="status-btn flex-1 sm:flex-none justify-center px-3 py-2.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border {% if m.user_status == 'Disponible si nécessaire' %}bg-amber-500 text-white border-amber-500 shadow-sm{% else %}bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100{% endif %}" data-manifestation-id="{{ m.id }}" data-status="Disponible si nécessaire">
-                                        <span>◐</span> Besoin
-                                    </button>
-                                    <button type="button" class="status-btn flex-1 sm:flex-none justify-center px-3 py-2.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border {% if m.user_status == 'Indisponible' %}bg-rose-600 text-white border-rose-600 shadow-sm{% else %}bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100{% endif %}" data-manifestation-id="{{ m.id }}" data-status="Indisponible">
-                                        <span>✗</span> Non
-                                    </button>
-                                {% else %}
-                                    {# Actions ENTRAÎNEMENT #}
-                                    <button type="button" class="status-btn flex-1 sm:flex-none justify-center px-4 py-2.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border {% if m.user_status == 'Présent' %}bg-emerald-600 text-white border-emerald-600 shadow-sm{% else %}bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100{% endif %}" data-manifestation-id="{{ m.id }}" data-status="Présent">
-                                        <span>✓</span> Présent
-                                    </button>
-                                    <button type="button" class="status-btn flex-1 sm:flex-none justify-center px-4 py-2.5 sm:py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border {% if m.user_status == 'Absent' %}bg-rose-600 text-white border-rose-600 shadow-sm{% else %}bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100{% endif %}" data-manifestation-id="{{ m.id }}" data-status="Absent">
-                                        <span>✗</span> Absent
-                                    </button>
-                                {% endif %}
-                            </div>
-
-                        </div>
+                        {% include "agenda/_event_card.twig" with {
+                            'm': m, 
+                            'allow_actions': true, 
+                            'show_link': true,
+                            'is_first': loop.first
+                        } %}
                     {% else %}
                         <div class="p-8 text-center bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm">
                             Aucun événement imminent.
@@ -240,8 +192,8 @@
                 </div>
             </div>
         </div>
-    </div>
 
+    {% include "agenda/_player_modal.twig" %}
 </div>
 {% endblock %}
 

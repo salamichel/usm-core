@@ -92,19 +92,7 @@
     </div>
 </div>
 
-{# Modale des joueurs #}
-<div id="player-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0 duration-300">
-    <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-sm mx-4 transform scale-95 transition-transform duration-300 p-6 relative flex flex-col max-h-[80vh]">
-        <button type="button" id="close-modal" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-        <h3 id="modal-title" class="text-lg font-black text-slate-900 mb-4 pr-8">Titre</h3>
-        <div class="overflow-y-auto pr-2 custom-scrollbar flex-grow">
-            <ul id="modal-list" class="space-y-2">
-            </ul>
-        </div>
-    </div>
-</div>
+{% include "agenda/_player_modal.twig" %}
 
 <style>
     /* Masquer la scrollbar */

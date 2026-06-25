@@ -120,23 +120,14 @@ class MemberDashboardService
                 $enoughPlayers = $stats['enough_players'] ?? false;
             }
 
-            // Formater pour Twig
-            $result[] = [
-                'id' => $m['id_manifestation'],
-                'titre' => $normalized['titre'],
-                'type' => $normalized['type'],
-                'is_match' => $normalized['is_match'],
-                'is_training' => $normalized['is_training'],
-                'date_display' => $normalized['date_display'],
-                'time_display' => $timeDisplay,
-                'lieu' => $m['Lieu'],
-                'commentaire' => $m['Commentaire'] ?? '',
-                'user_status' => $statusStr,
-                'user_status_category' => $category,
-                'user_status_icon' => $status->getIcon(),
-                'user_status_color' => $status->getBackgroundColor(),
-                'enough_players' => $enoughPlayers,
-            ];
+            // Enrichir avec les informations de l'adhérent connecté pour _event_card.twig
+            $normalized['user_status'] = $statusStr;
+            $normalized['user_status_category'] = $category;
+            $normalized['user_status_icon'] = $status->getIcon();
+            $normalized['user_status_color'] = $status->getBackgroundColor();
+            $normalized['enough_players'] = $enoughPlayers;
+
+            $result[] = $normalized;
         }
 
         return $result;
