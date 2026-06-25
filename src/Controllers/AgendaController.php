@@ -28,7 +28,7 @@ class AgendaController
     public function index(array $params): void
     {
         $filters = $this->extractFilters();
-        $view = $_GET['view'] ?? 'table';
+        $view = $_GET['view'] ?? 'cards'; // Default to 'cards' view if not specified
 
         // Obtenir les données de la table croisée qui sert de source unique de vérité
         $data = AgendaService::getCrossTable($filters);
