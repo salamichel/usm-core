@@ -10,6 +10,31 @@
       gtag('js', new Date());
 
       gtag('config', '{{ site_config.google_analytics_id }}');
+
+      // Traçage de tous les clics
+      document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(event) {
+          // Trouver l'élément cliquable le plus proche (lien, bouton, saisie...) ou par défaut la cible elle-même
+          var element = event.target.closest('a, button, input, select, textarea') || event.target;
+          var targetText = (element.textContent || element.value || '').trim().substring(0, 100);
+          var targetId = element.id || '';
+          var targetClass = element.className || '';
+          var targetTag = element.tagName.toLowerCase();
+          
+          var eventParams = {
+            'element_tag': targetTag,
+            'element_text': targetText,
+            'element_id': targetId,
+            'element_class': targetClass.substring(0, 100)
+          };
+          
+          if (element.tagName === 'A' && element.href) {
+            eventParams['element_url'] = element.href;
+          }
+          
+          gtag('event', 'element_click', eventParams);
+        });
+      });
     </script>
   {% endif %}
 
