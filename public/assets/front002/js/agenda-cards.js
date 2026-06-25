@@ -72,6 +72,31 @@
             if (data.ok) {
                 card.dataset.currentStatus = newStatus;
 
+                // Mettre à jour l'apparence active/inactive des boutons d'action
+                card.querySelectorAll('.status-btn').forEach(b => {
+                    const status = b.dataset.status;
+                    const isActive = status === newStatus;
+                    
+                    if (['Disponible', 'Présent'].includes(status)) {
+                        b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${
+                            isActive ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'
+                        }`;
+                    } else if (status === 'Disponible si nécessaire') {
+                        b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${
+                            isActive ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100'
+                        }`;
+                    } else if (['Indisponible', 'Absent'].includes(status)) {
+                        b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${
+                            isActive ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100'
+                        }`;
+                    } else if (status === '.') {
+                        const isResetActive = !newStatus || newStatus === '.';
+                        b.className = `status-btn px-2.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1 ${
+                            isResetActive ? 'bg-slate-400 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                        }`;
+                    }
+                });
+
                 // Changer le badge textuel de statut
                 const badge = card.querySelector(`#status-${manifestationId}`);
                 if (badge) {
