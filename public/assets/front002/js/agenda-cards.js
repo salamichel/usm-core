@@ -431,8 +431,8 @@
         const diffTime = Math.abs(maxDate - minDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        // Limiter l'affichage à 21 jours consécutifs pour la lisibilité
-        const totalSliderDays = Math.min(diffDays + 1, 21);
+        // Limiter l'affichage à 90 jours consécutifs pour la lisibilité
+        const totalSliderDays = Math.min(diffDays + 1, 90);
 
         for (let i = 0; i < totalSliderDays; i++) {
             const d = new Date(minDate);
