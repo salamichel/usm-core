@@ -80,6 +80,21 @@ class Participation
     }
 
     /**
+     * Retourne les motifs génériques d'événements à toujours inclure.
+     *
+     * @return array
+     */
+    public static function getGenericEventPatterns(): array
+    {
+        return [
+            '%Tournoi%',
+            '%Club%',
+            '%Beach%',
+            '%Entra%',
+        ];
+    }
+
+    /**
      * Récupère les événements à venir filtrés par catégories du joueur.
      * N'affiche que les créneaux pertinents (où ManifestationTypée contient le segment 3 du nom de la catégorie).
      *
@@ -96,12 +111,7 @@ class Participation
         $db = ExternalDatabase::get();
 
         // Types d'événements spécifiques à toujours inclure, basés sur des motifs génériques.
-        $genericEventPatterns = [
-            '%Tournoi%',
-            '%Club%',
-            '%Beach%',
-            '%Entra%',
-        ];
+        $genericEventPatterns = self::getGenericEventPatterns();
 
         $conditions = [];
         $bindings = [$userId];

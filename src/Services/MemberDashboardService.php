@@ -66,7 +66,7 @@ class MemberDashboardService
             }
 
             // Calcul des actions requises : Participation est absente, vide ou à "?" (ou "Ne sait pas encore", "?")
-            $statusStr = $m['Participation'] ?? '';
+            $statusStr = $m['user_status'] ?? '';
             $status = new ParticipationStatus($statusStr);
             $category = $status->getCategory();
 
@@ -143,19 +143,57 @@ class MemberDashboardService
         // Récupérer la saison active
         $saison = Saison::getActive();
 
+        // Récupérer les catégories du joueur pour filtrer les manifestations pertinentes
+        $categories = Joueur::getCategories($userId);
+        if (empty($categories)) {
+            return [
+                'presence_match' => 0,
+                'presence_training' => 0,
+                'presence_tournament' => 0,
+                'events_by_type' => [
+                    'match' => 0,
+                    'training' => 0,
+                    'tournois' => 0,
+                    'others' => 0
+                ],
+                'top_lieux' => []
+            ];
+        }
+
         // 1. Calcul du taux de présence aux Matchs et Entraînements sur la saison courante (passée ou future)
-        // Pour cela, on récupère les participations du joueur
+        // Types d'événements spécifiques à toujours inclure, basés sur des motifs génériques
+        $genericEventPatterns = Participation::getGenericEventPatterns();
+
+        $conditions = [];
+        $bindings = [$userId]; // Pour le LEFT JOIN p.id_joueur = ?
+
+        // Conditions basées sur les catégories du joueur
+        foreach ($categories as $cat) {
+            $conditions[] = "m.ManifestationTypée LIKE ?";
+            $bindings[] = '%' . $cat;
+        }
+
+        // Conditions pour les types d'événements génériques
+        foreach ($genericEventPatterns as $pattern) {
+            $conditions[] = "m.ManifestationTypée LIKE ?";
+            $bindings[] = $pattern;
+        }
+
         $sql = "
             SELECT m.ManifestationTypée, p.Participation
-            FROM Participation p
-            JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
-            WHERE p.id_joueur = ?
-            and m.Date >= ? 
-            and m.Date <= ?
-            and Statut in ('Confirmé', 'Provisoire')
+            FROM Manifestation m
+            LEFT JOIN Participation p ON m.id_manifestation = p.id_manifestation AND p.id_joueur = ?
+            WHERE (" . implode(' OR ', $conditions) . ")
+              AND m.Date >= ? 
+              AND m.Date <= ?
+              AND m.Statut in ('Confirmé', 'Provisoire')
         ";
+
+        $bindings[] = $saison['date_debut'];
+        $bindings[] = $saison['date_fin'] ?: '9999-12-31';
+
         $stmt = $db->prepare($sql);
-        $stmt->execute([$userId, $saison['date_debut'], $saison['date_fin'] ?: '9999-12-31']);
+        $stmt->execute($bindings);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $totalMatches = 0;
@@ -208,29 +246,26 @@ class MemberDashboardService
         $presenceTournament = $totalTournaments > 0 ? (int) round(($presentTournaments / $totalTournaments) * 100) : 0;
 
         // 2. Classement des lieux (top 3)
-        $categories = Joueur::getCategories($userId);
         $topLieux = [];
 
-        if (!empty($categories)) {
-            // Récupérer les manifestations pertinentes à venir pour connaître les lieux futurs fréquents
-            $upcoming = Participation::getUpcomingForMember($userId, $categories);
-            $lieuxCounts = [];
-            foreach ($upcoming as $m) {
-                $lieu = trim($m['Lieu'] ?? '');
-                if ($lieu !== '') {
-                    $lieuxCounts[$lieu] = ($lieuxCounts[$lieu] ?? 0) + 1;
-                }
+        // Récupérer les manifestations pertinentes à venir pour connaître les lieux futurs fréquents
+        $upcoming = Participation::getUpcomingForMember($userId, $categories);
+        $lieuxCounts = [];
+        foreach ($upcoming as $m) {
+            $lieu = trim($m['Lieu'] ?? '');
+            if ($lieu !== '') {
+                $lieuxCounts[$lieu] = ($lieuxCounts[$lieu] ?? 0) + 1;
             }
+        }
 
-            arsort($lieuxCounts);
-            $limit = 3;
-            foreach ($lieuxCounts as $lieu => $count) {
-                if ($limit-- <= 0) break;
-                $topLieux[] = [
-                    'nom' => $lieu,
-                    'count' => $count
-                ];
-            }
+        arsort($lieuxCounts);
+        $limit = 3;
+        foreach ($lieuxCounts as $lieu => $count) {
+            if ($limit-- <= 0) break;
+            $topLieux[] = [
+                'nom' => $lieu,
+                'count' => $count
+            ];
         }
 
         return [
