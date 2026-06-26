@@ -251,13 +251,30 @@ class CaptainController
             }
         }
 
-        $sortByName = function ($a, $b) {
+        $sortByAvailabilityAndName = function ($a, $b) {
+            $scoreA = match ($a['status_category']) {
+                'selected' => 3,
+                'present', 'available' => 2,
+                'unknown', 'no_response' => 1,
+                'unavailable', 'absent' => 0,
+                default => 1,
+            };
+            $scoreB = match ($b['status_category']) {
+                'selected' => 3,
+                'present', 'available' => 2,
+                'unknown', 'no_response' => 1,
+                'unavailable', 'absent' => 0,
+                default => 1,
+            };
+            if ($scoreA !== $scoreB) {
+                return $scoreB <=> $scoreA; // Plus grand score en premier
+            }
             $nomA = trim(($a['nom'] ?? '') . ' ' . ($a['prenom'] ?? ''));
             $nomB = trim(($b['nom'] ?? '') . ' ' . ($b['prenom'] ?? ''));
             return strcasecmp($nomA, $nomB);
         };
-        usort($femmes, $sortByName);
-        usort($hommes, $sortByName);
+        usort($femmes, $sortByAvailabilityAndName);
+        usort($hommes, $sortByAvailabilityAndName);
 
         View::render('member/captain/select_players.twig', [
             'event' => $event,

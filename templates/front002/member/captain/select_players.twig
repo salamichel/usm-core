@@ -6,7 +6,7 @@
     
     {# En-tête #}
     <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
             <div class="flex items-center gap-4">
                 <a href="{{ url('member/captain') }}" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 -mt-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 -mt-10">
         
         {# Détails match #}
         <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm mb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -47,77 +47,125 @@
                     </button>
                 </div>
 
-                <div class="space-y-8">
-                    {% if femmes|length > 0 %}
-                    <div class="space-y-3">
-                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
-                            ♀ Effectif Féminin ({{ femmes|length }})
-                        </h4>
-                        {% for j in femmes %}
-                        <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
-                            <div class="flex items-center gap-4 min-w-0">
-                                {# Checkbox #}
-                                <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
-                                       {% if j.is_selected %}checked{% endif %}
-                                       onclick="event.stopPropagation();"
-                                       class="w-5 h-5 text-amber-500 border-slate-350 rounded focus:ring-amber-400 focus:outline-none">
-                                
-                                <div>
-                                    <span class="text-sm font-bold text-slate-900">{{ j.prenom }} {{ j.nom }}</span>
-                                    {% if j.is_captain %}
-                                    <span class="ml-1 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-extrabold">Capitaine</span>
-                                    {% endif %}
+                {% if femmes|length > 0 and hommes|length > 0 %}
+                    {# Équipe mixte : Grille 2 colonnes sur tablette/ordinateur, 1 colonne sur mobile #}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        {# Colonne Féminine #}
+                        <div class="space-y-3">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                                ♀ Effectif Féminin ({{ femmes|length }})
+                            </h4>
+                            {% for j in femmes %}
+                            <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
+                                           {% if j.is_selected %}checked{% endif %}
+                                           onclick="event.stopPropagation();"
+                                           class="w-5 h-5 text-amber-500 border-slate-350 rounded focus:ring-amber-400 focus:outline-none">
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-900">{{ j.prenom }} {{ j.nom }}</span>
+                                        {% if j.is_captain %}
+                                        <span class="ml-1 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-extrabold">Capitaine</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ j.status_bg }} {{ j.status_text }}" data-status-category="{{ j.status_category }}">
+                                        {{ j.status_label }}
+                                    </span>
                                 </div>
                             </div>
-                            
-                            {# Statut du joueur #}
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ j.status_bg }} {{ j.status_text }}" data-status-category="{{ j.status_category }}">
-                                    {{ j.status_label }}
-                                </span>
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
 
-                    {% if hommes|length > 0 %}
-                    <div class="space-y-3">
-                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
-                            ♂ Effectif Masculin ({{ hommes|length }})
-                        </h4>
-                        {% for j in hommes %}
-                        <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
-                            <div class="flex items-center gap-4 min-w-0">
-                                {# Checkbox #}
-                                <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
-                                       {% if j.is_selected %}checked{% endif %}
-                                       onclick="event.stopPropagation();"
-                                       class="w-5 h-5 text-amber-500 border-slate-350 rounded focus:ring-amber-400 focus:outline-none">
-                                
-                                <div>
-                                    <span class="text-sm font-bold text-slate-900">{{ j.prenom }} {{ j.nom }}</span>
-                                    {% if j.is_captain %}
-                                    <span class="ml-1 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-extrabold">Capitaine</span>
-                                    {% endif %}
+                        {# Colonne Masculine #}
+                        <div class="space-y-3">
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                                ♂ Effectif Masculin ({{ hommes|length }})
+                            </h4>
+                            {% for j in hommes %}
+                            <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
+                                           {% if j.is_selected %}checked{% endif %}
+                                           onclick="event.stopPropagation();"
+                                           class="w-5 h-5 text-amber-500 border-slate-350 rounded focus:ring-amber-400 focus:outline-none">
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-900">{{ j.prenom }} {{ j.nom }}</span>
+                                        {% if j.is_captain %}
+                                        <span class="ml-1 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-extrabold">Capitaine</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ j.status_bg }} {{ j.status_text }}" data-status-category="{{ j.status_category }}">
+                                        {{ j.status_label }}
+                                    </span>
                                 </div>
                             </div>
-                            
-                            {# Statut du joueur #}
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ j.status_bg }} {{ j.status_text }}" data-status-category="{{ j.status_category }}">
-                                    {{ j.status_label }}
-                                </span>
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
 
-                    {% if femmes|length == 0 and hommes|length == 0 %}
-                    <p class="text-slate-400 text-sm text-center py-6 italic">Aucun joueur trouvé dans l'effectif.</p>
-                    {% endif %}
-                </div>
+                    </div>
+                {% else %}
+                    {# Équipe non-mixte (seulement filles ou seulement garçons) : Simple liste #}
+                    <div class="space-y-3">
+                        {% if femmes|length > 0 %}
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                                ♀ Effectif Féminin ({{ femmes|length }})
+                            </h4>
+                            {% for j in femmes %}
+                            <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
+                                           {% if j.is_selected %}checked{% endif %}
+                                           onclick="event.stopPropagation();"
+                                           class="w-5 h-5 text-amber-500 border-slate-350 rounded focus:ring-amber-400 focus:outline-none">
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-900">{{ j.prenom }} {{ j.nom }}</span>
+                                        {% if j.is_captain %}
+                                        <span class="ml-1 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-extrabold">Capitaine</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ j.status_bg }} {{ j.status_text }}" data-status-category="{{ j.status_category }}">
+                                        {{ j.status_label }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% elseif hommes|length > 0 %}
+                            <h4 class="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 flex items-center gap-1.5">
+                                ♂ Effectif Masculin ({{ hommes|length }})
+                            </h4>
+                            {% for j in hommes %}
+                            <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
+                                           {% if j.is_selected %}checked{% endif %}
+                                           onclick="event.stopPropagation();"
+                                           class="w-5 h-5 text-amber-500 border-slate-350 rounded focus:ring-amber-400 focus:outline-none">
+                                    <div>
+                                        <span class="text-sm font-bold text-slate-900">{{ j.prenom }} {{ j.nom }}</span>
+                                        {% if j.is_captain %}
+                                        <span class="ml-1 text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-extrabold">Capitaine</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold px-2.5 py-1 rounded-full {{ j.status_bg }} {{ j.status_text }}" data-status-category="{{ j.status_category }}">
+                                        {{ j.status_label }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-slate-400 text-sm text-center py-6 italic">Aucun joueur trouvé dans l'effectif.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
 
                 {# Actions #}
                 <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between gap-3">
