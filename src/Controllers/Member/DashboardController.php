@@ -28,6 +28,7 @@ class DashboardController
 
         $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
         $imminentEvents = \App\Services\MemberDashboardService::getImminentEvents($userId, 100);
+        \App\Services\AgendaService::flagOverlappingSelected($imminentEvents, $userId);
         $stats = \App\Services\MemberDashboardService::getSeasonStats($userId);
 
         View::render('member/dashboard.twig', [

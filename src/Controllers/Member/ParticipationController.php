@@ -41,7 +41,27 @@ class ParticipationController
         $status = trim((string) $input['status']);
     
         try {
-            // 1. Mettre à jour la participation (Votre code d'origine)
+            // 1. Vérifier si le joueur est actuellement sélectionné pour cet événement
+            $db = \App\Core\ExternalDatabase::get();
+            if ($db) {
+                $stmt = $db->prepare("SELECT Participation FROM Participation WHERE id_joueur = ? AND id_manifestation = ?");
+                $stmt->execute([$userId, $manifestationId]);
+                $currentStatus = $stmt->fetchColumn() ?: '';
+                if (str_contains($currentStatus, 'Sélectionné')) {
+                    http_response_code(400);
+                    echo json_encode(['ok' => false, 'message' => 'Vous êtes convoqué pour ce match, impossible de modifier votre statut.']);
+                    exit;
+                }
+            }
+
+            // 2. Vérifier si le créneau de cet événement chevauche une autre sélection
+            if (\App\Services\AgendaService::isOverlappingSelected($userId, $manifestationId)) {
+                http_response_code(400);
+                echo json_encode(['ok' => false, 'message' => 'Créneau concurrent à un match pour lequel vous êtes convoqué.']);
+                exit;
+            }
+
+            // 3. Mettre à jour la participation (Votre code d'origine)
             Participation::upsert($userId, $manifestationId, $status);
     
             // ==========================================

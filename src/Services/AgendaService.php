@@ -111,4 +111,158 @@ class AgendaService
     {
         return ParticipationStatsService::getNormalizedCounts($manifestationId);
     }
+
+    /**
+     * Identifie et flague les événements en chevauchement horaire avec un match où le joueur est déjà sélectionné.
+     */
+    public static function flagOverlappingSelected(array &$events, int $userId): void
+    {
+        if (empty($events) || !$userId) {
+            return;
+        }
+
+        // 1. Trouver les événements pour lesquels l'utilisateur est sélectionné
+        $selectedEvents = [];
+        foreach ($events as $e) {
+            $status = $e['user_status'] ?? '';
+            if (str_contains($status, 'Sélectionné')) {
+                $selectedEvents[] = $e;
+            }
+        }
+
+        if (empty($selectedEvents)) {
+            return;
+        }
+
+        // Helper pour calculer la plage horaire
+        $getRange = function ($e) {
+            $dateStr = $e['Date'] ?? $e['date'] ?? null;
+            if (!$dateStr) return [0, 0];
+            $start = strtotime($dateStr);
+            if ($start === false) return [0, 0];
+            
+            $durationStr = $e['Durée_créneau'] ?? $e['duration'] ?? '2h';
+            $hours = 2;
+            $minutes = 0;
+            if (!empty($durationStr)) {
+                if (str_contains($durationStr, 'h')) {
+                    $parts = explode('h', $durationStr);
+                    $hours = (int)($parts[0] ?? 2);
+                    $minutes = isset($parts[1]) && $parts[1] !== '' ? (int)$parts[1] : 0;
+                } elseif (str_contains($durationStr, 'm')) {
+                    $hours = 0;
+                    $minutes = (int)str_replace('m', '', $durationStr);
+                }
+            }
+            $end = strtotime("+{$hours} hour +{$minutes} minute", $start);
+            return [$start, $end];
+        };
+
+        // 2. Calculer les plages horaires des événements sélectionnés
+        $selectedRanges = [];
+        foreach ($selectedEvents as $se) {
+            $selectedRanges[] = $getRange($se);
+        }
+
+        // 3. Flaguer les événements en chevauchement
+        foreach ($events as &$e) {
+            $status = $e['user_status'] ?? '';
+            if (str_contains($status, 'Sélectionné')) {
+                $e['is_selected_by_captain'] = true;
+                continue;
+            }
+
+            $eRange = $getRange($e);
+            if ($eRange[0] === 0) continue;
+
+            $e['is_overlapping_selected'] = false;
+            foreach ($selectedRanges as $sr) {
+                if ($sr[0] < $eRange[1] && $eRange[0] < $sr[1]) {
+                    $e['is_overlapping_selected'] = true;
+                    break;
+                }
+            }
+        }
+        unset($e);
+    }
+
+    /**
+     * Vérifie si un événement chevauche un match pour lequel l'utilisateur est déjà sélectionné.
+     */
+    public static function isOverlappingSelected(int $userId, int $manifestationId): bool
+    {
+        if (!$userId || !$manifestationId) {
+            return false;
+        }
+
+        // 1. Récupérer l'événement cible
+        $targetEvent = self::getEventById($manifestationId);
+        if (!$targetEvent) {
+            return false;
+        }
+
+        // 2. Récupérer les catégories du joueur pour trouver ses événements à venir
+        $categories = \App\Models\Joueur::getCategories($userId);
+        if (empty($categories)) {
+            return false;
+        }
+
+        // 3. Récupérer les événements futurs du joueur
+        $upcoming = \App\Models\Participation::getUpcomingForMember($userId, $categories);
+
+        // 4. Trouver les événements sélectionnés (autres que l'événement cible)
+        $selectedEvents = [];
+        foreach ($upcoming as $m) {
+            $status = $m['user_status'] ?? '';
+            $mid = (int)($m['id_manifestation'] ?? $m['id'] ?? 0);
+            if (str_contains($status, 'Sélectionné') && $mid !== $manifestationId) {
+                $selectedEvents[] = $m;
+            }
+        }
+
+        if (empty($selectedEvents)) {
+            return false;
+        }
+
+        // Helper pour calculer la plage horaire
+        $getRange = function ($e) {
+            $dateStr = $e['Date'] ?? $e['date'] ?? null;
+            if (!$dateStr) return [0, 0];
+            $start = strtotime($dateStr);
+            if ($start === false) return [0, 0];
+            
+            $durationStr = $e['Durée_créneau'] ?? $e['duration'] ?? '2h';
+            $hours = 2;
+            $minutes = 0;
+            if (!empty($durationStr)) {
+                if (str_contains($durationStr, 'h')) {
+                    $parts = explode('h', $durationStr);
+                    $hours = (int)($parts[0] ?? 2);
+                    $minutes = isset($parts[1]) && $parts[1] !== '' ? (int)$parts[1] : 0;
+                } elseif (str_contains($durationStr, 'm')) {
+                    $hours = 0;
+                    $minutes = (int)str_replace('m', '', $durationStr);
+                }
+            }
+            $end = strtotime("+{$hours} hour +{$minutes} minute", $start);
+            return [$start, $end];
+        };
+
+        $targetRange = $getRange($targetEvent);
+        if ($targetRange[0] === 0) {
+            return false;
+        }
+
+        // 5. Comparer avec les plages horaires des événements sélectionnés
+        foreach ($selectedEvents as $se) {
+            $seRange = $getRange($se);
+            if ($seRange[0] === 0) continue;
+
+            if ($seRange[0] < $targetRange[1] && $targetRange[0] < $seRange[1]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

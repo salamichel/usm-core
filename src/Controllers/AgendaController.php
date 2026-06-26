@@ -62,6 +62,11 @@ class AgendaController
             foreach ($data['manifestations'] as $mid => &$m) {
                 $m['user_status'] = $userStatuses[$mid] ?? null;
             }
+            unset($m);
+
+            if ($userId) {
+                \App\Services\AgendaService::flagOverlappingSelected($data['manifestations'], $userId);
+            }
 
             View::render('agenda/cards.twig', [
                 'manifestations' => $data['manifestations'],

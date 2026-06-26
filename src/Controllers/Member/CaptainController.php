@@ -389,14 +389,51 @@ class CaptainController
             }
         }
 
-        // 2. Supprimer les participations pour les événements en chevauchement
+        // 2. Traiter les participations pour les événements en chevauchement
         if (!empty($overlappingIds)) {
             $inClause = implode(',', $overlappingIds);
             $stmt = $db->prepare(
-                "DELETE FROM Participation 
+                "SELECT id_manifestation, Participation 
+                 FROM Participation 
                  WHERE id_joueur = ? AND id_manifestation IN ($inClause)"
             );
             $stmt->execute([$joueurId]);
+            $currentParticipations = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+
+            foreach ($overlappingIds as $mid) {
+                $currentStatus = isset($currentParticipations[$mid]) ? trim($currentParticipations[$mid]) : '';
+                
+                if ($currentStatus !== '') {
+                    $statusObj = new \App\Helpers\ParticipationStatus($currentStatus);
+                    if ($statusObj->isPresent() || $statusObj->isAvailable()) {
+                        // Si le joueur avait mis une présence, on le marque absent
+                        $newStatus = 'Absent';
+                        if ($currentStatus === 'Oui') {
+                            $newStatus = 'Non';
+                        } elseif ($currentStatus === 'Disponible' || $currentStatus === 'Disponible si nécessaire') {
+                            $newStatus = 'Indisponible';
+                        } elseif ($currentStatus === 'Présent') {
+                            $newStatus = 'Absent';
+                        }
+                        
+                        $updateStmt = $db->prepare(
+                            "UPDATE Participation 
+                             SET Participation = ?, S_MAJ = NOW() 
+                             WHERE id_joueur = ? AND id_manifestation = ?"
+                        );
+                        $updateStmt->execute([$newStatus, $joueurId, $mid]);
+                    } else {
+                        // Si le statut n'est pas une présence (ex: 'Ne sait pas' ou '.'), on le supprime
+                        if ($statusObj->isUnknown() || $currentStatus === '.' || $currentStatus === '') {
+                            $deleteStmt = $db->prepare(
+                                "DELETE FROM Participation 
+                                 WHERE id_joueur = ? AND id_manifestation = ?"
+                            );
+                            $deleteStmt->execute([$joueurId, $mid]);
+                        }
+                    }
+                }
+            }
         }
     }
 
