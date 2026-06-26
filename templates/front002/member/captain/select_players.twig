@@ -200,7 +200,7 @@
         const players = document.querySelectorAll('[data-status-category]');
         players.forEach(el => {
             const cat = el.getAttribute('data-status-category');
-            if (cat === 'present' || cat === 'available' || cat === 'selected') {
+            if (cat === 'present' || cat === 'available' || cat === 'available_if_needed' || cat === 'selected') {
                 // Find parent container checkbox
                 const row = el.closest('.player-row');
                 if (row) {

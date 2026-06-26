@@ -38,7 +38,6 @@ class ParticipationStatsService
         }
 
         $stats = self::emptyStats();
-        $stats['available_if_needed'] = 0;
 
         foreach ($rows as $row) {
             $statusStr = trim((string)($row['Participation'] ?? ''));
@@ -48,9 +47,7 @@ class ParticipationStatsService
             $status   = new ParticipationStatus($statusStr);
             $category = $status->getCategory();
 
-            if (str_contains($statusStr, 'Disponible si n')) {
-                $stats['available_if_needed']++;
-            } elseif (isset($stats[$category])) {
+            if (isset($stats[$category])) {
                 $stats[$category]++;
                 // Comptabiliser les accompagnants des présents
                 if ($category === 'present') {
@@ -60,9 +57,8 @@ class ParticipationStatsService
         }
 
         $stats['total_responses'] = array_sum([
-            $stats['present'], $stats['available'], $stats['unavailable'],
-            $stats['selected'], $stats['absent'], $stats['unknown'],
-            $stats['available_if_needed'],
+            $stats['present'], $stats['available'], $stats['available_if_needed'],
+            $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown'],
         ]);
         $stats['enough_players'] = (
             $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
@@ -116,11 +112,11 @@ class ParticipationStatsService
 
         foreach ($result as &$stats) {
             $stats['total_responses'] = array_sum([
-                $stats['present'], $stats['available'], $stats['unavailable'],
-                $stats['selected'], $stats['absent'], $stats['unknown'],
+                $stats['present'], $stats['available'], $stats['available_if_needed'],
+                $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown'],
             ]);
             $stats['enough_players'] = (
-                $stats['present'] + $stats['available'] + $stats['selected']
+                $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
             ) >= 6;
         }
         unset($stats);
@@ -151,12 +147,13 @@ class ParticipationStatsService
     public static function emptyStats(): array
     {
         return [
-            'present'     => 0,
-            'available'   => 0,
-            'unavailable' => 0,
-            'selected'    => 0,
-            'absent'      => 0,
-            'unknown'     => 0,
+            'present'             => 0,
+            'available'           => 0,
+            'available_if_needed' => 0,
+            'unavailable'         => 0,
+            'selected'            => 0,
+            'absent'              => 0,
+            'unknown'             => 0,
         ];
     }
 

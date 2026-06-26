@@ -75,7 +75,7 @@ class CaptainController
 
                     if ($statusObj->getCategory() === 'selected') {
                         $nbSelection++;
-                    } elseif ($statusObj->getCategory() === 'available' || $statusObj->getCategory() === 'present') {
+                    } elseif ($statusObj->getCategory() === 'available' || $statusObj->getCategory() === 'available_if_needed' || $statusObj->getCategory() === 'present') {
                         $nbDisponible++;
                     } elseif ($statusObj->getCategory() === 'unavailable' || $statusObj->getCategory() === 'absent') {
                         $nbIndisponible++;
@@ -254,14 +254,14 @@ class CaptainController
         $sortByAvailabilityAndName = function ($a, $b) {
             $scoreA = match ($a['status_category']) {
                 'selected' => 3,
-                'present', 'available' => 2,
+                'present', 'available', 'available_if_needed' => 2,
                 'unknown', 'no_response' => 1,
                 'unavailable', 'absent' => 0,
                 default => 1,
             };
             $scoreB = match ($b['status_category']) {
                 'selected' => 3,
-                'present', 'available' => 2,
+                'present', 'available', 'available_if_needed' => 2,
                 'unknown', 'no_response' => 1,
                 'unavailable', 'absent' => 0,
                 default => 1,

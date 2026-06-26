@@ -160,42 +160,39 @@ class EventNormalizer
             }
         }
 
-        $isDisponibleSiNecessaire = str_contains($rawStatus, 'Disponible si n');
-
-        if ($isDisponibleSiNecessaire) {
-            $manifestationStats['disponibles_si_necessaire'][] = $playerInfo;
-            $manifestationStats['nb_disponible_si_necessaire']++;
-        } else {
-            match ($category) {
-                'selected'    => (function () use ($playerInfo, &$manifestationStats) {
-                    $manifestationStats['selectionnes'][] = $playerInfo;
-                    $manifestationStats['nb_selection']++;
-                })(),
-                'available'   => (function () use ($playerInfo, &$manifestationStats) {
-                    $manifestationStats['disponibles'][] = $playerInfo;
-                    $manifestationStats['nb_disponible']++;
-                })(),
-                'unavailable' => (function () use ($playerInfo, &$manifestationStats) {
-                    $manifestationStats['indisponibles'][] = $playerInfo;
-                    $manifestationStats['nb_indisponible']++;
-                })(),
-                'absent'      => (function () use ($playerInfo, &$manifestationStats) {
-                    $manifestationStats['absents'][] = $playerInfo;
-                    $manifestationStats['nb_absent']++;
-                })(),
-                'present'     => (function () use ($status, $playerInfo, &$manifestationStats) {
-                    $manifestationStats['presents'][] = $playerInfo;
-                    $manifestationStats['nb_present']++;
-                    // Comptabiliser les accompagnants éventuels
-                    $manifestationStats['nb_present'] += $status->getCompanionCount();
-                })(),
-                'unknown'     => (function () use ($playerInfo, &$manifestationStats) {
-                    $manifestationStats['ne_sait_pas'][] = $playerInfo;
-                    $manifestationStats['nb_ne_sait_pas']++;
-                })(),
-                default       => null,
-            };
-        }
+        match ($category) {
+            'selected'    => (function () use ($playerInfo, &$manifestationStats) {
+                $manifestationStats['selectionnes'][] = $playerInfo;
+                $manifestationStats['nb_selection']++;
+            })(),
+            'available'   => (function () use ($playerInfo, &$manifestationStats) {
+                $manifestationStats['disponibles'][] = $playerInfo;
+                $manifestationStats['nb_disponible']++;
+            })(),
+            'available_if_needed' => (function () use ($playerInfo, &$manifestationStats) {
+                $manifestationStats['disponibles_si_necessaire'][] = $playerInfo;
+                $manifestationStats['nb_disponible_si_necessaire']++;
+            })(),
+            'unavailable' => (function () use ($playerInfo, &$manifestationStats) {
+                $manifestationStats['indisponibles'][] = $playerInfo;
+                $manifestationStats['nb_indisponible']++;
+            })(),
+            'absent'      => (function () use ($playerInfo, &$manifestationStats) {
+                $manifestationStats['absents'][] = $playerInfo;
+                $manifestationStats['nb_absent']++;
+            })(),
+            'present'     => (function () use ($status, $playerInfo, &$manifestationStats) {
+                $manifestationStats['presents'][] = $playerInfo;
+                $manifestationStats['nb_present']++;
+                // Comptabiliser les accompagnants éventuels
+                $manifestationStats['nb_present'] += $status->getCompanionCount();
+            })(),
+            'unknown'     => (function () use ($playerInfo, &$manifestationStats) {
+                $manifestationStats['ne_sait_pas'][] = $playerInfo;
+                $manifestationStats['nb_ne_sait_pas']++;
+            })(),
+            default       => null,
+        };
 
         if ($category !== 'no_response') {
             $manifestationStats['nb_pas_de_reponse']--;

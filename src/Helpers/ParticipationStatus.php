@@ -31,7 +31,7 @@ class ParticipationStatus
         }
 
         if ($this->matchesAny(self::AVAILABLE_IF_NEEDED)) {
-            return 'available';
+            return 'available_if_needed';
         }
 
         if ($this->matchesAny(self::AVAILABLE_KEYWORDS)) {
@@ -126,6 +126,7 @@ class ParticipationStatus
         return match ($this->getCategory()) {
             'present' => '✓',
             'available' => '◐',
+            'available_if_needed' => '○',
             'unavailable' => '✗',
             'absent' => '✗',
             'selected' => '★',
@@ -148,6 +149,7 @@ class ParticipationStatus
         return match ($cat) {
             'present' => 'Présent',
             'available' => 'Disponible',
+            'available_if_needed' => 'Disponible si nécessaire',
             'unavailable' => 'Indisponible',
             'absent' => 'Absent',
             'unknown' => 'Ne sait pas',
@@ -161,6 +163,7 @@ class ParticipationStatus
         return match ($this->getCategory()) {
             'present', 'selected' => 'bg-green-100',
             'available' => 'bg-amber-100',
+            'available_if_needed' => 'bg-cyan-100',
             'unavailable', 'absent' => 'bg-red-100',
             'unknown' => 'bg-gray-100',
             'no_response' => 'bg-white',
@@ -173,6 +176,7 @@ class ParticipationStatus
         return match ($this->getCategory()) {
             'present', 'selected' => 'text-green-700',
             'available' => 'text-amber-700',
+            'available_if_needed' => 'text-cyan-700',
             'unavailable', 'absent' => 'text-red-700',
             'unknown' => 'text-gray-700',
             'no_response' => 'text-gray-500',
