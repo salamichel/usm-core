@@ -21,7 +21,11 @@ class EquipeConfigController extends BaseAdminController
     public function index(array $params): void
     {
         Auth::require();
-        View::render('admin/equipes-config/list.twig', ['equipes' => EquipeConfig::all()]);
+        $saison = \App\Models\Saison::getActive();
+        View::render('admin/equipes-config/list.twig', [
+            'equipes' => EquipeConfig::all(),
+            'saison_active_id' => $saison ? $saison['id'] : null,
+        ]);
     }
 
     public function create(array $params): void
