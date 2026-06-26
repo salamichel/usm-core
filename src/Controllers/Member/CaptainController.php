@@ -239,34 +239,32 @@ class CaptainController
         }
         unset($j);
 
-        // Tri des joueurs : Sélectionnés/Disponibles/Présents d'abord, puis sans réponse, puis indisponibles/absents
-        usort($joueurs, function ($a, $b) {
-            $scoreA = match ($a['status_category']) {
-                'selected' => 3,
-                'present', 'available' => 2,
-                'unknown', 'no_response' => 1,
-                'unavailable', 'absent' => 0,
-                default => 1,
-            };
-            $scoreB = match ($b['status_category']) {
-                'selected' => 3,
-                'present', 'available' => 2,
-                'unknown', 'no_response' => 1,
-                'unavailable', 'absent' => 0,
-                default => 1,
-            };
-            if ($scoreA !== $scoreB) {
-                return $scoreB <=> $scoreA; // Plus grand score en premier
+        // Séparer et trier par nom pour chaque genre (data.Sexe)
+        $femmes = [];
+        $hommes = [];
+        foreach ($joueurs as $j) {
+            $sexe = $j['data']['Sexe'] ?? 'F';
+            if ($sexe === 'M') {
+                $hommes[] = $j;
+            } else {
+                $femmes[] = $j;
             }
+        }
+
+        $sortByName = function ($a, $b) {
             $nomA = trim(($a['nom'] ?? '') . ' ' . ($a['prenom'] ?? ''));
             $nomB = trim(($b['nom'] ?? '') . ' ' . ($b['prenom'] ?? ''));
             return strcasecmp($nomA, $nomB);
-        });
+        };
+        usort($femmes, $sortByName);
+        usort($hommes, $sortByName);
 
         View::render('member/captain/select_players.twig', [
             'event' => $event,
             'team' => $matchedTeam,
-            'joueurs' => $joueurs
+            'joueurs' => $joueurs,
+            'femmes' => $femmes,
+            'hommes' => $hommes
         ]);
     }
 
