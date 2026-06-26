@@ -31,7 +31,7 @@ class DashboardController
         $stats = \App\Services\MemberDashboardService::getSeasonStats($userId);
 
         View::render('member/dashboard.twig', [
-            'is_capitaine' => $_SESSION['IsCaptainSaison'] || ($_SESSION['Capitaine'] ?? false),
+            'is_capitaine' => $_SESSION['IsCaptainSaison'] ?? false,
             'is_admin_web' => $_SESSION['AdminWeb'] ?? false,
             'kpis' => $kpis,
             'imminent_events' => $imminentEvents,
