@@ -153,7 +153,7 @@
         {% endif %}
 
         <h3 class="font-serif text-xl font-bold text-slate-900 mb-4 mt-8">Répartition des joueurs</h3>
-        <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-3{% endif %} gap-6">
+        <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-2{% endif %} gap-6">
           {% if event.is_match %}
             {# 1. Sélectionnés #}
             {{ _self.render_status_list('Sélectionnés', event.selectionnes, 'border-amber-100 text-amber-800 bg-amber-50/10', 'bg-amber-500', event.nb_selection) }}
