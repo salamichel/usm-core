@@ -220,6 +220,52 @@ Taille max : 10 Mo.
 - Flash message : disponible via la globale `flash` (type + message)
 - `APP_DEBUG = true` → pas de cache Twig
 
+### Charte Graphique & Structure de Page (Thème front002)
+
+Afin de maintenir une cohérence visuelle sur l'ensemble du site avec le thème `front002` (qui s'aligne sur le design de l'Espace Capitaine), toutes les pages de contenu principales (blog, agenda, contact, équipes, profil membre, pages CMS) doivent respecter la structure HTML et les classes Tailwind suivantes :
+
+1. **Wrapper de Page** :
+   Le bloc de contenu principal `{% block content %}` doit être enveloppé dans un conteneur avec un fond gris clair et un espacement de bas de page :
+   ```html
+   <div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+     ...
+   </div>
+   ```
+
+2. **En-tête Sombre (Bandeau)** :
+   Placé directement au début du wrapper, il contient le fil d'Ariane et le titre principal.
+   ```html
+   <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+     <div class="max-w-6xl mx-auto px-4 sm:px-6"> <!-- max-w-4xl pour les pages d'article/CMS étroites -->
+       <nav aria-label="Fil d'Ariane" class="text-sm text-slate-400 mb-6">
+         <a href="{{ url('') }}" class="hover:text-white transition-colors">Accueil</a>
+         <span class="mx-2 text-slate-600">/</span>
+         <span class="text-slate-200">Titre Parent</span>
+       </nav>
+       <div>
+         <span class="inline-block text-xs uppercase tracking-wider text-[var(--primary)] font-bold mb-2">Surtitre</span>
+         <h1 class="font-serif text-3xl md:text-5xl font-extrabold tracking-tight text-white mt-1">Titre de la Page</h1>
+       </div>
+     </div>
+   </div>
+   ```
+
+3. **Conteneur Flottant avec Cartes Blanches** :
+   Le contenu réel de la page doit être décalé vers le haut pour chevaucher l'en-tête sombre grâce à la classe `-mt-10`. Le contenu doit être placé dans des cartes blanches arrondies et ombrées.
+   ```html
+   <div class="max-w-6xl mx-auto px-4 sm:px-6 -mt-10"> <!-- max-w-4xl pour les pages étroites -->
+     <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm space-y-8">
+       <!-- Contenu de la page -->
+     </div>
+   </div>
+   ```
+
+4. **Boutons & Éléments de Formulaire** :
+   - **Bords arrondis** : Utiliser impérativement `rounded-xl` (ou `rounded-3xl` pour les grandes cartes) au lieu des valeurs par défaut ou `rounded-lg`.
+   - **Champs de saisie** : `class="w-full px-3.5 py-3 border border-slate-205 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm"`
+   - **Bouton principal (CTA)** : Utiliser les classes standards en y ajoutant `rounded-xl font-bold` (ou `btn-primary py-3.5 rounded-xl font-bold`).
+   - **Focus** : Toujours utiliser le halo doux `focus:ring-2 focus:ring-[var(--primary)]/20` avec une bordure de couleur primaire.
+
 ---
 
 ## Saisons & Flash joueurs
