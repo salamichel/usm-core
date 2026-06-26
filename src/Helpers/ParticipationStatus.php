@@ -92,6 +92,14 @@ class ParticipationStatus
         return $this->status === '';
     }
 
+    public function getOriginalStatus(): string
+    {
+        if (preg_match('/^Sélectionné\(e\)\s*\((.*)\)$/', $this->status, $matches)) {
+            return trim($matches[1]);
+        }
+        return '';
+    }
+
     public function isNonAbsence(): bool
     {
         return !$this->isAbsent() && !$this->isUnavailable() && !$this->isEmpty();
