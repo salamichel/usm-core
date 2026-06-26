@@ -46,6 +46,19 @@ class View
                 'server'  => $_SERVER,
                 ]);
 
+            // Member events this week count for bottom bar badge
+            $memberEventsThisWeek = 0;
+            if (!empty($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+                try {
+                    $userId = (int) $_SESSION['LogInId'];
+                    $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
+                    $memberEventsThisWeek = $kpis['this_week'] ?? 0;
+                } catch (\Throwable) {
+                    $memberEventsThisWeek = 0;
+                }
+            }
+            $twig->addGlobal('member_events_this_week', $memberEventsThisWeek);
+
             // Contact stats for admin menu badge
             if (Auth::check()) {
                 try {
