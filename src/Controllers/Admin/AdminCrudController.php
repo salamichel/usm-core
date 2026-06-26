@@ -149,7 +149,7 @@ abstract class AdminCrudController extends BaseAdminController
         try {
             $uploaded = Photo::uploadSingle($_FILES['file'] ?? null, $this->entityType);
             $pid = Photo::create($this->entityType, $id, $uploaded['path'], null, 0, $uploaded['has_variants']);
-            $this->jsonSuccess($id, $pid, $uploaded['path']);
+            $this->jsonPhotoUploadSuccess($id, $pid, $uploaded['path']);
         } catch (\RuntimeException $e) {
             $this->jsonError($e->getMessage());
         }
@@ -208,7 +208,7 @@ abstract class AdminCrudController extends BaseAdminController
         return null;
     }
 
-    protected function jsonSuccess(int $entityId, int $pid, string $filename): void
+    protected function jsonPhotoUploadSuccess(int $entityId, int $pid, string $filename): void
     {
         header('Content-Type: application/json');
         echo json_encode([
