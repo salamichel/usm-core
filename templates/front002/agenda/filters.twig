@@ -1,16 +1,16 @@
 {# Agenda filter panel - editorial style #}
-<div class="card p-6 mb-6" id="filters">
+<div class="bg-white rounded-3xl p-6 mb-6 border border-slate-100 shadow-sm" id="filters">
   <div class="flex justify-between items-center mb-5">
-    <h2 class="font-serif text-lg font-semibold text-slate-900">Filtres</h2>
+    <h2 class="font-serif text-lg font-bold text-slate-900">Filtres</h2>
     {% if filters is not empty %}
-      <button type="button" onclick="resetAgendaFilters()" class="text-sm text-slate-600 hover:text-[var(--primary)] underline underline-offset-4 transition cursor-pointer">
+      <button type="button" onclick="resetAgendaFilters()" class="text-sm text-slate-500 hover:text-[var(--primary)] underline underline-offset-4 transition cursor-pointer font-semibold">
         Réinitialiser
       </button>
     {% endif %}
   </div>
 
   {# Mobile toggle #}
-  <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-sm font-medium text-slate-700 flex items-center justify-between transition">
+  <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex items-center justify-between transition">
     <span>Filtres</span>
     <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
   </button>
@@ -19,7 +19,7 @@
 
     {# Type d'évènement Dynamique #}
     <div>
-      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Type d'évènement</p>
+      <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Type d'évènement</p>
       
       {# Extraction des types uniques existants depuis manifestations #}
       {% set event_types = [] %}
@@ -31,12 +31,12 @@
       {% endfor %}
 
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="updateAgendaFilter('type', '')" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilter('type', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Tous
         </button>
         
         {% for type in event_types %}
-            <button type="button" onclick="updateAgendaFilter('type', '{{ type }}')" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.type == type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+            <button type="button" onclick="updateAgendaFilter('type', '{{ type }}')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.type == type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
               {{ type }}
             </button>
         {% endfor %}
@@ -47,8 +47,8 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       {% if filterOptions.manifestationNames %}
         <div>
-          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Manifestation</p>
-          <select onchange="updateAgendaFilter('manifestation', this.value)" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+          <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Manifestation</p>
+          <select onchange="updateAgendaFilter('manifestation', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
             <option value="">Tous les événements</option>
             {% for name in filterOptions.manifestationNames %}
               <option value="{{ name }}" {% if filters.manifestation == name %}selected{% endif %}>{{ name }}</option>
@@ -59,8 +59,8 @@
 
       {% if filterOptions.teams %}
         <div>
-          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Équipe</p>
-          <select onchange="updateAgendaFilter('team', this.value)" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+          <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Équipe</p>
+          <select onchange="updateAgendaFilter('team', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
             <option value="">Toutes les équipes</option>
             {% for team in filterOptions.teams %}
               <option value="{{ team }}" {% if filters.team == team %}selected{% endif %}>{{ team }}</option>
@@ -71,8 +71,8 @@
 
       {% if filterOptions.locations %}
         <div>
-          <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-2">Lieu</p>
-          <select onchange="updateAgendaFilter('location', this.value)" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]">
+          <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Lieu</p>
+          <select onchange="updateAgendaFilter('location', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
             <option value="">Tous les lieux</option>
             {% for location in filterOptions.locations %}
               <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
@@ -83,26 +83,26 @@
     </div>
 
     {# Affichage #}
-    <div class="pt-5 border-t border-slate-200">
-      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Affichage</p>
+    <div class="pt-5 border-t border-slate-100">
+      <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Affichage</p>
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="updateAgendaFilter('hide_empty_players', '')" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilter('hide_empty_players', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Liste complète
         </button>
-        <button type="button" onclick="updateAgendaFilter('hide_empty_players', '1')" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilter('hide_empty_players', '1')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Ayant répondu
         </button>
       </div>
     </div>
 
     {# Période #}
-    <div class="pt-5 border-t border-slate-200">
-      <p class="text-xs uppercase tracking-wider text-slate-500 font-medium mb-3">Période</p>
+    <div class="pt-5 border-t border-slate-100">
+      <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Période</p>
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="updateAgendaFilter('this_week', '')" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if not filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilter('this_week', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Tous les événements
         </button>
-        <button type="button" onclick="updateAgendaFilter('this_week', '1')" class="px-3 py-1.5 text-xs rounded-full font-medium transition {% if filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilter('this_week', '1')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Semaine courante
         </button>
       </div>

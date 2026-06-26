@@ -2,46 +2,50 @@
 {% block title %}Nos équipes{% if saison %} — {{ saison.libelle }}{% endif %} — USM Volley{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-16">
+<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+  {# En-tête #}
+  <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <nav aria-label="Fil d'Ariane" class="text-sm text-slate-400 mb-6">
+        <a href="{{ url('') }}" class="hover:text-white transition-colors">Accueil</a>
+        <span class="mx-2 text-slate-600">/</span>
+        <span class="text-slate-200">Équipes</span>
+      </nav>
+      
+      <div>
+        <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-semibold mb-2">Le club</span>
+        <h1 class="font-serif text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-3">Nos équipes</h1>
+        {% if saison %}
+          <p class="text-slate-400 text-sm md:text-base mt-1">Saison <span class="font-bold text-white">{{ saison.libelle }}</span></p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-  {# Breadcrumb #}
-  <nav aria-label="Fil d'Ariane" class="text-sm text-slate-500 mb-10">
-    <a href="{{ url('') }}" class="hover:text-[var(--primary)] transition-colors">Accueil</a>
-    <span class="mx-2 text-slate-300">/</span>
-    <span class="text-slate-900">Équipes</span>
-  </nav>
-
-  {# Header #}
-  <header class="mb-14 pb-10 border-b border-slate-200">
-    <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-medium mb-3">Le club</span>
-    <h1 class="font-serif text-4xl md:text-5xl font-semibold text-slate-900 leading-tight">Nos équipes</h1>
-    {% if saison %}
-      <p class="text-slate-600 mt-3">Saison <span class="font-medium">{{ saison.libelle }}</span></p>
-    {% endif %}
-  </header>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 -mt-10">
 
   {% if categories|length %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {% for cat in categories %}
         {% if cat.team_count > 0 %}
-        <article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <article class="group overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-205 hover:-translate-y-1 hover:shadow-md">
           <a href="{{ url('equipes/' ~ cat.slug) }}" class="block">
-            <div class="aspect-[4/3] overflow-hidden bg-slate-100">
+            <div class="aspect-[4/3] overflow-hidden bg-slate-50">
               {% if cat.cover %}
                 <img src="{{ image_variant(cat.cover, 'medium') }}" alt="{{ cat.nom }}"
                      loading="lazy" decoding="async"
                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
               {% else %}
-                <div class="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-5xl text-slate-400">🏐</div>
+                <div class="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-5xl text-slate-400">🏐</div>
               {% endif %}
             </div>
             <div class="p-6">
-              <h2 class="font-serif text-3xl font-semibold text-slate-900 mb-3">{{ cat.nom }}</h2>
-              <p class="text-sm text-slate-500 mb-4">{{ cat.team_count }} équipe{{ cat.team_count > 1 ? 's' : '' }}</p>
+              <h2 class="font-serif text-2xl font-bold text-slate-900 mb-2 group-hover:text-[var(--primary)] transition">{{ cat.nom }}</h2>
+              <p class="text-xs font-semibold text-slate-400 mb-4">{{ cat.team_count }} équipe{{ cat.team_count > 1 ? 's' : '' }}</p>
               {% if cat.description %}
-                <p class="text-sm text-slate-600 line-clamp-3">{{ cat.description|render_with_config|striptags }}</p>
+                <p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">{{ cat.description|render_with_config|striptags }}</p>
               {% endif %}
-              <span class="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] mt-5">Voir la catégorie →</span>
+              <span class="inline-flex items-center gap-2 text-xs font-bold text-[var(--primary)] mt-5">Voir la catégorie →</span>
             </div>
           </a>
         </article>
@@ -49,10 +53,11 @@
       {% endfor %}
     </div>
   {% else %}
-    <div class="card p-10 text-center">
-      <p class="text-slate-600 text-lg">Aucune équipe disponible pour cette saison.</p>
+    <div class="bg-white rounded-3xl p-10 text-center border border-slate-100 shadow-sm">
+      <p class="text-slate-600 text-lg font-bold">Aucune équipe disponible pour cette saison.</p>
       <p class="text-slate-500 text-sm mt-2">Les équipes apparaissent après le flashage d'une saison active.</p>
     </div>
   {% endif %}
+</div>
 </div>
 {% endblock %}
