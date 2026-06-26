@@ -163,15 +163,11 @@
             {{ _self.render_status_list('Si besoin', event.disponibles_si_necessaire, 'border-sky-100 text-sky-800 bg-sky-50/10', 'bg-sky-500', event.nb_disponible_si_necessaire) }}
             {# 4. Indisponibles #}
             {{ _self.render_status_list('Indisponibles', event.indisponibles, 'border-rose-100 text-rose-850 bg-rose-50/10', 'bg-rose-500', event.nb_indisponible) }}
-            {# 5. Sans réponse #}
-            {{ _self.render_status_list('Sans réponse', event.pas_de_reponse, 'border-slate-200 text-slate-800 bg-slate-50/10', 'bg-slate-400', event.nb_pas_de_reponse) }}
           {% else %}
             {# 1. Présents #}
             {{ _self.render_status_list('Présents', event.presents, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
             {# 2. Absents #}
             {{ _self.render_status_list('Absents', event.absents, 'border-rose-100 text-rose-800 bg-rose-50/10', 'bg-rose-500', event.nb_absent) }}
-            {# 3. Sans réponse #}
-            {{ _self.render_status_list('Sans réponse', event.pas_de_reponse, 'border-slate-200 text-slate-800 bg-slate-50/10', 'bg-slate-400', event.nb_pas_de_reponse) }}
           {% endif %}
         </div>
       </div>
