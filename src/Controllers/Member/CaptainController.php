@@ -54,15 +54,41 @@ class CaptainController
                 $team['manifestation_filter'] ?? null
             );
 
-            // Charger les détails de sélection pour chaque match
+            $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($team['equipe_saison_id']);
+
+            // Charger les détails de sélection et dispo pour chaque match
             foreach ($matches as &$match) {
                 $db = ExternalDatabase::get();
-                $stmt = $db->prepare(
-                    "SELECT COUNT(*) FROM Participation 
-                     WHERE id_manifestation = ? AND Participation LIKE 'Sélectionné%'"
-                );
+                $stmt = $db->prepare("SELECT id_joueur, Participation FROM Participation WHERE id_manifestation = ?");
                 $stmt->execute([$match['id']]);
-                $match['nb_selection'] = (int)$stmt->fetchColumn();
+                $participations = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+
+                $nbSelection = 0;
+                $nbDisponible = 0;
+                $nbIndisponible = 0;
+                $nbSansReponse = 0;
+
+                foreach ($rosterPlayers as $rp) {
+                    $jid = (int)$rp['id_joueur'];
+                    $status = $participations[$jid] ?? '';
+                    $statusObj = new \App\Helpers\ParticipationStatus($status);
+
+                    if ($statusObj->getCategory() === 'selected') {
+                        $nbSelection++;
+                    } elseif ($statusObj->getCategory() === 'available' || $statusObj->getCategory() === 'present') {
+                        $nbDisponible++;
+                    } elseif ($statusObj->getCategory() === 'unavailable' || $statusObj->getCategory() === 'absent') {
+                        $nbIndisponible++;
+                    } else {
+                        $nbSansReponse++;
+                    }
+                }
+
+                $match['nb_selection'] = $nbSelection;
+                $match['nb_disponible'] = $nbDisponible;
+                $match['nb_indisponible'] = $nbIndisponible;
+                $match['nb_sans_reponse'] = $nbSansReponse;
+                $match['total_roster'] = count($rosterPlayers);
             }
             unset($match);
 
@@ -325,6 +351,9 @@ class CaptainController
     {
         $db = ExternalDatabase::get();
         
+        $dateStr = $event['Date'] ?? $event['date'] ?? null;
+        $idManifestation = $event['id_manifestation'] ?? $event['id'] ?? 0;
+        
         // 1. Trouver les événements candidats dans un intervalle de ±1 jour
         $stmt = $db->prepare(
             "SELECT id_manifestation, Date, Durée_créneau 
@@ -332,7 +361,7 @@ class CaptainController
              WHERE Date >= DATE_SUB(?, INTERVAL 1 DAY) AND Date <= DATE_ADD(?, INTERVAL 1 DAY)
                AND id_manifestation != ?"
         );
-        $stmt->execute([$event['Date'], $event['Date'], $event['id_manifestation']]);
+        $stmt->execute([$dateStr, $dateStr, $idManifestation]);
         $candidates = $stmt->fetchAll();
 
         $eventRange = $this->getEventRange($event);
@@ -356,13 +385,17 @@ class CaptainController
         }
     }
 
-    /**
-     * Calcule la plage de début/fin d'un événement en timestamp.
-     */
     private function getEventRange(array $event): array
     {
-        $start = strtotime($event['Date']);
-        $durationStr = $event['Durée_créneau'] ?? '2h';
+        $dateStr = $event['Date'] ?? $event['date'] ?? null;
+        if (!$dateStr) {
+            return [0, 0];
+        }
+        $start = strtotime($dateStr);
+        if ($start === false) {
+            return [0, 0];
+        }
+        $durationStr = $event['Durée_créneau'] ?? $event['duration'] ?? '2h';
         
         $hours = 2;
         $minutes = 0;

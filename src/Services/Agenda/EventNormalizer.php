@@ -98,6 +98,7 @@ class EventNormalizer
             'type'                        => $type,
             'titre'                       => $titre,
             'title'                       => $titre,
+            'Date'                        => $dateStr,
             'date'                        => $date ? $date->format('Y-m-d') : null,
             'date_display'                => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_range'                  => $timeRange,

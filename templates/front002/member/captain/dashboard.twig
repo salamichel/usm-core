@@ -30,13 +30,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
         
-        {# Flash messages #}
-        {% if flash %}
-        <div class="rounded-2xl p-4 mb-6 text-sm font-semibold border {% if flash.type == 'success' %}bg-green-50 border-green-200 text-green-800{% else %}bg-red-50 border-red-200 text-red-800{% endif %}">
-            {{ flash.message }}
-        </div>
-        {% endif %}
-
         <div class="space-y-12">
             {% for t in teams %}
             <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
@@ -68,13 +61,62 @@
                                 <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📍</span> {{ m.lieu }}</p>
                                 {% if m.commentaire %}<p class="flex items-center gap-2 italic text-xs text-slate-400"><span class="text-slate-400 w-4 text-center">💬</span> {{ m.commentaire }}</p>{% endif %}
                             </div>
+                        {# Jauge des disponibilités (Convoqués / Dispo / Sans réponse / Indispo) #}
+                        <div class="space-y-2 mb-4 mt-1 pt-3 border-t border-slate-100">
+                            <div class="flex justify-between text-xs font-bold text-slate-500">
+                                <span>Convocations & Réponses</span>
+                                <span>{{ m.total_roster }} joueurs</span>
+                            </div>
+                            
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden">
+                                {% set pct_sel = m.total_roster > 0 ? (m.nb_selection / m.total_roster * 100) : 0 %}
+                                {% set pct_disp = m.total_roster > 0 ? (m.nb_disponible / m.total_roster * 100) : 0 %}
+                                {% set pct_sans = m.total_roster > 0 ? (m.nb_sans_reponse / m.total_roster * 100) : 0 %}
+                                {% set pct_indisp = m.total_roster > 0 ? (m.nb_indisponible / m.total_roster * 100) : 0 %}
+                                
+                                {% if m.nb_selection > 0 %}
+                                    <div class="bg-amber-500 h-full" style="width: {{ pct_sel }}%" title="Sélectionnés : {{ m.nb_selection }}"></div>
+                                {% endif %}
+                                {% if m.nb_disponible > 0 %}
+                                    <div class="bg-emerald-500 h-full" style="width: {{ pct_disp }}%" title="Disponibles : {{ m.nb_disponible }}"></div>
+                                {% endif %}
+                                {% if m.nb_sans_reponse > 0 %}
+                                    <div class="bg-slate-300 h-full" style="width: {{ pct_sans }}%" title="Sans réponse : {{ m.nb_sans_reponse }}"></div>
+                                {% endif %}
+                                {% if m.nb_indisponible > 0 %}
+                                    <div class="bg-rose-500 h-full" style="width: {{ pct_indisp }}%" title="Indisponibles : {{ m.nb_indisponible }}"></div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    <span>Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span>Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                    <span>Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <span>Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
                         </div>
 
                         <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-1.5">
-                                <div class="w-2.5 h-2.5 rounded-full {% if m.nb_selection > 0 %}bg-green-500{% else %}bg-amber-400{% endif %}"></div>
-                                <span class="text-xs font-bold text-slate-700">
-                                    {{ m.nb_selection }} joueur{{ m.nb_selection > 1 ? 's' : '' }} sélectionné{{ m.nb_selection > 1 ? 's' : '' }}
+                                <span class="text-xs font-bold">
+                                    {% if m.nb_selection >= 6 %}
+                                        <span class="text-emerald-600">✓ Effectif suffisant</span> ({{ m.nb_selection }} joueurs)
+                                    {% else %}
+                                        <span class="text-rose-500">⚠ Sous-effectif</span> ({{ m.nb_selection }}/6 requis)
+                                    {% endif %}
                                 </span>
                             </div>
                             
