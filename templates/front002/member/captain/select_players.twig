@@ -49,7 +49,7 @@
 
                 <div class="space-y-3">
                     {% for j in joueurs %}
-                    <div class="flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
+                    <div class="player-row flex items-center justify-between p-3.5 border border-slate-150 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" onclick="togglePlayerCheckbox('player-{{ j.id_joueur }}')">
                         <div class="flex items-center gap-4 min-w-0">
                             {# Checkbox #}
                             <input type="checkbox" id="player-{{ j.id_joueur }}" name="selected_players[]" value="{{ j.id_joueur }}"
@@ -112,10 +112,12 @@
             const cat = el.getAttribute('data-status-category');
             if (cat === 'present' || cat === 'available' || cat === 'selected') {
                 // Find parent container checkbox
-                const row = el.closest('.flex');
-                const checkbox = row.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    checkbox.checked = true;
+                const row = el.closest('.player-row');
+                if (row) {
+                    const checkbox = row.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 }
             }
         });
