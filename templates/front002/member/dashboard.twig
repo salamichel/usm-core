@@ -30,6 +30,20 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
         
+        {% if is_capitaine %}
+        <div class="bg-gradient-to-r from-amber-500 to-amber-600 rounded-3xl p-5 mb-8 text-slate-900 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-amber-400">
+            <div>
+                <h2 class="text-lg font-black flex items-center gap-2">
+                    👑 Espace Capitaine
+                </h2>
+                <p class="text-sm font-medium text-slate-900/80 mt-1">Vous êtes capitaine pour cette saison. Gérez les convocations de vos joueurs et créez des matchs.</p>
+            </div>
+            <a href="{{ url('member/captain') }}" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl transition text-center text-sm shadow-sm flex-shrink-0">
+                Accéder à l'espace
+            </a>
+        </div>
+        {% endif %}
+        
         {# 2. KPI MÉTRIQUES RAPIDES #}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4 hover:-translate-y-1 transition-all cursor-pointer hover:shadow-md hover:border-slate-200 duration-200" data-kpi-filter="this-week">

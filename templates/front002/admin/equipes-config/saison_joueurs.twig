@@ -43,6 +43,7 @@
         <th class="text-left px-4 py-3 font-black">Nom</th>
         <th class="text-left px-4 py-3 font-black">Prénom</th>
         <th class="text-left px-4 py-3 font-black">Email</th>
+        <th class="text-left px-4 py-3 font-black">Rôle</th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -52,13 +53,34 @@
         <td class="px-4 py-3 font-semibold">{{ j.nom }}</td>
         <td class="px-4 py-3">{{ j.prenom }}</td>
         <td class="px-4 py-3 text-gray-500 text-xs">{{ j.data.Mel ?? '—' }}</td>
+        <td class="px-4 py-3 text-sm">
+          {% if j.is_captain %}
+            <span class="inline-flex items-center gap-x-1.5 rounded-md bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+              <svg class="h-1.5 w-1.5 fill-green-500" viewBox="0 0 6 6" aria-hidden="true">
+                <circle cx="3" cy="3" r="3" />
+              </svg>
+              Capitaine
+            </span>
+          {% else %}
+            <span class="text-gray-400 text-xs">—</span>
+          {% endif %}
+        </td>
         <td class="px-4 py-3 text-right">
-          <form method="POST"
-                action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/remove') }}"
-                data-confirm="Retirer ce joueur de l'équipe ?">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Retirer</button>
-          </form>
+          <div class="flex justify-end items-center gap-2">
+            <form method="POST"
+                  action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/toggle-captain') }}">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="border-2 {{ j.is_captain ? 'border-gray-500 text-gray-600 hover:bg-gray-500 hover:text-white' : 'border-amber-500 text-amber-700 hover:bg-amber-500 hover:text-white' }} px-2 py-1 text-xs font-bold transition">
+                {{ j.is_captain ? 'Retirer capitaine' : 'Nommer capitaine' }}
+              </button>
+            </form>
+            <form method="POST"
+                  action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/remove') }}"
+                  data-confirm="Retirer ce joueur de l'équipe ?">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Retirer</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% endfor %}

@@ -230,6 +230,20 @@ class EquipeConfigController extends BaseAdminController
         $this->redirect('/admin/equipes-config/' . $equipe['id'] . '/saisons/' . $saison['id'] . '/joueurs');
     }
 
+    public function toggleCaptain(array $params): void
+    {
+        Auth::require();
+        [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
+        if (!$equipe || !$saison) {
+            $this->notFound();
+            return;
+        }
+
+        $snapshotId = (int)$params['jid'];
+        EquipeSaisonJoueur::toggleCaptain($es['id'], $snapshotId);
+        $this->redirect('/admin/equipes-config/' . $equipe['id'] . '/saisons/' . $saison['id'] . '/joueurs');
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private function resolveEquipeSaison(array $params): array

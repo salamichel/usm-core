@@ -4,6 +4,8 @@ namespace App\Controllers\Member;
 
 use App\Core\View;
 use App\Models\Joueur;
+use App\Models\Saison;
+use App\Models\EquipeSaisonJoueur;
 use App\Services\Validator;
 
 class AuthController
@@ -53,6 +55,11 @@ class AuthController
             $_SESSION['Capitaine'] = str_contains($caracteristiques, 'Capitaine');
             $_SESSION['AdminWeb'] = str_contains($caracteristiques, 'Web');
 
+            // Évaluer le statut de capitaine pour la saison en cours
+            $saisonActive = Saison::getActive();
+            $captainedTeams = $saisonActive ? EquipeSaisonJoueur::findCaptainedTeams((int)$user['id_joueur'], $saisonActive['id']) : [];
+            $_SESSION['IsCaptainSaison'] = !empty($captainedTeams);
+
             View::flash('success', 'Bienvenue ' . $user['Prénom'] . ' !');
             header('Location: /member/dashboard');
             exit;
@@ -72,6 +79,7 @@ class AuthController
         $_SESSION['LogIn'] = false;
         $_SESSION['Capitaine'] = false;
         $_SESSION['AdminWeb'] = false;
+        $_SESSION['IsCaptainSaison'] = false;
         
         unset($_SESSION['LogInId'], $_SESSION['user_name'], $_SESSION['user_email']);
         

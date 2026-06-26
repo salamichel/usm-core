@@ -77,6 +77,38 @@
   </section>
   {% endif %}
 
+  {# Capitaines and Contact Section #}
+  {% if capitaines|length %}
+  <section class="mb-16 bg-slate-50 border border-slate-200 rounded-xl p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.243.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="font-serif text-lg font-semibold text-slate-900 mb-1">
+          Capitaine{{ capitaines|length > 1 ? 's' : '' }} de l'équipe
+        </h3>
+        <p class="text-sm text-slate-600">
+          {% for cap in capitaines %}
+            <strong class="text-slate-800">{{ cap.prenom }} {{ cap.nom }}</strong>{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+      </div>
+    </div>
+    <div>
+      <button type="button" onclick="openContactModal()"
+              class="inline-flex items-center gap-2 bg-[var(--primary)] text-white font-medium px-5 py-2.5 rounded-lg shadow-sm hover:bg-opacity-90 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        Contacter le{{ capitaines|length > 1 ? 's' : '' }} capitaine{{ capitaines|length > 1 ? 's' : '' }}
+      </button>
+    </div>
+  </section>
+  {% endif %}
+
   {# Upcoming events #}
   {% if mini_agenda_events|length %}
   <section class="mb-16">
@@ -125,11 +157,20 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {% for j in joueurs %}
       {%- set isFemale = j.data.Sexe|default('F') == 'F' -%}
-      <div class="card p-4 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-semibold {{ isFemale ? 'bg-pink-50 text-pink-700' : 'bg-blue-50 text-blue-700' }}">
-          {{ j.prenom|first }}{{ j.nom|first }}
+      <div class="card p-4 flex items-center justify-between gap-3 {% if j.is_captain %}ring-2 ring-amber-400 bg-amber-50/50{% endif %}">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-semibold {{ isFemale ? 'bg-pink-50 text-pink-700' : 'bg-blue-50 text-blue-700' }}">
+            {{ j.prenom|first }}{{ j.nom|first }}
+          </div>
+          <p class="font-medium text-sm text-slate-900 leading-tight truncate">{{ j.prenom }} {{ j.nom }}</p>
         </div>
-        <p class="font-medium text-sm text-slate-900 leading-tight truncate">{{ j.prenom }} {{ j.nom }}</p>
+        {% if j.is_captain %}
+          <span title="Capitaine" class="flex-shrink-0 bg-amber-100 text-amber-800 p-1 rounded-full">
+            <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </span>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
@@ -159,6 +200,80 @@
   </section>
   {% endif %}
 
+  {# Contact Modal #}
+  {% if capitaines|length %}
+  <div id="contact-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Background backdrop -->
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-50 transition-opacity" onclick="closeContactModal()"></div>
+
+    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200">
+        <form method="POST" action="{{ url('equipes/' ~ categorie_slug ~ '/' ~ equipe.slug ~ '/contact-capitaine' ~ (saison ? '?saison=' ~ saison.id : '')) }}">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+          <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:h-10 sm:w-10">
+                <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3 class="font-serif text-lg font-semibold leading-6 text-slate-900" id="modal-title">
+                  Message pour le{{ capitaines|length > 1 ? 's' : '' }} capitaine{{ capitaines|length > 1 ? 's' : '' }}
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">
+                  Ce formulaire sera envoyé de manière sécurisée sans révéler l'adresse e-mail.
+                </p>
+
+                {% if contact_error %}
+                  <div class="mt-4 rounded-md border border-rose-200 bg-rose-50 text-rose-700 px-3 py-2 text-xs font-medium">
+                    {{ contact_error }}
+                  </div>
+                {% endif %}
+
+                <div class="mt-4 space-y-4">
+                  <div>
+                    <label for="visitor_name" class="block text-xs font-medium text-slate-700 mb-1">Votre nom *</label>
+                    <input type="text" id="visitor_name" name="name" required value="{{ contact_form_data.name|default('') }}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] focus:outline-none">
+                  </div>
+                  <div>
+                    <label for="visitor_email" class="block text-xs font-medium text-slate-700 mb-1">Votre adresse email *</label>
+                    <input type="email" id="visitor_email" name="email" required value="{{ contact_form_data.email|default('') }}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] focus:outline-none">
+                  </div>
+                  <div>
+                    <label for="visitor_subject" class="block text-xs font-medium text-slate-700 mb-1">Sujet *</label>
+                    <input type="text" id="visitor_subject" name="subject" required value="{{ contact_form_data.subject|default('') }}"
+                           class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] focus:outline-none">
+                  </div>
+                  <div>
+                    <label for="visitor_message" class="block text-xs font-medium text-slate-700 mb-1">Message *</label>
+                    <textarea id="visitor_message" name="message" rows="4" required
+                              class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-[var(--primary)] focus:ring-[var(--primary)] focus:outline-none">{{ contact_form_data.message|default('') }}</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+            <button type="submit"
+                    class="inline-flex w-full justify-center rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-opacity-90 sm:w-auto transition">
+              Envoyer
+            </button>
+            <button type="button" onclick="closeContactModal()"
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}
 
@@ -166,5 +281,27 @@
 {% if photos|length or cover %}
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>GLightbox({ selector: '.glightbox' });</script>
+{% endif %}
+{% if capitaines|length %}
+  <script>
+    function openContactModal() {
+      const modal = document.getElementById('contact-modal');
+      modal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeContactModal() {
+      const modal = document.getElementById('contact-modal');
+      modal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // Auto-open if validation failed
+    {% if open_contact_modal %}
+      document.addEventListener('DOMContentLoaded', function() {
+        openContactModal();
+      });
+    {% endif %}
+  </script>
 {% endif %}
 {% endblock %}

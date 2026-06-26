@@ -129,12 +129,19 @@ class ParticipationStatus
 
     public function getLabel(): string
     {
-        return match ($this->getCategory()) {
+        $cat = $this->getCategory();
+        if ($cat === 'selected') {
+            $orig = $this->getOriginalStatus();
+            if ($orig !== '' && $orig !== 'Sans réponse') {
+                return 'Sélectionné (' . $orig . ')';
+            }
+            return 'Sélectionné';
+        }
+        return match ($cat) {
             'present' => 'Présent',
             'available' => 'Disponible',
             'unavailable' => 'Indisponible',
             'absent' => 'Absent',
-            'selected' => 'Sélectionné',
             'unknown' => 'Ne sait pas',
             'no_response' => 'Sans réponse',
             default => '—',

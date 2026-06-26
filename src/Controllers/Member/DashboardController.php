@@ -21,12 +21,17 @@ class DashboardController
 
         $userId = (int) $_SESSION['LogInId'];
 
+        // Rafraîchir le statut de capitaine
+        $saisonActive = \App\Models\Saison::getActive();
+        $captainedTeams = $saisonActive ? \App\Models\EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']) : [];
+        $_SESSION['IsCaptainSaison'] = !empty($captainedTeams);
+
         $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
         $imminentEvents = \App\Services\MemberDashboardService::getImminentEvents($userId, 100);
         $stats = \App\Services\MemberDashboardService::getSeasonStats($userId);
 
         View::render('member/dashboard.twig', [
-            'is_capitaine' => $_SESSION['Capitaine'] ?? false,
+            'is_capitaine' => $_SESSION['IsCaptainSaison'] || ($_SESSION['Capitaine'] ?? false),
             'is_admin_web' => $_SESSION['AdminWeb'] ?? false,
             'kpis' => $kpis,
             'imminent_events' => $imminentEvents,

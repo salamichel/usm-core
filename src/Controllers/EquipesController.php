@@ -16,6 +16,9 @@ use App\Services\SeoService;
 use App\Services\SlugManager;
 use App\Services\StructuredDataService;
 use App\ValueObjects\PageMetadata;
+use App\Services\BrevoService;
+use App\Services\Validator;
+use App\Services\Logger;
 
 class EquipesController
 {
@@ -214,8 +217,9 @@ class EquipesController
         $es      = $saison ? EquipeSaison::findBySaisonAndEquipe($saison['id'], $equipe['id']) : null;
         $allPhotos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
         $cover   = $es ? Photo::getEntityCover('equipe_saison', $es['id']) : null;
-        $photos  = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
-        $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
+        $photos     = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
+        $joueurs    = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
+        $capitaines = $es ? EquipeSaisonJoueur::findCaptainsByEquipeSaison($es['id']) : [];
 
         // Mini agenda: upcoming matches for this team
         $miniAgendaEvents = [];
@@ -288,6 +292,7 @@ class EquipesController
             'cover'              => $cover,
             'photos'             => $photos,
             'joueurs'            => $joueurs,
+            'capitaines'         => $capitaines,
             'saison'             => $saison,
             'allSaisons'         => $allSaisons,
             'otherEquipes'       => $otherEquipes,
@@ -295,6 +300,182 @@ class EquipesController
             'agenda_filter_url'  => $agendaFilterUrl,
             'categorie_desc'     => $categorieDesc,
             'categorie_slug'     => SlugManager::generate($categorie['nom']),
+        ]);
+    }
+
+    public function contactCaptain(array $params): void
+    {
+        $categorie = CategorieEquipe::findBySlug($params['categorie']);
+        if (!$categorie) {
+            $this->notFound();
+            return;
+        }
+
+        $equipe = EquipeConfig::findByCategoryAndSlug($categorie['nom'], $params['slug']);
+        if (!$equipe) {
+            $this->notFound();
+            return;
+        }
+
+        $saisonId = isset($_GET['saison']) ? (int)$_GET['saison'] : null;
+        $saison = null;
+        if ($saisonId) {
+            $saison = Saison::find($saisonId);
+        }
+        if (!$saison) {
+            $saison = Saison::getActive();
+        }
+
+        $es = $saison ? EquipeSaison::findBySaisonAndEquipe($saison['id'], $equipe['id']) : null;
+        if (!$es) {
+            $this->notFound();
+            return;
+        }
+
+        $capitaines = EquipeSaisonJoueur::findCaptainsByEquipeSaison($es['id']);
+        if (empty($capitaines)) {
+            View::flash('error', 'Cette équipe n\'a pas de capitaine configuré pour le moment.');
+            header('Location: /equipes/' . SlugManager::generate($categorie['nom']) . '/' . $equipe['slug']);
+            exit;
+        }
+
+        $csrfToken = $_POST['_csrf_token'] ?? '';
+        if (!\App\Core\CsrfToken::verify($csrfToken)) {
+            $errorMsg = 'Jeton de sécurité invalide. Veuillez réessayer.';
+            $this->renderDetailWithError($categorie, $equipe, $saison, $es, $capitaines, $errorMsg);
+            return;
+        }
+
+        $v = Validator::make($_POST)
+            ->required('name', 'Le nom est obligatoire.')
+            ->minLength('name', 2)
+            ->required('email', 'L\'email est obligatoire.')
+            ->email('email')
+            ->required('subject', 'Le sujet est obligatoire.')
+            ->required('message', 'Le message est obligatoire.')
+            ->minLength('message', 10);
+
+        if ($v->fails()) {
+            $this->renderDetailWithError($categorie, $equipe, $saison, $es, $capitaines, $v->firstError());
+            return;
+        }
+
+        $data = $v->getCleanData(['name', 'email', 'subject', 'message']);
+
+        $successCount = 0;
+        $brevo = new BrevoService();
+        foreach ($capitaines as $captain) {
+            if ($brevo->sendCaptainMessage($captain, $data, $equipe['libelle'])) {
+                $successCount++;
+            }
+        }
+
+        if ($successCount > 0) {
+            View::flash('success', 'Votre message a bien été envoyé au(x) capitaine(s) de l\'équipe.');
+        } else {
+            View::flash('error', 'Une erreur est survenue lors de l\'envoi du message.');
+        }
+
+        header('Location: /equipes/' . SlugManager::generate($categorie['nom']) . '/' . $equipe['slug']);
+        exit;
+    }
+
+    private function renderDetailWithError(
+        array $categorie,
+        array $equipe,
+        ?array $saison,
+        ?array $es,
+        array $capitaines,
+        string $errorMsg
+    ): void {
+        $allSaisons = EquipeSaison::findAllSaisonsByEquipe($equipe['id']);
+        $allPhotos  = $es ? Photo::forEntity('equipe_saison', $es['id']) : [];
+        $cover   = $es ? Photo::getEntityCover('equipe_saison', $es['id']) : null;
+        $photos  = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
+        $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
+
+        $miniAgendaEvents = [];
+        $agendaFilterUrl = '';
+        if (!empty($equipe['slug_colonne'])) {
+            $miniAgendaEvents = AgendaService::getUpcomingMatchesForTeam(
+                $equipe['slug_colonne'],
+                MINI_AGENDA_LIMIT,
+                $equipe['manifestation_filter'] ?? null
+            );
+            $agendaFilterUrl = '/agenda?team=' . urlencode($equipe['slug_colonne']);
+            if (!empty($equipe['manifestation_filter'])) {
+                $agendaFilterUrl .= '&manifestation=' . urlencode($equipe['manifestation_filter']);
+            }
+        }
+
+        $otherEquipes = [];
+        if ($saison) {
+            $allByCategory = EquipeConfig::groupedByCategorie();
+            $categoryEquipes = $allByCategory[$equipe['categorie']] ?? [];
+            foreach ($categoryEquipes as $eq) {
+                if ($eq['id'] === $equipe['id']) continue;
+                $esSaison = EquipeSaison::findBySaisonAndEquipe($saison['id'], $eq['id']);
+                if (!$esSaison || EquipeSaisonJoueur::countByEquipeSaison($esSaison['id']) === 0) continue;
+                $eq['cover'] = Photo::getEntityCover('equipe_saison', $esSaison['id']);
+                $otherEquipes[] = $eq;
+            }
+        }
+
+        $categorieDesc = CategorieEquipe::findByNom($equipe['categorie']);
+
+        $ogImage = $es ? SeoService::pickOgImage(null, $photos) : null;
+        $url = SeoService::absoluteUrl('/equipes/' . SlugManager::generate($categorie['nom']) . '/' . $equipe['slug']);
+        $breadcrumbs = [
+            ['name' => 'Accueil', 'url' => SeoService::absoluteUrl('/')],
+            ['name' => 'Équipes', 'url' => SeoService::absoluteUrl('/equipes')],
+            ['name' => $categorie['nom'], 'url' => SeoService::absoluteUrl('/equipes/' . SlugManager::generate($categorie['nom']))],
+            ['name' => $equipe['libelle'], 'url' => $url],
+        ];
+        $jsonLd = [
+            StructuredDataService::sportsTeam($equipe, $ogImage, $url),
+            StructuredDataService::sportsClub(),
+        ];
+        $breadcrumbSchema = StructuredDataService::breadcrumbs($breadcrumbs);
+        if ($breadcrumbSchema) {
+            $jsonLd[] = $breadcrumbSchema;
+        }
+
+        $meta = new PageMetadata(
+            title: SeoService::title($equipe['libelle']),
+            description: SeoService::description(
+                null,
+                null,
+                'Équipe ' . $equipe['libelle'] . ' du club USM Volley-Ball : joueurs, matchs et entraînements.'
+            ),
+            canonical: $url,
+            ogImage: $ogImage,
+            ogType: 'website',
+            jsonLd: $jsonLd,
+            breadcrumbs: $breadcrumbs,
+        );
+
+        View::render('equipes/detail.twig', [
+            'meta'               => $meta,
+            'equipe'             => $equipe,
+            'cover'              => $cover,
+            'photos'             => $photos,
+            'joueurs'            => $joueurs,
+            'capitaines'         => $capitaines,
+            'saison'             => $saison,
+            'allSaisons'         => $allSaisons,
+            'otherEquipes'       => $otherEquipes,
+            'mini_agenda_events' => $miniAgendaEvents,
+            'agenda_filter_url'  => $agendaFilterUrl,
+            'categorie_desc'     => $categorieDesc,
+            'categorie_slug'     => SlugManager::generate($categorie['nom']),
+            'contact_error'      => $errorMsg,
+            'contact_form_data'  => [
+                'name'    => $_POST['name'] ?? '',
+                'email'   => $_POST['email'] ?? '',
+                'subject' => $_POST['subject'] ?? '',
+                'message' => $_POST['message'] ?? '',
+            ],
+            'open_contact_modal' => true,
         ]);
     }
 }

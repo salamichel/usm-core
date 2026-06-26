@@ -41,3 +41,12 @@
         
     </div>
 </nav>
+
+{# FAB Capitaine pour ajouter un match (visible uniquement sur mobile pour les capitaines) #}
+{% if app.session.IsCaptainSaison or app.session.Capitaine %}
+<a href="{{ url('member/captain/matches/create') }}" class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-4 z-50 w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-900 shadow-[0_4px_10px_rgba(245,158,11,0.4)] flex items-center justify-center active:scale-95 hover:scale-105 transition-all duration-200 md:hidden border border-amber-600" title="Ajouter un match">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+    </svg>
+</a>
+{% endif %}
