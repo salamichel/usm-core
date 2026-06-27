@@ -133,6 +133,11 @@ class AgendaService
         $selectedEvents = [];
         foreach ($events as $e) {
             $status = $e['user_status'] ?? '';
+            // Ne pas considérer les événements annulés comme bloquants
+            $isCancelled = ($e['annule'] ?? false) || str_contains((string)($e['Statut'] ?? $e['statut'] ?? $e['status'] ?? ''), 'Annulé');
+            if ($isCancelled) {
+                continue;
+            }
             if (str_contains($status, 'Sélectionné')) {
                 $selectedEvents[] = $e;
             }
@@ -180,6 +185,13 @@ class AgendaService
                 continue;
             }
 
+            // Si l'événement lui-même est annulé, on ne le marque pas en chevauchement
+            $isCancelled = ($e['annule'] ?? false) || str_contains((string)($e['Statut'] ?? $e['statut'] ?? $e['status'] ?? ''), 'Annulé');
+            if ($isCancelled) {
+                $e['is_overlapping_selected'] = false;
+                continue;
+            }
+
             $eRange = $getRange($e);
             if ($eRange[0] === 0) continue;
 
@@ -209,6 +221,12 @@ class AgendaService
             return false;
         }
 
+        // Si l'événement cible lui-même est annulé, pas de chevauchement à signaler
+        $targetCancelled = ($targetEvent['annule'] ?? false) || str_contains((string)($targetEvent['Statut'] ?? $targetEvent['statut'] ?? $targetEvent['status'] ?? ''), 'Annulé');
+        if ($targetCancelled) {
+            return false;
+        }
+
         // 2. Récupérer les catégories du joueur pour trouver ses événements à venir
         $categories = \App\Models\Joueur::getCategories($userId);
         if (empty($categories)) {
@@ -223,6 +241,13 @@ class AgendaService
         foreach ($upcoming as $m) {
             $status = $m['user_status'] ?? '';
             $mid = (int)($m['id_manifestation'] ?? $m['id'] ?? 0);
+            
+            // Ne pas prendre en compte les événements annulés dans les sélections bloquantes
+            $isCancelled = ($m['annule'] ?? false) || str_contains((string)($m['Statut'] ?? $m['statut'] ?? $m['status'] ?? ''), 'Annulé');
+            if ($isCancelled) {
+                continue;
+            }
+
             if (str_contains($status, 'Sélectionné') && $mid !== $manifestationId) {
                 $selectedEvents[] = $m;
             }

@@ -526,7 +526,7 @@ class EventRepository
                 $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%jeunes%'";
             }
             if (stripos($category, 'loisir') !== false || stripos($libelle, 'loisir') !== false || str_starts_with($teamCode, 'L')) {
-                $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%loisir%'";
+                $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%CompetLib%'";
             }
 
             $trainingExtraSql = "";

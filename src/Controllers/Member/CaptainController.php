@@ -650,12 +650,13 @@ class CaptainController
         $dateStr = $event['Date'] ?? $event['date'] ?? null;
         $idManifestation = $event['id_manifestation'] ?? $event['id'] ?? 0;
         
-        // 1. Trouver les événements candidats dans un intervalle de ±1 jour
+        // 1. Trouver les événements candidats dans un intervalle de ±1 jour (non annulés)
         $stmt = $db->prepare(
             "SELECT id_manifestation, Date, Durée_créneau 
              FROM Manifestation 
              WHERE Date >= DATE_SUB(?, INTERVAL 1 DAY) AND Date <= DATE_ADD(?, INTERVAL 1 DAY)
-               AND id_manifestation != ?"
+               AND id_manifestation != ?
+               AND (Statut IS NULL OR Statut NOT LIKE '%Annulé%')"
         );
         $stmt->execute([$dateStr, $dateStr, $idManifestation]);
         $candidates = $stmt->fetchAll();
