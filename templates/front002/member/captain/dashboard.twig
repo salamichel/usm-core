@@ -116,17 +116,35 @@
                                 <tr class="bg-slate-900 text-white border-b border-slate-800">
                                     <th class="py-4 px-4 font-serif text-sm font-bold w-48 sticky left-0 bg-slate-900 z-30" style="top: var(--header-h, 76px);">Joueur</th>
                                     {% for event in t.upcoming_events %}
-                                    <th class="py-3 px-2 text-center text-xs font-bold border-l border-slate-800 min-w-[100px] hover:bg-slate-800 transition relative group sticky bg-slate-900 z-20" style="top: var(--header-h, 76px);">
+                                    {% set th_classes = "hover:bg-slate-800 text-white bg-slate-900 border-slate-800" %}
+                                    {% set date_color = "text-slate-400" %}
+                                    {% set title_color = "text-white" %}
+                                    {% if event.annule %}
+                                        {% set th_classes = "bg-rose-900 border-rose-950 text-white hover:bg-rose-950" %}
+                                        {% set date_color = "text-rose-200" %}
+                                        {% set title_color = "text-rose-100 line-through" %}
+                                    {% elseif event.provisoire %}
+                                        {% set th_classes = "bg-amber-600 border-amber-700 text-white hover:bg-amber-700" %}
+                                        {% set date_color = "text-amber-250" %}
+                                        {% set title_color = "text-amber-100 font-extrabold" %}
+                                    {% endif %}
+                                    <th class="py-3 px-2 text-center text-xs font-bold border-l min-w-[110px] transition relative group sticky z-20 {{ th_classes }}" style="top: var(--header-h, 76px);">
                                         <div class="flex flex-col items-center gap-1">
-                                            <span>
+                                            <div class="flex items-center gap-1 justify-center">
                                                 {% if event.is_match %}
                                                     <span class="text-amber-400" title="Match">🏆</span>
                                                 {% else %}
                                                     <span class="text-cyan-400" title="Entraînement">🏃</span>
                                                 {% endif %}
-                                            </span>
-                                            <span class="text-[10px] text-slate-400">{{ event.date_display }}</span>
-                                            <span class="text-[11px] truncate max-w-[95px] text-white block" title="{{ event.titre }} ({{ event.lieu }})">
+                                                
+                                                {% if event.annule %}
+                                                    <span class="text-[8px] font-black uppercase tracking-wider bg-rose-700 text-white px-1 py-0.5 rounded leading-none">Annulé</span>
+                                                {% elseif event.provisoire %}
+                                                    <span class="text-[8px] font-black uppercase tracking-wider bg-amber-700 text-white px-1 py-0.5 rounded leading-none">Provisoire</span>
+                                                {% endif %}
+                                            </div>
+                                            <span class="text-[10px] {{ date_color }}">{{ event.date_display }}</span>
+                                            <span class="text-[11px] truncate max-w-[100px] block {{ title_color }}" title="{{ event.titre }} ({{ event.lieu }})">
                                                 {{ event.titre }}
                                             </span>
                                         </div>
@@ -152,9 +170,10 @@
                                             </span>
                                         </div>
                                         <span class="text-xs text-slate-400">{{ player.sexe }}</span>
-                                                                        {% for event in t.upcoming_events %}
+                                    {% for event in t.upcoming_events %}
                                     {% set cell = player.events[event.id] %}
-                                    <td class="py-3 px-2 text-center border-l border-slate-100 relative group cursor-pointer hover:bg-slate-50/80 transition presence-cell"
+                                    {% set td_bg = event.annule ? 'bg-rose-50/20 hover:bg-rose-100/30' : (event.provisoire ? 'bg-amber-50/20 hover:bg-amber-100/30' : 'hover:bg-slate-50/80') %}
+                                    <td class="py-3 px-2 text-center border-l border-slate-100 relative group cursor-pointer transition presence-cell {{ td_bg }}"
                                         data-player-id="{{ player.id_joueur }}"
                                         data-event-id="{{ event.id }}"
                                         data-event-type="{{ event.is_match ? 'match' : 'training' }}"

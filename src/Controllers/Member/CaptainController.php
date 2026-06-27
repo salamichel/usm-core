@@ -94,156 +94,15 @@ class CaptainController
             }
             unset($match);
 
-            // 2. Prochains événements (Matchs + Entraînements) pour la vision en tableau
-            $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, 8);
-            $eventIds = array_column($upcomingEvents, 'id');
-
-            $participationsMap = [];
-            if (!empty($eventIds) && !empty($playerIds)) {
-                $db = ExternalDatabase::get();
-                $eventPlaceholders = implode(',', array_fill(0, count($eventIds), '?'));
-                $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
-                
-                $stmt = $db->prepare("
-                    SELECT id_joueur, id_manifestation, Participation 
-                    FROM Participation 
-                    WHERE id_manifestation IN ($eventPlaceholders) 
-                      AND id_joueur IN ($playerPlaceholders)
-                ");
-                $params = array_merge($eventIds, $playerIds);
-                $stmt->execute($params);
-                $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                
-                foreach ($rows as $row) {
-                    $jid = (int)$row['id_joueur'];
-                    $mid = (int)$row['id_manifestation'];
-                    $participationsMap[$jid][$mid] = $row['Participation'];
-                }
-            }
-
-            // Construire la grille croisée des joueurs
-            $gridPlayers = [];
-            foreach ($rosterPlayers as $player) {
-                $jid = (int)$player['id_joueur'];
-                $playerGrid = [
-                    'id_joueur' => $jid,
-                    'nom' => $player['nom'] ?? '',
-                    'prenom' => $player['prenom'] ?? '',
-                    'sexe' => $player['data']['Sexe'] ?? 'F',
-                    'is_captain' => (bool)($player['is_captain'] ?? false),
-                    'events' => []
-                ];
-                
-                $nbSelected = 0;
-                $nbAvailable = 0;
-                $nbUnavailable = 0;
-                $nbNoResponse = 0;
-                
-                foreach ($upcomingEvents as $event) {
-                    $mid = $event['id'];
-                    $rawStatus = $participationsMap[$jid][$mid] ?? '';
-                    $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
-                    $category = $statusObj->getCategory();
-                    
-                    if ($category === 'selected') {
-                        $nbSelected++;
-                    } elseif ($category === 'available' || $category === 'available_if_needed' || $category === 'present') {
-                        $nbAvailable++;
-                    } elseif ($category === 'unavailable' || $category === 'absent') {
-                        $nbUnavailable++;
-                    } else {
-                        $nbNoResponse++;
-                    }
-                    
-                    $playerGrid['events'][$mid] = [
-                        'raw_status' => $rawStatus,
-                        'category' => $category,
-                        'label' => $statusObj->getLabel(),
-                        'icon' => $statusObj->getIcon(),
-                        'bg_class' => $statusObj->getBackgroundColor(),
-                        'text_class' => $statusObj->getTextColor(),
-                    ];
-                }
-                
-                $playerGrid['stats'] = [
-                    'selected' => $nbSelected,
-                    'available' => $nbAvailable,
-                    'unavailable' => $nbUnavailable,
-                    'no_response' => $nbNoResponse,
-                ];
-                
-                $gridPlayers[] = $playerGrid;
-            }
-
-            // Calcul des metrics d'équipe
-            $totalSlots = count($rosterPlayers) * count($upcomingEvents);
-            $totalAnswered = 0;
-            $understaffedMatches = 0;
-            $eventAttendance = [];
-            $trainingCount = 0;
-            $trainingPresentCount = 0;
-            $trainingSlotsCount = 0;
-
-            foreach ($upcomingEvents as $event) {
-                $mid = $event['id'];
-                $availCount = 0;
-                $selCount = 0;
-                
-                foreach ($rosterPlayers as $player) {
-                    $jid = (int)$player['id_joueur'];
-                    $rawStatus = $participationsMap[$jid][$mid] ?? '';
-                    $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
-                    $category = $statusObj->getCategory();
-                    
-                    if ($category !== 'no_response' && $rawStatus !== '') {
-                        $totalAnswered++;
-                    }
-                    
-                    if (in_array($category, ['selected', 'present', 'available', 'available_if_needed'])) {
-                        $availCount++;
-                    }
-                    if ($category === 'selected') {
-                        $selCount++;
-                    }
-                    
-                    if ($event['is_training']) {
-                        $trainingSlotsCount++;
-                        if (in_array($category, ['present', 'available', 'available_if_needed', 'selected'])) {
-                            $trainingPresentCount++;
-                        }
-                    }
-                }
-                
-                $eventAttendance[$mid] = $availCount;
-                
-                if ($event['is_match']) {
-                    if ($selCount < 6) {
-                        $understaffedMatches++;
-                    }
-                }
-                if ($event['is_training']) {
-                    $trainingCount++;
-                }
-            }
-
-            $responseRate = $totalSlots > 0 ? (int)round(($totalAnswered / $totalSlots) * 100) : 0;
-            $avgAvailable = count($upcomingEvents) > 0 ? round(array_sum($eventAttendance) / count($upcomingEvents), 1) : 0;
-            $trainingAttendanceRate = $trainingSlotsCount > 0 ? (int)round(($trainingPresentCount / $trainingSlotsCount) * 100) : 0;
-
-            $metrics = [
-                'response_rate' => $responseRate,
-                'avg_available' => $avgAvailable,
-                'understaffed_matches' => $understaffedMatches,
-                'training_attendance' => $trainingAttendanceRate,
-                'has_trainings' => $trainingCount > 0
-            ];
+            // 2. Grille de présence et métriques de l'équipe
+            $data = $this->buildTeamGridAndMetrics($team, $rosterPlayers, $playerIds);
 
             $teamsData[] = [
                 'config' => $team,
                 'matches' => $matches,
-                'upcoming_events' => $upcomingEvents,
-                'grid_players' => $gridPlayers,
-                'metrics' => $metrics
+                'upcoming_events' => $data['upcoming_events'],
+                'grid_players' => $data['grid_players'],
+                'metrics' => $data['metrics']
             ];
         }
 
@@ -859,148 +718,15 @@ class CaptainController
             }
 
             // Recalculer la grille et metrics de l'équipe
-            $upcomingEvents = AgendaService::getUpcomingEventsForTeam($matchedTeam, 8);
-            $eventIds = array_column($upcomingEvents, 'id');
             $playerIds = array_map(fn($p) => (int)$p['id_joueur'], $rosterPlayers);
-
-            $participationsMap = [];
-            if (!empty($eventIds) && !empty($playerIds)) {
-                $eventPlaceholders = implode(',', array_fill(0, count($eventIds), '?'));
-                $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
-                
-                $stmt = $db->prepare("
-                    SELECT id_joueur, id_manifestation, Participation 
-                    FROM Participation 
-                    WHERE id_manifestation IN ($eventPlaceholders) 
-                      AND id_joueur IN ($playerPlaceholders)
-                ");
-                $params = array_merge($eventIds, $playerIds);
-                $stmt->execute($params);
-                $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                
-                foreach ($rows as $row) {
-                    $jid = (int)$row['id_joueur'];
-                    $mid = (int)$row['id_manifestation'];
-                    $participationsMap[$jid][$mid] = $row['Participation'];
-                }
-            }
-
-            $gridPlayers = [];
-            foreach ($rosterPlayers as $player) {
-                $jid = (int)$player['id_joueur'];
-                $playerGrid = [
-                    'id_joueur' => $jid,
-                    'events' => []
-                ];
-                
-                $nbSelected = 0;
-                $nbAvailable = 0;
-                $nbUnavailable = 0;
-                $nbNoResponse = 0;
-                
-                foreach ($upcomingEvents as $ev) {
-                    $mid = $ev['id'];
-                    $rawStat = $participationsMap[$jid][$mid] ?? '';
-                    $stObj = new \App\Helpers\ParticipationStatus($rawStat);
-                    $category = $stObj->getCategory();
-                    
-                    if ($category === 'selected') {
-                        $nbSelected++;
-                    } elseif ($category === 'available' || $category === 'available_if_needed' || $category === 'present') {
-                        $nbAvailable++;
-                    } elseif ($category === 'unavailable' || $category === 'absent') {
-                        $nbUnavailable++;
-                    } else {
-                        $nbNoResponse++;
-                    }
-                    
-                    $playerGrid['events'][$mid] = [
-                        'category' => $category,
-                        'label' => $stObj->getLabel(),
-                        'icon' => $stObj->getIcon(),
-                        'bg_class' => $stObj->getBackgroundColor(),
-                        'text_class' => $stObj->getTextColor(),
-                        'raw_status' => $rawStat,
-                    ];
-                }
-                
-                $playerGrid['stats'] = [
-                    'selected' => $nbSelected,
-                    'available' => $nbAvailable,
-                    'unavailable' => $nbUnavailable,
-                ];
-                
-                $gridPlayers[] = $playerGrid;
-            }
-
-            $totalSlots = count($rosterPlayers) * count($upcomingEvents);
-            $totalAnswered = 0;
-            $understaffedMatches = 0;
-            $eventAttendance = [];
-            $trainingCount = 0;
-            $trainingPresentCount = 0;
-            $trainingSlotsCount = 0;
-
-            foreach ($upcomingEvents as $ev) {
-                $mid = $ev['id'];
-                $availCount = 0;
-                $selCount = 0;
-                
-                foreach ($rosterPlayers as $player) {
-                    $jid = (int)$player['id_joueur'];
-                    $rawStat = $participationsMap[$jid][$mid] ?? '';
-                    $stObj = new \App\Helpers\ParticipationStatus($rawStat);
-                    $category = $stObj->getCategory();
-                    
-                    if ($category !== 'no_response' && $rawStat !== '') {
-                        $totalAnswered++;
-                    }
-                    
-                    if (in_array($category, ['selected', 'present', 'available', 'available_if_needed'])) {
-                        $availCount++;
-                    }
-                    if ($category === 'selected') {
-                        $selCount++;
-                    }
-                    
-                    if ($ev['is_training']) {
-                        $trainingSlotsCount++;
-                        if (in_array($category, ['present', 'available', 'available_if_needed', 'selected'])) {
-                            $trainingPresentCount++;
-                        }
-                    }
-                }
-                
-                $eventAttendance[$mid] = $availCount;
-                
-                if ($ev['is_match']) {
-                    if ($selCount < 6) {
-                        $understaffedMatches++;
-                    }
-                }
-                if ($ev['is_training']) {
-                    $trainingCount++;
-                }
-            }
-
-            $responseRate = $totalSlots > 0 ? (int)round(($totalAnswered / $totalSlots) * 100) : 0;
-            $avgAvailable = count($upcomingEvents) > 0 ? round(array_sum($eventAttendance) / count($upcomingEvents), 1) : 0;
-            $trainingAttendanceRate = $trainingSlotsCount > 0 ? (int)round(($trainingPresentCount / $trainingSlotsCount) * 100) : 0;
-
-            $metrics = [
-                'response_rate' => $responseRate,
-                'avg_available' => $avgAvailable,
-                'understaffed_matches' => $understaffedMatches,
-                'training_attendance' => $trainingAttendanceRate,
-                'has_trainings' => $trainingCount > 0
-            ];
+            $data = $this->buildTeamGridAndMetrics($matchedTeam, $rosterPlayers, $playerIds);
 
             echo json_encode([
                 'ok' => true,
                 'message' => 'Participation mise à jour avec succès.',
                 'team_id' => $matchedTeam['equipe_saison_id'],
-                'grid_players' => $gridPlayers,
-                'metrics' => $metrics
+                'grid_players' => $data['grid_players'],
+                'metrics' => $data['metrics']
             ]);
 
         } catch (\Throwable $e) {
@@ -1008,6 +734,161 @@ class CaptainController
             echo json_encode(['ok' => false, 'message' => 'Erreur lors de la sauvegarde : ' . $e->getMessage()]);
         }
         exit;
+    }
+
+    /**
+     * Construit et calcule la grille de présence et les métriques d'une équipe.
+     */
+    private function buildTeamGridAndMetrics(array $team, array $rosterPlayers, array $playerIds): array
+    {
+        $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, 8);
+        $eventIds = array_column($upcomingEvents, 'id');
+
+        $participationsMap = [];
+        if (!empty($eventIds) && !empty($playerIds)) {
+            $db = ExternalDatabase::get();
+            $eventPlaceholders = implode(',', array_fill(0, count($eventIds), '?'));
+            $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
+            
+            $stmt = $db->prepare("
+                SELECT id_joueur, id_manifestation, Participation 
+                FROM Participation 
+                WHERE id_manifestation IN ($eventPlaceholders) 
+                  AND id_joueur IN ($playerPlaceholders)
+            ");
+            $params = array_merge($eventIds, $playerIds);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            foreach ($rows as $row) {
+                $jid = (int)$row['id_joueur'];
+                $mid = (int)$row['id_manifestation'];
+                $participationsMap[$jid][$mid] = $row['Participation'];
+            }
+        }
+
+        // Construire la grille croisée des joueurs
+        $gridPlayers = [];
+        foreach ($rosterPlayers as $player) {
+            $jid = (int)$player['id_joueur'];
+            $playerGrid = [
+                'id_joueur' => $jid,
+                'nom' => $player['nom'] ?? '',
+                'prenom' => $player['prenom'] ?? '',
+                'sexe' => $player['data']['Sexe'] ?? 'F',
+                'is_captain' => (bool)($player['is_captain'] ?? false),
+                'events' => []
+            ];
+            
+            $nbSelected = 0;
+            $nbAvailable = 0;
+            $nbUnavailable = 0;
+            $nbNoResponse = 0;
+            
+            foreach ($upcomingEvents as $event) {
+                $mid = $event['id'];
+                $rawStatus = $participationsMap[$jid][$mid] ?? '';
+                $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+                $category = $statusObj->getCategory();
+                
+                if ($category === 'selected') {
+                    $nbSelected++;
+                } elseif ($category === 'available' || $category === 'available_if_needed' || $category === 'present') {
+                    $nbAvailable++;
+                } elseif ($category === 'unavailable' || $category === 'absent') {
+                    $nbUnavailable++;
+                } else {
+                    $nbNoResponse++;
+                }
+                
+                $playerGrid['events'][$mid] = [
+                    'raw_status' => $rawStatus,
+                    'category' => $category,
+                    'label' => $statusObj->getLabel(),
+                    'icon' => $statusObj->getIcon(),
+                    'bg_class' => $statusObj->getBackgroundColor(),
+                    'text_class' => $statusObj->getTextColor(),
+                ];
+            }
+            
+            $playerGrid['stats'] = [
+                'selected' => $nbSelected,
+                'available' => $nbAvailable,
+                'unavailable' => $nbUnavailable,
+                'no_response' => $nbNoResponse,
+            ];
+            
+            $gridPlayers[] = $playerGrid;
+        }
+
+        // Calcul des metrics d'équipe
+        $totalSlots = count($rosterPlayers) * count($upcomingEvents);
+        $totalAnswered = 0;
+        $understaffedMatches = 0;
+        $eventAttendance = [];
+        $trainingCount = 0;
+        $trainingPresentCount = 0;
+        $trainingSlotsCount = 0;
+
+        foreach ($upcomingEvents as $event) {
+            $mid = $event['id'];
+            $availCount = 0;
+            $selCount = 0;
+            
+            foreach ($rosterPlayers as $player) {
+                $jid = (int)$player['id_joueur'];
+                $rawStatus = $participationsMap[$jid][$mid] ?? '';
+                $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+                $category = $statusObj->getCategory();
+                
+                if ($category !== 'no_response' && $rawStatus !== '') {
+                    $totalAnswered++;
+                }
+                
+                if (in_array($category, ['selected', 'present', 'available', 'available_if_needed'])) {
+                    $availCount++;
+                }
+                if ($category === 'selected') {
+                    $selCount++;
+                }
+                
+                if ($event['is_training']) {
+                    $trainingSlotsCount++;
+                    if (in_array($category, ['present', 'available', 'available_if_needed', 'selected'])) {
+                        $trainingPresentCount++;
+                    }
+                }
+            }
+            
+            $eventAttendance[$mid] = $availCount;
+            
+            if ($event['is_match']) {
+                if ($selCount < 6) {
+                    $understaffedMatches++;
+                }
+            }
+            if ($event['is_training']) {
+                $trainingCount++;
+            }
+        }
+
+        $responseRate = $totalSlots > 0 ? (int)round(($totalAnswered / $totalSlots) * 100) : 0;
+        $avgAvailable = count($upcomingEvents) > 0 ? round(array_sum($eventAttendance) / count($upcomingEvents), 1) : 0;
+        $trainingAttendanceRate = $trainingSlotsCount > 0 ? (int)round(($trainingPresentCount / $trainingSlotsCount) * 100) : 0;
+
+        $metrics = [
+            'response_rate' => $responseRate,
+            'avg_available' => $avgAvailable,
+            'understaffed_matches' => $understaffedMatches,
+            'training_attendance' => $trainingAttendanceRate,
+            'has_trainings' => $trainingCount > 0
+        ];
+
+        return [
+            'upcoming_events' => $upcomingEvents,
+            'grid_players' => $gridPlayers,
+            'metrics' => $metrics
+        ];
     }
 
     /**

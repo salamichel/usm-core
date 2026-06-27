@@ -109,8 +109,27 @@ class AgendaController
         $participationStats = AgendaService::getParticipationStats($id);
         $event['participation_stats'] = $participationStats;
 
+        // Vérifier si l'utilisateur connecté est le capitaine pour cette manifestation
+        $isCaptain = false;
+        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+            $userId = (int)$_SESSION['LogInId'];
+            $saisonActive = \App\Models\Saison::getActive();
+            $captainedTeams = $saisonActive ? \App\Models\EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']) : [];
+            
+            foreach ($captainedTeams as $team) {
+                $filter = $team['manifestation_filter'] ?: $team['libelle'];
+                if (str_contains($event['titre'] ?? '', $filter) || 
+                    str_contains($event['type'] ?? '', $filter) || 
+                    (isset($event['ManifestationTypée']) && str_contains($event['ManifestationTypée'], $filter))) {
+                    $isCaptain = true;
+                    break;
+                }
+            }
+        }
+
         View::render('agenda/detail.twig', [
             'event' => $event,
+            'is_captain' => $isCaptain,
         ]);
     }
 

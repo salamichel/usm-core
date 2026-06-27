@@ -560,40 +560,18 @@ class EventRepository
             while ($row = $stmt->fetch()) {
                 $id = (int)$row['id_manifestation'];
                 
-                $parts = explode(' - ', $row['ManifestationTypée'], 3);
-                $type = $parts[1] ?? '';
-                // Rendre le titre joli : si vide, prendre le tout
-                $titre = $parts[2] ?? $row['ManifestationTypée'];
-
-                // Si c'est un entraînement non typé
-                if (stripos($row['ManifestationTypée'], 'Entrainement') !== false || stripos($row['ManifestationTypée'], 'Entraînement') !== false || stripos($row['ManifestationTypée'], 'Entr') !== false) {
-                    $type = 'Entraînement';
+                // Normalisation via EventNormalizer pour obtenir un objet quasi complet et standardisé
+                $event = EventNormalizer::buildBaseFields($row);
+                
+                $event['is_match'] = (stripos($row['ManifestationTypée'], 'match') !== false);
+                $event['is_training'] = (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false);
+                
+                // Harmonisation type entraînement
+                if ($event['is_training']) {
+                    $event['type'] = 'Entraînement';
                 }
 
-                // Calcul de la plage horaire
-                $timeRange = '';
-                if (!empty($row['Durée_créneau'])) {
-                    $hm = explode('h', $row['Durée_créneau'], 2);
-                    $h  = (int)($hm[0] ?? 0);
-                    $m  = isset($hm[1]) && $hm[1] !== '' ? (int)$hm[1] : 0;
-                    $ts = strtotime($row['Date']);
-                    $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
-                }
-
-                $dateObj = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $row['Date']);
-
-                $events[$id] = [
-                    'id'                => $id,
-                    'titre'             => $titre,
-                    'type'              => $type,
-                    'is_match'          => stripos($row['ManifestationTypée'], 'match') !== false,
-                    'is_training'       => (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false),
-                    'date_display'      => $dateObj ? EventNormalizer::formatDateDisplay($dateObj) : $row['Date'],
-                    'time_range'        => $timeRange,
-                    'lieu'              => $row['Lieu'],
-                    'commentaire'       => $row['Commentaire'] ?? '',
-                    'statut'            => $row['Statut'] ?? '',
-                ];
+                $events[$id] = $event;
             }
 
             return array_values($events);
