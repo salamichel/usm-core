@@ -62,6 +62,22 @@ class Saison
         Database::get()->prepare("DELETE FROM saisons WHERE id = ?")->execute([$id]);
     }
 
+    public static function update(int $id, array $data): void
+    {
+        Database::get()->prepare(
+            "UPDATE saisons
+             SET libelle = :libelle,
+                 date_debut = :date_debut,
+                 date_fin = :date_fin
+             WHERE id = :id"
+        )->execute([
+            ':libelle'    => $data['libelle'],
+            ':date_debut' => $data['date_debut'],
+            ':date_fin'   => $data['date_fin'],
+            ':id'         => $id,
+        ]);
+    }
+
     public static function snapshotCount(int $id): int
     {
         $stmt = Database::get()->prepare(

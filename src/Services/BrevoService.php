@@ -322,26 +322,49 @@ HTML;
 
         $context = stream_context_create([
             'http' => [
-                'method'  => 'POST',
-                'header'  => [
+                'method'        => 'POST',
+                'header'        => [
                     'Content-Type: application/json',
                     'api-key: ' . $this->apiKey,
                 ],
-                'content' => $json,
-                'timeout' => 30,
+                'content'       => $json,
+                'timeout'       => 30,
+                'ignore_errors' => true, // Permet de récupérer le corps de la réponse en cas d'erreur HTTP (4xx, 5xx)
             ],
         ]);
 
         try {
             $response = @file_get_contents(self::API_URL, false, $context);
+            
+            // Récupérer le code de statut HTTP
+            $statusCode = 0;
+            if (isset($http_response_header) && is_array($http_response_header)) {
+                foreach ($http_response_header as $header) {
+                    if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/i', $header, $matches)) {
+                        $statusCode = (int)$matches[1];
+                        break;
+                    }
+                }
+            }
+
             if ($response === false) {
-                Logger::errors()->error('Brevo API request failed', ['payload' => $payload]);
+                Logger::errors()->error('Brevo API network request failed (connection error)', ['payload' => $payload]);
                 return false;
             }
 
             $data = json_decode($response, true);
+
+            if ($statusCode < 200 || $statusCode >= 300) {
+                Logger::errors()->error('Brevo API returned error status ' . $statusCode, [
+                    'status_code' => $statusCode,
+                    'response'    => $data ?: $response,
+                    'payload'     => $payload
+                ]);
+                return false;
+            }
+
             if (!isset($data['messageId'])) {
-                Logger::errors()->error('Brevo API invalid response', ['response' => $response]);
+                Logger::errors()->error('Brevo API invalid response (missing messageId)', ['response' => $response]);
                 return false;
             }
 
@@ -353,3 +376,4 @@ HTML;
         }
     }
 }
+

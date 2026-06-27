@@ -170,6 +170,8 @@ class App
         $r->get('/admin/saisons/create',         [SaisonController::class, 'create']);
         $r->post('/admin/saisons/create',        [SaisonController::class, 'store']);
         $r->get('/admin/saisons/joueurs',        [SaisonController::class, 'joueurs']);
+        $r->get('/admin/saisons/{id}/edit',      [SaisonController::class, 'edit']);
+        $r->post('/admin/saisons/{id}/edit',     [SaisonController::class, 'update']);
         $r->post('/admin/saisons/{id}/delete',   [SaisonController::class, 'delete']);
         $r->post('/admin/saisons/{id}/activate', [SaisonController::class, 'activate']);
         $r->post('/admin/saisons/{id}/flash',    [SaisonController::class, 'flash']);

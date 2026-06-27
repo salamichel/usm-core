@@ -142,4 +142,72 @@ class SaisonController extends BaseAdminController
             'categories' => $categories,
         ]);
     }
+
+    public function edit(array $params): void
+    {
+        Auth::require();
+        $id     = (int)$params['id'];
+        $saison = Saison::find($id);
+        if (!$saison) {
+            $this->notFound();
+            return;
+        }
+        View::render('admin/saisons/edit.twig', ['saison' => $saison]);
+    }
+
+    public function update(array $params): void
+    {
+        Auth::require();
+        $id     = (int)$params['id'];
+        $saison = Saison::find($id);
+        if (!$saison) {
+            $this->notFound();
+            return;
+        }
+
+        $libelle   = trim($_POST['libelle'] ?? '');
+        $dateDebut = trim($_POST['date_debut'] ?? '');
+        $dateFin   = trim($_POST['date_fin'] ?? '');
+
+        if ($libelle === '') {
+            View::render('admin/saisons/edit.twig', [
+                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
+                'error'  => 'Le libellé est obligatoire.',
+            ]);
+            return;
+        }
+        if ($dateDebut === '') {
+            View::render('admin/saisons/edit.twig', [
+                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
+                'error'  => 'La date de début est obligatoire.',
+            ]);
+            return;
+        }
+        if ($dateFin === '') {
+            View::render('admin/saisons/edit.twig', [
+                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
+                'error'  => 'La date de fin est obligatoire.',
+            ]);
+            return;
+        }
+
+        try {
+            Saison::update($id, [
+                'libelle'    => $libelle,
+                'date_debut' => $dateDebut,
+                'date_fin'   => $dateFin,
+            ]);
+            View::flash('success', "Saison « {$libelle} » mise à jour.");
+            $this->redirect('/admin/saisons');
+        } catch (\PDOException $e) {
+            $error = $e->getCode() === '23000' || str_contains($e->getMessage(), '1062')
+                ? "Le libellé « {$libelle} » existe déjà pour une autre saison."
+                : "Erreur lors de la mise à jour : " . $e->getMessage();
+
+            View::render('admin/saisons/edit.twig', [
+                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
+                'error'  => $error,
+            ]);
+        }
+    }
 }

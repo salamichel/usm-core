@@ -38,6 +38,8 @@
           <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
         </form>
       {% endif %}  
+      <a href="{{ url('admin/saisons/' ~ s.id ~ '/edit') }}"
+         class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Modifier</a>
       <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
          class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Joueurs</a>
       {% if not s.is_active %}
@@ -88,6 +90,8 @@
                 <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
               </form>
             {% endif %}
+            <a href="{{ url('admin/saisons/' ~ s.id ~ '/edit') }}"
+               class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Modifier</a>
             <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
                class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Joueurs</a>
             {% if not s.is_active %}

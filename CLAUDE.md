@@ -641,6 +641,26 @@ Accessible via `/member/profile` pour permettre à l'adhérent de mettre à jour
 3. **Vue Twig** : Dynamiser `templates/front002/member/dashboard.twig` avec les KPI, la boucle des événements, les jauges de présence et le top des lieux.
 4. **Interactivité** : Intégrer les boutons "Présent/Absent" avec les classes `.status-btn` et `data-manifestation-id` pour déclencher les appels API en JS via `agenda-cards.js` grâce à la délégation d'événements.
 
+
+---
+
+## Espace Capitaine
+
+L'espace capitaine permet aux capitaines d'équipes de piloter les convocations et de visualiser en un coup d'œil les disponibilités de leurs joueurs.
+
+### Fonctionnalités Clés
+- **Tableau de Bord Capitaine** (`/member/captain/dashboard`) :
+  - **Grille de Présence** : Tableau croisé des joueurs de son effectif avec les 8 prochains événements (matchs et entraînements), avec positionnement collant (sticky) de l'en-tête et du nom des joueurs.
+  - **Modification Directe par Clic** : Un clic sur une cellule du tableau ouvre un menu popover flottant (AJAX) permettant d'ajuster immédiatement le statut de présence ou de sélection du joueur (convoqué, dispo, si besoin, absent, etc.).
+  - **Coloration par Statut** : Les en-têtes et les colonnes entières sont teintés en jaune pour les manifestations "Provisoires" et en rouge pour les manifestations "Annulées". Les convocations (★) sont automatiquement masquées si un match est annulé.
+  - **Indicateurs de Performance (KPIs)** : Taux de réponse, disponibilité moyenne par match, assiduité aux entraînements, et alertes de sous-effectif (matchs avec moins de 6 convoqués).
+- **Administration depuis l'Agenda** (`/agenda/{id}`) : Si l'utilisateur connecté est le capitaine de l'équipe du match, des raccourcis "Gérer les convocations" et "Modifier le match" sont affichés en haut de la fiche de l'événement.
+
+### API Capitaine
+- **Mise à jour d'une participation** : `POST /api/captain/participation/update`
+  - Body JSON : `{ joueur_id, manifestation_id, status }`
+  - Gère la désélection concurrentielle (`removeConcurrentParticipations`) et recalcule dynamiquement toute la grille et les métriques de l'équipe pour les renvoyer au format JSON.
+
 ---
 
 ## API Articles d'importation
