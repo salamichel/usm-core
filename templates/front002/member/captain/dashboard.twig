@@ -103,14 +103,14 @@
                 </div>
 
                 {# 2. Tableau de Présences #}
-                <div class="mb-10">
+                <div class="mb-10 hidden sm:block">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Tableau de présences des joueurs</h3>
                         <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">8 prochains événements</span>
                     </div>
 
                     {% if t.upcoming_events|length %}
-                    <div class="overflow-x-auto lg:overflow-visible lg:max-h-none border border-slate-200 rounded-2xl bg-white shadow-sm scrollbar-thin">
+                    <div class="overflow-x-auto md:overflow-visible lg:max-h-none border border-slate-200 rounded-2xl bg-white shadow-sm scrollbar-thin">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr class="bg-slate-900 text-white border-b border-slate-800">
