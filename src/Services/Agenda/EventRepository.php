@@ -494,6 +494,116 @@ class EventRepository
     }
 
     /**
+     * Prochains événements (matchs et entraînements) d'une équipe.
+     */
+    public static function getUpcomingEventsForTeam(
+        array $team,
+        int $limit = 8
+    ): array {
+        try {
+            $db = ExternalDatabase::get();
+            if (!$db) {
+                return [];
+            }
+
+            $teamCode = $team['slug_colonne'];
+            $manifestationFilter = $team['manifestation_filter'] ?? '';
+            $category = $team['categorie'] ?? '';
+            $libelle = $team['libelle'] ?? '';
+
+            // Filtrage match : par défaut 'Match ' + libellé
+            $matchFilter = '%' . ($manifestationFilter ?: 'Match ' . $libelle) . '%';
+            $teamCodeFilter = '%' . $teamCode . '%';
+
+            // Conditions d'entraînements flexibles basées sur le type d'événement contenant 'Entr'
+            // et optionnellement le code d'équipe ou des mots clés généraux si non typé par équipe
+            $trainingExtraClauses = ["m.ManifestationTypée LIKE '%Entr. Compétition%'"];
+            
+            if (stripos($category, 'ufolep') !== false || stripos($libelle, 'ufolep') !== false) {
+                $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%UFOLEP%'";
+            }
+            if (stripos($category, 'jeunes') !== false || stripos($category, 'jeune') !== false || stripos($libelle, 'jeune') !== false) {
+                $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%jeunes%'";
+            }
+            if (stripos($category, 'loisir') !== false || stripos($libelle, 'loisir') !== false || str_starts_with($teamCode, 'L')) {
+                $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%loisir%'";
+            }
+
+            $trainingExtraSql = "";
+            if (!empty($trainingExtraClauses)) {
+                $trainingExtraSql = " OR " . implode(" OR ", $trainingExtraClauses);
+            }
+
+            $sql = "SELECT m.id_manifestation, m.ManifestationTypée, m.Date,
+                            m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
+                     FROM Manifestation m
+                     WHERE m.id_manifestation > 0
+                       AND m.Date >= CURDATE()
+                       AND (
+                         (m.ManifestationTypée LIKE '% - Match - %' AND m.ManifestationTypée LIKE :match_filter)
+                         OR
+                         ((m.ManifestationTypée LIKE '%Entr%' OR m.ManifestationTypée LIKE '%Entrainement%') AND (m.ManifestationTypée LIKE :team_code_filter $trainingExtraSql))
+                       )
+                     ORDER BY m.Date ASC
+                     LIMIT :limit";
+
+            $stmt = $db->prepare($sql);
+            $stmt->bindValue(':match_filter', $matchFilter, \PDO::PARAM_STR);
+            $stmt->bindValue(':team_code_filter', $teamCodeFilter, \PDO::PARAM_STR);
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+
+            if (!$stmt->execute()) {
+                return [];
+            }
+
+            $events = [];
+            while ($row = $stmt->fetch()) {
+                $id = (int)$row['id_manifestation'];
+                
+                $parts = explode(' - ', $row['ManifestationTypée'], 3);
+                $type = $parts[1] ?? '';
+                // Rendre le titre joli : si vide, prendre le tout
+                $titre = $parts[2] ?? $row['ManifestationTypée'];
+
+                // Si c'est un entraînement non typé
+                if (stripos($row['ManifestationTypée'], 'Entrainement') !== false || stripos($row['ManifestationTypée'], 'Entraînement') !== false || stripos($row['ManifestationTypée'], 'Entr') !== false) {
+                    $type = 'Entraînement';
+                }
+
+                // Calcul de la plage horaire
+                $timeRange = '';
+                if (!empty($row['Durée_créneau'])) {
+                    $hm = explode('h', $row['Durée_créneau'], 2);
+                    $h  = (int)($hm[0] ?? 0);
+                    $m  = isset($hm[1]) && $hm[1] !== '' ? (int)$hm[1] : 0;
+                    $ts = strtotime($row['Date']);
+                    $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
+                }
+
+                $dateObj = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $row['Date']);
+
+                $events[$id] = [
+                    'id'                => $id,
+                    'titre'             => $titre,
+                    'type'              => $type,
+                    'is_match'          => stripos($row['ManifestationTypée'], 'match') !== false,
+                    'is_training'       => (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false),
+                    'date_display'      => $dateObj ? EventNormalizer::formatDateDisplay($dateObj) : $row['Date'],
+                    'time_range'        => $timeRange,
+                    'lieu'              => $row['Lieu'],
+                    'commentaire'       => $row['Commentaire'] ?? '',
+                    'statut'            => $row['Statut'] ?? '',
+                ];
+            }
+
+            return array_values($events);
+        } catch (\Throwable $e) {
+            error_log('getUpcomingEventsForTeam: Exception - ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Normalise une ligne brute de Manifestation en objet agenda canonique,
      * enrichi des données de participation via la BDD.
      *
@@ -609,6 +719,21 @@ class EventRepository
     }
 
     /**
+     * Récupère les mots clés d'une catégorie donnée.
+     */
+    public static function getKeywordsByCategory(string $category): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+            $stmt = $db->prepare("SELECT Mot FROM Mots_clef WHERE Catégorie = ? ORDER BY Mot");
+            $stmt->execute([$category]);
+            return $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
      * Crée un nouveau match dans la base externe.
      */
     public static function createMatch(array $data): int
@@ -621,7 +746,7 @@ class EventRepository
 
         $stmt = $db->prepare(
             "INSERT INTO Manifestation (id_manifestation, `ManifestationTypée`, Manifestation, `Date`, `Durée_créneau`, Lieu, Nombre_terrain, Creneau, Commentaire, Statut)
-             VALUES (?, ?, '', ?, ?, ?, 1, '', ?, 'Confirmé')"
+             VALUES (?, ?, '', ?, ?, ?, 1, '', ?, ?)"
         );
 
         $stmt->execute([
@@ -630,9 +755,31 @@ class EventRepository
             $data['date'],
             $data['duration'] ?? '2h',
             $data['location'],
-            $data['comment']
+            $data['comment'],
+            $data['statut'] ?? 'Confirmé'
         ]);
 
         return $nextId;
+    }
+
+    /**
+     * Met à jour un match existant dans la base externe.
+     */
+    public static function updateMatch(int $id, array $data): void
+    {
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare(
+            "UPDATE Manifestation 
+             SET `Date` = ?, `Durée_créneau` = ?, Lieu = ?, Commentaire = ?, Statut = ?
+             WHERE id_manifestation = ?"
+        );
+        $stmt->execute([
+            $data['date'],
+            $data['duration'],
+            $data['location'],
+            $data['comment'],
+            $data['statut'],
+            $id
+        ]);
     }
 }

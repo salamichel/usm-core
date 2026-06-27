@@ -135,7 +135,7 @@ class EquipeSaisonJoueur
     public static function findCaptainedTeams(int $joueurId, int $saisonId): array
     {
         $stmt = Database::get()->prepare(
-            "SELECT ec.id, ec.libelle, ec.slug_colonne, ec.manifestation_filter, es.id as equipe_saison_id
+            "SELECT ec.id, ec.libelle, ec.slug_colonne, ec.manifestation_filter, ec.categorie, es.id as equipe_saison_id
              FROM equipe_saison_joueur esj
              JOIN joueur_snapshots js ON js.id = esj.snapshot_id
              JOIN equipe_saison es ON es.id = esj.equipe_saison_id

@@ -48,13 +48,15 @@ class CaptainController
 
         $teamsData = [];
         foreach ($captainedTeams as $team) {
+            $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($team['equipe_saison_id']);
+            $playerIds = array_map(fn($p) => (int)$p['id_joueur'], $rosterPlayers);
+
+            // 1. Prochains matchs pour les cartes
             $matches = AgendaService::getUpcomingMatchesForTeam(
                 $team['slug_colonne'],
                 50,
                 $team['manifestation_filter'] ?? null
             );
-
-            $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($team['equipe_saison_id']);
 
             // Charger les détails de sélection et dispo pour chaque match
             foreach ($matches as &$match) {
@@ -92,9 +94,156 @@ class CaptainController
             }
             unset($match);
 
+            // 2. Prochains événements (Matchs + Entraînements) pour la vision en tableau
+            $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, 8);
+            $eventIds = array_column($upcomingEvents, 'id');
+
+            $participationsMap = [];
+            if (!empty($eventIds) && !empty($playerIds)) {
+                $db = ExternalDatabase::get();
+                $eventPlaceholders = implode(',', array_fill(0, count($eventIds), '?'));
+                $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
+                
+                $stmt = $db->prepare("
+                    SELECT id_joueur, id_manifestation, Participation 
+                    FROM Participation 
+                    WHERE id_manifestation IN ($eventPlaceholders) 
+                      AND id_joueur IN ($playerPlaceholders)
+                ");
+                $params = array_merge($eventIds, $playerIds);
+                $stmt->execute($params);
+                $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                
+                foreach ($rows as $row) {
+                    $jid = (int)$row['id_joueur'];
+                    $mid = (int)$row['id_manifestation'];
+                    $participationsMap[$jid][$mid] = $row['Participation'];
+                }
+            }
+
+            // Construire la grille croisée des joueurs
+            $gridPlayers = [];
+            foreach ($rosterPlayers as $player) {
+                $jid = (int)$player['id_joueur'];
+                $playerGrid = [
+                    'id_joueur' => $jid,
+                    'nom' => $player['nom'] ?? '',
+                    'prenom' => $player['prenom'] ?? '',
+                    'sexe' => $player['data']['Sexe'] ?? 'F',
+                    'is_captain' => (bool)($player['is_captain'] ?? false),
+                    'events' => []
+                ];
+                
+                $nbSelected = 0;
+                $nbAvailable = 0;
+                $nbUnavailable = 0;
+                $nbNoResponse = 0;
+                
+                foreach ($upcomingEvents as $event) {
+                    $mid = $event['id'];
+                    $rawStatus = $participationsMap[$jid][$mid] ?? '';
+                    $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+                    $category = $statusObj->getCategory();
+                    
+                    if ($category === 'selected') {
+                        $nbSelected++;
+                    } elseif ($category === 'available' || $category === 'available_if_needed' || $category === 'present') {
+                        $nbAvailable++;
+                    } elseif ($category === 'unavailable' || $category === 'absent') {
+                        $nbUnavailable++;
+                    } else {
+                        $nbNoResponse++;
+                    }
+                    
+                    $playerGrid['events'][$mid] = [
+                        'raw_status' => $rawStatus,
+                        'category' => $category,
+                        'label' => $statusObj->getLabel(),
+                        'icon' => $statusObj->getIcon(),
+                        'bg_class' => $statusObj->getBackgroundColor(),
+                        'text_class' => $statusObj->getTextColor(),
+                    ];
+                }
+                
+                $playerGrid['stats'] = [
+                    'selected' => $nbSelected,
+                    'available' => $nbAvailable,
+                    'unavailable' => $nbUnavailable,
+                    'no_response' => $nbNoResponse,
+                ];
+                
+                $gridPlayers[] = $playerGrid;
+            }
+
+            // Calcul des metrics d'équipe
+            $totalSlots = count($rosterPlayers) * count($upcomingEvents);
+            $totalAnswered = 0;
+            $understaffedMatches = 0;
+            $eventAttendance = [];
+            $trainingCount = 0;
+            $trainingPresentCount = 0;
+            $trainingSlotsCount = 0;
+
+            foreach ($upcomingEvents as $event) {
+                $mid = $event['id'];
+                $availCount = 0;
+                $selCount = 0;
+                
+                foreach ($rosterPlayers as $player) {
+                    $jid = (int)$player['id_joueur'];
+                    $rawStatus = $participationsMap[$jid][$mid] ?? '';
+                    $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+                    $category = $statusObj->getCategory();
+                    
+                    if ($category !== 'no_response' && $rawStatus !== '') {
+                        $totalAnswered++;
+                    }
+                    
+                    if (in_array($category, ['selected', 'present', 'available', 'available_if_needed'])) {
+                        $availCount++;
+                    }
+                    if ($category === 'selected') {
+                        $selCount++;
+                    }
+                    
+                    if ($event['is_training']) {
+                        $trainingSlotsCount++;
+                        if (in_array($category, ['present', 'available', 'available_if_needed', 'selected'])) {
+                            $trainingPresentCount++;
+                        }
+                    }
+                }
+                
+                $eventAttendance[$mid] = $availCount;
+                
+                if ($event['is_match']) {
+                    if ($selCount < 6) {
+                        $understaffedMatches++;
+                    }
+                }
+                if ($event['is_training']) {
+                    $trainingCount++;
+                }
+            }
+
+            $responseRate = $totalSlots > 0 ? (int)round(($totalAnswered / $totalSlots) * 100) : 0;
+            $avgAvailable = count($upcomingEvents) > 0 ? round(array_sum($eventAttendance) / count($upcomingEvents), 1) : 0;
+            $trainingAttendanceRate = $trainingSlotsCount > 0 ? (int)round(($trainingPresentCount / $trainingSlotsCount) * 100) : 0;
+
+            $metrics = [
+                'response_rate' => $responseRate,
+                'avg_available' => $avgAvailable,
+                'understaffed_matches' => $understaffedMatches,
+                'training_attendance' => $trainingAttendanceRate,
+                'has_trainings' => $trainingCount > 0
+            ];
+
             $teamsData[] = [
                 'config' => $team,
-                'matches' => $matches
+                'matches' => $matches,
+                'upcoming_events' => $upcomingEvents,
+                'grid_players' => $gridPlayers,
+                'metrics' => $metrics
             ];
         }
 
@@ -112,8 +261,15 @@ class CaptainController
     {
         [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
 
+        $locations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Lieu');
+        $durations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Durée_créneau');
+        $statuses = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Statut');
+
         View::render('member/captain/create_match.twig', [
-            'teams' => $captainedTeams
+            'teams'     => $captainedTeams,
+            'locations' => $locations,
+            'durations' => $durations,
+            'statuses'  => $statuses
         ]);
     }
 
@@ -129,7 +285,8 @@ class CaptainController
             ->required('team_id', 'L\'équipe est requise.')
             ->required('date', 'La date et l\'heure sont requises.')
             ->required('location', 'Le lieu est requis.')
-            ->maxLength('location', 80, 'Le lieu ne peut pas dépasser 80 caractères.');
+            ->required('duration', 'La durée est requise.')
+            ->required('statut', 'Le statut est requis.');
 
         if ($v->fails()) {
             View::flash('error', $v->firstError());
@@ -137,7 +294,7 @@ class CaptainController
             exit;
         }
 
-        $data = $v->getCleanData(['team_id', 'date', 'location', 'comment', 'duration']);
+        $data = $v->getCleanData(['team_id', 'date', 'location', 'comment', 'duration', 'statut']);
         
         $teamId = (int)$data['team_id'];
         $selectedTeam = null;
@@ -168,9 +325,10 @@ class CaptainController
             EventRepository::createMatch([
                 'manifestation_type' => $manifestationType,
                 'date' => $dateStr,
-                'duration' => $data['duration'] ?: '2h',
+                'duration' => $data['duration'],
                 'location' => $data['location'],
                 'comment' => $data['comment'] ?: null,
+                'statut' => $data['statut']
             ]);
 
             View::flash('success', 'Match créé avec succès et publié dans l\'agenda.');
@@ -179,6 +337,129 @@ class CaptainController
         } catch (\Exception $e) {
             View::flash('error', 'Une erreur est survenue lors de la création du match.');
             header('Location: /member/captain/matches/create');
+            exit;
+        }
+    }
+
+    /**
+     * Formulaire d'édition d'un match.
+     * Route: GET /member/captain/matches/{id}/edit
+     */
+    public function editMatchForm(array $params): void
+    {
+        [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
+        $matchId = (int)$params['id'];
+
+        $event = AgendaService::getEventById($matchId);
+        if (!$event) {
+            View::flash('error', 'Rencontre introuvable.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Vérifier que le match appartient à une équipe gérée par ce capitaine
+        $matchedTeam = null;
+        foreach ($captainedTeams as $team) {
+            $filter = $team['manifestation_filter'] ?: $team['libelle'];
+            if (str_contains($event['titre'] ?? '', $filter) || str_contains($event['ManifestationTypée'] ?? '', $filter)) {
+                $matchedTeam = $team;
+                break;
+            }
+        }
+
+        if (!$matchedTeam) {
+            View::flash('error', 'Vous n\'êtes pas autorisé à modifier cette rencontre.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Formater la date pour datetime-local (Y-m-d\TH:i)
+        $dateValue = '';
+        if (!empty($event['Date'])) {
+            $dateValue = date('Y-m-d\TH:i', strtotime($event['Date']));
+        }
+
+        $locations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Lieu');
+        $durations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Durée_créneau');
+        $statuses = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Statut');
+
+        View::render('member/captain/edit_match.twig', [
+            'event'     => $event,
+            'date_value'=> $dateValue,
+            'team'      => $matchedTeam,
+            'locations' => $locations,
+            'durations' => $durations,
+            'statuses'  => $statuses
+        ]);
+    }
+
+    /**
+     * Enregistre les modifications d'un match.
+     * Route: POST /member/captain/matches/{id}/edit
+     */
+    public function updateMatch(array $params): void
+    {
+        [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
+        $matchId = (int)$params['id'];
+
+        $event = AgendaService::getEventById($matchId);
+        if (!$event) {
+            View::flash('error', 'Rencontre introuvable.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Vérifier que le match appartient à une équipe gérée par ce capitaine
+        $matchedTeam = null;
+        foreach ($captainedTeams as $team) {
+            $filter = $team['manifestation_filter'] ?: $team['libelle'];
+            if (str_contains($event['titre'] ?? '', $filter) || str_contains($event['ManifestationTypée'] ?? '', $filter)) {
+                $matchedTeam = $team;
+                break;
+            }
+        }
+
+        if (!$matchedTeam) {
+            View::flash('error', 'Vous n\'êtes pas autorisé à modifier cette rencontre.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        $v = Validator::make($_POST)
+            ->required('date', 'La date et l\'heure sont requises.')
+            ->required('location', 'Le lieu est requis.')
+            ->required('duration', 'La durée est requise.')
+            ->required('statut', 'Le statut est requis.');
+
+        if ($v->fails()) {
+            View::flash('error', $v->firstError());
+            header('Location: /member/captain/matches/' . $matchId . '/edit');
+            exit;
+        }
+
+        $data = $v->getCleanData(['date', 'location', 'comment', 'duration', 'statut']);
+
+        // Formater la date HTML datetime-local en SQL DATETIME
+        $dateStr = str_replace('T', ' ', $data['date']);
+        if (strlen($dateStr) === 16) {
+            $dateStr .= ':00'; // ajouter les secondes
+        }
+
+        try {
+            \App\Services\Agenda\EventRepository::updateMatch($matchId, [
+                'date' => $dateStr,
+                'duration' => $data['duration'],
+                'location' => $data['location'],
+                'comment' => $data['comment'] ?: null,
+                'statut' => $data['statut']
+            ]);
+
+            View::flash('success', 'Match mis à jour avec succès.');
+            header('Location: /member/captain');
+            exit;
+        } catch (\Exception $e) {
+            View::flash('error', 'Une erreur est survenue lors de la mise à jour du match.');
+            header('Location: /member/captain/matches/' . $matchId . '/edit');
             exit;
         }
     }

@@ -187,13 +187,19 @@
                         <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Récapitulatif</span>
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap justify-end md:justify-start">
                             {% if m.is_match %}
+                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                     data-title="Joueurs convoqués" 
+                                     data-status-key="Sélectionné"
+                                     data-players='{{ m.selectionnes|default([])|json_encode|e('html_attr') }}'>
+                                    <span class="text-[9px]">★</span> <span class="count-value">{{ m.nb_selection|default(0) }}</span>
+                                </div>
                                 <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs disponibles" 
                                      data-status-key="Disponible"
                                      data-players='{{ m.disponibles|default([])|json_encode|e('html_attr') }}'>
                                     <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_disponible|default(0) }}</span>
                                 </div>
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 hover:bg-amber-100 border border-amber-100 text-amber-600 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 hover:bg-blue-100 border border-blue-150 text-blue-700 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs (Si besoin)" 
                                      data-status-key="Disponible si nécessaire"
                                      data-players='{{ m.disponibles_si_necessaire|default([])|json_encode|e('html_attr') }}'>

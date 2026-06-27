@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\ExternalDatabase;
 
 class EquipeConfig
 {
@@ -23,11 +24,11 @@ class EquipeConfig
     
     public static function getEquipesSlug(): array
     {
-        $rows =  Database::get()
-            ->query("SELECT distinct slug_colonne FROM equipes_config ORDER BY slug_colonne ASC")
+        $rows = ExternalDatabase::get()
+            ->query("SELECT DISTINCT Mot FROM Mots_clef WHERE `Catégorie` = 'EquipeParEquipe' ORDER BY Mot ASC")
             ->fetchAll();
             
-        return array_column($rows, 'slug_colonne');
+        return array_column($rows, 'Mot');
     }  
 
     public static function groupedByCategorie(): array

@@ -113,6 +113,8 @@ class App
         $r->get('/member/captain', [CaptainController::class, 'index']);
         $r->get('/member/captain/matches/create', [CaptainController::class, 'createMatchForm']);
         $r->post('/member/captain/matches/create', [CaptainController::class, 'storeMatch']);
+        $r->get('/member/captain/matches/{id}/edit', [CaptainController::class, 'editMatchForm']);
+        $r->post('/member/captain/matches/{id}/edit', [CaptainController::class, 'updateMatch']);
         $r->get('/member/captain/matches/{id}/select-players', [CaptainController::class, 'selectPlayersForm']);
         $r->post('/member/captain/matches/{id}/select-players', [CaptainController::class, 'updateSelectedPlayers']);
 

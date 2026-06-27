@@ -41,6 +41,206 @@
                     <span class="text-xs font-semibold text-slate-400">Saison {{ saison.libelle }}</span>
                 </div>
 
+                {# 1. Métriques de l'équipe #}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- Taux de réponse -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Taux de réponse</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ t.metrics.response_rate }}%</span>
+                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les prochains événements</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Disponibilité moyenne -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Disponibilité moyenne</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ t.metrics.avg_available }}</span>
+                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Joueurs dispo par événement</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Assiduité entraînements -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-slate-455 uppercase tracking-wider block">Assiduité Entraînements</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">
+                                {% if t.metrics.has_trainings %}
+                                    {{ t.metrics.training_attendance }}%
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les créneaux d'entraînement</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Alertes Sous-Effectif -->
+                    <div class="border rounded-2xl p-4 flex items-center justify-between shadow-sm {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-slate-50 border-slate-100' }}">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider block {{ t.metrics.understaffed_matches > 0 ? 'text-rose-500' : 'text-slate-450' }}">Alerte Sous-Effectif</span>
+                            <span class="text-2xl font-extrabold mt-1 block {{ t.metrics.understaffed_matches > 0 ? 'text-rose-650' : 'text-slate-900' }}">
+                                {{ t.metrics.understaffed_matches }}
+                            </span>
+                            <span class="text-[10px] font-semibold block mt-0.5 {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
+                                Matchs avec < 6 convoqués
+                            </span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                {# 2. Tableau de Présences #}
+                <div class="mb-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Tableau de présences des joueurs</h3>
+                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">8 prochains événements</span>
+                    </div>
+
+                    {% if t.upcoming_events|length %}
+                    <div class="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-sm scrollbar-thin">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="bg-slate-900 text-white border-b border-slate-800">
+                                    <th class="py-4 px-4 font-serif text-sm font-bold w-48 sticky left-0 bg-slate-900 z-10">Joueur</th>
+                                    {% for event in t.upcoming_events %}
+                                    <th class="py-3 px-2 text-center text-xs font-bold border-l border-slate-800 min-w-[100px] hover:bg-slate-800 transition relative group">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span>
+                                                {% if event.is_match %}
+                                                    <span class="text-amber-400" title="Match">🏆</span>
+                                                {% else %}
+                                                    <span class="text-cyan-400" title="Entraînement">🏃</span>
+                                                {% endif %}
+                                            </span>
+                                            <span class="text-[10px] text-slate-400">{{ event.date_display }}</span>
+                                            <span class="text-[11px] truncate max-w-[95px] text-white block" title="{{ event.titre }} ({{ event.lieu }})">
+                                                {{ event.titre }}
+                                            </span>
+                                        </div>
+                                    </th>
+                                    {% endfor %}
+                                    <th class="py-4 px-3 text-center text-xs font-bold border-l border-slate-800 w-24">Bilan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for player in t.grid_players %}
+                                <tr class="hover:bg-slate-50/50 transition">
+                                    <td class="py-3.5 px-4 sticky left-0 bg-white hover:bg-slate-50 z-10 border-r border-slate-100 flex items-center justify-between gap-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                                        <div class="min-w-0">
+                                            <span class="font-bold text-slate-900 text-sm block truncate">
+                                                {{ player.prenom }} {{ player.nom }}
+                                            </span>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                                                {% if player.is_captain %}
+                                                    👑 Capitaine
+                                                {% else %}
+                                                    Joueur
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">{{ player.sexe }}</span>
+                                    </td>
+                                    
+                                    {% for event in t.upcoming_events %}
+                                    {% set cell = player.events[event.id] %}
+                                    <td class="py-3 px-2 text-center border-l border-slate-100 relative group">
+                                        {% if cell.category == 'selected' %}
+                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                ★
+                                            </div>
+                                        {% elseif cell.category == 'present' or cell.category == 'available' or cell.category == 'available_if_needed' %}
+                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                ✓
+                                            </div>
+                                        {% elseif cell.category == 'unavailable' or cell.category == 'absent' %}
+                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                ✗
+                                            </div>
+                                        {% elseif cell.category == 'unknown' %}
+                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                ?
+                                            </div>
+                                        {% else %}
+                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : Sans réponse">
+                                                —
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <!-- Tooltip au survol -->
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-20 pointer-events-none">
+                                            <div class="font-bold text-[11px] text-amber-400 mb-0.5">{{ event.titre }}</div>
+                                            <div class="text-slate-400 mb-1">📍 {{ event.lieu }}</div>
+                                            <div class="border-t border-slate-800 pt-1 mt-1 font-semibold">
+                                                Statut : <span class="text-white">{{ cell.label }}</span>
+                                            </div>
+                                            {% if cell.raw_status and not (cell.category == 'no_response') %}
+                                                <div class="text-slate-300 italic mt-0.5">"{{ cell.raw_status }}"</div>
+                                            {% endif %}
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                        </div>
+                                    </td>
+                                    {% endfor %}
+
+                                    <!-- Bilan -->
+                                    <td class="py-3.5 px-3 border-l border-slate-100 text-center font-bold text-xs text-slate-500">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <span class="text-amber-500" title="Sélections">★{{ player.stats.selected }}</span>
+                                            <span class="text-slate-300">|</span>
+                                            <span class="text-emerald-500" title="Disponibilités">✓{{ player.stats.available }}</span>
+                                            <span class="text-slate-300">|</span>
+                                            <span class="text-rose-500" title="Absences">✗{{ player.stats.unavailable }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Légende du tableau -->
+                    <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-500 bg-slate-50 p-4 border border-slate-100 rounded-2xl">
+                        <span class="text-slate-400 uppercase tracking-wider text-[10px] font-bold">Légende :</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-black">★</span>
+                            <span>Sélectionné</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black">✓</span>
+                            <span>Disponible / Présent</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black">✗</span>
+                            <span>Indisponible / Absent</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black">?</span>
+                            <span>Ne sait pas</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white border border-slate-200 text-slate-400 text-[10px] font-black">—</span>
+                            <span>Sans réponse</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-8 text-center bg-slate-50 rounded-2xl text-slate-400 text-sm italic border border-slate-100 shadow-inner">
+                        Aucun événement à venir.
+                    </div>
+                    {% endif %}
+                </div>
+
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Rencontres et Convocations</h3>
 
                 {% if t.matches|length %}
@@ -120,10 +320,16 @@
                                 </span>
                             </div>
                             
-                            <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
-                               class="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3.5 py-2 rounded-xl transition text-center shadow-sm">
-                                📋 Sélectionner les joueurs
-                            </a>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
+                                   class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition text-center shadow-sm flex items-center gap-1">
+                                    ✏️ Modifier
+                                </a>
+                                <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
+                                   class="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3.5 py-2 rounded-xl transition text-center shadow-sm">
+                                    📋 Sélectionner les joueurs
+                                </a>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}

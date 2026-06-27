@@ -86,6 +86,14 @@ class AgendaService
         return EventRepository::getUpcomingMatchesForTeam($teamCode, $limit, $manifestationFilter);
     }
 
+    /** @see EventRepository::getUpcomingEventsForTeam() */
+    public static function getUpcomingEventsForTeam(
+        array $team,
+        int $limit = 8
+    ): array {
+        return EventRepository::getUpcomingEventsForTeam($team, $limit);
+    }
+
     /** @see EventRepository::normalizeManifestation() */
     public static function normalizeManifestation(array $row, int $totalJoueurs = 0): array
     {
