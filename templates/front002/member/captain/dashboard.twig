@@ -32,7 +32,7 @@
         
         <div class="space-y-12">
             {% for t in teams %}
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm team-container" data-team-id="{{ t.config.equipe_saison_id }}">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-4">
                     <div>
                         <span class="inline-block text-xs uppercase tracking-wider text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-md mb-2">Équipe</span>
@@ -40,38 +40,38 @@
                     </div>
                     <span class="text-xs font-semibold text-slate-400">Saison {{ saison.libelle }}</span>
                 </div>
-
+ 
                 {# 1. Métriques de l'équipe #}
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <!-- Taux de réponse -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Taux de réponse</span>
-                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ t.metrics.response_rate }}%</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-response-rate">{{ t.metrics.response_rate }}%</span>
                             <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les prochains événements</span>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         </div>
                     </div>
-
+ 
                     <!-- Disponibilité moyenne -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Disponibilité moyenne</span>
-                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ t.metrics.avg_available }}</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-avg-available">{{ t.metrics.avg_available }}</span>
                             <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Joueurs dispo par événement</span>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         </div>
                     </div>
-
+ 
                     <!-- Assiduité entraînements -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-xs font-bold text-slate-455 uppercase tracking-wider block">Assiduité Entraînements</span>
-                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-training-attendance">
                                 {% if t.metrics.has_trainings %}
                                     {{ t.metrics.training_attendance }}%
                                 {% else %}
@@ -84,19 +84,19 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
                     </div>
-
+ 
                     <!-- Alertes Sous-Effectif -->
-                    <div class="border rounded-2xl p-4 flex items-center justify-between shadow-sm {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-slate-50 border-slate-100' }}">
+                    <div class="border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-slate-50 border-slate-100' }}">
                         <div>
-                            <span class="text-xs font-bold uppercase tracking-wider block {{ t.metrics.understaffed_matches > 0 ? 'text-rose-500' : 'text-slate-450' }}">Alerte Sous-Effectif</span>
-                            <span class="text-2xl font-extrabold mt-1 block {{ t.metrics.understaffed_matches > 0 ? 'text-rose-650' : 'text-slate-900' }}">
+                            <span class="text-xs font-bold uppercase tracking-wider block metric-understaffed-label {{ t.metrics.understaffed_matches > 0 ? 'text-rose-500' : 'text-slate-450' }}">Alerte Sous-Effectif</span>
+                            <span class="text-2xl font-extrabold mt-1 block metric-understaffed-value {{ t.metrics.understaffed_matches > 0 ? 'text-rose-650' : 'text-slate-900' }}">
                                 {{ t.metrics.understaffed_matches }}
                             </span>
-                            <span class="text-[10px] font-semibold block mt-0.5 {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
+                            <span class="text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
                                 Matchs avec < 6 convoqués
                             </span>
                         </div>
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center metric-understaffed-icon {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
                     </div>
@@ -152,56 +152,67 @@
                                             </span>
                                         </div>
                                         <span class="text-xs text-slate-400">{{ player.sexe }}</span>
-                                    </td>
-                                    
-                                    {% for event in t.upcoming_events %}
+                                                                        {% for event in t.upcoming_events %}
                                     {% set cell = player.events[event.id] %}
-                                    <td class="py-3 px-2 text-center border-l border-slate-100 relative group">
-                                        {% if cell.category == 'selected' %}
-                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
-                                                ★
-                                            </div>
-                                        {% elseif cell.category == 'present' or cell.category == 'available' or cell.category == 'available_if_needed' %}
-                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
-                                                ✓
-                                            </div>
-                                        {% elseif cell.category == 'unavailable' or cell.category == 'absent' %}
-                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
-                                                ✗
-                                            </div>
-                                        {% elseif cell.category == 'unknown' %}
-                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
-                                                ?
-                                            </div>
-                                        {% else %}
-                                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : Sans réponse">
-                                                —
-                                            </div>
-                                        {% endif %}
+                                    <td class="py-3 px-2 text-center border-l border-slate-100 relative group cursor-pointer hover:bg-slate-50/80 transition presence-cell"
+                                        data-player-id="{{ player.id_joueur }}"
+                                        data-event-id="{{ event.id }}"
+                                        data-event-type="{{ event.is_match ? 'match' : 'training' }}"
+                                        data-player-name="{{ player.prenom }} {{ player.nom }}"
+                                        data-event-title="{{ event.titre }}"
+                                        data-current-status-category="{{ cell.category }}">
+                                        
+                                        <div class="presence-icon-container flex items-center justify-center">
+                                            {% if cell.category == 'selected' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ★
+                                                </div>
+                                            {% elseif cell.category == 'present' or cell.category == 'available' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ✓
+                                                </div>
+                                            {% elseif cell.category == 'available_if_needed' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ◐
+                                                </div>
+                                            {% elseif cell.category == 'unavailable' or cell.category == 'absent' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ✗
+                                                </div>
+                                            {% elseif cell.category == 'unknown' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ?
+                                                </div>
+                                            {% else %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : Sans réponse">
+                                                    —
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                         
                                         <!-- Tooltip au survol -->
-                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-20 pointer-events-none">
+                                        <div class="presence-tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-20 pointer-events-none">
                                             <div class="font-bold text-[11px] text-amber-400 mb-0.5">{{ event.titre }}</div>
                                             <div class="text-slate-400 mb-1">📍 {{ event.lieu }}</div>
                                             <div class="border-t border-slate-800 pt-1 mt-1 font-semibold">
-                                                Statut : <span class="text-white">{{ cell.label }}</span>
+                                                Statut : <span class="tooltip-label text-white">{{ cell.label }}</span>
                                             </div>
-                                            {% if cell.raw_status and not (cell.category == 'no_response') %}
-                                                <div class="text-slate-300 italic mt-0.5">"{{ cell.raw_status }}"</div>
-                                            {% endif %}
+                                            <div class="tooltip-comment text-slate-300 italic mt-0.5 {% if not (cell.raw_status and not (cell.category == 'no_response')) %}hidden{% endif %}">
+                                                {% if cell.raw_status and not (cell.category == 'no_response') %}"{{ cell.raw_status }}"{% endif %}
+                                            </div>
                                             <div class="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
                                         </div>
                                     </td>
                                     {% endfor %}
-
+ 
                                     <!-- Bilan -->
-                                    <td class="py-3.5 px-3 border-l border-slate-100 text-center font-bold text-xs text-slate-500">
+                                    <td class="py-3.5 px-3 border-l border-slate-100 text-center font-bold text-xs text-slate-500 bilan-cell" data-player-bilan-id="{{ player.id_joueur }}">
                                         <div class="flex items-center justify-center gap-1.5">
-                                            <span class="text-amber-500" title="Sélections">★{{ player.stats.selected }}</span>
+                                            <span class="text-amber-500 bilan-selected" title="Sélections">★{{ player.stats.selected }}</span>
                                             <span class="text-slate-300">|</span>
-                                            <span class="text-emerald-500" title="Disponibilités">✓{{ player.stats.available }}</span>
+                                            <span class="text-emerald-500 bilan-available" title="Disponibilités">✓{{ player.stats.available }}</span>
                                             <span class="text-slate-300">|</span>
-                                            <span class="text-rose-500" title="Absences">✗{{ player.stats.unavailable }}</span>
+                                            <span class="text-rose-500 bilan-unavailable" title="Absences">✗{{ player.stats.unavailable }}</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -220,6 +231,10 @@
                         <div class="flex items-center gap-1.5">
                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black">✓</span>
                             <span>Disponible / Présent</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-black">◐</span>
+                            <span>Disponible si nécessaire</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black">✗</span>
@@ -348,4 +363,273 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let activePopover = null;
+
+    document.addEventListener('click', (e) => {
+        // Si clic en dehors du popover actif, on le ferme
+        if (activePopover && !activePopover.contains(e.target) && !e.target.closest('.presence-cell')) {
+            closePopover();
+        }
+    });
+
+    const cells = document.querySelectorAll('.presence-cell');
+    cells.forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            const playerId = cell.dataset.playerId;
+            const eventId = cell.dataset.eventId;
+            const eventType = cell.dataset.eventType;
+            const playerName = cell.dataset.playerName;
+            const currentCat = cell.getAttribute('data-current-status-category');
+
+            // Si on clique sur la cellule déjà ouverte, on la ferme
+            if (activePopover && activePopover.dataset.cellId === `${playerId}-${eventId}`) {
+                closePopover();
+                return;
+            }
+
+            closePopover();
+
+            // Création du menu popover flottant
+            const popover = document.createElement('div');
+            popover.className = 'fixed bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-[9999] flex flex-col gap-1 w-52';
+            popover.dataset.cellId = `${playerId}-${eventId}`;
+
+            // Entête du popover (Nom du joueur)
+            const header = document.createElement('div');
+            header.className = 'px-2 pb-2 mb-1 border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider truncate';
+            header.textContent = playerName;
+            popover.appendChild(header);
+
+            // Liste des options selon le type
+            let options = [];
+            if (eventType === 'match') {
+                const isCurrentlySelected = currentCat === 'selected';
+                options = [
+                    { label: isCurrentlySelected ? '★ Désélectionner' : '★ Sélectionner', value: isCurrentlySelected ? 'deselected' : 'selected', class: 'text-amber-700 bg-amber-50 hover:bg-amber-100' },
+                    { label: '✓ Disponible', value: 'Disponible', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+                    { label: '◐ Si besoin', value: 'Disponible si nécessaire', class: 'text-blue-700 bg-blue-50 hover:bg-blue-100' },
+                    { label: '✗ Indisponible', value: 'Indisponible', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+                    { label: '? Ne sait pas', value: 'Ne sait pas encore', class: 'text-slate-700 bg-slate-100 hover:bg-slate-200' },
+                    { label: '⊘ Sans réponse', value: '', class: 'text-slate-450 border border-slate-100 hover:bg-slate-50' }
+                ];
+            } else {
+                options = [
+                    { label: '✓ Présent', value: 'Présent', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+                    { label: '✗ Absent', value: 'Absent', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+                    { label: '? Ne sait pas', value: 'Ne sait pas encore', class: 'text-slate-700 bg-slate-100 hover:bg-slate-200' },
+                    { label: '⊘ Sans réponse', value: '', class: 'text-slate-455 border border-slate-100 hover:bg-slate-50' }
+                ];
+            }
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${opt.class}`;
+                btn.textContent = opt.label;
+                btn.addEventListener('click', () => {
+                    updateStatus(cell, playerId, eventId, opt.value);
+                });
+                popover.appendChild(btn);
+            });
+
+            document.body.appendChild(popover);
+            activePopover = popover;
+
+            // Positionnement intelligent du popover
+            const cellRect = cell.getBoundingClientRect();
+            let left = cellRect.left + window.scrollX - 80;
+
+            if (left + 208 > window.innerWidth) {
+                left = window.innerWidth - 220;
+            }
+            if (left < 10) {
+                left = 10;
+            }
+
+            popover.style.top = `${cellRect.bottom + 5}px`;
+            popover.style.left = `${left}px`;
+        });
+    });
+
+    function closePopover() {
+        if (activePopover) {
+            activePopover.remove();
+            activePopover = null;
+        }
+    }
+
+    function updateStatus(cell, playerId, eventId, statusValue) {
+        closePopover();
+        cell.style.opacity = '0.5';
+
+        fetch('/api/captain/participation/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                joueur_id: parseInt(playerId),
+                manifestation_id: parseInt(eventId),
+                status: statusValue
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message || 'Erreur serveur'); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            cell.style.opacity = '1';
+            if (data.ok) {
+                updateGrid(data.team_id, data.grid_players, data.metrics);
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Une erreur est survenue.', 'error');
+            }
+        })
+        .catch(err => {
+            cell.style.opacity = '1';
+            showToast(err.message || 'Impossible de se connecter au serveur.', 'error');
+        });
+    }
+
+    function updateGrid(teamId, gridPlayers, metrics) {
+        const container = document.querySelector(`.team-container[data-team-id="${teamId}"]`);
+        if (!container) return;
+
+        gridPlayers.forEach(player => {
+            const jid = player.id_joueur;
+
+            // 1. Mise à jour du bilan individuel (selected | available | unavailable)
+            const bilanCell = container.querySelector(`.bilan-cell[data-player-bilan-id="${jid}"]`);
+            if (bilanCell) {
+                const sel = bilanCell.querySelector('.bilan-selected');
+                const av = bilanCell.querySelector('.bilan-available');
+                const un = bilanCell.querySelector('.bilan-unavailable');
+                if (sel) sel.textContent = `★${player.stats.selected}`;
+                if (av) av.textContent = `✓${player.stats.available}`;
+                if (un) un.textContent = `✗${player.stats.unavailable}`;
+            }
+
+            // 2. Mise à jour de chaque cellule
+            Object.entries(player.events).forEach(([eventId, cellData]) => {
+                const pCell = container.querySelector(`.presence-cell[data-player-id="${jid}"][data-event-id="${eventId}"]`);
+                if (pCell) {
+                    pCell.setAttribute('data-current-status-category', cellData.category);
+
+                    // Icône
+                    const iconContainer = pCell.querySelector('.presence-icon-container');
+                    if (iconContainer) {
+                        let html = '';
+                        const titleStr = `${player.prenom} ${player.nom} : ${cellData.label}`;
+                        
+                        if (cellData.category === 'selected') {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">★</div>`;
+                        } else if (['present', 'available'].includes(cellData.category)) {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">✓</div>`;
+                        } else if (cellData.category === 'available_if_needed') {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">◐</div>`;
+                        } else if (['unavailable', 'absent'].includes(cellData.category)) {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">✗</div>`;
+                        } else if (cellData.category === 'unknown') {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">?</div>`;
+                        } else {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 text-xs font-black shadow-sm transition hover:scale-110" title="${player.prenom} ${player.nom} : Sans réponse">—</div>`;
+                        }
+                        iconContainer.innerHTML = html;
+                    }
+
+                    // Tooltip
+                    const tooltip = pCell.querySelector('.presence-tooltip');
+                    if (tooltip) {
+                        const labelSpan = tooltip.querySelector('.tooltip-label');
+                        if (labelSpan) labelSpan.textContent = cellData.label;
+
+                        const commentDiv = tooltip.querySelector('.tooltip-comment');
+                        if (commentDiv) {
+                            if (cellData.raw_status && cellData.category !== 'no_response') {
+                                commentDiv.textContent = `"${cellData.raw_status}"`;
+                                commentDiv.classList.remove('hidden');
+                            } else {
+                                commentDiv.textContent = '';
+                                commentDiv.classList.add('hidden');
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // 3. Mise à jour des cartes de métriques de l'équipe
+        const respSpan = container.querySelector('.metric-response-rate');
+        if (respSpan) respSpan.textContent = `${metrics.response_rate}%`;
+
+        const avgSpan = container.querySelector('.metric-avg-available');
+        if (avgSpan) avgSpan.textContent = metrics.avg_available;
+
+        const trainSpan = container.querySelector('.metric-training-attendance');
+        if (trainSpan) {
+            trainSpan.textContent = metrics.has_trainings ? `${metrics.training_attendance}%` : '—';
+        }
+
+        const underContainer = container.querySelector('.metric-understaffed-container');
+        if (underContainer) {
+            const hasUnderstaffed = metrics.understaffed_matches > 0;
+            
+            if (hasUnderstaffed) {
+                underContainer.className = 'border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-rose-50 border-rose-100 text-rose-900';
+            } else {
+                underContainer.className = 'border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-slate-50 border-slate-100';
+            }
+
+            const label = underContainer.querySelector('.metric-understaffed-label');
+            if (label) {
+                label.className = `text-xs font-bold uppercase tracking-wider block metric-understaffed-label ${hasUnderstaffed ? 'text-rose-500' : 'text-slate-450'}`;
+            }
+
+            const val = underContainer.querySelector('.metric-understaffed-value');
+            if (val) {
+                val.className = `text-2xl font-extrabold mt-1 block metric-understaffed-value ${hasUnderstaffed ? 'text-rose-650' : 'text-slate-900'}`;
+                val.textContent = metrics.understaffed_matches;
+            }
+
+            const sub = underContainer.querySelector('.metric-understaffed-subtext');
+            if (sub) {
+                sub.className = `text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext ${hasUnderstaffed ? 'text-rose-550' : 'text-slate-500'}`;
+            }
+
+            const icon = underContainer.querySelector('.metric-understaffed-icon');
+            if (icon) {
+                icon.className = `w-12 h-12 rounded-full flex items-center justify-center metric-understaffed-icon ${hasUnderstaffed ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`;
+            }
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-2xl text-xs font-bold shadow-lg transition-all duration-300 transform translate-y-10 opacity-0 ${type === 'success' ? 'bg-slate-900 text-white border border-slate-800' : 'bg-rose-600 text-white'}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('translate-y-10', 'opacity-0');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-10', 'opacity-0');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
 {% endblock %}

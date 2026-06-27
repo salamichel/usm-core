@@ -120,6 +120,7 @@ class App
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->post('/api/member/participations/upsert', [ParticipationController::class, 'apiUpsert']);
+        $r->post('/api/captain/participation/update', [CaptainController::class, 'apiUpdatePlayerParticipation']);
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
         $r->post('/api/articles',   [ArticleApiController::class, 'create']);
 

@@ -750,6 +750,267 @@ class CaptainController
     }
 
     /**
+     * Endpoint API pour la mise à jour directe de la participation d'un joueur par son capitaine.
+     * Route: POST /api/captain/participation/update
+     */
+    public function apiUpdatePlayerParticipation(): void
+    {
+        if (!isset($_SESSION['LogIn']) || $_SESSION['LogIn'] !== true) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'message' => 'Veuillez vous reconnecter.']);
+            exit;
+        }
+
+        header('Content-Type: application/json');
+        $userId = (int)$_SESSION['LogInId'];
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || !isset($input['joueur_id']) || !isset($input['manifestation_id']) || !isset($input['status'])) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'message' => 'Données de requête incorrectes.']);
+            exit;
+        }
+
+        $joueurId = (int)$input['joueur_id'];
+        $manifestationId = (int)$input['manifestation_id'];
+        $status = trim((string)$input['status']);
+
+        $saisonActive = Saison::getActive();
+        $captainedTeams = $saisonActive ? EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']) : [];
+        if (empty($captainedTeams)) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'message' => 'Accès refusé. Vous n\'êtes pas capitaine.']);
+            exit;
+        }
+
+        $event = AgendaService::getEventById($manifestationId);
+        if (!$event) {
+            http_response_code(404);
+            echo json_encode(['ok' => false, 'message' => 'Événement introuvable.']);
+            exit;
+        }
+
+        $matchedTeam = null;
+        foreach ($captainedTeams as $team) {
+            $filter = $team['manifestation_filter'] ?: $team['libelle'];
+            if (str_contains($event['titre'] ?? '', $filter) || str_contains($event['ManifestationTypée'] ?? '', $filter)) {
+                $matchedTeam = $team;
+                break;
+            }
+        }
+
+        $isTraining = str_contains($event['type'] ?? '', 'Entra') || str_contains($event['ManifestationTypée'] ?? '', 'Entr');
+        if (!$matchedTeam && $isTraining) {
+            $matchedTeam = $captainedTeams[0];
+        }
+
+        if (!$matchedTeam) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'message' => 'Non autorisé pour cet événement.']);
+            exit;
+        }
+
+        $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($matchedTeam['equipe_saison_id']);
+        $playerInRoster = false;
+        foreach ($rosterPlayers as $rp) {
+            if ((int)$rp['id_joueur'] === $joueurId) {
+                $playerInRoster = true;
+                break;
+            }
+        }
+
+        if (!$playerInRoster) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'message' => 'Ce joueur ne fait pas partie de votre effectif.']);
+            exit;
+        }
+
+        try {
+            $db = ExternalDatabase::get();
+            $currentStatus = '';
+            $stmt = $db->prepare("SELECT Participation FROM Participation WHERE id_joueur = ? AND id_manifestation = ?");
+            $stmt->execute([$joueurId, $manifestationId]);
+            $currentStatus = $stmt->fetchColumn() ?: '';
+            $statusObj = new \App\Helpers\ParticipationStatus($currentStatus);
+
+            if ($status === 'selected') {
+                if ($statusObj->getCategory() !== 'selected') {
+                    $orig = $currentStatus !== '' ? $currentStatus : 'Sans réponse';
+                    $newStatus = "Sélectionné(e) ($orig)";
+                    Participation::upsert($joueurId, $manifestationId, $newStatus);
+                    $this->removeConcurrentParticipations($joueurId, $event);
+                }
+            } elseif ($status === 'deselected') {
+                if ($statusObj->getCategory() === 'selected') {
+                    $orig = $statusObj->getOriginalStatus();
+                    if ($orig === 'Sans réponse' || $orig === '') {
+                        $db->prepare("DELETE FROM Participation WHERE id_joueur = ? AND id_manifestation = ?")->execute([$joueurId, $manifestationId]);
+                    } else {
+                        Participation::upsert($joueurId, $manifestationId, $orig);
+                    }
+                }
+            } else {
+                if ($status === '') {
+                    $db->prepare("DELETE FROM Participation WHERE id_joueur = ? AND id_manifestation = ?")->execute([$joueurId, $manifestationId]);
+                } else {
+                    Participation::upsert($joueurId, $manifestationId, $status);
+                }
+            }
+
+            // Recalculer la grille et metrics de l'équipe
+            $upcomingEvents = AgendaService::getUpcomingEventsForTeam($matchedTeam, 8);
+            $eventIds = array_column($upcomingEvents, 'id');
+            $playerIds = array_map(fn($p) => (int)$p['id_joueur'], $rosterPlayers);
+
+            $participationsMap = [];
+            if (!empty($eventIds) && !empty($playerIds)) {
+                $eventPlaceholders = implode(',', array_fill(0, count($eventIds), '?'));
+                $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
+                
+                $stmt = $db->prepare("
+                    SELECT id_joueur, id_manifestation, Participation 
+                    FROM Participation 
+                    WHERE id_manifestation IN ($eventPlaceholders) 
+                      AND id_joueur IN ($playerPlaceholders)
+                ");
+                $params = array_merge($eventIds, $playerIds);
+                $stmt->execute($params);
+                $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                
+                foreach ($rows as $row) {
+                    $jid = (int)$row['id_joueur'];
+                    $mid = (int)$row['id_manifestation'];
+                    $participationsMap[$jid][$mid] = $row['Participation'];
+                }
+            }
+
+            $gridPlayers = [];
+            foreach ($rosterPlayers as $player) {
+                $jid = (int)$player['id_joueur'];
+                $playerGrid = [
+                    'id_joueur' => $jid,
+                    'events' => []
+                ];
+                
+                $nbSelected = 0;
+                $nbAvailable = 0;
+                $nbUnavailable = 0;
+                $nbNoResponse = 0;
+                
+                foreach ($upcomingEvents as $ev) {
+                    $mid = $ev['id'];
+                    $rawStat = $participationsMap[$jid][$mid] ?? '';
+                    $stObj = new \App\Helpers\ParticipationStatus($rawStat);
+                    $category = $stObj->getCategory();
+                    
+                    if ($category === 'selected') {
+                        $nbSelected++;
+                    } elseif ($category === 'available' || $category === 'available_if_needed' || $category === 'present') {
+                        $nbAvailable++;
+                    } elseif ($category === 'unavailable' || $category === 'absent') {
+                        $nbUnavailable++;
+                    } else {
+                        $nbNoResponse++;
+                    }
+                    
+                    $playerGrid['events'][$mid] = [
+                        'category' => $category,
+                        'label' => $stObj->getLabel(),
+                        'icon' => $stObj->getIcon(),
+                        'bg_class' => $stObj->getBackgroundColor(),
+                        'text_class' => $stObj->getTextColor(),
+                        'raw_status' => $rawStat,
+                    ];
+                }
+                
+                $playerGrid['stats'] = [
+                    'selected' => $nbSelected,
+                    'available' => $nbAvailable,
+                    'unavailable' => $nbUnavailable,
+                ];
+                
+                $gridPlayers[] = $playerGrid;
+            }
+
+            $totalSlots = count($rosterPlayers) * count($upcomingEvents);
+            $totalAnswered = 0;
+            $understaffedMatches = 0;
+            $eventAttendance = [];
+            $trainingCount = 0;
+            $trainingPresentCount = 0;
+            $trainingSlotsCount = 0;
+
+            foreach ($upcomingEvents as $ev) {
+                $mid = $ev['id'];
+                $availCount = 0;
+                $selCount = 0;
+                
+                foreach ($rosterPlayers as $player) {
+                    $jid = (int)$player['id_joueur'];
+                    $rawStat = $participationsMap[$jid][$mid] ?? '';
+                    $stObj = new \App\Helpers\ParticipationStatus($rawStat);
+                    $category = $stObj->getCategory();
+                    
+                    if ($category !== 'no_response' && $rawStat !== '') {
+                        $totalAnswered++;
+                    }
+                    
+                    if (in_array($category, ['selected', 'present', 'available', 'available_if_needed'])) {
+                        $availCount++;
+                    }
+                    if ($category === 'selected') {
+                        $selCount++;
+                    }
+                    
+                    if ($ev['is_training']) {
+                        $trainingSlotsCount++;
+                        if (in_array($category, ['present', 'available', 'available_if_needed', 'selected'])) {
+                            $trainingPresentCount++;
+                        }
+                    }
+                }
+                
+                $eventAttendance[$mid] = $availCount;
+                
+                if ($ev['is_match']) {
+                    if ($selCount < 6) {
+                        $understaffedMatches++;
+                    }
+                }
+                if ($ev['is_training']) {
+                    $trainingCount++;
+                }
+            }
+
+            $responseRate = $totalSlots > 0 ? (int)round(($totalAnswered / $totalSlots) * 100) : 0;
+            $avgAvailable = count($upcomingEvents) > 0 ? round(array_sum($eventAttendance) / count($upcomingEvents), 1) : 0;
+            $trainingAttendanceRate = $trainingSlotsCount > 0 ? (int)round(($trainingPresentCount / $trainingSlotsCount) * 100) : 0;
+
+            $metrics = [
+                'response_rate' => $responseRate,
+                'avg_available' => $avgAvailable,
+                'understaffed_matches' => $understaffedMatches,
+                'training_attendance' => $trainingAttendanceRate,
+                'has_trainings' => $trainingCount > 0
+            ];
+
+            echo json_encode([
+                'ok' => true,
+                'message' => 'Participation mise à jour avec succès.',
+                'team_id' => $matchedTeam['equipe_saison_id'],
+                'grid_players' => $gridPlayers,
+                'metrics' => $metrics
+            ]);
+
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'message' => 'Erreur lors de la sauvegarde : ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
      * Vérifie si deux plages de temps se chevauchent.
      */
     private function checkOverlap(array $rangeA, array $rangeB): bool
