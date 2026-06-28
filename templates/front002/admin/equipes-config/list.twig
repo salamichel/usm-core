@@ -44,6 +44,12 @@
           <span class="font-mono">{{ eq.slug_colonne }}</span>
         </div>
         <div class="flex flex-wrap gap-2">
+          {% if saison_active_id %}
+            <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/saisons/' ~ saison_active_id ~ '/joueurs') }}"
+               class="border-2 border-black px-3 py-1 text-xs font-bold bg-amber-100 hover:bg-black hover:text-white transition">Joueurs</a>
+            <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/saisons/' ~ saison_active_id ~ '/photos') }}"
+               class="border-2 border-black px-3 py-1 text-xs font-bold bg-blue-100 hover:bg-black hover:text-white transition">Photos</a>
+          {% endif %}
           <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/edit') }}"
              class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
           <form method="POST" action="{{ url('admin/equipes-config/' ~ eq.id ~ '/delete') }}" data-confirm="Supprimer cette équipe ?">
@@ -99,6 +105,12 @@
         </td>
         <td class="px-4 py-3">
           <div class="flex gap-2 justify-end">
+            {% if saison_active_id %}
+              <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/saisons/' ~ saison_active_id ~ '/joueurs') }}"
+                 class="border-2 border-black px-3 py-1 text-xs font-bold bg-amber-100 hover:bg-black hover:text-white transition">Joueurs</a>
+              <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/saisons/' ~ saison_active_id ~ '/photos') }}"
+                 class="border-2 border-black px-3 py-1 text-xs font-bold bg-blue-100 hover:bg-black hover:text-white transition">Photos</a>
+            {% endif %}
             <a href="{{ url('admin/equipes-config/' ~ eq.id ~ '/edit') }}"
                class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
             <form method="POST" action="{{ url('admin/equipes-config/' ~ eq.id ~ '/delete') }}" data-confirm="Supprimer cette équipe ?">

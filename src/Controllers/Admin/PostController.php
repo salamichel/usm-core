@@ -239,7 +239,7 @@ class PostController extends AdminCrudController
         $id = (int)$params['id'];
         $post = Post::find($id);
         if (!$post) {
-            $this->notFound();
+            $this->notFound('error.twig', ['error' => 'Article introuvable.']);
             return;
         }
         Post::setSlider($id, !(bool)$post['is_slider']);
@@ -255,9 +255,4 @@ class PostController extends AdminCrudController
         Tag::setPostTags($postId, $tagIds);
     }
 
-    protected function notFound(): void
-    {
-        http_response_code(404);
-        \App\Core\View::render('error.twig', ['error' => 'Article non trouvé']);
-    }
 }

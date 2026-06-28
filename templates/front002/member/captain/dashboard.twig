@@ -1,0 +1,672 @@
+{% extends "base.twig" %}
+{% block title %}Espace Capitaine — USM Volley{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+    
+    {# En-tête #}
+    <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                        👑 Espace Capitaine
+                    </h1>
+                    <p class="text-slate-400 text-sm md:text-base mt-1">Gérez vos convocations et planifiez les matchs de votre équipe.</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ url('member/dashboard') }}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm shadow-sm">
+                        ← Retour tableau de bord
+                    </a>
+                    <a href="{{ url('member/captain/matches/create') }}" class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 text-sm shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Créer un Match
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
+        
+        {# Message Saisie des Résultats FFVB #}
+        <div class="bg-amber-50 border border-amber-200 p-5 rounded-3xl shadow-sm mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-start gap-4">
+                <span class="text-3xl flex-shrink-0" role="img" aria-label="volley">🏐</span>
+                <div>
+                    <h3 class="font-extrabold text-amber-900 text-base">Saisie des RÉSULTATS des matchs</h3>
+                    <p class="text-amber-800 text-sm mt-1 leading-relaxed">
+                        Capitaines, n'oubliez pas de saisir les résultats de vos matchs sur le site de la FFVB.
+                        Le code à utiliser est : <strong class="bg-amber-100 text-amber-950 px-2 py-0.5 rounded font-mono text-sm select-all">USM024</strong>
+                    </p>
+                </div>
+            </div>
+            <a href="https://www.ffvbbeach.org/ffvbapp/resu/saisie_resu.php" target="_blank" rel="noopener noreferrer" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold px-5 py-3 rounded-2xl transition text-center text-sm shadow-sm flex-shrink-0 flex items-center justify-center gap-2">
+                Saisir sur le site FFVB
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+        </div>
+
+        <div class="space-y-12">
+            {% for t in teams %}
+            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm team-container" data-team-id="{{ t.config.equipe_saison_id }}">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-4">
+                    <div>
+                        <span class="inline-block text-xs uppercase tracking-wider text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-md mb-2">Équipe</span>
+                        <h2 class="text-2xl font-black text-slate-900">{{ t.config.libelle }}</h2>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-400">Saison {{ saison.libelle }}</span>
+                </div>
+ 
+                {# 1. Métriques de l'équipe #}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- Taux de réponse -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Taux de réponse</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-response-rate">{{ t.metrics.response_rate }}%</span>
+                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les prochains événements</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        </div>
+                    </div>
+ 
+                    <!-- Disponibilité moyenne -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Disponibilité moyenne</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-avg-available">{{ t.metrics.avg_available }}</span>
+                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Joueurs dispo par événement</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                    </div>
+ 
+                    <!-- Assiduité entraînements -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-slate-455 uppercase tracking-wider block">Assiduité Entraînements</span>
+                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-training-attendance">
+                                {% if t.metrics.has_trainings %}
+                                    {{ t.metrics.training_attendance }}%
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les créneaux d'entraînement</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                    </div>
+ 
+                    <!-- Alertes Sous-Effectif -->
+                    <div class="border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-slate-50 border-slate-100' }}">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider block metric-understaffed-label {{ t.metrics.understaffed_matches > 0 ? 'text-rose-500' : 'text-slate-450' }}">Alerte Sous-Effectif</span>
+                            <span class="text-2xl font-extrabold mt-1 block metric-understaffed-value {{ t.metrics.understaffed_matches > 0 ? 'text-rose-650' : 'text-slate-900' }}">
+                                {{ t.metrics.understaffed_matches }}
+                            </span>
+                            <span class="text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
+                                Matchs avec < 6 convoqués
+                            </span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center metric-understaffed-icon {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                {# 2. Tableau de Présences #}
+                <div class="mb-10 hidden sm:block">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Tableau de présences des joueurs</h3>
+                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">8 prochains événements</span>
+                    </div>
+
+                    {% if t.upcoming_events|length %}
+                    <div class="overflow-x-auto md:overflow-visible lg:max-h-none border border-slate-200 rounded-2xl bg-white shadow-sm scrollbar-thin">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="bg-slate-900 text-white border-b border-slate-800">
+                                    <th class="py-4 px-4 font-serif text-sm font-bold w-48 sticky left-0 bg-slate-900 z-30" style="top: var(--header-h, 76px);">Joueur</th>
+                                    {% for event in t.upcoming_events %}
+                                    {% set th_classes = "hover:bg-slate-800 text-white bg-slate-900 border-slate-800" %}
+                                    {% set date_color = "text-slate-400" %}
+                                    {% set title_color = "text-white" %}
+                                    {% if event.annule %}
+                                        {% set th_classes = "bg-rose-900 border-rose-950 text-white hover:bg-rose-950" %}
+                                        {% set date_color = "text-rose-200" %}
+                                        {% set title_color = "text-rose-100 line-through" %}
+                                    {% elseif event.provisoire %}
+                                        {% set th_classes = "bg-amber-600 border-amber-700 text-white hover:bg-amber-700" %}
+                                        {% set date_color = "text-amber-250" %}
+                                        {% set title_color = "text-amber-100 font-extrabold" %}
+                                    {% endif %}
+                                    <th class="py-3 px-2 text-center text-xs font-bold border-l min-w-[110px] transition relative group sticky z-20 {{ th_classes }}" style="top: var(--header-h, 76px);">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <div class="flex items-center gap-1 justify-center">
+                                                {% if event.is_match %}
+                                                    <span class="text-amber-400" title="Match">🏆</span>
+                                                {% else %}
+                                                    <span class="text-cyan-400" title="Entraînement">🏃</span>
+                                                {% endif %}
+                                                
+                                                {% if event.annule %}
+                                                    <span class="text-[8px] font-black uppercase tracking-wider bg-rose-700 text-white px-1 py-0.5 rounded leading-none">Annulé</span>
+                                                {% elseif event.provisoire %}
+                                                    <span class="text-[8px] font-black uppercase tracking-wider bg-amber-700 text-white px-1 py-0.5 rounded leading-none">Provisoire</span>
+                                                {% endif %}
+                                            </div>
+                                            <span class="text-[10px] {{ date_color }}">{{ event.date_display }}</span>
+                                            <span class="text-[11px] truncate max-w-[100px] block {{ title_color }}" title="{{ event.titre }} ({{ event.lieu }})">
+                                                {{ event.titre }}
+                                            </span>
+                                        </div>
+                                    </th>
+                                    {% endfor %}
+                                    <th class="py-4 px-3 text-center text-xs font-bold border-l border-slate-800 w-24 sticky bg-slate-900 z-20" style="top: var(--header-h, 76px);">Bilan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for player in t.grid_players %}
+                                <tr class="hover:bg-slate-50/50 transition">
+                                    <td class="py-3.5 px-4 sticky left-0 bg-white hover:bg-slate-50 z-10 border-r border-slate-100 flex items-center justify-between gap-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                                        <div class="min-w-0">
+                                            <span class="font-bold text-slate-900 text-sm block truncate">
+                                                {{ player.prenom }} {{ player.nom }}
+                                            </span>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                                                {% if player.is_captain %}
+                                                    👑 Capitaine
+                                                {% else %}
+                                                    Joueur
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">{{ player.sexe }}</span>
+                                    {% for event in t.upcoming_events %}
+                                    {% set cell = player.events[event.id] %}
+                                    {% set td_bg = event.annule ? 'bg-rose-50/20 hover:bg-rose-100/30' : (event.provisoire ? 'bg-amber-50/20 hover:bg-amber-100/30' : 'hover:bg-slate-50/80') %}
+                                    <td class="py-3 px-2 text-center border-l border-slate-100 relative group cursor-pointer transition presence-cell {{ td_bg }}"
+                                        data-player-id="{{ player.id_joueur }}"
+                                        data-event-id="{{ event.id }}"
+                                        data-event-type="{{ event.is_match ? 'match' : 'training' }}"
+                                        data-player-name="{{ player.prenom }} {{ player.nom }}"
+                                        data-event-title="{{ event.titre }}"
+                                        data-current-status-category="{{ cell.category }}">
+                                        
+                                        <div class="presence-icon-container flex items-center justify-center">
+                                            {% if cell.category == 'selected' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ★
+                                                </div>
+                                            {% elseif cell.category == 'present' or cell.category == 'available' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ✓
+                                                </div>
+                                            {% elseif cell.category == 'available_if_needed' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ◐
+                                                </div>
+                                            {% elseif cell.category == 'unavailable' or cell.category == 'absent' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ✗
+                                                </div>
+                                            {% elseif cell.category == 'unknown' %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : {{ cell.label }}">
+                                                    ?
+                                                </div>
+                                            {% else %}
+                                                <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 text-xs font-black shadow-sm transition hover:scale-110" title="{{ player.prenom }} {{ player.nom }} : Sans réponse">
+                                                    —
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Tooltip au survol -->
+                                        <div class="presence-tooltip absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2.5 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-20 pointer-events-none">
+                                            <div class="font-bold text-[11px] text-amber-400 mb-0.5">{{ event.titre }}</div>
+                                            <div class="text-slate-400 mb-1">📍 {{ event.lieu }}</div>
+                                            <div class="border-t border-slate-800 pt-1 mt-1 font-semibold">
+                                                Statut : <span class="tooltip-label text-white">{{ cell.label }}</span>
+                                            </div>
+                                            <div class="tooltip-comment text-slate-300 italic mt-0.5 {% if not (cell.raw_status and not (cell.category == 'no_response')) %}hidden{% endif %}">
+                                                {% if cell.raw_status and not (cell.category == 'no_response') %}"{{ cell.raw_status }}"{% endif %}
+                                            </div>
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                        </div>
+                                    </td>
+                                    {% endfor %}
+ 
+                                    <!-- Bilan -->
+                                    <td class="py-3.5 px-3 border-l border-slate-100 text-center font-bold text-xs text-slate-500 bilan-cell" data-player-bilan-id="{{ player.id_joueur }}">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <span class="text-amber-500 bilan-selected" title="Sélections">★{{ player.stats.selected }}</span>
+                                            <span class="text-slate-300">|</span>
+                                            <span class="text-emerald-500 bilan-available" title="Disponibilités">✓{{ player.stats.available }}</span>
+                                            <span class="text-slate-300">|</span>
+                                            <span class="text-rose-500 bilan-unavailable" title="Absences">✗{{ player.stats.unavailable }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Légende du tableau -->
+                    <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-500 bg-slate-50 p-4 border border-slate-100 rounded-2xl">
+                        <span class="text-slate-400 uppercase tracking-wider text-[10px] font-bold">Légende :</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-black">★</span>
+                            <span>Sélectionné</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black">✓</span>
+                            <span>Disponible / Présent</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-black">◐</span>
+                            <span>Disponible si nécessaire</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black">✗</span>
+                            <span>Indisponible / Absent</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black">?</span>
+                            <span>Ne sait pas</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white border border-slate-200 text-slate-400 text-[10px] font-black">—</span>
+                            <span>Sans réponse</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-8 text-center bg-slate-50 rounded-2xl text-slate-400 text-sm italic border border-slate-100 shadow-inner">
+                        Aucun événement à venir.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Rencontres et Convocations</h3>
+
+                {% if t.matches|length %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for m in t.matches %}
+                    <div class="border border-slate-200 hover:border-slate-300 rounded-2xl p-5 bg-white transition-all flex flex-col justify-between hover:shadow-sm">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-3">
+                                <h4 class="font-serif text-lg font-bold text-slate-900 leading-tight">{{ m.titre }}</h4>
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-800">
+                                    {{ m.statut }}
+                                </span>
+                            </div>
+                            
+                            <div class="space-y-1.5 text-sm text-slate-600 mb-4">
+                                <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📅</span> {{ m.date_display }}</p>
+                                {% if m.time_range %}<p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">🕐</span> {{ m.time_range }}</p>{% endif %}
+                                <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📍</span> {{ m.lieu }}</p>
+                                {% if m.commentaire %}<p class="flex items-center gap-2 italic text-xs text-slate-400"><span class="text-slate-400 w-4 text-center">💬</span> {{ m.commentaire }}</p>{% endif %}
+                            </div>
+                        {# Jauge des disponibilités (Convoqués / Dispo / Sans réponse / Indispo) #}
+                        <div class="space-y-2 mb-4 mt-1 pt-3 border-t border-slate-100">
+                            <div class="flex justify-between text-xs font-bold text-slate-500">
+                                <span>Convocations & Réponses</span>
+                                <span>{{ m.total_roster }} joueurs</span>
+                            </div>
+                            
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden">
+                                {% set pct_sel = m.total_roster > 0 ? (m.nb_selection / m.total_roster * 100) : 0 %}
+                                {% set pct_disp = m.total_roster > 0 ? (m.nb_disponible / m.total_roster * 100) : 0 %}
+                                {% set pct_sans = m.total_roster > 0 ? (m.nb_sans_reponse / m.total_roster * 100) : 0 %}
+                                {% set pct_indisp = m.total_roster > 0 ? (m.nb_indisponible / m.total_roster * 100) : 0 %}
+                                
+                                {% if m.nb_selection > 0 %}
+                                    <div class="bg-amber-500 h-full" style="width: {{ pct_sel }}%" title="Sélectionnés : {{ m.nb_selection }}"></div>
+                                {% endif %}
+                                {% if m.nb_disponible > 0 %}
+                                    <div class="bg-emerald-500 h-full" style="width: {{ pct_disp }}%" title="Disponibles : {{ m.nb_disponible }}"></div>
+                                {% endif %}
+                                {% if m.nb_sans_reponse > 0 %}
+                                    <div class="bg-slate-300 h-full" style="width: {{ pct_sans }}%" title="Sans réponse : {{ m.nb_sans_reponse }}"></div>
+                                {% endif %}
+                                {% if m.nb_indisponible > 0 %}
+                                    <div class="bg-rose-500 h-full" style="width: {{ pct_indisp }}%" title="Indisponibles : {{ m.nb_indisponible }}"></div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    <span>Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span>Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                    <span>Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <span>Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold">
+                                    {% if m.nb_selection >= 6 %}
+                                        <span class="text-emerald-600">✓ Effectif suffisant</span> ({{ m.nb_selection }} joueurs)
+                                    {% else %}
+                                        <span class="text-rose-500">⚠ Sous-effectif</span> ({{ m.nb_selection }}/6 requis)
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
+                                   class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition text-center shadow-sm flex items-center gap-1">
+                                    ✏️ Modifier
+                                </a>
+                                <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
+                                   class="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3.5 py-2 rounded-xl transition text-center shadow-sm">
+                                    📋 Sélectionner les joueurs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-8 text-center bg-slate-50 rounded-2xl text-slate-400 text-sm italic">
+                    Aucun match à venir pour cette équipe. Cliquez sur "Créer un Match" pour en planifier un.
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="p-12 text-center bg-white rounded-3xl border border-slate-100 text-slate-400 shadow-sm">
+                Vous n'êtes assigné à aucune équipe pour cette saison.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let activePopover = null;
+
+    document.addEventListener('click', (e) => {
+        // Si clic en dehors du popover actif, on le ferme
+        if (activePopover && !activePopover.contains(e.target) && !e.target.closest('.presence-cell')) {
+            closePopover();
+        }
+    });
+
+    const cells = document.querySelectorAll('.presence-cell');
+    cells.forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            const playerId = cell.dataset.playerId;
+            const eventId = cell.dataset.eventId;
+            const eventType = cell.dataset.eventType;
+            const playerName = cell.dataset.playerName;
+            const currentCat = cell.getAttribute('data-current-status-category');
+
+            // Si on clique sur la cellule déjà ouverte, on la ferme
+            if (activePopover && activePopover.dataset.cellId === `${playerId}-${eventId}`) {
+                closePopover();
+                return;
+            }
+
+            closePopover();
+
+            // Création du menu popover flottant
+            const popover = document.createElement('div');
+            popover.className = 'fixed bg-white border border-slate-200 rounded-2xl shadow-xl p-3 z-[9999] flex flex-col gap-1 w-52';
+            popover.dataset.cellId = `${playerId}-${eventId}`;
+
+            // Entête du popover (Nom du joueur)
+            const header = document.createElement('div');
+            header.className = 'px-2 pb-2 mb-1 border-b border-slate-100 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider truncate';
+            header.textContent = playerName;
+            popover.appendChild(header);
+
+            // Liste des options selon le type
+            let options = [];
+            if (eventType === 'match') {
+                const isCurrentlySelected = currentCat === 'selected';
+                options = [
+                    { label: isCurrentlySelected ? '★ Désélectionner' : '★ Sélectionner', value: isCurrentlySelected ? 'deselected' : 'selected', class: 'text-amber-700 bg-amber-50 hover:bg-amber-100' },
+                    { label: '✓ Disponible', value: 'Disponible', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+                    { label: '◐ Si besoin', value: 'Disponible si nécessaire', class: 'text-blue-700 bg-blue-50 hover:bg-blue-100' },
+                    { label: '✗ Indisponible', value: 'Indisponible', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+                    { label: '? Ne sait pas', value: 'Ne sait pas encore', class: 'text-slate-700 bg-slate-100 hover:bg-slate-200' },
+                    { label: '⊘ Sans réponse', value: '', class: 'text-slate-450 border border-slate-100 hover:bg-slate-50' }
+                ];
+            } else {
+                options = [
+                    { label: '✓ Présent', value: 'Présent', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+                    { label: '✗ Absent', value: 'Absent', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+                    { label: '? Ne sait pas', value: 'Ne sait pas encore', class: 'text-slate-700 bg-slate-100 hover:bg-slate-200' },
+                    { label: '⊘ Sans réponse', value: '', class: 'text-slate-455 border border-slate-100 hover:bg-slate-50' }
+                ];
+            }
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${opt.class}`;
+                btn.textContent = opt.label;
+                btn.addEventListener('click', () => {
+                    updateStatus(cell, playerId, eventId, opt.value);
+                });
+                popover.appendChild(btn);
+            });
+
+            document.body.appendChild(popover);
+            activePopover = popover;
+
+            // Positionnement intelligent du popover
+            const cellRect = cell.getBoundingClientRect();
+            let left = cellRect.left + window.scrollX - 80;
+
+            if (left + 208 > window.innerWidth) {
+                left = window.innerWidth - 220;
+            }
+            if (left < 10) {
+                left = 10;
+            }
+
+            popover.style.top = `${cellRect.bottom + 5}px`;
+            popover.style.left = `${left}px`;
+        });
+    });
+
+    function closePopover() {
+        if (activePopover) {
+            activePopover.remove();
+            activePopover = null;
+        }
+    }
+
+    function updateStatus(cell, playerId, eventId, statusValue) {
+        closePopover();
+        cell.style.opacity = '0.5';
+
+        fetch('/api/captain/participation/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                joueur_id: parseInt(playerId),
+                manifestation_id: parseInt(eventId),
+                status: statusValue
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message || 'Erreur serveur'); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            cell.style.opacity = '1';
+            if (data.ok) {
+                updateGrid(data.team_id, data.grid_players, data.metrics);
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Une erreur est survenue.', 'error');
+            }
+        })
+        .catch(err => {
+            cell.style.opacity = '1';
+            showToast(err.message || 'Impossible de se connecter au serveur.', 'error');
+        });
+    }
+
+    function updateGrid(teamId, gridPlayers, metrics) {
+        const container = document.querySelector(`.team-container[data-team-id="${teamId}"]`);
+        if (!container) return;
+
+        gridPlayers.forEach(player => {
+            const jid = player.id_joueur;
+
+            // 1. Mise à jour du bilan individuel (selected | available | unavailable)
+            const bilanCell = container.querySelector(`.bilan-cell[data-player-bilan-id="${jid}"]`);
+            if (bilanCell) {
+                const sel = bilanCell.querySelector('.bilan-selected');
+                const av = bilanCell.querySelector('.bilan-available');
+                const un = bilanCell.querySelector('.bilan-unavailable');
+                if (sel) sel.textContent = `★${player.stats.selected}`;
+                if (av) av.textContent = `✓${player.stats.available}`;
+                if (un) un.textContent = `✗${player.stats.unavailable}`;
+            }
+
+            // 2. Mise à jour de chaque cellule
+            Object.entries(player.events).forEach(([eventId, cellData]) => {
+                const pCell = container.querySelector(`.presence-cell[data-player-id="${jid}"][data-event-id="${eventId}"]`);
+                if (pCell) {
+                    pCell.setAttribute('data-current-status-category', cellData.category);
+
+                    // Icône
+                    const iconContainer = pCell.querySelector('.presence-icon-container');
+                    if (iconContainer) {
+                        let html = '';
+                        const titleStr = `${player.prenom} ${player.nom} : ${cellData.label}`;
+                        
+                        if (cellData.category === 'selected') {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">★</div>`;
+                        } else if (['present', 'available'].includes(cellData.category)) {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">✓</div>`;
+                        } else if (cellData.category === 'available_if_needed') {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">◐</div>`;
+                        } else if (['unavailable', 'absent'].includes(cellData.category)) {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 text-white text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">✗</div>`;
+                        } else if (cellData.category === 'unknown') {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-black shadow-sm transition hover:scale-110" title="${titleStr}">?</div>`;
+                        } else {
+                            html = `<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 text-xs font-black shadow-sm transition hover:scale-110" title="${player.prenom} ${player.nom} : Sans réponse">—</div>`;
+                        }
+                        iconContainer.innerHTML = html;
+                    }
+
+                    // Tooltip
+                    const tooltip = pCell.querySelector('.presence-tooltip');
+                    if (tooltip) {
+                        const labelSpan = tooltip.querySelector('.tooltip-label');
+                        if (labelSpan) labelSpan.textContent = cellData.label;
+
+                        const commentDiv = tooltip.querySelector('.tooltip-comment');
+                        if (commentDiv) {
+                            if (cellData.raw_status && cellData.category !== 'no_response') {
+                                commentDiv.textContent = `"${cellData.raw_status}"`;
+                                commentDiv.classList.remove('hidden');
+                            } else {
+                                commentDiv.textContent = '';
+                                commentDiv.classList.add('hidden');
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // 3. Mise à jour des cartes de métriques de l'équipe
+        const respSpan = container.querySelector('.metric-response-rate');
+        if (respSpan) respSpan.textContent = `${metrics.response_rate}%`;
+
+        const avgSpan = container.querySelector('.metric-avg-available');
+        if (avgSpan) avgSpan.textContent = metrics.avg_available;
+
+        const trainSpan = container.querySelector('.metric-training-attendance');
+        if (trainSpan) {
+            trainSpan.textContent = metrics.has_trainings ? `${metrics.training_attendance}%` : '—';
+        }
+
+        const underContainer = container.querySelector('.metric-understaffed-container');
+        if (underContainer) {
+            const hasUnderstaffed = metrics.understaffed_matches > 0;
+            
+            if (hasUnderstaffed) {
+                underContainer.className = 'border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-rose-50 border-rose-100 text-rose-900';
+            } else {
+                underContainer.className = 'border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-slate-50 border-slate-100';
+            }
+
+            const label = underContainer.querySelector('.metric-understaffed-label');
+            if (label) {
+                label.className = `text-xs font-bold uppercase tracking-wider block metric-understaffed-label ${hasUnderstaffed ? 'text-rose-500' : 'text-slate-450'}`;
+            }
+
+            const val = underContainer.querySelector('.metric-understaffed-value');
+            if (val) {
+                val.className = `text-2xl font-extrabold mt-1 block metric-understaffed-value ${hasUnderstaffed ? 'text-rose-650' : 'text-slate-900'}`;
+                val.textContent = metrics.understaffed_matches;
+            }
+
+            const sub = underContainer.querySelector('.metric-understaffed-subtext');
+            if (sub) {
+                sub.className = `text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext ${hasUnderstaffed ? 'text-rose-550' : 'text-slate-500'}`;
+            }
+
+            const icon = underContainer.querySelector('.metric-understaffed-icon');
+            if (icon) {
+                icon.className = `w-12 h-12 rounded-full flex items-center justify-center metric-understaffed-icon ${hasUnderstaffed ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500'}`;
+            }
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-2xl text-xs font-bold shadow-lg transition-all duration-300 transform translate-y-10 opacity-0 ${type === 'success' ? 'bg-slate-900 text-white border border-slate-800' : 'bg-rose-600 text-white'}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('translate-y-10', 'opacity-0');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-10', 'opacity-0');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
+{% endblock %}

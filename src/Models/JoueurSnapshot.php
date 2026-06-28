@@ -62,12 +62,13 @@ class JoueurSnapshot
                 $col  = $eq['slug_colonne'];
                 $snaps = self::findBySaison($saisonId);
                 $ins  = $db->prepare(
-                    "INSERT IGNORE INTO equipe_saison_joueur (equipe_saison_id, snapshot_id)
-                     VALUES (?, ?)"
+                    "INSERT IGNORE INTO equipe_saison_joueur (equipe_saison_id, snapshot_id, is_captain)
+                     VALUES (?, ?, ?)"
                 );
                 foreach ($snaps as $snap) {
                     if (!empty($snap['data'][$col])) {
-                        $ins->execute([$es['id'], $snap['id']]);
+                        $isCaptain = str_contains($snap['data']['Caracteristique'] ?? '', 'Capitaine') ? 1 : 0;
+                        $ins->execute([$es['id'], $snap['id'], $isCaptain]);
                     }
                 }
             }

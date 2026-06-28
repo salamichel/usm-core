@@ -1,0 +1,157 @@
+{% extends "base.twig" %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+    
+    {# En-tête #}
+    <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                        👤 Mon Profil
+                    </h1>
+                    <p class="text-slate-400 text-sm md:text-base mt-1">Gérez vos informations personnelles et accédez à votre compte.</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ url('member/dashboard') }}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm shadow-sm">
+                        ← Retour tableau de bord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 -mt-10">
+        
+        {% if flash.error %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r-xl"><p class="text-sm text-red-700 font-medium">{{ flash.error }}</p></div>
+        {% endif %}
+        {% if flash.success %}
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-r-xl"><p class="text-sm text-green-700 font-medium">{{ flash.success }}</p></div>
+        {% endif %}
+
+        <div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
+            <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                <h2 class="text-lg leading-6 font-bold text-slate-900">Informations Personnelles</h2>
+            </div>
+
+            <form action="{{ url('member/profile') }}" method="POST" class="p-6 md:p-8 space-y-6">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div>
+                        <label for="prenom" class="block text-sm font-semibold text-slate-700 mb-2">Prénom</label>
+                        <input type="text" id="prenom" name="Prenom" value="{{ joueur.Prénom|default('') }}" required 
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div>
+                        <label for="nom" class="block text-sm font-semibold text-slate-700 mb-2">Nom</label>
+                        <input type="text" id="nom" name="Nom" value="{{ joueur.Nom|default('') }}" required 
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="email" class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                        <input type="email" id="email" name="Mel" value="{{ joueur.Mel|default('') }}" required 
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="adresse" class="block text-sm font-semibold text-slate-700 mb-2">Adresse</label>
+                        <input type="text" id="adresse" name="Adresse" value="{{ joueur.Adresse|default('') }}"
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div>
+                        <label for="commune" class="block text-sm font-semibold text-slate-700 mb-2">Commune</label>
+                        <input type="text" id="commune" name="Commune" value="{{ joueur.Commune|default('') }}"
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div>
+                        <label for="codepostal" class="block text-sm font-semibold text-slate-700 mb-2">Code postal</label>
+                        <input type="text" id="codepostal" name="CodePostal" value="{{ joueur.CodePostal|default('') }}"
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div>
+                        <label for="telephone" class="block text-sm font-semibold text-slate-700 mb-2">Téléphone</label>
+                        <input type="text" id="telephone" name="Téléphone" value="{{ joueur['Téléphone']|default('') }}"
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+
+                    <div>
+                        <label for="datenaissance" class="block text-sm font-semibold text-slate-700 mb-2">Date de naissance</label>
+                        <input type="date" id="datenaissance" name="DateNaissance" value="{{ joueur.DateNaissance|default('') }}"
+                               class="w-full px-3.5 py-3 border border-slate-200 rounded-xl text-slate-800 focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 transition-all text-sm">
+                    </div>
+                </div>
+
+                {# Champs en lecture seule #}
+                <div class="mt-8 pt-8 border-t border-slate-100">
+                    <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4">Informations du Compte</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Mot de passe</label>
+                            <div class="px-3.5 py-3 bg-slate-50 border border-slate-150 rounded-xl text-slate-750 font-mono text-sm">
+                                {{ joueur.mdp|default('Non renseigné') }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Licencié n°</label>
+                            <div class="px-3.5 py-3 bg-slate-50 border border-slate-150 rounded-xl text-slate-750 font-mono text-sm">
+                                {{ joueur.NLicence|default('Non renseigné') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Équipes et Saison #}
+                {% if saison_active %}
+                    <div class="mt-8 pt-8 border-t border-slate-100">
+                        <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4">Saison {{ saison_active.libelle }}</h3>
+                        
+                        {% if equipes|length > 0 %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {% for equipe in equipes %}
+                                    <div class="p-5 border rounded-2xl bg-blue-50/50 border-blue-100">
+                                        <h4 class="font-bold text-blue-900">{{ equipe.libelle }}</h4>
+                                        {% if equipe.categorie %}
+                                            <p class="text-xs text-blue-700 mt-1">Catégorie : <strong>{{ equipe.categorie }}</strong></p>
+                                        {% endif %}
+                                        {% if equipe.description_courte %}
+                                            <p class="text-xs text-slate-500 mt-2">{{ equipe.description_courte }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="p-5 bg-amber-50/50 border border-amber-100 rounded-2xl">
+                                <p class="text-sm text-amber-850">Vous n'êtes affecté à aucune équipe pour cette saison.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
+                    <a href="{{ url('member/dashboard') }}" class="px-5 py-3 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+                        Annuler
+                    </a>
+                    <button type="submit" class="px-5 py-3 rounded-xl bg-[var(--primary)] text-sm font-bold text-white shadow-sm hover:bg-opacity-95 transition-colors">
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

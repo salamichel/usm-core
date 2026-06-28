@@ -38,6 +38,26 @@ class View
             $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
             $twig->addGlobal('_POST', $_POST);
             $twig->addGlobal('theme', $theme);
+            $twig->addGlobal('app', [
+                'session' => $_SESSION,
+                'request' => $_REQUEST,
+                'get'     => $_GET,
+                'post'    => $_POST,
+                'server'  => $_SERVER,
+                ]);
+
+            // Member events this week count for bottom bar badge
+            $memberEventsThisWeek = 0;
+            if (!empty($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+                try {
+                    $userId = (int) $_SESSION['LogInId'];
+                    $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
+                    $memberEventsThisWeek = $kpis['this_week'] ?? 0;
+                } catch (\Throwable) {
+                    $memberEventsThisWeek = 0;
+                }
+            }
+            $twig->addGlobal('member_events_this_week', $memberEventsThisWeek);
 
             // Contact stats for admin menu badge
             if (Auth::check()) {

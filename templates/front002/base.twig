@@ -100,8 +100,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="{{ asset('content-styles.css') }}">
-  <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}">
+  <link rel="stylesheet" href="{{ asset('content-styles.css') }}?v={{ "now"|date("U") }}">
+  <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}?v={{ "now"|date("U") }}">
 
   {# CSS vars dynamiques (dépendent de site_config, doivent rester inline) #}
   <style>
@@ -138,16 +138,23 @@
 
   {% block head %}{% endblock %}
 
-  <script src="{{ asset(theme ~ '/base.js') }}" defer></script>
+  <script src="{{ asset(theme ~ '/base.js') }}?v={{ "now"|date("U") }}" defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
 
   {% include '_header.twig' %}
   {% include '_mobile_menu.twig' %}
-  {% include '_flash.twig' %}
+  {% if app.session.LogIn %}
+      {# Utilisateur connecté : Barre avec Dashboard, Stats, Agenda complet... #}
+      {% include '_member_bottom_bar.twig' %}
+  {% else %}
+      {# Visiteur : Barre avec Infos du club et gros bouton de Connexion #}
+      {% include '_visitor_bottom_bar.twig' %}
+  {% endif %}
+{% include '_flash.twig' %}
 
   {# ── Main ── #}
-  <main class="flex-1">
+  <main class="flex-1 pb-24 md:pb-0">
     {% block content %}{% endblock %}
   </main>
 

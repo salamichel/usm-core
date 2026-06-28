@@ -1,7 +1,7 @@
 {# ── Footer éditorial ──────────────────────────────────────────────────────── #}
-<footer class="mt-24 footer-classic">
+<footer class="mt-0 footer-classic">
   <div class="max-w-6xl mx-auto px-6 py-10 md:py-14">
-    <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-2 md:grid-cols-3 pb-8 md:pb-10 border-b footer-border">
+    <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-2 md:grid-cols-3 pb-10 md:pb-12 border-b footer-border">
 
       <div class="col-span-2 md:col-span-1">
         {% set _fmode = site_config.logo_url ? (site_config.logo_footer_display_mode|default('hidden')) : 'hidden' %}
@@ -13,7 +13,7 @@
           </a>
         {% endif %}
         {% if _fmode == 'hidden' or _fmode == 'image_and_text' %}
-        <h3 class="footer-heading font-serif text-lg md:text-xl mb-2 md:mb-3 font-semibold">{{ site_config.club_name|default('USM Volley') }}</h3>
+        <h3 class="footer-heading font-serif text-lg md:text-xl mb-2 md:mb-3 font-bold">{{ site_config.club_name|default('USM Volley') }}</h3>
         {% endif %}
         {% if site_config.club_tagline %}
           <p class="text-xs md:text-sm leading-relaxed mb-3 md:mb-5">{{ site_config.club_tagline }}</p>
@@ -29,7 +29,7 @@
       </div>
 
       <div>
-        <h4 class="footer-label text-xs font-semibold uppercase tracking-wider mb-3">Navigation</h4>
+        <h4 class="footer-label text-xs font-bold uppercase tracking-wider mb-3">Navigation</h4>
         <ul class="space-y-1.5 text-xs md:text-sm">
           <li><a href="{{ url('/') }}">Accueil</a></li>
           <li><a href="{{ url('blog') }}">Actualités</a></li>
@@ -40,7 +40,7 @@
       </div>
 
       <div>
-        <h4 class="footer-label text-xs font-semibold uppercase tracking-wider mb-3">Informations</h4>
+        <h4 class="footer-label text-xs font-bold uppercase tracking-wider mb-3">Informations</h4>
         <ul class="space-y-1.5 text-xs md:text-sm mb-4 md:mb-6">
           <li><a href="{{ url('/p/mentions-legales') }}">Mentions légales</a></li>
           <li><a href="{{ url('/p/politique-de-confidentialite') }}">Confidentialité</a></li>
@@ -48,7 +48,7 @@
         </ul>
 
         {% if site_config.facebook_url or site_config.instagram_url %}
-        <div class="flex gap-2">
+        <div class="flex gap-3">
           {% if site_config.facebook_url %}
             <a href="{{ site_config.facebook_url }}" target="_blank" rel="noopener noreferrer"
                aria-label="Suivre USM Volley sur Facebook"
@@ -72,8 +72,8 @@
       </div>
     </div>
 
-    <div class="pt-6 md:pt-8 text-xs footer-label flex flex-col md:flex-row md:justify-between gap-1.5 md:gap-2">
-      <p>© {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}. Tous droits réservés.</p>
+    <div class="pt-8 md:pt-10 text-xs footer-label flex flex-col md:flex-row md:justify-between gap-1.5 md:gap-2">
+      <p class="font-semibold">© {{ "now"|date("Y") }} {{ site_config.club_name|default('USM Volley') }}. Tous droits réservés.</p>
       {% if site_config.legal_text %}
         <p>{{ site_config.legal_text }}</p>
       {% endif %}

@@ -76,6 +76,92 @@ class BrevoService
         );
     }
 
+    public function sendCaptainMessage(array $captain, array $messageData, string $teamName): bool
+    {
+        $captainEmail = $captain['data']['Mel'] ?? null;
+        if (!$captainEmail) {
+            Logger::errors()->error('Cannot send email to captain: no email address found', ['captain' => $captain]);
+            return false;
+        }
+
+        $captainName = trim($captain['prenom'] . ' ' . $captain['nom']);
+        $subject = '🏐 Message pour le capitaine (' . $teamName . ') : ' . $messageData['subject'];
+        $htmlContent = $this->renderCaptainMessageTemplate($captain, $messageData, $teamName);
+
+        return $this->sendEmail(
+            $captainEmail,
+            $captainName,
+            $subject,
+            $htmlContent
+        );
+    }
+
+    private function renderCaptainMessageTemplate(array $captain, array $messageData, string $teamName): string
+    {
+        $template = <<<'HTML'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #94674d; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .message-box { background: #f3f4f6; padding: 16px; border-left: 4px solid #94674d; margin: 16px 0; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 12px; color: #666; margin-top: 16px; margin-bottom: 4px; }
+        .field-value { font-size: 16px; color: #111; }
+        .sender-info { background: #fef3c7; padding: 12px; border: 2px solid #000; margin: 16px 0; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏐 MESSAGE CAPITAINE</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{CAPTAIN_NAME}}</strong>,</p>
+            <p style="margin-top: 8px;">Vous avez reçu un nouveau message depuis le site web en tant que capitaine de l'équipe <strong>{{TEAM_NAME}}</strong>.</p>
+
+            <div class="sender-info">
+                <div class="field-label">💬 Message de</div>
+                <div class="field-value"><strong>{{SENDER_NAME}}</strong></div>
+                <div class="field-label">📧 Email de contact</div>
+                <div class="field-value"><a href="mailto:{{SENDER_EMAIL}}" style="color: #94674d; text-decoration: none; font-weight: 900;">{{SENDER_EMAIL}}</a></div>
+            </div>
+
+            <div class="field-label">🏷️ Sujet</div>
+            <div class="field-value" style="font-size: 18px; font-weight: 900; margin-bottom: 12px;">{{SUBJECT}}</div>
+
+            <div class="field-label">💭 Message</div>
+            <div class="message-box">{{MESSAGE}}</div>
+
+            <p style="font-size: 14px; margin-top: 20px; color: #555;">💡 Vous pouvez répondre directement à ce message en écrivant à l'adresse de contact ci-dessus.</p>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Votre adresse email n'a pas été divulguée à l'expéditeur.
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        return strtr($template, [
+            '{{CAPTAIN_NAME}}' => $this->escapeHtml($captain['prenom']),
+            '{{TEAM_NAME}}' => $this->escapeHtml($teamName),
+            '{{SENDER_NAME}}' => $this->escapeHtml($messageData['name']),
+            '{{SENDER_EMAIL}}' => $this->escapeHtml($messageData['email']),
+            '{{SUBJECT}}' => $this->escapeHtml($messageData['subject']),
+            '{{MESSAGE}}' => $this->nl2brHtml($messageData['message']),
+        ]);
+    }
+
     private function escapeHtml(string $text): string
     {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
@@ -236,26 +322,49 @@ HTML;
 
         $context = stream_context_create([
             'http' => [
-                'method'  => 'POST',
-                'header'  => [
+                'method'        => 'POST',
+                'header'        => [
                     'Content-Type: application/json',
                     'api-key: ' . $this->apiKey,
                 ],
-                'content' => $json,
-                'timeout' => 30,
+                'content'       => $json,
+                'timeout'       => 30,
+                'ignore_errors' => true, // Permet de récupérer le corps de la réponse en cas d'erreur HTTP (4xx, 5xx)
             ],
         ]);
 
         try {
             $response = @file_get_contents(self::API_URL, false, $context);
+            
+            // Récupérer le code de statut HTTP
+            $statusCode = 0;
+            if (isset($http_response_header) && is_array($http_response_header)) {
+                foreach ($http_response_header as $header) {
+                    if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/i', $header, $matches)) {
+                        $statusCode = (int)$matches[1];
+                        break;
+                    }
+                }
+            }
+
             if ($response === false) {
-                Logger::errors()->error('Brevo API request failed', ['payload' => $payload]);
+                Logger::errors()->error('Brevo API network request failed (connection error)', ['payload' => $payload]);
                 return false;
             }
 
             $data = json_decode($response, true);
+
+            if ($statusCode < 200 || $statusCode >= 300) {
+                Logger::errors()->error('Brevo API returned error status ' . $statusCode, [
+                    'status_code' => $statusCode,
+                    'response'    => $data ?: $response,
+                    'payload'     => $payload
+                ]);
+                return false;
+            }
+
             if (!isset($data['messageId'])) {
-                Logger::errors()->error('Brevo API invalid response', ['response' => $response]);
+                Logger::errors()->error('Brevo API invalid response (missing messageId)', ['response' => $response]);
                 return false;
             }
 
@@ -267,3 +376,4 @@ HTML;
         }
     }
 }
+

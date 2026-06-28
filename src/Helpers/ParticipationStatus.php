@@ -31,7 +31,7 @@ class ParticipationStatus
         }
 
         if ($this->matchesAny(self::AVAILABLE_IF_NEEDED)) {
-            return 'available';
+            return 'available_if_needed';
         }
 
         if ($this->matchesAny(self::AVAILABLE_KEYWORDS)) {
@@ -92,6 +92,14 @@ class ParticipationStatus
         return $this->status === '';
     }
 
+    public function getOriginalStatus(): string
+    {
+        if (preg_match('/^Sélectionné\(e\)\s*\((.*)\)$/', $this->status, $matches)) {
+            return trim($matches[1]);
+        }
+        return '';
+    }
+
     public function isNonAbsence(): bool
     {
         return !$this->isAbsent() && !$this->isUnavailable() && !$this->isEmpty();
@@ -118,6 +126,7 @@ class ParticipationStatus
         return match ($this->getCategory()) {
             'present' => '✓',
             'available' => '◐',
+            'available_if_needed' => '○',
             'unavailable' => '✗',
             'absent' => '✗',
             'selected' => '★',
@@ -129,12 +138,20 @@ class ParticipationStatus
 
     public function getLabel(): string
     {
-        return match ($this->getCategory()) {
+        $cat = $this->getCategory();
+        if ($cat === 'selected') {
+            $orig = $this->getOriginalStatus();
+            if ($orig !== '' && $orig !== 'Sans réponse') {
+                return 'Sélectionné (' . $orig . ')';
+            }
+            return 'Sélectionné';
+        }
+        return match ($cat) {
             'present' => 'Présent',
             'available' => 'Disponible',
+            'available_if_needed' => 'Disponible si nécessaire',
             'unavailable' => 'Indisponible',
             'absent' => 'Absent',
-            'selected' => 'Sélectionné',
             'unknown' => 'Ne sait pas',
             'no_response' => 'Sans réponse',
             default => '—',
@@ -146,6 +163,7 @@ class ParticipationStatus
         return match ($this->getCategory()) {
             'present', 'selected' => 'bg-green-100',
             'available' => 'bg-amber-100',
+            'available_if_needed' => 'bg-cyan-100',
             'unavailable', 'absent' => 'bg-red-100',
             'unknown' => 'bg-gray-100',
             'no_response' => 'bg-white',
@@ -158,6 +176,7 @@ class ParticipationStatus
         return match ($this->getCategory()) {
             'present', 'selected' => 'text-green-700',
             'available' => 'text-amber-700',
+            'available_if_needed' => 'text-cyan-700',
             'unavailable', 'absent' => 'text-red-700',
             'unknown' => 'text-gray-700',
             'no_response' => 'text-gray-500',

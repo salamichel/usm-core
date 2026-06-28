@@ -7,7 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Location;
 
-class LocationController
+class LocationController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -73,8 +73,7 @@ class LocationController
             View::flash('success', 'Emplacement créé. Vous pouvez ajouter les coordonnées GPS manuellement en éditant.');
         }
 
-        header('Location: ' . BASE_URL . '/admin/locations/' . $id . '/edit');
-        exit;
+        $this->redirect('/admin/locations/' . $id . '/edit');
     }
 
     public function edit(array $params): void
@@ -147,8 +146,7 @@ class LocationController
             View::flash('success', 'Emplacement mis à jour.');
         }
 
-        header('Location: ' . BASE_URL . '/admin/locations');
-        exit;
+        $this->redirect('/admin/locations');
     }
 
     public function delete(array $params): void
@@ -156,8 +154,7 @@ class LocationController
         Auth::require();
         Location::delete((int)$params['id']);
         View::flash('success', 'Emplacement supprimé avec succès.');
-        header('Location: ' . BASE_URL . '/admin/locations');
-        exit;
+        $this->redirect('/admin/locations');
     }
 
     private function formData(): array
@@ -218,11 +215,5 @@ class LocationController
             error_log("Geocoding exception for address: $address - " . $e->getMessage());
             return null;
         }
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

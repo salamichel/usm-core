@@ -7,7 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Photo;
 
-abstract class AdminCrudController
+abstract class AdminCrudController extends BaseAdminController
 {
     protected string $entityType;
     protected string $itemName;
@@ -149,7 +149,7 @@ abstract class AdminCrudController
         try {
             $uploaded = Photo::uploadSingle($_FILES['file'] ?? null, $this->entityType);
             $pid = Photo::create($this->entityType, $id, $uploaded['path'], null, 0, $uploaded['has_variants']);
-            $this->jsonSuccess($id, $pid, $uploaded['path']);
+            $this->jsonPhotoUploadSuccess($id, $pid, $uploaded['path']);
         } catch (\RuntimeException $e) {
             $this->jsonError($e->getMessage());
         }
@@ -208,7 +208,7 @@ abstract class AdminCrudController
         return null;
     }
 
-    protected function jsonSuccess(int $entityId, int $pid, string $filename): void
+    protected function jsonPhotoUploadSuccess(int $entityId, int $pid, string $filename): void
     {
         header('Content-Type: application/json');
         echo json_encode([
@@ -218,19 +218,5 @@ abstract class AdminCrudController
             'deleteUrl' => BASE_URL . '/admin/' . $this->itemsName . '/' . $entityId . '/photos/' . $pid . '/delete-xhr',
         ]);
         exit;
-    }
-
-    protected function jsonError(string $message, int $code = 422): void
-    {
-        header('Content-Type: application/json');
-        http_response_code($code);
-        echo json_encode(['error' => $message]);
-        exit;
-    }
-
-    protected function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
     }
 }

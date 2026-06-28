@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Models\Photo;
 use App\Services\SlugManager;
 
 class Post
@@ -87,27 +88,7 @@ class Post
      */
     public static function filtered(array $filters = []): array
     {
-        $where  = [];
-        $params = [];
-
-        if ($filters['published_only'] ?? false) {
-            $where[] = 'is_published = 1 AND (published_at IS NULL OR published_at <= NOW())';
-        }
-
-        if (isset($filters['status'])) {
-            $where[] = 'is_published = :status';
-            $params[':status'] = $filters['status'] === 'published' ? 1 : 0;
-        }
-
-        if (!empty($filters['month'])) {
-            $where[] = "DATE_FORMAT(published_at, '%Y-%m') = :month";
-            $params[':month'] = $filters['month'];
-        }
-
-        if (!empty($filters['tag_id'])) {
-            $where[] = 'id IN (SELECT post_id FROM post_tags WHERE tag_id = :tag_id)';
-            $params[':tag_id'] = (int)$filters['tag_id'];
-        }
+        [$where, $params] = self::buildFilterConditions($filters);
 
         $sql = 'SELECT * FROM posts';
         if ($where) {
@@ -126,6 +107,25 @@ class Post
 
     /** Count filtered posts (without limit/offset). */
     public static function countFiltered(array $filters = []): int
+    {
+        [$where, $params] = self::buildFilterConditions($filters);
+
+        $sql = 'SELECT COUNT(*) as cnt FROM posts';
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $stmt = Database::get()->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch();
+        return (int)($result['cnt'] ?? 0);
+    }
+
+    /**
+     * Construit les conditions WHERE et les paramètres PDO partagés
+     * entre filtered() et countFiltered().
+     */
+    private static function buildFilterConditions(array $filters): array
     {
         $where  = [];
         $params = [];
@@ -149,15 +149,14 @@ class Post
             $params[':tag_id'] = (int)$filters['tag_id'];
         }
 
-        $sql = 'SELECT COUNT(*) as cnt FROM posts';
-        if ($where) {
-            $sql .= ' WHERE ' . implode(' AND ', $where);
+        if (!empty($filters['search'])) {
+            $where[] = '(title LIKE :search_t OR excerpt LIKE :search_e OR content LIKE :search_c)';
+            $params[':search_t'] = '%' . $filters['search'] . '%';
+            $params[':search_e'] = '%' . $filters['search'] . '%';
+            $params[':search_c'] = '%' . $filters['search'] . '%';
         }
 
-        $stmt = Database::get()->prepare($sql);
-        $stmt->execute($params);
-        $result = $stmt->fetch();
-        return (int)($result['cnt'] ?? 0);
+        return [$where, $params];
     }
 
     /** Returns distinct months (YYYY-MM) that have articles. */
@@ -269,6 +268,22 @@ class Post
     public static function delete(int $id): void
     {
         Database::get()->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
+    }
+
+    /**
+     * Enrichit un tableau de posts avec leur photo de couverture.
+     * Évite de répéter le foreach + Photo::getEntityCover dans les contrôleurs.
+     *
+     * @param array $posts Liste de posts (tableaux associatifs avec au moins 'id')
+     * @return array Les mêmes posts avec une clé 'cover' ajoutée
+     */
+    public static function withCovers(array $posts): array
+    {
+        foreach ($posts as &$post) {
+            $post['cover'] = Photo::getEntityCover('post', (int)$post['id']);
+        }
+        unset($post);
+        return $posts;
     }
 
 }

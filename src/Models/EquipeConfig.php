@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\ExternalDatabase;
 
 class EquipeConfig
 {
@@ -20,6 +21,15 @@ class EquipeConfig
             ->query("SELECT * FROM equipes_config WHERE is_active = 1 ORDER BY categorie ASC, ordre ASC")
             ->fetchAll();
     }
+    
+    public static function getEquipesSlug(): array
+    {
+        $rows = ExternalDatabase::get()
+            ->query("SELECT DISTINCT Mot FROM Mots_clef WHERE `Catégorie` = 'EquipeParEquipe' ORDER BY Mot ASC")
+            ->fetchAll();
+            
+        return array_column($rows, 'Mot');
+    }  
 
     public static function groupedByCategorie(): array
     {
@@ -76,8 +86,8 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte, type, hauteur_filet)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte, :type, :hauteur_filet)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte, type, hauteur_filet, ffvb_link)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link)"
         );
         $stmt->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -92,6 +102,7 @@ class EquipeConfig
             ':description_courte'   => $data['description_courte'] ?? null,
             ':type'                 => $data['type'] ?? null,
             ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
+            ':ffvb_link'            => $data['ffvb_link'] ?? null,
         ]);
         return (int)$db->lastInsertId();
     }
@@ -111,7 +122,8 @@ class EquipeConfig
                  description          = :description,
                  description_courte   = :description_courte,
                  type                 = :type,
-                 hauteur_filet        = :hauteur_filet
+                 hauteur_filet        = :hauteur_filet,
+                 ffvb_link            = :ffvb_link
              WHERE id = :id"
         )->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -126,6 +138,7 @@ class EquipeConfig
             ':description_courte'   => $data['description_courte'] ?? null,
             ':type'                 => $data['type'] ?? null,
             ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
+            ':ffvb_link'            => $data['ffvb_link'] ?? null,
             ':id'                   => $id,
         ]);
     }

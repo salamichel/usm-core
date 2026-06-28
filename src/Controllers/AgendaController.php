@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\NotFoundHandler;
 use App\Services\AgendaService;
 use App\Core\View;
+use App\Models\Participation;
 
 class AgendaController
 {
@@ -27,7 +28,55 @@ class AgendaController
     public function index(array $params): void
     {
         $filters = $this->extractFilters();
+        $view = $_GET['view'] ?? 'cards'; // Default to 'cards' view if not specified
+
+        // Obtenir les données de la table croisée qui sert de source unique de vérité
         $data = AgendaService::getCrossTable($filters);
+
+        if ($view === 'cards') {
+            // Enrich with user status if logged in
+            $userStatuses = [];
+            $userId = null;
+            $currentUserName = '';
+            if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
+                $userId = (int) ($_SESSION['LogInId'] ?? 0);
+                if ($userId) {
+                    $upcoming = Participation::getUpcomingWithUserStatus($userId);
+                    foreach ($upcoming as $u) {
+                        $userStatuses[$u['id_manifestation']] = $u['user_status'];
+                    }
+
+                    // Récupérer le nom/prénom exact du joueur pour le JS
+                    $db = \App\Core\ExternalDatabase::get();
+                    if ($db) {
+                        $stmt = $db->prepare("SELECT Nom, `Prénom` FROM Joueurs WHERE id_joueur = ?");
+                        $stmt->execute([$userId]);
+                        $row = $stmt->fetch();
+                        if ($row) {
+                            $currentUserName = $row['Nom'] . ' ' . $row['Prénom'];
+                        }
+                    }
+                }
+            }
+
+            foreach ($data['manifestations'] as $mid => &$m) {
+                $m['user_status'] = $userStatuses[$mid] ?? null;
+            }
+            unset($m);
+
+            if ($userId) {
+                \App\Services\AgendaService::flagOverlappingSelected($data['manifestations'], $userId);
+            }
+
+            View::render('agenda/cards.twig', [
+                'manifestations' => $data['manifestations'],
+                'filters'        => $filters,
+                'filterOptions'  => AgendaService::getFilterOptions(),
+                'currentUserId'  => $userId,
+                'currentUserName'=> $currentUserName,
+            ]);
+            return;
+        }
 
         View::render('agenda/index.twig', [
             'joueurs'        => $data['joueurs'],
@@ -58,10 +107,29 @@ class AgendaController
         }
 
         $participationStats = AgendaService::getParticipationStats($id);
-        $event['participation'] = $participationStats;
+        $event['participation_stats'] = $participationStats;
+
+        // Vérifier si l'utilisateur connecté est le capitaine pour cette manifestation
+        $isCaptain = false;
+        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+            $userId = (int)$_SESSION['LogInId'];
+            $saisonActive = \App\Models\Saison::getActive();
+            $captainedTeams = $saisonActive ? \App\Models\EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']) : [];
+            
+            foreach ($captainedTeams as $team) {
+                $filter = $team['manifestation_filter'] ?: $team['libelle'];
+                if (str_contains($event['titre'] ?? '', $filter) || 
+                    str_contains($event['type'] ?? '', $filter) || 
+                    (isset($event['ManifestationTypée']) && str_contains($event['ManifestationTypée'], $filter))) {
+                    $isCaptain = true;
+                    break;
+                }
+            }
+        }
 
         View::render('agenda/detail.twig', [
             'event' => $event,
+            'is_captain' => $isCaptain,
         ]);
     }
 

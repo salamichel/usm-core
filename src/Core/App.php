@@ -9,7 +9,13 @@ use App\Controllers\ContactController;
 use App\Controllers\EquipesController;
 use App\Controllers\PageController;
 use App\Controllers\SitemapController;
+use App\Controllers\JoueurController;
 use App\Controllers\AgendaController;
+use App\Controllers\Member\AuthController as joueurAuthController;
+use App\Controllers\Member\DashboardController as joueurDashboardController;
+use App\Controllers\Member\ParticipationController;
+use App\Controllers\Member\ProfileController;
+use App\Controllers\Member\CaptainController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\CategorieEquipeController;
@@ -86,12 +92,35 @@ class App
         $r->get('/equipes',                    [EquipesController::class, 'index']);
         $r->get('/equipes/{slug}',             [EquipesController::class, 'category']);
         $r->get('/equipes/{categorie}/{slug}', [EquipesController::class, 'show']);
+        $r->post('/equipes/{categorie}/{slug}/contact-capitaine', [EquipesController::class, 'contactCaptain']);
         $r->get('/agenda',                     [AgendaController::class, 'index']);
         $r->get('/agenda/{id}',   [AgendaController::class, 'show']);
         $r->get('/contact',       [ContactController::class, 'show']);
         $r->post('/contact',      [ContactController::class, 'submit']);
 
+
+        // Espace Adhérent Public
+        $r->get('/member/login', [joueurAuthController::class, 'loginForm']);
+        $r->post('/member/login', [joueurAuthController::class, 'login']);
+        $r->post('/member/logout', [joueurAuthController::class, 'logout']);
+
+        $r->get('/member/dashboard', [joueurDashboardController::class, 'index']);        
+        $r->get('/member/profile', [ProfileController::class, 'show']);
+        $r->post('/member/profile', [ProfileController::class, 'update']);
+        $r->post('/joueurs/delete/{id}', [JoueurController::class, 'delete']);        
+
+        // Espace Capitaine
+        $r->get('/member/captain', [CaptainController::class, 'index']);
+        $r->get('/member/captain/matches/create', [CaptainController::class, 'createMatchForm']);
+        $r->post('/member/captain/matches/create', [CaptainController::class, 'storeMatch']);
+        $r->get('/member/captain/matches/{id}/edit', [CaptainController::class, 'editMatchForm']);
+        $r->post('/member/captain/matches/{id}/edit', [CaptainController::class, 'updateMatch']);
+        $r->get('/member/captain/matches/{id}/select-players', [CaptainController::class, 'selectPlayersForm']);
+        $r->post('/member/captain/matches/{id}/select-players', [CaptainController::class, 'updateSelectedPlayers']);
+
         // ── API ───────────────────────────────────────────────────────────────
+        $r->post('/api/member/participations/upsert', [ParticipationController::class, 'apiUpsert']);
+        $r->post('/api/captain/participation/update', [CaptainController::class, 'apiUpdatePlayerParticipation']);
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
         $r->post('/api/articles',   [ArticleApiController::class, 'create']);
 
@@ -141,6 +170,8 @@ class App
         $r->get('/admin/saisons/create',         [SaisonController::class, 'create']);
         $r->post('/admin/saisons/create',        [SaisonController::class, 'store']);
         $r->get('/admin/saisons/joueurs',        [SaisonController::class, 'joueurs']);
+        $r->get('/admin/saisons/{id}/edit',      [SaisonController::class, 'edit']);
+        $r->post('/admin/saisons/{id}/edit',     [SaisonController::class, 'update']);
         $r->post('/admin/saisons/{id}/delete',   [SaisonController::class, 'delete']);
         $r->post('/admin/saisons/{id}/activate', [SaisonController::class, 'activate']);
         $r->post('/admin/saisons/{id}/flash',    [SaisonController::class, 'flash']);
@@ -165,6 +196,8 @@ class App
             [EquipeConfigController::class, 'addJoueur']);
         $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/remove',
             [EquipeConfigController::class, 'removeJoueur']);
+        $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/toggle-captain',
+            [EquipeConfigController::class, 'toggleCaptain']);
 
         // ── Admin catégories d'équipes ────────────────────────────────────────
         $r->get('/admin/categories-equipes',              [CategorieEquipeController::class, 'index']);

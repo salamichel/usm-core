@@ -19,6 +19,16 @@
            value="{{ saison.libelle ?? '' }}"
            class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 mb-4"
            placeholder="2024-2025" required autofocus>
+    <label class="block font-black mb-1" for="date_debut">Date de début</label>
+    <input id="date_debut" name="date_debut" type="date"
+           value="{{ saison.date_debut ?? '' }}"
+           class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 mb-4"
+           required>
+    <label class="block font-black mb-1" for="date_fin">Date de fin</label>
+    <input id="date_fin" name="date_fin" type="date"
+           value="{{ saison.date_fin ?? '' }}"
+           class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 mb-4"
+           required>
     <button type="submit"
             class="border-4 border-black bg-usm-brown text-white font-black px-6 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
       Créer

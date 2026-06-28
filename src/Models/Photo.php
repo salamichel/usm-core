@@ -97,24 +97,51 @@ class Photo
         if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
             throw new \RuntimeException('Aucun fichier reçu.');
         }
+        return self::validateAndSaveFile($file, $entityType);
+    }
+
+    /**
+     * Process a multi-file upload ($_FILES['photos']).
+     * Returns array of ['path' => string, 'has_variants' => bool] per file.
+     */
+    public static function uploadFiles(array $filesInput, string $entityType = 'post'): array
+    {
+        $saved = [];
+        foreach (self::normalizeFilesArray($filesInput) as $file) {
+            if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            $saved[] = self::validateAndSaveFile($file, $entityType);
+        }
+        return $saved;
+    }
+
+    /**
+     * Valide et sauvegarde un fichier uploadé.
+     * Lève une RuntimeException si la validation échoue.
+     *
+     * @return array{path: string, has_variants: bool}
+     */
+    private static function validateAndSaveFile(array $file, string $entityType): array
+    {
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new \RuntimeException(self::uploadErrorMessage($file['error']));
+            throw new \RuntimeException(self::uploadErrorMessage($file['error']) . ' (' . $file['name'] . ')');
         }
         if ($file['size'] > self::MAX_SIZE) {
-            throw new \RuntimeException('Fichier trop volumineux (max 10 Mo).');
+            throw new \RuntimeException("Fichier « {$file['name']} » trop volumineux (max 10 Mo).");
         }
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime  = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
         if (!in_array($mime, self::ALLOWED_TYPES, true)) {
-            throw new \RuntimeException('Type non autorisé (' . $mime . ').');
+            throw new \RuntimeException("Type non autorisé pour « {$file['name']} » ({$mime}).");
         }
         $ext        = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $filename   = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
         $uploadPath = UploadPathManager::getUploadPath($entityType);
         $destPath   = $uploadPath . '/' . $filename;
         if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-            throw new \RuntimeException('Impossible de sauvegarder le fichier.');
+            throw new \RuntimeException("Impossible de sauvegarder « {$file['name']} ».");
         }
         $hasVariants = ImageResizer::generateVariants($destPath);
         return [
@@ -134,44 +161,6 @@ class Photo
             UPLOAD_ERR_EXTENSION  => 'Upload bloqué par une extension PHP.',
             default               => 'Erreur d\'upload (code ' . $code . ').',
         };
-    }
-
-    /**
-     * Process a multi-file upload ($_FILES['photos']).
-     * Returns array of ['path' => string, 'has_variants' => bool] per file.
-     */
-    public static function uploadFiles(array $filesInput, string $entityType = 'post'): array
-    {
-        $saved = [];
-        $files = self::normalizeFilesArray($filesInput);
-        $uploadPath = UploadPathManager::getUploadPath($entityType);
-        foreach ($files as $file) {
-            if ($file['error'] === UPLOAD_ERR_NO_FILE) continue;
-            if ($file['error'] !== UPLOAD_ERR_OK) {
-                throw new \RuntimeException(self::uploadErrorMessage($file['error']) . ' (' . $file['name'] . ')');
-            }
-            if ($file['size'] > self::MAX_SIZE) {
-                throw new \RuntimeException("Fichier « {$file['name']} » trop volumineux (max 10 Mo).");
-            }
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime  = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
-            if (!in_array($mime, self::ALLOWED_TYPES, true)) {
-                throw new \RuntimeException("Type non autorisé pour « {$file['name']} » ({$mime}).");
-            }
-            $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $filename = 'photo-' . time() . '-' . uniqid() . '.' . $ext;
-            $destPath = $uploadPath . '/' . $filename;
-            if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-                throw new \RuntimeException("Impossible de sauvegarder « {$file['name']} ».");
-            }
-            $hasVariants = ImageResizer::generateVariants($destPath);
-            $saved[] = [
-                'path'         => UploadPathManager::getRelativeUploadPath($entityType, $filename),
-                'has_variants' => $hasVariants,
-            ];
-        }
-        return $saved;
     }
 
     private static function normalizeFilesArray(array $files): array

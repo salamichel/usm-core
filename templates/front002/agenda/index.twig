@@ -20,8 +20,8 @@
       "position": {{ loop.index }},
       "item": {
         "@type": "SportsEvent",
-        "name": "{{ m.libelle|replace({'"': '\\"'})|raw }}",
-        "startDate": "{{ m.date_heure|date('Y-m-d\\TH:i') }}",
+        "name": "{{ m.titre|replace({'"': '\\"'})|raw }}",
+        "startDate": "{{ m.date_display }}",
         "eventStatus": "{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
         "organizer": {
           "@type": "SportsOrganization",
@@ -41,26 +41,52 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-16">
-
+<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+    {# En-tête de page #}
+    <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+              <span class="text-sm font-semibold text-[var(--primary)] uppercase tracking-wider">Saison {{ saison_active }}</span>
+              <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-1">Agenda du club</h1>
+          </div>
+          
+          {# Toolbar / Sélecteur de vue épuré #}
+          <div class="flex items-center gap-1 bg-white/10 p-1 rounded-full border border-white/10 shadow-sm">
+              <a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  Liste
+              </a>
+              <a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-xs rounded-full font-medium text-slate-350 hover:text-white transition flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                  Cartes
+              </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
+  
   {% include 'agenda/filters.twig' %}
 
   {# Toolbar #}
-  <div class="card p-4 mb-6 flex flex-wrap items-center gap-4">
+  <div class="bg-white rounded-3xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-slate-100 shadow-sm">
     <div class="flex items-center gap-3">
-      <span class="text-xs uppercase tracking-wider text-slate-500 font-medium">Zoom</span>
+      <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Zoom</span>
       <div class="flex gap-1">
-        <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">100%</button>
-        <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">80%</button>
-        <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">65%</button>
-        <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1 text-xs rounded-md border border-slate-200 bg-white hover:bg-slate-50 font-medium text-slate-700 transition">50%</button>
+        <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">100%</button>
+        <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">80%</button>
+        <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">65%</button>
+        <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">50%</button>
       </div>
     </div>
-  </div>
 
+  </div>
+  
   {# Login CTA #}
   <a href="https://unionsallesmiosvolley.free.nf/login.php" target="_blank" rel="noopener"
-     class="group flex items-center gap-4 mb-6 px-6 py-4 rounded-xl
+     class="group flex items-center gap-4 mb-6 px-6 py-4 rounded-3xl
             bg-[var(--primary)] text-white shadow-md
             hover:brightness-110 hover:shadow-lg transition-all duration-200">
     <span class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -74,11 +100,11 @@
   </a>
 
   {% if manifestations is empty %}
-    <p class="text-slate-600 italic text-center py-16">Aucun événement à venir.</p>
+    <p class="text-slate-600 italic text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">Aucun événement à venir.</p>
   {% else %}
 
   {# Crosstable #}
-  <div class="agenda-table-container card overflow-hidden" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
+  <div class="agenda-table-container bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
     <table class="border-collapse text-sm whitespace-nowrap agenda-table">
 
       <thead class="sticky top-0 z-20 bg-slate-50">
@@ -369,9 +395,10 @@
 
   {% endif %}
 
-  <div class="mt-12">
+  <div class="mt-12 pb-6">
     <a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
   </div>
+</div>
 </div>
 
 <style>

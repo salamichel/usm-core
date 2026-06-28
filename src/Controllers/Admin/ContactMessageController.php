@@ -7,7 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\ContactMessage;
 
-class ContactMessageController
+class ContactMessageController extends BaseAdminController
 {
     public function index(array $params): void
     {
@@ -41,13 +41,6 @@ class ContactMessageController
         Auth::require();
         ContactMessage::delete((int)$params['id']);
         View::flash('success', 'Message supprimé.');
-        header('Location: ' . BASE_URL . '/admin/contact-messages');
-        exit;
-    }
-
-    private function notFound(): void
-    {
-        http_response_code(404);
-        View::render('404.twig');
+        $this->redirect('/admin/contact-messages');
     }
 }

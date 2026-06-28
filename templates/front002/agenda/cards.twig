@@ -1,0 +1,104 @@
+{% extends "base.twig" %}
+{% block title %}Agenda USM Volley — Mode Cartes{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+    {# En-tête de page #}
+    <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+              <span class="text-sm font-semibold text-[var(--primary)] uppercase tracking-wider">Saison {{ saison_active }}</span>
+              <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-1">Agenda du club</h1>
+          </div>
+          
+          {# Toolbar / Sélecteur de vue épuré #}
+          <div class="flex items-center gap-1 bg-white/10 p-1 rounded-full border border-white/10 shadow-sm">
+              <a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-xs rounded-full font-medium text-slate-350 hover:text-white transition flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  Liste
+              </a>
+              <a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                  Cartes
+              </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 -mt-10">
+
+    {# Toolbar: Recherche & Filtres #}
+    <div class="bg-white rounded-3xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-slate-100 shadow-sm">
+        <div class="flex flex-1 items-center gap-3">
+            <div class="relative flex-1 max-w-md">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+                <input type="text" id="agenda-search" placeholder="Rechercher un événement, lieu..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 text-slate-800 placeholder-slate-400 border border-slate-205 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] focus:bg-white text-sm font-semibold transition-all">
+            </div>
+            <button id="toggle-filters-btn" class="px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-all border border-transparent shadow-sm text-sm font-bold flex items-center gap-2 cursor-pointer" title="Afficher les filtres">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                Filtres
+            </button>
+        </div>
+    </div>
+
+    {# ZONE DE FILTRES COLLAPSIBLE #}
+    <div id="collapsible-filters" class="hidden mb-6">
+        {% include 'agenda/filters.twig' %}
+    </div>
+
+    {# Conteneur principal #}
+    <div class="bg-white rounded-3xl flex flex-col relative z-10 mb-8 border border-slate-100 shadow-sm">
+        
+        {# Slider horizontal de dates #}
+        <div id="date-slider" class="flex gap-3 overflow-x-auto no-scrollbar py-5 px-6 border-b border-slate-100 bg-white sticky z-20 shadow-sm rounded-t-xl" style="top: var(--header-h); z-index: 900;">
+            {# Généré dynamiquement en JS #}
+        </div>
+
+        {% if manifestations is empty %}
+            <div class="text-center py-20 px-6 my-8">
+                <svg class="w-16 h-16 text-slate-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <p class="text-lg font-bold text-slate-700">Aucun événement à venir</p>
+                <p class="text-sm text-slate-500 mt-2">Revenez plus tard ou modifiez vos filtres.</p>
+            </div>
+        {% else %}
+            
+            {# Liste verticale de cartes d'événements #}
+            <div class="space-y-6 p-6 flex-grow" id="event-grid" 
+                 data-logged-in-user-id="{{ currentUserId|default(0) }}" 
+                 data-logged-in-user-name="{{ currentUserName|default('') }}">
+                {% for m in manifestations %}
+                    {% include "agenda/_event_card.twig" with {
+                        'm': m, 
+                        'allow_actions': app.session.LogIn is defined and app.session.LogIn, 
+                        'show_link': true,
+                        'is_first': loop.first
+                    } %}
+                {% endfor %}
+            </div>
+
+        {% endif %}
+    </div>
+
+    {# Bouton retour à l'accueil #}
+    <div class="mt-12 pb-6">
+        <a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
+    </div>
+</div>
+</div>
+
+{% include "agenda/_player_modal.twig" %}
+
+<style>
+    /* Masquer la scrollbar */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ asset('/front002/js/agenda-cards.js') }}"></script>
+{% endblock %}
