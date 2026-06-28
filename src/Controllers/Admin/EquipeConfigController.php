@@ -276,6 +276,7 @@ class EquipeConfigController extends BaseAdminController
             'description_courte'   => trim($_POST['description_courte'] ?? '') ?: null,
             'type'                 => trim($_POST['type'] ?? '') ?: null,
             'hauteur_filet'        => trim($_POST['hauteur_filet'] ?? '') ?: null,
+            'ffvb_link'            => trim($_POST['ffvb_link'] ?? '') ?: null,
         ];
     }
 }

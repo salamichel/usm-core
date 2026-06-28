@@ -30,6 +30,24 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
         
+        {# Message Saisie des Résultats FFVB #}
+        <div class="bg-amber-50 border border-amber-200 p-5 rounded-3xl shadow-sm mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-start gap-4">
+                <span class="text-3xl flex-shrink-0" role="img" aria-label="volley">🏐</span>
+                <div>
+                    <h3 class="font-extrabold text-amber-900 text-base">Saisie des RÉSULTATS des matchs</h3>
+                    <p class="text-amber-800 text-sm mt-1 leading-relaxed">
+                        Capitaines, n'oubliez pas de saisir les résultats de vos matchs sur le site de la FFVB.
+                        Le code à utiliser est : <strong class="bg-amber-100 text-amber-950 px-2 py-0.5 rounded font-mono text-sm select-all">USM024</strong>
+                    </p>
+                </div>
+            </div>
+            <a href="https://www.ffvbbeach.org/ffvbapp/resu/saisie_resu.php" target="_blank" rel="noopener noreferrer" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold px-5 py-3 rounded-2xl transition text-center text-sm shadow-sm flex-shrink-0 flex items-center justify-center gap-2">
+                Saisir sur le site FFVB
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+        </div>
+
         <div class="space-y-12">
             {% for t in teams %}
             <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm team-container" data-team-id="{{ t.config.equipe_saison_id }}">

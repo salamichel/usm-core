@@ -286,9 +286,34 @@ class EquipesController
             breadcrumbs: $breadcrumbs,
         );
 
+        // Parse FFVB links (handles multiple lines, with optional "Label | URL")
+        $ffvbLinks = [];
+        if (!empty($equipe['ffvb_link'])) {
+            $lines = explode("\n", str_replace("\r", "", $equipe['ffvb_link']));
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (empty($line)) {
+                    continue;
+                }
+                if (str_contains($line, '|')) {
+                    $parts = explode('|', $line, 2);
+                    $ffvbLinks[] = [
+                        'label' => trim($parts[0]),
+                        'url'   => trim($parts[1])
+                    ];
+                } else {
+                    $ffvbLinks[] = [
+                        'label' => 'Voir les résultats',
+                        'url'   => $line
+                    ];
+                }
+            }
+        }
+
         View::render('equipes/detail.twig', [
             'meta'               => $meta,
             'equipe'             => $equipe,
+            'ffvb_links'         => $ffvbLinks,
             'cover'              => $cover,
             'photos'             => $photos,
             'joueurs'            => $joueurs,

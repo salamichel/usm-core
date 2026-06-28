@@ -129,6 +129,39 @@
       {# Sidebar #}
       <div class="space-y-8">
         
+        {# FFVB Results card #}
+        {% if ffvb_links|length %}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-4">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-serif text-lg font-bold text-slate-900 mb-1">
+                Résultats FFVB
+              </h3>
+              <p class="text-xs text-slate-500 leading-normal">
+                Suivez le classement et les résultats officiels de l'équipe pour cette saison.
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex flex-col gap-2 pt-2">
+            {% for link in ffvb_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer"
+               class="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+              {{ link.label }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         {# Capitaines card #}
         {% if capitaines|length %}
         <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">

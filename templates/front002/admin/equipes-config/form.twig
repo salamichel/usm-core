@@ -142,6 +142,20 @@
       </div>
     </div>
 
+    {# Section 5 : Lien FFVB #}
+    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Lien FFVB <span class="font-normal opacity-60">— optionnel</span></div>
+      <div class="p-5">
+        <div>
+          <label class="block font-black mb-1 text-sm" for="ffvb_link">Lien(s) résultats FFVB de la saison</label>
+          <textarea id="ffvb_link" name="ffvb_link" rows="3"
+                    class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="Exemple pour plusieurs phases :&#10;Phase 1 | https://...&#10;Phase 2 | https://...">{{ equipe.ffvb_link ?? '' }}</textarea>
+          <p class="text-xs text-gray-400 mt-1">Lien vers les résultats/classement officiel. Pour plusieurs phases, mettez un lien par ligne sous la forme : <strong>Nom de la phase | Lien</strong></p>
+        </div>
+      </div>
+    </div>
+
     {# Bouton #}
     <div>
       <button type="submit"
