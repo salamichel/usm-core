@@ -1,6 +1,5 @@
 -- Ajout du lien FFVB pour les résultats de la saison sur les équipes
-ALTER TABLE equipes_config
-  ADD COLUMN ffvb_link TEXT DEFAULT NULL;
+ALTER TABLE equipes_config ADD COLUMN IF NOT EXISTS ffvb_link TEXT DEFAULT NULL;
 
 -- Initialisation du lien
 UPDATE equipes_config
