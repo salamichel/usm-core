@@ -34,92 +34,158 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 /
 ├── public/
 │   ├── index.php          ← point d'entrée unique
-│   └── assets/uploads/    ← photos uploadées (gitkeep)
+│   ├── .htaccess          ← configuration Apache et redirections URL
+│   ├── manifest.json      ← manifeste PWA (configuration de l'application)
+│   ├── service-worker.js  ← service worker pour le support PWA et cache hors-ligne
+│   └── assets/
+│       ├── content-styles.css ← styles typographiques de l'éditeur WYSIWYG
+│       ├── front001/, front002/, front003/ ← ressources statiques (CSS, JS, images, polices)
+│       ├── icons/         ← icônes de raccourci et de PWA
+│       └── uploads/       ← photos et documents importés/téléversés (gitkeep)
 ├── src/
 │   ├── Core/
-│   │   ├── App.php            ← enregistrement de toutes les routes
-│   │   ├── Database.php       ← singleton PDO (base locale usm_volley)
-│   │   ├── ExternalDatabase.php ← singleton PDO (base externe USM)
-│   │   ├── Router.php         ← dispatch HTTP, params {id} → tableau
-│   │   ├── View.php           ← render Twig + flash + globals
-│   │   └── Auth.php           ← session admin
+│   │   ├── App.php            ← configuration globale et enregistrement de toutes les routes
+│   │   ├── Database.php       ← singleton PDO pour la base de données locale (usm_volley)
+│   │   ├── ExternalDatabase.php ← singleton PDO pour la base externe (simulée/réelle)
+│   │   ├── Router.php         ← dispatching des requêtes HTTP et extraction des paramètres
+│   │   ├── View.php           ← wrapper de rendu Twig, variables globales et gestion du flash
+│   │   ├── Auth.php           ← gestion de la session et des accès de l'administrateur
+│   │   ├── CsrfToken.php      ← génération et validation des jetons de sécurité CSRF
+│   │   └── NotFoundHandler.php ← trait fournissant des helpers pour les erreurs 404
 │   ├── Models/
-│   │   ├── Post.php, PageStatique.php, Document.php, MenuItem.php, Photo.php
-│   │   ├── Saison.php         ← saisons locales (activate = transaction)
-│   │   ├── JoueurSnapshot.php ← flash depuis base externe + rebuild équipes
-│   │   ├── EquipeConfig.php   ← config permanente des équipes
-│   │   ├── EquipeSaison.php   ← liaison équipe × saison (findOrCreate)
-│   │   ├── EquipeSaisonJoueur.php ← membres d'une équipe pour une saison
-│   │   ├── Contact.php        ← messages de contact (create, find, all, updateStatus, delete)
-│   │   └── ContactReply.php   ← réponses aux contacts
+│   │   ├── Post.php           ← articles de blog (slugs, slider, tag, etc.)
+│   │   ├── PageStatique.php   ← pages statiques du CMS
+│   │   ├── MenuItem.php       ← éléments de navigation dynamique du menu
+│   │   ├── Photo.php          ← gestion des images, variantes et couverture des entités
+│   │   ├── Saison.php         ← saisons sportives locales (activation de saison via transaction)
+│   │   ├── JoueurSnapshot.php ← copie figée des joueurs récupérés lors du flash de la saison active
+│   │   ├── EquipeConfig.php   ← configuration persistante des équipes (sexe, niveau, filet, lien FFVB)
+│   │   ├── EquipeSaison.php   ← liaison d'une équipe à une saison spécifique
+│   │   ├── EquipeSaisonJoueur.php ← composition d'une équipe (joueurs et statut capitaine)
+│   │   ├── Contact.php        ← messages généraux et status (ancien modèle)
+│   │   ├── ContactMessage.php ← soumissions de messages du formulaire de contact public
+│   │   ├── ContactReply.php   ← historique des réponses envoyées aux contacts par l'admin
+│   │   ├── CategorieEquipe.php ← catégories d'équipes (ex. Jeunes, Seniors) pour regroupement
+│   │   ├── HomeBlock.php      ← blocs de contenu administrables sur la page d'accueil
+│   │   ├── Location.php       ← lieux physiques des entraînements et des matchs
+│   │   ├── SiteConfig.php     ← configuration globale du club injectée dans Twig
+│   │   ├── Tag.php            ← étiquettes associées aux articles de blog
+│   │   ├── Joueur.php         ← modèle représentant les joueurs dans la base externe
+│   │   ├── Participation.php  ← présences/absences stockées dans la base externe
+│   │   └── EntityType.php     ← énumération des types d'entités liés à des photos
 │   ├── Controllers/
-│   │   ├── AgendaController.php      ← /agenda (crosstable) + /agenda/{id} (détail)
-│   │   ├── HomeController.php, BlogController.php, PageController.php
-│   │   ├── ContactController.php       ← formulaire public /contact
-│   │   ├── EquipesController.php  ← /equipes + /equipes/{id}
-│   │   ├── JoueurController.php, SitemapController.php
+│   │   ├── HomeController.php   ← page d'accueil publique (blocs, posts épinglés)
+│   │   ├── BlogController.php   ← affichage de la liste des articles et détails (pagination, tags)
+│   │   ├── PageController.php   ← affichage des pages statiques avec compilation Twig
+│   │   ├── ContactController.php ← formulaire de contact public (soumission et envoi Brevo)
+│   │   ├── EquipesController.php ← liste des équipes par catégorie et détail d'une équipe
+│   │   ├── AgendaController.php ← planning et grille globale de présence
+│   │   ├── JoueurController.php ← fiche d'information d'un joueur
+│   │   ├── SitemapController.php ← rendu du sitemap.xml et robots.txt
 │   │   ├── Admin/
-│   │   │   ├── AuthController.php, DashboardController.php
-│   │   │   ├── PostController.php, PageAdminController.php
-│   │   │   ├── MenuController.php, DocumentController.php
-│   │   │   ├── SaisonController.php       ← admin saisons + flash
-│   │   │   ├── EquipeConfigController.php ← admin équipes + photos + joueurs
-│   │   │   ├── ContactAdminController.php ← gestion messages de contact
-│   │   │   ├── CategorieEquipeController.php, TagController.php, HomeBlockController.php
-│   │   │   ├── LocationController.php, ContactMessageController.php
-│   │   │   ├── MediaUploadController.php, PhotoAdminController.php, SiteConfigController.php
+│   │   │   ├── BaseAdminController.php ← contrôleur parent pour la vérification de session admin
+│   │   │   ├── AdminCrudController.php ← classe de base abstraite pour tous les CRUD admin (photos comprises)
+│   │   │   ├── AuthController.php      ← connexion et déconnexion de l'administration
+│   │   │   ├── DashboardController.php ← statistiques globales et messages non lus
+│   │   │   ├── PostController.php, PageAdminController.php ← édition des articles/pages
+│   │   │   ├── MenuController.php      ← réorganisation et édition des items de menu
+│   │   │   ├── SaisonController.php    ← création de saisons, activation et processus de flash
+│   │   │   ├── EquipeConfigController.php ← édition des équipes, assignation de joueurs & photos
+│   │   │   ├── ContactAdminController.php ← liste des messages, historique et réponses
+│   │   │   ├── ContactMessageController.php ← suppression et archivage fin des messages
+│   │   │   ├── CategorieEquipeController.php, TagController.php, HomeBlockController.php ← gestion CRUD
+│   │   │   ├── LocationController.php  ← édition et géolocalisation Google Maps des gymnases
+│   │   │   ├── MediaUploadController.php ← gestionnaire d'upload asynchrone pour l'éditeur WYSIWYG
+│   │   │   ├── PhotoAdminController.php ← contrôleur de suppression/réorganisation AJAX d'images
+│   │   │   └── SiteConfigController.php ← configuration des thèmes et des données du club
 │   │   ├── Api/
-│   │   │   └── ArticleApiController.php ← API d'importation d'articles externes
+│   │   │   └── ArticleApiController.php ← endpoint POST de synchronisation d'articles externes
 │   │   └── Member/
-│   │       ├── AuthController.php, DashboardController.php
-│   │       ├── ParticipationController.php, ProfileController.php ← espace adhérent
+│   │       ├── AuthController.php      ← connexion/déconnexion des adhérents
+│   │       ├── DashboardController.php ← page d'accueil de l'espace adhérent (KPIs, planning)
+│   │       ├── ParticipationController.php ← sauvegarde AJAX/synchrone des présences aux manifestations
+│   │       ├── ProfileController.php   ← modification des infos de profil et mot de passe adhérent
+│   │       └── CaptainController.php   ← tableau de bord capitaine (grille de présence, popover AJAX, convocations)
 │   ├── Helpers/
-│   │   └── ParticipationStatus.php  ← parsing centralisé des statuts de participation
+│   │   ├── ParticipationStatus.php ← helper de formatage et de styles de badges de participation
+│   │   └── HtmlHelper.php          ← fonctions utilitaires pour la génération de code HTML
+│   ├── ValueObjects/
+│   │   └── PageMetadata.php       ← objet valeur encapsulant les métadonnées SEO d'une page
 │   └── Services/
-│       ├── AgendaService.php  ← crosstable, stats participation, manifestations
-│       ├── BrevoService.php   ← emails via API Brevo
-│       ├── Validator.php      ← validation centralisée
-│       ├── Logger.php         ← logging multi-canal
-│       ├── SlugManager.php    ← génération slugs
-│       ├── Pagination.php     ← pagination
-│       ├── SeoService.php, SitemapService.php, StructuredDataService.php ← SEO & Sitemaps
-│       ├── ContentRenderer.php ← rendu CMS dynamique avec compilation Twig
-│       ├── ImageResizer.php, ImageVariant.php, ExternalImageDownloader.php ← gestion images / variantes
-│       └── UploadPathManager.php ← gestion des chemins de stockage uploads
-├── config/config.php      ← constantes DB_*, EXT_DB_*, BASE_URL, etc.
+│       ├── AgendaService.php       ← coordination de l'affichage de l'agenda croisé public/capitaine
+│       ├── Agenda/
+│       │   ├── EventNormalizer.php     ← normalisation des dates et types d'événements
+│       │   ├── EventRepository.php     ← requêtes SQL brutes optimisées pour l'agenda externe
+│       │   └── ParticipationStatsService.php ← calcul des effectifs et alertes de sous-effectif
+│       ├── MemberDashboardService.php  ← génération des statistiques et KPIs de l'espace membre
+│       ├── BrevoService.php        ← wrapper API Brevo pour notifications admin et réponses email
+│       ├── ContentRenderer.php     ← compilation dynamique à la volée des blocs Twig du CMS
+│       ├── ExternalImageDownloader.php ← téléchargement et mise en cache des images distantes
+│       ├── ImageResizer.php, ImageVariant.php ← redimensionnement et gestion des formats WebP/variants
+│       ├── Logger.php              ← logger multi-canal (app, audit, errors)
+│       ├── Pagination.php          ← service de calcul des offsets pour les listes paginées
+│       ├── SeoService.php, SitemapService.php, StructuredDataService.php ← structures SEO et microdonnées
+│       ├── SlugManager.php         ← utilitaire de slugification et de garantie d'unicité en BDD
+│       ├── UploadPathManager.php   ← gestionnaire des répertoires physiques des uploads
+│       └── Validator.php           ← bibliothèque de validation de formulaires chainable
+├── config/
+│   └── config.php         ← configuration de base, constantes DB_*, EXT_DB_*, etc.
 ├── database/
 │   ├── schema.sql, seed.sql, add_photos.sql  ← base locale initiale
 │   ├── external_schema.sql, external_seed.sql ← base externe simulée
-│   └── migrations/
-│       ├── 001_saisons.sql          ← saisons + joueur_snapshots
-│       └── 002_equipes_config.sql   ← equipes_config + equipe_saison
-│                                       + equipe_saison_joueur + ALTER photos
-└── templates/front001/
-    ├── base.twig, home.twig, 404.twig, _gallery.twig
-    ├── blog/, pages/, documents/
+│   └── migrations/        ← scripts SQL idempotents exécutés au démarrage
+└── templates/front002/    ← thèmes de l'application (front002 actif par défaut)
+    ├── base.twig          ← layout parent global (header, footer, PWA)
+    ├── home.twig          ← structure de la page d'accueil (slider, blocs, actus)
+    ├── 404.twig, error.twig ← pages d'erreurs HTTP et applicatives
+    ├── contact.twig       ← formulaire de contact public
+    ├── _flash.twig        ← rendu des notifications de session
+    ├── _footer.twig       ← pied de page avec config dynamique
+    ├── _gallery.twig      ← composant carrousel/galerie photos
+    ├── _header.twig       ← en-tête principal et menu de navigation
+    ├── _mobile_menu.twig  ← menu mobile hors-écran (drawer)
+    ├── _pwa_tags.twig     ← métadonnées et balises d'intégration PWA
+    ├── _member_bottom_bar.twig ← barre de navigation basse pour mobile (connecté)
+    ├── _visitor_bottom_bar.twig ← barre de navigation basse pour mobile (visiteur)
+    ├── blog/
+    │   ├── list.twig      ← liste paginée des articles de blog
+    │   └── detail.twig    ← fiche complète d'un article de blog
+    ├── pages/
+    │   └── detail.twig    ← affichage des pages statiques du CMS
+    ├── joueurs/
+    │   └── index.twig     ← affichage d'informations de joueur
+    ├── auth/
+    │   └── login.twig     ← formulaire de connexion pour l'espace membre
+    ├── member/
+    │   ├── dashboard.twig ← tableau de bord adhérent avec planning et KPIs de participation
+    │   ├── profile.twig   ← mise à jour du profil adhérent
+    │   └── captain/
+    │       ├── dashboard.twig ← tableau de bord capitaine (grille interactive, actions AJAX)
+    │       ├── create_match.twig ← formulaire de création de manifestation
+    │       ├── edit_match.twig   ← formulaire d'édition de manifestation
+    │       └── select_players.twig ← sélection manuelle de l'effectif convoqué
     ├── agenda/
-    │   ├── index.twig         ← tableau croisé joueurs × manifestations
-    │   ├── detail.twig        ← détail manifestation + participation
-    │   ├── filters.twig       ← formulaire filtres (équipe, type, lieu, etc.)
-    │   └── _macros.twig       ← macros réutilisables (filtres, stats, cellules)
-    ├── equipes/
-    │   ├── index.twig   ← cards groupées par catégorie (saison active)
-    │   └── detail.twig  ← galerie + liste joueurs
+    │   ├── index.twig     ← grille croisée de présences aux manifestations
+    │   ├── detail.twig    ← détails d'un événement et statistiques
+    │   ├── filters.twig   ← widget de filtrage des événements et des joueurs
+    │   ├── cards.twig     ← vue alternative en liste d'événements
+    │   ├── _event_card.twig ← carte individuelle d'événement
+    │   ├── _player_modal.twig ← popup de détails de joueur
+    │   └── _macros.twig   ← macros Twig réutilisables
     └── admin/
         ├── layout.twig, login.twig, dashboard.twig
-        ├── _photo_dropzone.twig   ← Dropzone réutilisable (posts/pages)
-        ├── posts/, pages/, menu/, documents/
-        ├── saisons/
-        │   ├── list.twig, create.twig, snapshots.twig, joueurs.twig
+        ├── _photo_dropzone.twig   ← zone de glisser-déposer pour photos d'entité
+        ├── _confirm_dialog.twig   ← boîte de dialogue générique de confirmation
+        ├── _macros.twig           ← composants Twig utilitaires d'administration
+        ├── posts/, pages/, menu/, seasons/, site-config/
+        ├── categories-equipes/, home-blocks/, locations/, tags/
         ├── equipes-config/
         │   ├── list.twig, form.twig
-        │   ├── saison_photos.twig   ← Dropzone dédié équipe×saison
-        │   └── saison_joueurs.twig  ← ajout/retrait joueurs post-flash
+        │   ├── saison_photos.twig ← gestion des photos associées à l'équipe pour la saison
+        │   └── saison_joueurs.twig ← ajustements post-flash de la liste des joueurs
         └── contacts/
-            ├── list.twig   ← liste messages avec filtres + actions de masse
-            └── detail.twig ← détail + historique + formulaire réponse
-    └── contact/
-        └── form.twig   ← formulaire public de contact
+            ├── list.twig   ← liste paginée avec filtres et actions de masse
+            └── detail.twig ← détail d'un message, historique et formulaire de réponse
 ```
 
 ---
@@ -129,8 +195,9 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 ### Base locale (`usm_volley`)
 
 Gérée par `Database::get()`. Contient tout ce que le site gère lui-même :
-`posts`, `pages`, `menu_items`, `documents`, `photos`, `saisons`,
-`joueur_snapshots`, `equipes_config`, `equipe_saison`, `equipe_saison_joueur`.
+`posts`, `pages`, `menu_items`, `photos`, `saisons`, `joueur_snapshots`,
+`equipes_config`, `equipe_saison`, `equipe_saison_joueur`, `categories_equipes`,
+`home_blocks`, `locations`, `site_config`, `tags`, `contact_messages`, `contact_replies`.
 
 ### Base externe USM
 
@@ -631,15 +698,16 @@ La session de l'adhérent stocke ses informations d'identification de joueur.
 
 Accessible via `/member/profile` pour permettre à l'adhérent de mettre à jour son mot de passe ou ses coordonnées.
 
-### Plan d'implémentation du Dashboard Dynamique (À réaliser)
+### Fonctionnement du Dashboard Dynamique
 
-1. **Service de Données** : Créer `src/Services/MemberDashboardService.php` avec les méthodes :
-   - `getKPIs($userId)` : Événements de la semaine, de la semaine pro, et actions requises (participations vides ou `?`).
-   - `getImminentEvents($userId, $limit = 3)` : Les prochains événements du joueur avec son statut de participation actuel.
-   - `getSeasonStats($userId)` : Taux de présence aux matchs et entraînements, compte par type d'événement, et classement des lieux.
-2. **Contrôleur** : Mettre à jour `Member\DashboardController` pour faire appel au service et passer les variables à Twig.
-3. **Vue Twig** : Dynamiser `templates/front002/member/dashboard.twig` avec les KPI, la boucle des événements, les jauges de présence et le top des lieux.
-4. **Interactivité** : Intégrer les boutons "Présent/Absent" avec les classes `.status-btn` et `data-manifestation-id` pour déclencher les appels API en JS via `agenda-cards.js` grâce à la délégation d'événements.
+Le tableau de bord de l'adhérent est entièrement dynamique et s'appuie sur les composants suivants :
+1. **Service de Données** : `App\Services\MemberDashboardService` fournit :
+   - `getKPIs($userId)` : Événements de la semaine, de la semaine prochaine, et actions requises (participations manquantes ou indécises).
+   - `getImminentEvents($userId, $limit)` : Prochains événements avec statut de participation et vérification de chevauchements via `flagOverlappingSelected`.
+   - `getSeasonStats($userId)` : Taux de présence aux matchs et entraînements, et classement des lieux visités.
+2. **Contrôleur** : `App\Controllers\Member\DashboardController` orchestre la récupération de ces données et les transmet au template.
+3. **Vue Twig** : `templates/front002/member/dashboard.twig` affiche graphiquement les KPIs, la liste interactive des événements et les graphiques d'assiduité.
+4. **Interactivité** : Gestion du changement asynchrone des statuts de présence en AJAX via l'API `POST /api/member/participations/upsert`.
 
 
 ---
@@ -694,7 +762,7 @@ Pour optimiser les temps de chargement du site public, un système de générati
 | `EXT_DB_NAME` | `usm_external` | Base externe |
 | `EXT_DB_USER` / `EXT_DB_PASS` | `usm_ext` / `usm_ext_password` | Credentials externes |
 | `BASE_URL` | auto-détecté | URL publique sans slash final |
-| `THEME` | `front001` | Dossier sous `templates/` |
+| `THEME` | `front002` | Dossier sous `templates/` |
 | `APP_DEBUG` | `true` | Désactive cache Twig, affiche PDOException |
 | `ADMIN_EMAIL` | — | Email admin |
 | `ADMIN_PASSWORD_HASH` | — | `password_hash(..., PASSWORD_BCRYPT)` |
@@ -715,7 +783,7 @@ Les fichiers SQL sont **idempotents** (`IF NOT EXISTS`, `INSERT IGNORE`,
 Ordre d'application au démarrage :
 ```
 schema.sql → seed.sql → add_photos.sql
-→ 001_saisons.sql → 002_equipes_config.sql → ... → 021_page_add_category.sql
+→ 001_saisons.sql → 002_equipes_config.sql → ... → 024_add_ffvb_link_to_equipes_config.sql
 ```
 
 **Migrations récentes** :
@@ -742,3 +810,7 @@ schema.sql → seed.sql → add_photos.sql
 - `019_equipe_config_autoincrement.sql` — correction auto_increment sur equipes_config
 - `020_home_block_photos.sql` — photos dédiées aux blocs d'accueil
 - `021_page_add_category.sql` — catégorisation des pages statiques
+- `022_saison_datedebut_datefin.sql` — ajout de date_debut et date_fin aux saisons
+- `023_add_captain_to_equipe_saison_joueur.sql` — ajout du flag is_captain pour désigner le capitaine d'équipe
+- `024_add_ffvb_link_to_equipes_config.sql` — ajout du lien FFVB aux équipes
+
