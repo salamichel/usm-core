@@ -81,17 +81,19 @@ class AgendaService
     public static function getUpcomingMatchesForTeam(
         string $teamCode,
         int $limit = 5,
-        ?string $manifestationFilter = null
+        ?string $manifestationFilter = null,
+        array $filters = []
     ): array {
-        return EventRepository::getUpcomingMatchesForTeam($teamCode, $limit, $manifestationFilter);
+        return EventRepository::getUpcomingMatchesForTeam($teamCode, $limit, $manifestationFilter, $filters);
     }
 
     /** @see EventRepository::getUpcomingEventsForTeam() */
     public static function getUpcomingEventsForTeam(
         array $team,
-        int $limit = 8
+        int $limit = 8,
+        array $filters = []
     ): array {
-        return EventRepository::getUpcomingEventsForTeam($team, $limit);
+        return EventRepository::getUpcomingEventsForTeam($team, $limit, $filters);
     }
 
     /** @see EventRepository::normalizeManifestation() */

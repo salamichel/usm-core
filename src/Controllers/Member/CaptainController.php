@@ -46,6 +46,13 @@ class CaptainController
     {
         [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
 
+        $filters = [
+            'type'      => $_GET['type'] ?? '',
+            'location'  => $_GET['location'] ?? '',
+            'this_week' => !empty($_GET['this_week']),
+            'next_week' => !empty($_GET['next_week']),
+        ];
+
         $teamsData = [];
         foreach ($captainedTeams as $team) {
             $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($team['equipe_saison_id']);
@@ -55,7 +62,8 @@ class CaptainController
             $matches = AgendaService::getUpcomingMatchesForTeam(
                 $team['slug_colonne'],
                 50,
-                $team['manifestation_filter'] ?? null
+                $team['manifestation_filter'] ?? null,
+                $filters
             );
 
             // Charger les détails de sélection et dispo pour chaque match
@@ -95,7 +103,7 @@ class CaptainController
             unset($match);
 
             // 2. Grille de présence et métriques de l'équipe
-            $data = $this->buildTeamGridAndMetrics($team, $rosterPlayers, $playerIds);
+            $data = $this->buildTeamGridAndMetrics($team, $rosterPlayers, $playerIds, $filters);
 
             $teamsData[] = [
                 'config' => $team,
@@ -108,7 +116,9 @@ class CaptainController
 
         View::render('member/captain/dashboard.twig', [
             'teams' => $teamsData,
-            'saison' => $saisonActive
+            'saison' => $saisonActive,
+            'filters' => $filters,
+            'filterOptions' => AgendaService::getFilterOptions()
         ]);
     }
 
@@ -739,9 +749,10 @@ class CaptainController
     /**
      * Construit et calcule la grille de présence et les métriques d'une équipe.
      */
-    private function buildTeamGridAndMetrics(array $team, array $rosterPlayers, array $playerIds): array
+    private function buildTeamGridAndMetrics(array $team, array $rosterPlayers, array $playerIds, array $filters = []): array
     {
-        $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, 8);
+        $limit = (!empty($filters['this_week']) || !empty($filters['next_week']) || !empty($filters['type']) || !empty($filters['location'])) ? 50 : 8;
+        $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, $limit, $filters);
         $eventIds = array_column($upcomingEvents, 'id');
 
         $participationsMap = [];
@@ -863,7 +874,18 @@ class CaptainController
             $eventAttendance[$mid] = $availCount;
             
             if ($event['is_match']) {
-                if ($selCount < 6) {
+                $minRequired = 6;
+                $typeLower = mb_strtolower($event['ManifestationTypée'] ?? '');
+                if (
+                    str_contains($typeLower, '4x4') ||
+                    str_contains($typeLower, '4*4') ||
+                    str_contains($typeLower, 'm13') ||
+                    str_contains($typeLower, 'm15') ||
+                    str_contains($typeLower, 'ufolep')
+                ) {
+                    $minRequired = 4;
+                }
+                if ($selCount < $minRequired) {
                     $understaffedMatches++;
                 }
             }

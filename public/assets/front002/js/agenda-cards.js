@@ -13,42 +13,68 @@
         });
     };
 
-    document.getElementById('bulk-match-apply')?.addEventListener('click', () => {
-        const status = document.getElementById('bulk-match-status').value;
-        if (status) {
-            applyBulkStatus('match', status);
-            activeFilterType = 'type';
-            activeFilterValue = 'match';
-            applyDashboardFilters();
-        }
-    });
+    document.getElementById('bulk-apply-btn')?.addEventListener('click', () => {
+        const typeVal = document.getElementById('bulk-type-select').value;
+        const locationVal = document.getElementById('bulk-location-select').value;
+        const statusChoice = document.getElementById('bulk-status-select').value;
 
-    document.getElementById('bulk-entrainement-apply')?.addEventListener('click', () => {
-        const status = document.getElementById('bulk-entrainement-status').value;
-        if (status) {
-            applyBulkStatus('entrainement', status);
-            activeFilterType = 'type';
-            activeFilterValue = 'entrainement';
-            applyDashboardFilters();
-        }
-    });
-    
-    document.getElementById('bulk-club-apply')?.addEventListener('click', () => {
-        const status = document.getElementById('bulk-club-status').value;
-        if (status) {
-            applyBulkStatus('club', status);
-            activeFilterType = 'type';
-            activeFilterValue = 'club';
-            applyDashboardFilters();
-        }
-    });
+        if (!statusChoice) return;
 
-    document.getElementById('bulk-beach-apply')?.addEventListener('click', () => {
-        const status = document.getElementById('bulk-beach-status').value;
-        if (status) {
-            applyBulkStatus('beach', status);
+        const grid = document.getElementById('event-grid');
+        if (!grid) return;
+
+        const cards = grid.querySelectorAll('[data-manifestation-id]');
+        cards.forEach(card => {
+            // 1. Filtrage par type
+            const filterVal = card.dataset.eventFilter || '';
+            let typeMatches = true;
+            if (typeVal) {
+                if (typeVal === 'match') {
+                    typeMatches = filterVal === 'match';
+                } else if (typeVal === 'entrainement') {
+                    typeMatches = filterVal.includes('entrain') || filterVal.includes('entraîn');
+                } else if (typeVal === 'tournois') {
+                    typeMatches = filterVal.includes('tournoi') || filterVal.includes('plateau');
+                } else if (typeVal === 'forum') {
+                    typeMatches = filterVal === 'forum';
+                } else {
+                    typeMatches = filterVal === typeVal;
+                }
+            }
+
+            // 2. Filtrage par lieu
+            const cardLocation = card.dataset.eventLocation || '';
+            let locationMatches = true;
+            if (locationVal) {
+                locationMatches = cardLocation.toLowerCase().includes(locationVal.toLowerCase());
+            }
+
+            if (typeMatches && locationMatches) {
+                // 3. Déterminer le statut réel à cliquer
+                const isMatch = filterVal === 'match';
+                let targetStatus = statusChoice;
+                if (statusChoice === 'Disponible') {
+                    targetStatus = isMatch ? 'Disponible' : 'Présent';
+                } else if (statusChoice === 'Indisponible') {
+                    targetStatus = isMatch ? 'Indisponible' : 'Absent';
+                }
+
+                // Cliquer le bouton correspondant
+                const btn = [...card.querySelectorAll('.status-btn')].find(b => b.dataset.status === targetStatus);
+                if (btn) {
+                    btn.click();
+                }
+            }
+        });
+
+        // Appliquer le filtre visuel pour refléter l'action
+        if (typeVal) {
             activeFilterType = 'type';
-            activeFilterValue = 'beach';
+            activeFilterValue = typeVal;
+            applyDashboardFilters();
+        } else if (locationVal) {
+            activeFilterType = 'lieu';
+            activeFilterValue = locationVal;
             applyDashboardFilters();
         }
     });
@@ -668,6 +694,7 @@
             if (activeFilterValue === 'entrainement') label = 'Entraînements';
             else if (activeFilterValue === 'match') label = 'Matchs';
             else if (activeFilterValue === 'tournois') label = 'Tournois / Plateaux';
+            else if (activeFilterValue === 'forum') label = 'Forums';
             else if (activeFilterValue === 'others') label = 'Autres';
             if (labelSpan) labelSpan.textContent = ` (Filtre : ${label})`;
             
@@ -680,8 +707,11 @@
                     matches = filterVal.includes('entrain') || filterVal.includes('entraîn');
                 } else if (activeFilterValue === 'tournois') {
                     matches = filterVal.includes('tournoi') || filterVal.includes('plateau');
+                } else if (activeFilterValue === 'forum') {
+                    matches = filterVal === 'forum';
                 } else if (activeFilterValue === 'others') {
                     matches = filterVal !== 'match' && 
+                              filterVal !== 'forum' && 
                               !filterVal.includes('entrain') && 
                               !filterVal.includes('entraîn') && 
                               !filterVal.includes('tournoi') && 

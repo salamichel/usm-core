@@ -298,6 +298,10 @@ class EventRepository
                 $sql      .= " AND Date BETWEEN ? AND ?";
                 $bindings[] = date('Y-m-d', strtotime('Monday this week'));
                 $bindings[] = date('Y-m-d', strtotime('Sunday this week')) . ' 23:59:59';
+            } elseif (!empty($filters['next_week'])) {
+                $sql      .= " AND Date BETWEEN ? AND ?";
+                $bindings[] = date('Y-m-d', strtotime('Monday next week'));
+                $bindings[] = date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59';
             }
             $sql .= " ORDER BY `Date` ASC";
 
@@ -398,7 +402,8 @@ class EventRepository
     public static function getUpcomingMatchesForTeam(
         string $teamCode,
         int $limit = 5,
-        ?string $manifestationFilter = null
+        ?string $manifestationFilter = null,
+        array $filters = []
     ): array {
         try {
             $db = ExternalDatabase::get();
@@ -413,6 +418,25 @@ class EventRepository
                 $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
                 $bindings[]          = '%' . $manifestationFilter;
             }
+
+            if (!empty($filters['location'])) {
+                $manifestationClause .= " AND m.Lieu = ?";
+                $bindings[]          = $filters['location'];
+            }
+            if (!empty($filters['type'])) {
+                $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
+                $bindings[]          = '%' . $filters['type'] . '%';
+            }
+            if (!empty($filters['this_week'])) {
+                $manifestationClause .= " AND m.Date BETWEEN ? AND ?";
+                $bindings[] = date('Y-m-d', strtotime('Monday this week'));
+                $bindings[] = date('Y-m-d', strtotime('Sunday this week')) . ' 23:59:59';
+            } elseif (!empty($filters['next_week'])) {
+                $manifestationClause .= " AND m.Date BETWEEN ? AND ?";
+                $bindings[] = date('Y-m-d', strtotime('Monday next week'));
+                $bindings[] = date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59';
+            }
+
             $bindings[] = $limit;
 
             $stmt = $db->prepare(
@@ -498,7 +522,8 @@ class EventRepository
      */
     public static function getUpcomingEventsForTeam(
         array $team,
-        int $limit = 8
+        int $limit = 8,
+        array $filters = []
     ): array {
         try {
             $db = ExternalDatabase::get();
@@ -534,6 +559,19 @@ class EventRepository
                 $trainingExtraSql = " OR " . implode(" OR ", $trainingExtraClauses);
             }
 
+            $extraFiltersSql = "";
+            if (!empty($filters['location'])) {
+                $extraFiltersSql .= " AND m.Lieu = :location";
+            }
+            if (!empty($filters['type'])) {
+                $extraFiltersSql .= " AND m.ManifestationTypée LIKE :type";
+            }
+            if (!empty($filters['this_week'])) {
+                $extraFiltersSql .= " AND m.Date BETWEEN :week_start AND :week_end";
+            } elseif (!empty($filters['next_week'])) {
+                $extraFiltersSql .= " AND m.Date BETWEEN :week_start AND :week_end";
+            }
+
             $sql = "SELECT m.id_manifestation, m.ManifestationTypée, m.Date,
                             m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
                      FROM Manifestation m
@@ -544,6 +582,7 @@ class EventRepository
                          OR
                          ((m.ManifestationTypée LIKE '%Entr%' OR m.ManifestationTypée LIKE '%Entrainement%') AND (m.ManifestationTypée LIKE :team_code_filter $trainingExtraSql))
                        )
+                       $extraFiltersSql
                      ORDER BY m.Date ASC
                      LIMIT :limit";
 
@@ -551,6 +590,20 @@ class EventRepository
             $stmt->bindValue(':match_filter', $matchFilter, \PDO::PARAM_STR);
             $stmt->bindValue(':team_code_filter', $teamCodeFilter, \PDO::PARAM_STR);
             $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+
+            if (!empty($filters['location'])) {
+                $stmt->bindValue(':location', $filters['location'], \PDO::PARAM_STR);
+            }
+            if (!empty($filters['type'])) {
+                $stmt->bindValue(':type', '%' . $filters['type'] . '%', \PDO::PARAM_STR);
+            }
+            if (!empty($filters['this_week'])) {
+                $stmt->bindValue(':week_start', date('Y-m-d', strtotime('Monday this week')), \PDO::PARAM_STR);
+                $stmt->bindValue(':week_end', date('Y-m-d', strtotime('Sunday this week')) . ' 23:59:59', \PDO::PARAM_STR);
+            } elseif (!empty($filters['next_week'])) {
+                $stmt->bindValue(':week_start', date('Y-m-d', strtotime('Monday next week')), \PDO::PARAM_STR);
+                $stmt->bindValue(':week_end', date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59', \PDO::PARAM_STR);
+            }
 
             if (!$stmt->execute()) {
                 return [];

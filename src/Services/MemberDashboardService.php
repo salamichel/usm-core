@@ -207,6 +207,7 @@ class MemberDashboardService
             'match' => 0,
             'training' => 0,
             'tournois' => 0,
+            'forum' => 0,
             'others' => 0
         ];
 
@@ -215,10 +216,13 @@ class MemberDashboardService
             $isMatch = stripos($typeStr, 'match') !== false;
             $isTraining = stripos($typeStr, 'entra') !== false;
             $isTournament = stripos($typeStr, 'tournoi') !== false;
+            $isForum = stripos($typeStr, 'forum') !== false;
 
             $status = new ParticipationStatus($row['Participation'] ?? '');
 
-            if ($isMatch) {
+            if ($isForum) {
+                $events_by_type['forum']++;
+            } elseif ($isMatch) {
                 $totalMatches++;
                 if ($status->isAvailable() || $status->isSelected() || $status->isPresent()) {
                     $presentMatches++;
@@ -258,6 +262,9 @@ class MemberDashboardService
             }
         }
 
+        $allLieux = array_keys($lieuxCounts);
+        sort($allLieux);
+
         arsort($lieuxCounts);
         $limit = 3;
         foreach ($lieuxCounts as $lieu => $count) {
@@ -273,7 +280,8 @@ class MemberDashboardService
             'presence_training' => $presenceTraining,
             'presence_tournament' => $presenceTournament,
             'events_by_type' => $events_by_type,
-            'top_lieux' => $topLieux
+            'top_lieux' => $topLieux,
+            'top_lieux_all' => $allLieux
         ];
     }
 }

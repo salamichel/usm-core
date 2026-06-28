@@ -160,7 +160,7 @@ class AgendaController
         }
 
         // Boolean filters: include as true if key exists
-        foreach (['hide_empty_players', 'hide_absent_unavailable', 'this_week'] as $key) {
+        foreach (['hide_empty_players', 'hide_absent_unavailable', 'this_week', 'next_week'] as $key) {
             if (!empty($_GET[$key])) {
                 $filters[$key] = true;
             }

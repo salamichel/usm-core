@@ -28,7 +28,7 @@
 <div class="rounded-[28px] border p-5 transition-all duration-300 flex flex-col relative {{ is_active_bg }}" 
      data-manifestation-id="{{ m.id }}" 
      data-event-date="{{ m.date|slice(0, 10) }}"
-     data-event-filter="{{ m.is_match ? 'match' : (m.type|lower|replace({' ': '-'})) }}"
+     data-event-filter="{% if 'forum' in m.titre|lower or 'forum' in m.type|lower %}forum{% elseif m.is_match %}match{% else %}{{ m.type|lower|replace({' ': '-'}) }}{% endif %}"
      data-current-status="{{ m.user_status|default('.') }}"
      data-event-location="{{ m.lieu|default('') }}">
 
