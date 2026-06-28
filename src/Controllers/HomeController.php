@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
@@ -72,7 +73,10 @@ class HomeController
             $equipes = EquipeSaison::findBySaison((int)$saisonActive['id']);
             foreach ($equipes as $es) {
                 $cover = Photo::getEntityCover('equipe_saison', (int)$es['id']);
-                if ($cover) { $matchPhotos[] = $cover; break; }
+                if ($cover) {
+                    $matchPhotos[] = $cover;
+                    break;
+                }
             }
         }
 

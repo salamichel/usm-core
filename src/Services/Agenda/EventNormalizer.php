@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Agenda;
@@ -12,14 +13,28 @@ use App\Helpers\ParticipationStatus;
 class EventNormalizer
 {
     private static array $MONTHS_FR = [
-        'Jan' => 'Jan', 'Feb' => 'Fév', 'Mar' => 'Mar', 'Apr' => 'Avr',
-        'May' => 'Mai', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Aoû',
-        'Sep' => 'Sep', 'Oct' => 'Oct', 'Nov' => 'Nov', 'Dec' => 'Déc',
+        'Jan' => 'Jan',
+        'Feb' => 'Fév',
+        'Mar' => 'Mar',
+        'Apr' => 'Avr',
+        'May' => 'Mai',
+        'Jun' => 'Jun',
+        'Jul' => 'Jul',
+        'Aug' => 'Aoû',
+        'Sep' => 'Sep',
+        'Oct' => 'Oct',
+        'Nov' => 'Nov',
+        'Dec' => 'Déc',
     ];
 
     private static array $DAYS_FR = [
-        'Mon' => 'Lun', 'Tue' => 'Mar', 'Wed' => 'Mer', 'Thu' => 'Jeu',
-        'Fri' => 'Ven', 'Sat' => 'Sam', 'Sun' => 'Dim',
+        'Mon' => 'Lun',
+        'Tue' => 'Mar',
+        'Wed' => 'Mer',
+        'Thu' => 'Jeu',
+        'Fri' => 'Ven',
+        'Sat' => 'Sam',
+        'Sun' => 'Dim',
     ];
 
     /**
@@ -32,12 +47,13 @@ class EventNormalizer
         $dateStr = $row['Date'] ?? null;
         $date    = $dateStr
             ? (\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateStr)
-               ?: \DateTimeImmutable::createFromFormat('Y-m-d', substr($dateStr, 0, 10)))
+                ?: \DateTimeImmutable::createFromFormat('Y-m-d', substr($dateStr, 0, 10)))
             : null;
         $isSoon      = $date && $date->diff($today)->days <= 3 && $date >= $today;
         $timeDisplay = ($date && $date->format('H:i') !== '00:00') ? $date->format('H:i') : '';
 
         return [
+            'id'           => (int)($row['id_manifestation'] ?? 0),
             'title'        => self::extractTitle($row['ManifestationTypée'] ?? ''),
             'date_display' => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_display' => $timeDisplay,
@@ -85,7 +101,7 @@ class EventNormalizer
         $dateStr     = $row['Date'] ?? null;
         $date        = $dateStr
             ? (\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateStr)
-               ?: \DateTimeImmutable::createFromFormat('Y-m-d', substr($dateStr, 0, 10)))
+                ?: \DateTimeImmutable::createFromFormat('Y-m-d', substr($dateStr, 0, 10)))
             : null;
         $timeDisplay = ($date && $date->format('H:i') !== '00:00') ? $date->format('H:i') : '';
         $statut      = $row['Statut'] ?? '';
@@ -154,8 +170,18 @@ class EventNormalizer
 
         // Initialisation défensive des tableaux
         if (!isset($manifestationStats['presents'])) {
-            foreach (['presents', 'absents', 'disponibles', 'disponibles_si_necessaire',
-                      'indisponibles', 'selectionnes', 'ne_sait_pas', 'pas_de_reponse'] as $key) {
+            foreach (
+                [
+                    'presents',
+                    'absents',
+                    'disponibles',
+                    'disponibles_si_necessaire',
+                    'indisponibles',
+                    'selectionnes',
+                    'ne_sait_pas',
+                    'pas_de_reponse'
+                ] as $key
+            ) {
                 $manifestationStats[$key] = [];
             }
         }

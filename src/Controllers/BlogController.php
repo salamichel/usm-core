@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
@@ -25,6 +26,7 @@ class BlogController
         $tagSlug     = $params['tag'] ?? ($_GET['tag'] ?? null);
         $selectedMonth = preg_match('/^\d{4}-\d{2}$/', $_GET['month'] ?? '') ? $_GET['month'] : null;
         $selectedTag = null;
+        $searchQuery = isset($_GET['q']) ? trim((string)$_GET['q']) : null;
 
         $filters = ['published_only' => true];
 
@@ -37,6 +39,10 @@ class BlogController
 
         if ($selectedMonth) {
             $filters['month'] = $selectedMonth;
+        }
+
+        if (!empty($searchQuery)) {
+            $filters['search'] = $searchQuery;
         }
 
         // Pagination
@@ -53,9 +59,10 @@ class BlogController
         $posts   = Post::filtered($filters);
         $allTags = Tag::all();
 
-        // Add cover photo for each post
+        // Add cover photo and tags for each post
         foreach ($posts as &$post) {
             $post['cover'] = Photo::getEntityCover('post', $post['id']);
+            $post['tags'] = Tag::findByPost($post['id']);
         }
         unset($post);
 
@@ -68,6 +75,8 @@ class BlogController
         $blogTitle = 'Actualités';
         if ($selectedTag) {
             $blogTitle = $selectedTag['name'] . ' — Actualités';
+        } elseif (!empty($searchQuery)) {
+            $blogTitle = 'Recherche "' . htmlspecialchars($searchQuery) . '" — Actualités';
         }
 
         $meta = new PageMetadata(
@@ -90,8 +99,11 @@ class BlogController
             'tag_counts'     => $tagCounts,
             'selected_tag'   => $selectedTag,
             'selected_month' => $selectedMonth,
+            'search_query'   => $searchQuery,
             'months'         => Post::getAvailableMonths(true),
             'pagination'     => $pagination,
+            'upcoming_matches' => \App\Services\AgendaService::getUpcomingMatches(3),
+            'total_all_posts' => Post::countFiltered(['published_only' => true]),
         ]);
     }
 

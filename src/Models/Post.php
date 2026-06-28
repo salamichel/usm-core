@@ -149,6 +149,13 @@ class Post
             $params[':tag_id'] = (int)$filters['tag_id'];
         }
 
+        if (!empty($filters['search'])) {
+            $where[] = '(title LIKE :search_t OR excerpt LIKE :search_e OR content LIKE :search_c)';
+            $params[':search_t'] = '%' . $filters['search'] . '%';
+            $params[':search_e'] = '%' . $filters['search'] . '%';
+            $params[':search_c'] = '%' . $filters['search'] . '%';
+        }
+
         return [$where, $params];
     }
 
