@@ -203,14 +203,7 @@
 <div class="lg:ml-52 flex flex-col min-h-screen">
 
   {# Flash #}
-  {% if flash %}
-    <div class="px-6 pt-4">
-      <div class="border-2 border-black p-3 shadow-[3px_3px_0_#000] font-semibold max-w-5xl mx-auto
-        {% if flash.type == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-        {{ flash.message }}
-      </div>
-    </div>
-  {% endif %}
+  {% include '_flash.twig' %}
 
   <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
     {% block content %}{% endblock %}

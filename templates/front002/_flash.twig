@@ -1,10 +1,118 @@
-{# ── Message flash ─────────────────────────────────────────────────────────── #}
+{# ── Message flash sous forme de Toast ────────────────────────────────────── #}
 {% if flash %}
-  <div class="max-w-6xl mx-auto w-full px-6 pt-4" role="alert" aria-live="polite">
-    <div class="rounded-md border px-4 py-3 text-sm font-medium
-      {% if flash.type == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800
-      {% else %}bg-rose-50 border-rose-200 text-rose-800{% endif %}">
-      {{ flash.message }}
+<div id="toast-container" class="fixed top-4 right-4 z-[9999] w-full max-w-sm px-4 pointer-events-none">
+  <div id="toast" class="pointer-events-auto flex items-start gap-3 w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-100 p-4 transition-all duration-500 ease-out transform translate-x-full opacity-0">
+    
+    {# Icon #}
+    <div class="flex-shrink-0">
+      {% if flash.type == 'success' %}
+        {# Check icon #}
+        <div class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      {% else %}
+        {# Warning icon #}
+        <div class="p-1.5 bg-rose-50 text-rose-600 rounded-lg">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+      {% endif %}
     </div>
+
+    {# Content #}
+    <div class="flex-1 min-w-0 pt-0.5">
+      <p class="text-sm font-semibold text-slate-900">
+        {% if flash.type == 'success' %}Succès{% else %}Erreur{% endif %}
+      </p>
+      <p class="mt-1 text-sm text-slate-500 leading-snug">
+        {{ flash.message }}
+      </p>
+    </div>
+
+    {# Close button #}
+    <div class="flex-shrink-0 flex">
+      <button id="toast-close" class="inline-flex text-slate-400 hover:text-slate-600 focus:outline-none transition-colors cursor-pointer">
+        <span class="sr-only">Fermer</span>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    {# Progress bar #}
+    <div class="absolute bottom-0 left-0 h-1 rounded-b-2xl transition-all duration-100 ease-linear pointer-events-none" id="toast-progress" style="width: 100%; background-color: {{ site_config.primary_color|default('#94674d') }};"></div>
   </div>
+</div>
+
+<script>
+(function() {
+  const toast = document.getElementById('toast');
+  const closeBtn = document.getElementById('toast-close');
+  const progress = document.getElementById('toast-progress');
+  
+  if (!toast) return;
+
+  let duration = 5000; // 5 secondes
+  let remaining = duration;
+  let lastFrameTime = Date.now();
+  let animationFrameId = null;
+  let isHovered = false;
+
+  // Affichage du toast avec transition
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full', 'opacity-0');
+    toast.classList.add('translate-x-0', 'opacity-100');
+    startCountdown();
+  }, 100);
+
+  function dismiss() {
+    cancelAnimationFrame(animationFrameId);
+    toast.classList.remove('translate-x-0', 'opacity-100');
+    toast.classList.add('translate-x-full', 'opacity-0');
+    setTimeout(() => {
+      const container = document.getElementById('toast-container');
+      if (container) container.remove();
+    }, 500);
+  }
+
+  function startCountdown() {
+    lastFrameTime = Date.now();
+    animationFrameId = requestAnimationFrame(updateProgress);
+  }
+
+  function updateProgress() {
+    if (isHovered) {
+      lastFrameTime = Date.now();
+      animationFrameId = requestAnimationFrame(updateProgress);
+      return;
+    }
+
+    const now = Date.now();
+    const delta = now - lastFrameTime;
+    lastFrameTime = now;
+
+    remaining -= delta;
+    if (remaining <= 0) {
+      if (progress) progress.style.width = '0%';
+      dismiss();
+    } else {
+      if (progress) {
+        progress.style.width = ((remaining / duration) * 100) + '%';
+      }
+      animationFrameId = requestAnimationFrame(updateProgress);
+    }
+  }
+
+  // Mettre en pause lors du survol
+  toast.addEventListener('mouseenter', () => { isHovered = true; });
+  toast.addEventListener('mouseleave', () => { isHovered = false; });
+
+  // Clic bouton fermer
+  closeBtn.addEventListener('click', dismiss);
+})();
+</script>
 {% endif %}
+
