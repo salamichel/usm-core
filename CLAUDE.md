@@ -2,7 +2,7 @@
 
 ## Contexte du projet
 
-Site public + back-office pour l'**Union Sportive Miosienne Volley-Ball**.
+Site public + back-office pour l'**Unions Salles Mios Volley-Ball**.
 Stack : PHP 8.2 · Twig · MySQL 8 · TailwindCSS (CDN) · Docker Compose.
 
 Hébergement cible : **InfinityFree** (shared hosting, pas de SSH, pas de

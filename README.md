@@ -1,6 +1,6 @@
 # USM Volley — Site web et back-office
 
-Site public + interface d'administration pour l'**Union Sportive Miosienne Volley-Ball**.
+Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball**.
 
 ## 🎯 Caractéristiques
 
