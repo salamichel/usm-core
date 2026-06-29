@@ -163,6 +163,19 @@
     </div>
   </div>
 
+  {# ── Google Analytics ── #}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+    <h2 class="font-black text-lg">Google Analytics</h2>
+    <p class="text-xs text-gray-500">Saisissez votre ID de mesure Google Analytics (ex: <code>G-XXXXXXXXXX</code>) pour suivre l'audience du site. Laissez vide pour désactiver le suivi.</p>
+    <div>
+      <label class="block font-black mb-1" for="google_analytics_id">ID de mesure Google Analytics (G-XXXXXX)</label>
+      <input type="text" id="google_analytics_id" name="google_analytics_id"
+             value="{{ config.google_analytics_id|default('') }}"
+             placeholder="G-XXXXXXXXXX"
+             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+    </div>
+  </div>
+
   {# ── Mentions légales ── #}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
     <h2 class="font-black text-lg">Mentions légales</h2>

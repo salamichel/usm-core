@@ -14,6 +14,7 @@ class SiteConfigController
         'theme',
         'club_name', 'club_tagline', 'address', 'email', 'phone',
         'facebook_url', 'instagram_url', 'legal_text',
+        'google_analytics_id',
         'home_slider_posts_count', 'home_latest_posts_count',
         'font_family', 'primary_color',
         'header_bg_color', 'header_text_color',
