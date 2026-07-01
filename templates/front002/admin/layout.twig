@@ -52,6 +52,7 @@
         {% set links = [
           [url('admin/home-blocks'), '🏠 Accueil',       '/admin/home-blocks'],
           [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],          
+          [url('admin/stats'),       '📈 Statistiques',  '/admin/stats'],
           [url('admin/site-config'), '⚙️ Configuration',  '/admin/site-config'],
         ] %}
         {% for link in links %}
@@ -150,6 +151,7 @@
       <div class="space-y-1 pl-2">
         <a href="{{ url('admin/home-blocks') }}" class="block py-1 hover:text-amber-400">🏠 Accueil</a>
         <a href="{{ url('admin/menu') }}"        class="block py-1 hover:text-amber-400">≡ Menu nav</a>
+        <a href="{{ url('admin/stats') }}"       class="block py-1 hover:text-amber-400">📈 Statistiques</a>
         <a href="{{ url('admin/site-config') }}" class="block py-1 hover:text-amber-400">⚙️ Configuration</a>
       </div>
     </div>

@@ -29,6 +29,7 @@ use App\Controllers\Admin\PostController;
 use App\Controllers\Admin\SaisonController;
 use App\Controllers\Admin\SiteConfigController;
 use App\Controllers\Admin\ContactAdminController;
+use App\Controllers\Admin\StatsController;
 use App\Controllers\Admin\LocationController;
 use App\Controllers\Admin\ContactMessageController;
 use App\Controllers\Admin\MediaUploadController;
@@ -206,6 +207,9 @@ class App
         $r->get('/admin/categories-equipes/{id}/edit',    [CategorieEquipeController::class, 'edit']);
         $r->post('/admin/categories-equipes/{id}/edit',   [CategorieEquipeController::class, 'update']);
         $r->post('/admin/categories-equipes/{id}/delete', [CategorieEquipeController::class, 'delete']);
+
+        // ── Admin stats ───────────────────────────────────────────────────────
+        $r->get('/admin/stats',        [StatsController::class, 'index']);
 
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);
