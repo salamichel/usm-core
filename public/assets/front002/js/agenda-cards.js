@@ -9,7 +9,18 @@
         const cards = grid.querySelectorAll(`[data-event-filter="${filter}"]`);
         cards.forEach(card => {
             const btn = [...card.querySelectorAll('.status-btn')].find(b => b.dataset.status === status);
-            if (btn) btn.click();
+            if (btn) {
+                btn.click();
+            } else {
+                const select = card.querySelector('.status-select');
+                if (select) {
+                    const hasOption = [...select.options].some(opt => opt.value === status);
+                    if (hasOption) {
+                        select.value = status;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            }
         });
     };
 
@@ -75,22 +86,10 @@
         };
         return map[s] || 'unknown';
     };
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.status-btn');
-        if (!btn) return;
-
-        e.preventDefault();
-
-        const card = btn.closest('[data-manifestation-id]');
-        if (!card) return;
-
-        const manifestationId = parseInt(card.dataset.manifestationId);
-        const newStatus = btn.dataset.status;
-        const oldStatus = card.dataset.currentStatus || '.';
-
+    const submitStatusUpdate = (element, manifestationId, newStatus, oldStatus, card) => {
         if (newStatus === oldStatus) return;
 
-        btn.classList.add('opacity-50', 'cursor-wait');
+        element.classList.add('opacity-50', 'cursor-wait');
 
         fetch('/api/member/participations/upsert', {
             method: 'POST',
@@ -99,30 +98,44 @@
         })
             .then(r => r.json())
             .then(data => {
-                btn.classList.remove('opacity-50', 'cursor-wait');
+                element.classList.remove('opacity-50', 'cursor-wait');
 
                 if (data.ok) {
                     card.dataset.currentStatus = newStatus;
 
-                    // Mettre à jour l'apparence active/inactive des boutons d'action
-                    card.querySelectorAll('.status-btn').forEach(b => {
-                        const status = b.dataset.status;
-                        const isActive = status === newStatus;
-                        const cat = helperCat(status);
+                    // Mettre à jour l'apparence active/inactive des boutons et select
+                    card.querySelectorAll('.status-btn, .status-select').forEach(el => {
+                        if (el.tagName === 'SELECT') {
+                            const isSelectActive = helperCat(newStatus) === 'present';
+                            if (isSelectActive) {
+                                el.value = newStatus;
+                                el.className = `status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border bg-emerald-600 text-white border-emerald-600`;
+                            } else {
+                                el.value = 'Présent(e)';
+                                el.className = `status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100`;
+                            }
+                        } else {
+                            const status = el.dataset.status;
+                            const isActive = status === newStatus;
+                            const cat = helperCat(status);
 
-                        if (cat === 'available' || cat === 'present') {
-                            b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'
-                                }`;
-                        } else if (cat === 'available_if_needed') {
-                            b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100'
-                                }`;
-                        } else if (cat === 'unavailable' || cat === 'absent') {
-                            b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100'
-                                }`;
-                        } else if (cat === 'empty') {
-                            const isResetActive = !newStatus || newStatus === '.';
-                            b.className = `status-btn px-2.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1 ${isResetActive ? 'bg-slate-400 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                                }`;
+                            if (cat === 'available' || cat === 'present') {
+                                el.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'
+                                    }`;
+                            } else if (cat === 'available_if_needed') {
+                                el.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100'
+                                    }`;
+                            } else if (cat === 'unavailable' || cat === 'absent') {
+                                el.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100'
+                                    }`;
+                            } else if (cat === 'unknown') {
+                                el.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${isActive ? 'bg-slate-600 text-white' : 'bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-100'
+                                    }`;
+                            } else if (cat === 'empty') {
+                                const isResetActive = !newStatus || newStatus === '.';
+                                el.className = `status-btn px-2.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1 ${isResetActive ? 'bg-slate-400 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                                    }`;
+                            }
                         }
                     });
 
@@ -205,7 +218,6 @@
 
                             players = players.filter(p => p.id !== currentUserId);
 
-
                             const key = bubble.dataset.statusKey;
                             const newCat = helperCat(newStatus);
                             if (key === newCat) {
@@ -218,18 +230,54 @@
                         rebuildAvatarStack(card);
                     }
 
-                    btn.classList.add('animate-pulse');
-                    setTimeout(() => btn.classList.remove('animate-pulse'), 500);
+                    element.classList.add('animate-pulse');
+                    setTimeout(() => element.classList.remove('animate-pulse'), 500);
 
                 } else {
                     alert("Erreur lors de l'enregistrement : " + (data.message || "Inconnue"));
+                    if (element.tagName === 'SELECT') {
+                        element.value = oldStatus;
+                    }
                 }
             })
             .catch(err => {
                 console.error('Erreur AJAX:', err);
-                btn.classList.remove('opacity-50', 'cursor-wait');
+                element.classList.remove('opacity-50', 'cursor-wait');
                 alert("Erreur de communication avec le serveur.");
+                if (element.tagName === 'SELECT') {
+                    element.value = oldStatus;
+                }
             });
+    };
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.status-btn');
+        if (!btn) return;
+
+        e.preventDefault();
+
+        const card = btn.closest('[data-manifestation-id]');
+        if (!card) return;
+
+        const manifestationId = parseInt(card.dataset.manifestationId);
+        const newStatus = btn.dataset.status;
+        const oldStatus = card.dataset.currentStatus || '.';
+
+        submitStatusUpdate(btn, manifestationId, newStatus, oldStatus, card);
+    });
+
+    document.addEventListener('change', function (e) {
+        const select = e.target.closest('.status-select');
+        if (!select) return;
+
+        const card = select.closest('[data-manifestation-id]');
+        if (!card) return;
+
+        const manifestationId = parseInt(card.dataset.manifestationId);
+        const newStatus = select.value;
+        const oldStatus = card.dataset.currentStatus || '.';
+
+        submitStatusUpdate(select, manifestationId, newStatus, oldStatus, card);
     });
 
     // Reconstruire dynamiquement les avatars empilés d'une carte
