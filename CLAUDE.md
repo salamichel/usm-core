@@ -729,6 +729,12 @@ L'espace capitaine permet aux capitaines d'équipes de piloter les convocations 
   - Body JSON : `{ joueur_id, manifestation_id, status }`
   - Gère la désélection concurrentielle (`removeConcurrentParticipations`) et recalcule dynamiquement toute la grille et les métriques de l'équipe pour les renvoyer au format JSON.
 
+### Architecture des Présences (ParticipationStatus)
+Pour immuniser le code source contre le changement des libellés de la base de données (ex. renommer "Présent" en "Présent(e)"), une couche d'abstraction a été mise en place :
+1. **Helper `ParticipationStatus`** : Convertit un libellé textuel brut (`Oui`, `Présent(e)`, `Joker`) en une **catégorie abstraite standardisée** en anglais (`present`, `available`, `available_if_needed`, `selected`, `absent`, `unavailable`, `unknown`).
+2. **`EventNormalizer`** : Calcule les totaux et trie les joueurs dans des tableaux (ex. `$manifestationStats['available']`) en se basant **uniquement** sur ces catégories, jamais sur les chaînes brutes.
+3. **Twig & JS** : Les vues Twig (ex. `_event_card.twig`, `detail.twig`) et le code JavaScript (`agenda-cards.js`) s'appuient sur les clés standardisées (ex. `m.user_status_category == 'available'`, `data-status-key="available"`). Les seules chaînes "en dur" conservées sont celles envoyées via les requêtes HTTP `POST` car elles doivent correspondre exactement aux données enregistrées en base.
+
 ---
 
 ## API Articles d'importation

@@ -63,6 +63,18 @@
     // ==========================================
     // 2. GESTION DES CLICS & MISE À JOUR LIVE
     // ==========================================
+    const helperCat = (s) => {
+        if (!s || s === '.') return 'empty';
+        const map = {
+            'Sélectionné(e)': 'selected', 'En réserve': 'selected', 'Sélectionné': 'selected',
+            'Disponible': 'available', 'Joker': 'available',
+            'Disponible si nécessaire': 'available_if_needed', 'Disponible si n': 'available_if_needed',
+            'Indisponible': 'unavailable', 'Absent': 'absent', 'Non': 'absent',
+            'Présent': 'present', 'Présent(e)': 'present', 'Oui': 'present',
+            'Ne sait pas': 'unknown', '?': 'unknown', 'Ne sait pas encore': 'unknown'
+        };
+        return map[s] || 'unknown';
+    };
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.status-btn');
         if (!btn) return;
@@ -96,20 +108,21 @@
                 card.querySelectorAll('.status-btn').forEach(b => {
                     const status = b.dataset.status;
                     const isActive = status === newStatus;
+                    const cat = helperCat(status);
                     
-                    if (['Disponible', 'Présent'].includes(status)) {
+                    if (cat === 'available' || cat === 'present') {
                         b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${
                             isActive ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'
                         }`;
-                    } else if (status === 'Disponible si nécessaire') {
+                    } else if (cat === 'available_if_needed') {
                         b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${
                             isActive ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100'
                         }`;
-                    } else if (['Indisponible', 'Absent'].includes(status)) {
+                    } else if (cat === 'unavailable' || cat === 'absent') {
                         b.className = `status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 ${
                             isActive ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100'
                         }`;
-                    } else if (status === '.') {
+                    } else if (cat === 'empty') {
                         const isResetActive = !newStatus || newStatus === '.';
                         b.className = `status-btn px-2.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1 ${
                             isResetActive ? 'bg-slate-400 text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
@@ -121,14 +134,15 @@
                 const badge = card.querySelector(`#status-${manifestationId}`);
                 if (badge) {
                     let icon = '', textClass = '';
+                    const newCat = helperCat(newStatus);
                     
-                    if (['Disponible', 'Présent'].includes(newStatus)) {
+                    if (newCat === 'available' || newCat === 'present') {
                         icon = '✓'; textClass = 'text-emerald-600';
-                    } else if (newStatus === 'Disponible si nécessaire') {
+                    } else if (newCat === 'available_if_needed') {
                         icon = '◐'; textClass = 'text-amber-500';
-                    } else if (['Indisponible', 'Absent'].includes(newStatus)) {
+                    } else if (newCat === 'unavailable' || newCat === 'absent') {
                         icon = '✗'; textClass = 'text-rose-500';
-                    } else if (newStatus === 'Ne sait pas encore') {
+                    } else if (newCat === 'unknown') {
                         icon = '?'; textClass = 'text-slate-600';
                     } else {
                         icon = '?'; textClass = 'text-slate-400';
@@ -137,7 +151,7 @@
                     badge.className = `inline-flex items-center text-xs font-black mt-0.5 ${textClass}`;
                     badge.innerHTML = newStatus === '.' 
                         ? `Non renseigné` 
-                        : `<span class="mr-1 text-xs">${icon}</span> ${newStatus === 'Disponible si nécessaire' ? 'Si besoin' : newStatus}`;
+                        : `<span class="mr-1 text-xs">${icon}</span> ${newStatus}`;
                 }
 
                 // A. MISE À JOUR DES COMPTEURS & BULLES STATS
@@ -162,7 +176,7 @@
                 if (progressBar && progressLabel) {
                     const isMatch = card.dataset.eventFilter === 'match';
                     if (isMatch) {
-                        const totalCount = (data.counts['Présent'] || 0) + (data.counts['Disponible'] || 0) + (data.counts['Disponible si nécessaire'] || 0);
+                        const totalCount = (data.counts['present'] || 0) + (data.counts['available'] || 0) + (data.counts['available_if_needed'] || 0) + (data.counts['selected'] || 0);
                         const pct = (totalCount >= 6) ? 100 : (totalCount / 6 * 100);
                         progressBar.style.width = pct + '%';
                         
@@ -174,7 +188,7 @@
                             progressLabel.innerHTML = '<span class="text-orange-500">⚠ Sous-effectif (' + totalCount + '/6)</span>';
                         }
                     } else {
-                        const totalPresents = data.counts['Présent'] || 0;
+                        const totalPresents = data.counts['present'] || 0;
                         const pct = (totalPresents >= 12) ? 100 : (totalPresents / 12 * 100);
                         progressBar.style.width = pct + '%';
                         progressLabel.innerHTML = '<span class="text-indigo-500">' + totalPresents + ' présent(s)</span>';
@@ -195,8 +209,10 @@
                         
                         players = players.filter(p => p.id !== currentUserId);
                         
+                        
                         const key = bubble.dataset.statusKey;
-                        if (key === newStatus) {
+                        const newCat = helperCat(newStatus);
+                        if (key === newCat) {
                             players.push({id: currentUserId, nom: currentUserName});
                         }
                         
@@ -226,14 +242,16 @@
         let activePlayers = [];
         
         if (isMatch) {
-            const dispBubble = card.querySelector('[data-status-key="Disponible"]');
-            const sibBubble = card.querySelector('[data-status-key="Disponible si nécessaire"]');
+            const dispBubble = card.querySelector('[data-status-key="available"]');
+            const sibBubble = card.querySelector('[data-status-key="available_if_needed"]');
+            const selBubble = card.querySelector('[data-status-key="selected"]');
             
             const dispPlayers = dispBubble ? JSON.parse(dispBubble.dataset.players || '[]') : [];
             const sibPlayers = sibBubble ? JSON.parse(sibBubble.dataset.players || '[]') : [];
-            activePlayers = [...dispPlayers, ...sibPlayers];
+            const selPlayers = selBubble ? JSON.parse(selBubble.dataset.players || '[]') : [];
+            activePlayers = [...dispPlayers, ...sibPlayers, ...selPlayers];
         } else {
-            const presBubble = card.querySelector('[data-status-key="Présent"]');
+            const presBubble = card.querySelector('[data-status-key="present"]');
             const presPlayers = presBubble ? JSON.parse(presBubble.dataset.players || '[]') : [];
             activePlayers = [...presPlayers];
         }

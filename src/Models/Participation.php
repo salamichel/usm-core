@@ -56,6 +56,17 @@ class Participation
             return;
         }
 
+        // Validation du statut fourni
+        $event = \App\Services\AgendaService::getEventById($manifestationId);
+        if ($event) {
+            $validStatuses = MotsClef::getValidStatusesForEvent($event);
+            $baseStatus = preg_replace('/^(.*?)\s*\(.*?\)$/', '$1', $status);
+            
+            if (!in_array(trim($baseStatus), $validStatuses, true) && !in_array($status, $validStatuses, true)) {
+                throw new \InvalidArgumentException("Le statut '$status' n'est pas autorisé pour ce type d'événement.");
+            }
+        }
+
         // Vérification de l'existence
         $stmt = $db->prepare("SELECT 1 FROM Participation WHERE id_joueur = ? AND id_manifestation = ? LIMIT 1");
         $stmt->execute([$userId, $manifestationId]);

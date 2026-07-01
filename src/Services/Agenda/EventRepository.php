@@ -696,20 +696,7 @@ class EventRepository
         return in_array($team, $categories, true) ? $team : null;
     }
 
-    /**
-     * Récupère les mots clés d'une catégorie donnée.
-     */
-    public static function getKeywordsByCategory(string $category): array
-    {
-        try {
-            $db = ExternalDatabase::get();
-            $stmt = $db->prepare("SELECT Mot FROM Mots_clef WHERE Catégorie = ? ORDER BY Mot");
-            $stmt->execute([$category]);
-            return $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
-        } catch (\Throwable) {
-            return [];
-        }
-    }
+
 
     /**
      * Crée un nouveau match dans la base externe.
