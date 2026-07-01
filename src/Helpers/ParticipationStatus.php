@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Helpers;
@@ -9,17 +10,16 @@ class ParticipationStatus
 
     private const STATUS_MAPPING = [
         "Sélectionné(e)"           => "selected",
-        "En réserve"               => "selected",
-        "Disponible si n"          => "available_if_needed",
         "Disponible si nécessaire" => "available_if_needed",
         "Disponible"               => "available",
         "Joker"                    => "available",
         "Indisponible"             => "unavailable",
-        "Absent"                   => "absent",
-        "Non"                      => "absent",
-        "Oui"                      => "present",
-        "Présent"                  => "present",
+        "Absent(e)"                => "absent",
         "Présent(e)"               => "present",
+        "Présent(e) à 2"           => "present",
+        "Présent(e) à 3"           => "present",
+        "Présent(e) à 4"           => "present",
+        "Présent(e) à 5"           => "present",
         "Ne sait pas"              => "unknown",
         "?"                        => "unknown",
     ];
@@ -47,7 +47,7 @@ class ParticipationStatus
         }
 
         $base = $this->getBaseStatus();
-        
+
         // Exact match
         if (isset(self::STATUS_MAPPING[$base])) {
             return self::STATUS_MAPPING[$base];
@@ -157,7 +157,7 @@ class ParticipationStatus
             }
             return "Sélectionné";
         }
-        
+
         return match ($cat) {
             "present" => "Présent",
             "available" => "Disponible",
