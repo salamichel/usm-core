@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Helpers;
@@ -7,13 +8,32 @@ class ParticipationStatus
 {
     private string $status;
 
-    private const SELECTED_KEYWORDS = ['Sélectionné(e)'];
-    private const AVAILABLE_IF_NEEDED = ['Disponible si n'];
-    private const AVAILABLE_KEYWORDS = ['Disponible', 'Joker'];
-    private const UNAVAILABLE_KEYWORDS = ['Indisponible'];
-    private const ABSENT_KEYWORDS = ['Absent', 'Non'];
-    private const PRESENT_KEYWORDS = ['Oui', 'Présent'];
-    private const UNKNOWN_KEYWORDS = ['Ne sait pas', '?'];
+    private const STATUS_MAPPING = [
+        "Sélectionné(e)"           => "selected",
+        "Disponible si nécessaire" => "available_if_needed",
+        "Disponible"               => "available",
+        "Joker"                    => "available",
+        "Indisponible"             => "unavailable",
+        "Absent(e)"                => "absent",
+        "Présent(e)"               => "present",
+        "Présent(e) à 2"           => "present",
+        "Présent(e) à 3"           => "present",
+        "Présent(e) à 4"           => "present",
+        "Présent(e) à 5"           => "present",
+        "Ne sait pas"              => "unknown",
+        "?"                        => "unknown",
+    ];
+
+    /**
+     * Reconstruit le statut de sélection canonique avec la disponibilité d origine
+     */
+    public static function buildSelectedStatus(string $originalStatus): string
+    {
+        if (empty($originalStatus) || $originalStatus === "Sans réponse") {
+            return "Sélectionné(e)";
+        }
+        return "Sélectionné(e) ($originalStatus)";
+    }
 
     public function __construct(string $status)
     {
@@ -23,81 +43,77 @@ class ParticipationStatus
     public function getCategory(): string
     {
         if ($this->isEmpty()) {
-            return 'no_response';
+            return "no_response";
         }
 
-        if ($this->matchesAny(self::SELECTED_KEYWORDS)) {
-            return 'selected';
+        $base = $this->getBaseStatus();
+
+        // Exact match
+        if (isset(self::STATUS_MAPPING[$base])) {
+            return self::STATUS_MAPPING[$base];
         }
 
-        if ($this->matchesAny(self::AVAILABLE_IF_NEEDED)) {
-            return 'available_if_needed';
+        // Fuzzy match
+        foreach (self::STATUS_MAPPING as $keyword => $cat) {
+            if (stripos($base, $keyword) !== false) {
+                return $cat;
+            }
         }
 
-        if ($this->matchesAny(self::AVAILABLE_KEYWORDS)) {
-            return 'available';
-        }
-
-        if ($this->matchesAny(self::UNAVAILABLE_KEYWORDS)) {
-            return 'unavailable';
-        }
-
-        if ($this->matchesAny(self::ABSENT_KEYWORDS)) {
-            return 'absent';
-        }
-
-        if ($this->matchesAny(self::PRESENT_KEYWORDS)) {
-            return 'present';
-        }
-
-        if ($this->matchesAny(self::UNKNOWN_KEYWORDS)) {
-            return 'unknown';
-        }
-
-        return 'no_response';
+        return "no_response";
     }
 
     public function isSelected(): bool
     {
-        return $this->matchesAny(self::SELECTED_KEYWORDS);
+        return $this->getCategory() === "selected";
     }
 
     public function isAvailable(): bool
     {
-        return $this->matchesAny(self::AVAILABLE_IF_NEEDED) || $this->matchesAny(self::AVAILABLE_KEYWORDS);
+        $cat = $this->getCategory();
+        return $cat === "available" || $cat === "available_if_needed";
     }
 
     public function isUnavailable(): bool
     {
-        return $this->matchesAny(self::UNAVAILABLE_KEYWORDS);
+        return $this->getCategory() === "unavailable";
     }
 
     public function isAbsent(): bool
     {
-        return $this->matchesAny(self::ABSENT_KEYWORDS);
+        return $this->getCategory() === "absent";
     }
 
     public function isPresent(): bool
     {
-        return $this->matchesAny(self::PRESENT_KEYWORDS);
+        return $this->getCategory() === "present";
     }
 
     public function isUnknown(): bool
     {
-        return $this->matchesAny(self::UNKNOWN_KEYWORDS);
+        return $this->getCategory() === "unknown";
     }
 
     public function isEmpty(): bool
     {
-        return $this->status === '';
+        return $this->status === "";
+    }
+
+    private function getBaseStatus(): string
+    {
+        // Strip trailing "(xxx)" for selections
+        if (preg_match("/^(.*?)\s*\((.*?)\)$/", $this->status, $matches)) {
+            return trim($matches[1]);
+        }
+        return $this->status;
     }
 
     public function getOriginalStatus(): string
     {
-        if (preg_match('/^Sélectionné\(e\)\s*\((.*)\)$/', $this->status, $matches)) {
+        if (preg_match("/^.*?\s*\((.*?)\)$/", $this->status, $matches)) {
             return trim($matches[1]);
         }
-        return '';
+        return "";
     }
 
     public function isNonAbsence(): bool
@@ -107,15 +123,10 @@ class ParticipationStatus
 
     public function getCompanionCount(): int
     {
-        if ($this->matchesAny(self::PRESENT_KEYWORDS)) {
-            if (strpos($this->status, '5') !== false) {
-                return 4;
-            } elseif (strpos($this->status, '4') !== false) {
-                return 3;
-            } elseif (strpos($this->status, '3') !== false) {
-                return 2;
-            } elseif (strpos($this->status, '2') !== false) {
-                return 1;
+        if ($this->isPresent()) {
+            if (preg_match("/(\d+)/", $this->status, $matches)) {
+                $num = (int)$matches[1];
+                return max(0, $num - 1);
             }
         }
         return 0;
@@ -124,74 +135,65 @@ class ParticipationStatus
     public function getIcon(): string
     {
         return match ($this->getCategory()) {
-            'present' => '✓',
-            'available' => '◐',
-            'available_if_needed' => '○',
-            'unavailable' => '✗',
-            'absent' => '✗',
-            'selected' => '★',
-            'unknown' => '?',
-            'no_response' => '—',
-            default => '—',
+            "present" => "✓",
+            "available" => "✓",
+            "available_if_needed" => "◐",
+            "unavailable" => "✗",
+            "absent" => "✗",
+            "selected" => "★",
+            "unknown" => "?",
+            "no_response" => "-",
+            default => "-",
         };
     }
 
     public function getLabel(): string
     {
         $cat = $this->getCategory();
-        if ($cat === 'selected') {
+        if ($cat === "selected") {
             $orig = $this->getOriginalStatus();
-            if ($orig !== '' && $orig !== 'Sans réponse') {
-                return 'Sélectionné (' . $orig . ')';
+            if ($orig !== "" && $orig !== "Sans réponse") {
+                return "Sélectionné (" . $orig . ")";
             }
-            return 'Sélectionné';
+            return "Sélectionné";
         }
+
         return match ($cat) {
-            'present' => 'Présent',
-            'available' => 'Disponible',
-            'available_if_needed' => 'Disponible si nécessaire',
-            'unavailable' => 'Indisponible',
-            'absent' => 'Absent',
-            'unknown' => 'Ne sait pas',
-            'no_response' => 'Sans réponse',
-            default => '—',
+            "present" => "Présent",
+            "available" => "Disponible",
+            "available_if_needed" => "Disponible si nécessaire",
+            "unavailable" => "Indisponible",
+            "absent" => "Absent",
+            "unknown" => "Ne sait pas",
+            "no_response" => "Sans réponse",
+            default => "-",
         };
     }
 
     public function getBackgroundColor(): string
     {
         return match ($this->getCategory()) {
-            'present', 'selected' => 'bg-green-100',
-            'available' => 'bg-amber-100',
-            'available_if_needed' => 'bg-cyan-100',
-            'unavailable', 'absent' => 'bg-red-100',
-            'unknown' => 'bg-gray-100',
-            'no_response' => 'bg-white',
-            default => 'bg-white',
+            "present", "selected" => "bg-green-100",
+            "available" => "bg-amber-100",
+            "available_if_needed" => "bg-cyan-100",
+            "unavailable", "absent" => "bg-red-100",
+            "unknown" => "bg-gray-100",
+            "no_response" => "bg-white",
+            default => "bg-white",
         };
     }
 
     public function getTextColor(): string
     {
         return match ($this->getCategory()) {
-            'present', 'selected' => 'text-green-700',
-            'available' => 'text-amber-700',
-            'available_if_needed' => 'text-cyan-700',
-            'unavailable', 'absent' => 'text-red-700',
-            'unknown' => 'text-gray-700',
-            'no_response' => 'text-gray-500',
-            default => 'text-gray-500',
+            "present", "selected" => "text-green-700",
+            "available" => "text-amber-700",
+            "available_if_needed" => "text-cyan-700",
+            "unavailable", "absent" => "text-red-700",
+            "unknown" => "text-gray-700",
+            "no_response" => "text-gray-500",
+            default => "text-gray-500",
         };
-    }
-
-    private function matchesAny(array $keywords): bool
-    {
-        foreach ($keywords as $keyword) {
-            if (strpos($this->status, $keyword) !== false) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static function categorize(string $status): string

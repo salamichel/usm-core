@@ -60,7 +60,20 @@ class AgendaController
             }
 
             foreach ($data['manifestations'] as $mid => &$m) {
-                $m['user_status'] = $userStatuses[$mid] ?? null;
+                $statusStr = $userStatuses[$mid] ?? null;
+                $m['user_status'] = $statusStr;
+                $m['user_status_category'] = $statusStr ? \App\Helpers\ParticipationStatus::categorize($statusStr) : null;
+                $m['valid_statuses'] = array_map(function($s) {
+                    $ps = new \App\Helpers\ParticipationStatus($s);
+                    return [
+                        'value' => $s,
+                        'category' => $ps->getCategory(),
+                        'label' => $s,
+                        'icon' => $ps->getIcon(),
+                        'bg_color' => $ps->getBackgroundColor(),
+                        'text_color' => $ps->getTextColor(),
+                    ];
+                }, \App\Models\MotsClef::getValidStatusesForEvent($m));
             }
             unset($m);
 
@@ -77,6 +90,20 @@ class AgendaController
             ]);
             return;
         }
+
+        // Pre-process cross table for Twig
+        foreach ($data['cross'] as $jid => &$row) {
+            foreach ($data['manifestations'] as $mid => $m) {
+                $statusStr = $row[$mid] ?? '';
+                if (is_string($statusStr) && $statusStr !== '') {
+                    $row[$mid] = [
+                        'text' => $statusStr,
+                        'category' => \App\Helpers\ParticipationStatus::categorize($statusStr)
+                    ];
+                }
+            }
+        }
+        unset($row);
 
         View::render('agenda/index.twig', [
             'joueurs'        => $data['joueurs'],

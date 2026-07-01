@@ -126,6 +126,17 @@ class MemberDashboardService
             $normalized['user_status_icon'] = $status->getIcon();
             $normalized['user_status_color'] = $status->getBackgroundColor();
             $normalized['enough_players'] = $enoughPlayers;
+            $normalized['valid_statuses'] = array_map(function($s) {
+                $ps = new \App\Helpers\ParticipationStatus($s);
+                return [
+                    'value' => $s,
+                    'category' => $ps->getCategory(),
+                    'label' => $s,
+                    'icon' => $ps->getIcon(),
+                    'bg_color' => $ps->getBackgroundColor(),
+                    'text_color' => $ps->getTextColor(),
+                ];
+            }, \App\Models\MotsClef::getValidStatusesForEvent($m));
 
             $result[] = $normalized;
         }

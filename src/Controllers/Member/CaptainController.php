@@ -110,7 +110,11 @@ class CaptainController
 
         View::render('member/captain/dashboard.twig', [
             'teams' => $teamsData,
-            'saison' => $saisonActive
+            'saison' => $saisonActive,
+            'statuses' => [
+                'match' => \App\Models\MotsClef::getByCategory('Participation_match'),
+                'entrainement' => \App\Models\MotsClef::getByCategory('Participation_entrai'),
+            ]
         ]);
     }
 
@@ -122,9 +126,9 @@ class CaptainController
     {
         [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
 
-        $locations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Lieu');
-        $durations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Durée_créneau');
-        $statuses = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Statut');
+        $locations = \App\Models\MotsClef::getByCategory('Lieu');
+        $durations = \App\Models\MotsClef::getByCategory('Durée_créneau');
+        $statuses = \App\Models\MotsClef::getByCategory('Statut');
 
         View::render('member/captain/create_match.twig', [
             'teams'     => $captainedTeams,
@@ -147,7 +151,8 @@ class CaptainController
             ->required('date', 'La date et l\'heure sont requises.')
             ->required('location', 'Le lieu est requis.')
             ->required('duration', 'La durée est requise.')
-            ->required('statut', 'Le statut est requis.');
+            ->required('statut', 'Le statut est requis.')
+            ->in('statut', \App\Models\MotsClef::getByCategory('Statut'), 'Le statut sélectionné n\'est pas valide.');
 
         if ($v->fails()) {
             View::flash('error', $v->firstError());
@@ -240,9 +245,9 @@ class CaptainController
             $dateValue = date('Y-m-d\TH:i', strtotime($event['Date']));
         }
 
-        $locations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Lieu');
-        $durations = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Durée_créneau');
-        $statuses = \App\Services\Agenda\EventRepository::getKeywordsByCategory('Statut');
+        $locations = \App\Models\MotsClef::getByCategory('Lieu');
+        $durations = \App\Models\MotsClef::getByCategory('Durée_créneau');
+        $statuses = \App\Models\MotsClef::getByCategory('Statut');
 
         View::render('member/captain/edit_match.twig', [
             'event'     => $event,
@@ -290,7 +295,8 @@ class CaptainController
             ->required('date', 'La date et l\'heure sont requises.')
             ->required('location', 'Le lieu est requis.')
             ->required('duration', 'La durée est requise.')
-            ->required('statut', 'Le statut est requis.');
+            ->required('statut', 'Le statut est requis.')
+            ->in('statut', \App\Models\MotsClef::getByCategory('Statut'), 'Le statut sélectionné n\'est pas valide.');
 
         if ($v->fails()) {
             View::flash('error', $v->firstError());
@@ -502,7 +508,7 @@ class CaptainController
                 // Si pas déjà sélectionné, on le sélectionne et on mémorise sa dispo d'origine
                 if ($statusObj->getCategory() !== 'selected') {
                     $orig = $currentStatus !== '' ? $currentStatus : 'Sans réponse';
-                    $newStatus = "Sélectionné(e) ($orig)";
+                    $newStatus = \App\Helpers\ParticipationStatus::buildSelectedStatus($orig);
                     Participation::upsert($jid, $matchId, $newStatus);
                     $this->removeConcurrentParticipations($jid, $event);
 
@@ -591,9 +597,9 @@ class CaptainController
                         $newStatus = 'Absent';
                         if ($currentStatus === 'Oui') {
                             $newStatus = 'Non';
-                        } elseif ($currentStatus === 'Disponible' || $currentStatus === 'Disponible si nécessaire') {
+                        } elseif ($statusObj->getCategory() === 'available' || $statusObj->getCategory() === 'available_if_needed') {
                             $newStatus = 'Indisponible';
-                        } elseif ($currentStatus === 'Présent') {
+                        } elseif ($statusObj->getCategory() === 'present') {
                             $newStatus = 'Absent';
                         }
                         
@@ -736,7 +742,7 @@ class CaptainController
             if ($status === 'selected') {
                 if ($statusObj->getCategory() !== 'selected') {
                     $orig = $currentStatus !== '' ? $currentStatus : 'Sans réponse';
-                    $newStatus = "Sélectionné(e) ($orig)";
+                    $newStatus = \App\Helpers\ParticipationStatus::buildSelectedStatus($orig);
                     Participation::upsert($joueurId, $manifestationId, $newStatus);
                     $this->removeConcurrentParticipations($joueurId, $event);
 
@@ -784,6 +790,9 @@ class CaptainController
                 'metrics' => $data['metrics']
             ]);
 
+        } catch (\InvalidArgumentException $e) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'message' => $e->getMessage()]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['ok' => false, 'message' => 'Erreur lors de la sauvegarde : ' . $e->getMessage()]);

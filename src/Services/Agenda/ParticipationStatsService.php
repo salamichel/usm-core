@@ -132,12 +132,13 @@ class ParticipationStatsService
         $stats = self::getParticipationStats($manifestationId);
 
         return [
-            'Disponible'               => $stats['available']           ?? 0,
-            'Disponible si nécessaire' => $stats['available_if_needed'] ?? 0,
-            'Indisponible'             => $stats['unavailable']          ?? 0,
-            'Présent'                  => $stats['present']              ?? 0,
-            'Absent'                   => $stats['absent']               ?? 0,
-            'Ne sait pas encore'       => $stats['unknown']              ?? 0,
+            'available'           => $stats['available']           ?? 0,
+            'available_if_needed' => $stats['available_if_needed'] ?? 0,
+            'unavailable'         => $stats['unavailable']         ?? 0,
+            'present'             => $stats['present']             ?? 0,
+            'absent'              => $stats['absent']              ?? 0,
+            'unknown'             => $stats['unknown']             ?? 0,
+            'selected'            => $stats['selected']            ?? 0,
         ];
     }
 

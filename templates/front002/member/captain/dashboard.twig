@@ -404,7 +404,13 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+    // Inject dynamic valid statuses from backend
+    const VALID_STATUSES = {
+        match: {{ statuses.match|default([])|json_encode|raw }},
+        entrainement: {{ statuses.entrainement|default([])|json_encode|raw }}
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
     let activePopover = null;
 
     document.addEventListener('click', (e) => {
@@ -446,23 +452,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Liste des options selon le type
             let options = [];
+            
+            const helperCat = (s) => {
+                const map = {
+                    'Sélectionné(e)': 'selected', 'En réserve': 'selected',
+                    'Disponible': 'available', 'Joker': 'available',
+                    'Disponible si nécessaire': 'available_if_needed', 'Disponible si n': 'available_if_needed',
+                    'Indisponible': 'unavailable', 'Absent': 'absent', 'Non': 'absent',
+                    'Présent': 'present', 'Présent(e)': 'present', 'Oui': 'present',
+                    'Ne sait pas': 'unknown', '?': 'unknown'
+                };
+                return map[s] || 'unknown';
+            };
+
+            const getClassForCat = (cat) => {
+                const colors = {
+                    'selected': 'text-amber-700 bg-amber-50 hover:bg-amber-100',
+                    'available': 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100',
+                    'available_if_needed': 'text-blue-700 bg-blue-50 hover:bg-blue-100',
+                    'unavailable': 'text-rose-700 bg-rose-50 hover:bg-rose-100',
+                    'absent': 'text-rose-700 bg-rose-50 hover:bg-rose-100',
+                    'present': 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100',
+                    'unknown': 'text-slate-700 bg-slate-100 hover:bg-slate-200'
+                };
+                return colors[cat] || 'text-slate-700 bg-slate-100 hover:bg-slate-200';
+            };
+
             if (eventType === 'match') {
                 const isCurrentlySelected = currentCat === 'selected';
-                options = [
-                    { label: isCurrentlySelected ? '★ Désélectionner' : '★ Sélectionner', value: isCurrentlySelected ? 'deselected' : 'selected', class: 'text-amber-700 bg-amber-50 hover:bg-amber-100' },
-                    { label: '✓ Disponible', value: 'Disponible', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-                    { label: '◐ Si besoin', value: 'Disponible si nécessaire', class: 'text-blue-700 bg-blue-50 hover:bg-blue-100' },
-                    { label: '✗ Indisponible', value: 'Indisponible', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
-                    { label: '? Ne sait pas', value: 'Ne sait pas encore', class: 'text-slate-700 bg-slate-100 hover:bg-slate-200' },
-                    { label: '⊘ Sans réponse', value: '', class: 'text-slate-450 border border-slate-100 hover:bg-slate-50' }
-                ];
+                options.push({ label: isCurrentlySelected ? '★ Désélectionner' : '★ Sélectionner', value: isCurrentlySelected ? 'deselected' : 'selected', class: 'text-amber-700 bg-amber-50 hover:bg-amber-100' });
+                
+                VALID_STATUSES.match.forEach(stat => {
+                    if (stat !== 'Sélectionné(e)' && stat !== 'En réserve') {
+                        options.push({ label: stat, value: stat, class: getClassForCat(helperCat(stat)) });
+                    }
+                });
+                options.push({ label: '⊘ Sans réponse', value: '', class: 'text-slate-450 border border-slate-100 hover:bg-slate-50' });
             } else {
-                options = [
-                    { label: '✓ Présent', value: 'Présent', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-                    { label: '✗ Absent', value: 'Absent', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
-                    { label: '? Ne sait pas', value: 'Ne sait pas encore', class: 'text-slate-700 bg-slate-100 hover:bg-slate-200' },
-                    { label: '⊘ Sans réponse', value: '', class: 'text-slate-455 border border-slate-100 hover:bg-slate-50' }
-                ];
+                VALID_STATUSES.entrainement.forEach(stat => {
+                    options.push({ label: stat, value: stat, class: getClassForCat(helperCat(stat)) });
+                });
+                options.push({ label: '⊘ Sans réponse', value: '', class: 'text-slate-455 border border-slate-100 hover:bg-slate-50' });
             }
 
             options.forEach(opt => {
