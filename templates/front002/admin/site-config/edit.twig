@@ -166,13 +166,36 @@
   {# ── Google Analytics ── #}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
     <h2 class="font-black text-lg">Google Analytics</h2>
-    <p class="text-xs text-gray-500">Saisissez votre ID de mesure Google Analytics (ex: <code>G-XXXXXXXXXX</code>) pour suivre l'audience du site. Laissez vide pour désactiver le suivi.</p>
+    <p class="text-xs text-gray-500">Configurez le suivi d'audience (front-end) et la connexion au tableau de bord des statistiques de visites (API Google Analytics Data).</p>
+    
     <div>
       <label class="block font-black mb-1" for="google_analytics_id">ID de mesure Google Analytics (G-XXXXXX)</label>
       <input type="text" id="google_analytics_id" name="google_analytics_id"
              value="{{ config.google_analytics_id|default('') }}"
              placeholder="G-XXXXXXXXXX"
              class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      <span class="text-xs text-gray-400">Utilisé pour charger le script de suivi sur les pages publiques.</span>
+    </div>
+
+    <div class="border-t border-black/10 pt-4 mt-4 space-y-4">
+      <h3 class="font-black text-sm uppercase tracking-wider text-gray-500">Connexion API (Tableau de Bord)</h3>
+      
+      <div>
+        <label class="block font-black mb-1" for="google_analytics_property_id">ID de propriété Google Analytics 4 (GA4)</label>
+        <input type="text" id="google_analytics_property_id" name="google_analytics_property_id"
+               value="{{ config.google_analytics_property_id|default('') }}"
+               placeholder="Ex: 123456789"
+               class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <span class="text-xs text-gray-400">ID numérique de votre propriété GA4 (dans Administration > Paramètres de la propriété).</span>
+      </div>
+
+      <div>
+        <label class="block font-black mb-1" for="google_analytics_service_account">Compte de service (Clé JSON Google Cloud)</label>
+        <textarea id="google_analytics_service_account" name="google_analytics_service_account" rows="6"
+                  placeholder='Ex: {"type": "service_account", "project_id": "...", "private_key": "...", ...}'
+                  class="w-full border-2 border-black px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.google_analytics_service_account|default('') }}</textarea>
+        <span class="text-xs text-gray-400">Collez ici l'intégralité du contenu du fichier JSON de clé généré pour votre compte de service Google Cloud.</span>
+      </div>
     </div>
   </div>
 
