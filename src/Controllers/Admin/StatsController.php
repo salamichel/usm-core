@@ -60,7 +60,7 @@ class StatsController extends BaseAdminController
 
         // Gestion du cache local
         if (!is_dir(self::CACHE_DIR)) {
-            mkdir(self::CACHE_DIR, 0755, true);
+            @mkdir(self::CACHE_DIR, 0755, true);
         }
 
         $cacheFile = self::CACHE_DIR . '/stats_' . $period . '.json';
@@ -136,8 +136,8 @@ class StatsController extends BaseAdminController
 
             if ($apiResult && isset($apiResult['reports'])) {
                 $data = $this->parseReports($apiResult['reports']);
-                if ($data) {
-                    file_put_contents($cacheFile, json_encode($data));
+                if ($data && is_dir(self::CACHE_DIR) && is_writable(self::CACHE_DIR)) {
+                    @file_put_contents($cacheFile, json_encode($data));
                 }
             } else {
                 // Tenter d'utiliser un cache expiré s'il existe pour éviter un écran blanc
@@ -204,7 +204,7 @@ class StatsController extends BaseAdminController
 
             $avgSecs = (float)($totalsData[4]['value'] ?? 0.0);
             $durationMin = (int)floor($avgSecs / 60);
-            $durationSec = (int)($avgSecs % 60);
+            $durationSec = ((int)$avgSecs) % 60;
             $formattedDuration = sprintf("%02d:%02d", $durationMin, $durationSec);
 
             // 2. Top Pages
