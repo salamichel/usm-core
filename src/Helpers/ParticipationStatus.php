@@ -101,16 +101,15 @@ class ParticipationStatus
 
     private function getBaseStatus(): string
     {
-        // Strip trailing "(xxx)" for selections
-        if (preg_match("/^(.*?)\s*\((.*?)\)$/", $this->status, $matches)) {
-            return trim($matches[1]);
+        if (str_starts_with($this->status, 'Sélectionné')) {
+            return 'Sélectionné(e)';
         }
         return $this->status;
     }
 
     public function getOriginalStatus(): string
     {
-        if (preg_match("/^.*?\s*\((.*?)\)$/", $this->status, $matches)) {
+        if (preg_match("/^Sélectionné(?:\(e\))?\s*\((.*)\)$/", $this->status, $matches)) {
             return trim($matches[1]);
         }
         return "";
@@ -153,9 +152,9 @@ class ParticipationStatus
         if ($cat === "selected") {
             $orig = $this->getOriginalStatus();
             if ($orig !== "" && $orig !== "Sans réponse") {
-                return "Sélectionné (" . $orig . ")";
+                return "Sélectionné(e) (" . $orig . ")";
             }
-            return "Sélectionné";
+            return "Sélectionné(e)";
         }
 
         return match ($cat) {

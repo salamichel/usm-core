@@ -77,7 +77,7 @@
     const helperCat = (s) => {
         if (!s || s === '.') return 'empty';
         const map = {
-            'Sélectionné(e)': 'selected', 'En réserve': 'selected', 'Sélectionné': 'selected',
+            'Sélectionné(e)': 'selected', 'En réserve': 'selected',
             'Disponible': 'available', 'Joker': 'available',
             'Disponible si nécessaire': 'available_if_needed', 'Disponible si n': 'available_if_needed',
             'Indisponible': 'unavailable', 'Absent': 'absent', 'Non': 'absent',

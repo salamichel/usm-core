@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers\Member;
@@ -161,7 +162,7 @@ class CaptainController
         }
 
         $data = $v->getCleanData(['team_id', 'date', 'location', 'commentaire', 'duration', 'statut']);
-        
+
         $teamId = (int)$data['team_id'];
         $selectedTeam = null;
         foreach ($captainedTeams as $team) {
@@ -251,7 +252,7 @@ class CaptainController
 
         View::render('member/captain/edit_match.twig', [
             'event'     => $event,
-            'date_value'=> $dateValue,
+            'date_value' => $dateValue,
             'team'      => $matchedTeam,
             'locations' => $locations,
             'durations' => $durations,
@@ -400,7 +401,7 @@ class CaptainController
             $jid = (int)$j['id_joueur'];
             $rawStatus = $participations[$jid] ?? '';
             $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
-            
+
             $j['raw_status'] = $rawStatus;
             $j['status_category'] = $statusObj->getCategory();
             $j['status_label'] = $statusObj->getLabel();
@@ -551,10 +552,10 @@ class CaptainController
     private function removeConcurrentParticipations(int $joueurId, array $event): void
     {
         $db = ExternalDatabase::get();
-        
+
         $dateStr = $event['Date'] ?? $event['date'] ?? null;
         $idManifestation = $event['id_manifestation'] ?? $event['id'] ?? 0;
-        
+
         // 1. Trouver les événements candidats dans un intervalle de ±1 jour (non annulés)
         $stmt = $db->prepare(
             "SELECT id_manifestation, Date, Durée_créneau 
@@ -589,7 +590,7 @@ class CaptainController
 
             foreach ($overlappingIds as $mid) {
                 $currentStatus = isset($currentParticipations[$mid]) ? trim($currentParticipations[$mid]) : '';
-                
+
                 if ($currentStatus !== '') {
                     $statusObj = new \App\Helpers\ParticipationStatus($currentStatus);
                     if ($statusObj->isPresent() || $statusObj->isAvailable()) {
@@ -602,7 +603,7 @@ class CaptainController
                         } elseif ($statusObj->getCategory() === 'present') {
                             $newStatus = 'Absent';
                         }
-                        
+
                         $updateStmt = $db->prepare(
                             "UPDATE Participation 
                              SET Participation = ?, S_MAJ = NOW() 
@@ -635,10 +636,10 @@ class CaptainController
             return [0, 0];
         }
         $durationStr = $event['Durée_créneau'] ?? $event['duration'] ?? '2h';
-        
+
         $hours = 2;
         $minutes = 0;
-        
+
         if (!empty($durationStr)) {
             if (str_contains($durationStr, 'h')) {
                 $parts = explode('h', $durationStr);
@@ -649,7 +650,7 @@ class CaptainController
                 $minutes = (int)str_replace('m', '', $durationStr);
             }
         }
-        
+
         $end = strtotime("+{$hours} hour +{$minutes} minute", $start);
         return [$start, $end];
     }
@@ -669,7 +670,7 @@ class CaptainController
 
         header('Content-Type: application/json');
         $userId = (int)$_SESSION['LogInId'];
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input || !isset($input['joueur_id']) || !isset($input['manifestation_id']) || !isset($input['status'])) {
             http_response_code(400);
@@ -789,7 +790,6 @@ class CaptainController
                 'grid_players' => $data['grid_players'],
                 'metrics' => $data['metrics']
             ]);
-
         } catch (\InvalidArgumentException $e) {
             http_response_code(400);
             echo json_encode(['ok' => false, 'message' => $e->getMessage()]);
@@ -813,7 +813,7 @@ class CaptainController
             $db = ExternalDatabase::get();
             $eventPlaceholders = implode(',', array_fill(0, count($eventIds), '?'));
             $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
-            
+
             $stmt = $db->prepare("
                 SELECT id_joueur, id_manifestation, Participation 
                 FROM Participation 
@@ -823,7 +823,7 @@ class CaptainController
             $params = array_merge($eventIds, $playerIds);
             $stmt->execute($params);
             $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            
+
             foreach ($rows as $row) {
                 $jid = (int)$row['id_joueur'];
                 $mid = (int)$row['id_manifestation'];
@@ -843,18 +843,18 @@ class CaptainController
                 'is_captain' => (bool)($player['is_captain'] ?? false),
                 'events' => []
             ];
-            
+
             $nbSelected = 0;
             $nbAvailable = 0;
             $nbUnavailable = 0;
             $nbNoResponse = 0;
-            
+
             foreach ($upcomingEvents as $event) {
                 $mid = $event['id'];
                 $rawStatus = $participationsMap[$jid][$mid] ?? '';
                 $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
                 $category = $statusObj->getCategory();
-                
+
                 if ($category === 'selected') {
                     $nbSelected++;
                 } elseif ($category === 'available' || $category === 'available_if_needed' || $category === 'present') {
@@ -864,7 +864,7 @@ class CaptainController
                 } else {
                     $nbNoResponse++;
                 }
-                
+
                 $playerGrid['events'][$mid] = [
                     'raw_status' => $rawStatus,
                     'category' => $category,
@@ -874,14 +874,14 @@ class CaptainController
                     'text_class' => $statusObj->getTextColor(),
                 ];
             }
-            
+
             $playerGrid['stats'] = [
                 'selected' => $nbSelected,
                 'available' => $nbAvailable,
                 'unavailable' => $nbUnavailable,
                 'no_response' => $nbNoResponse,
             ];
-            
+
             $gridPlayers[] = $playerGrid;
         }
 
@@ -898,24 +898,24 @@ class CaptainController
             $mid = $event['id'];
             $availCount = 0;
             $selCount = 0;
-            
+
             foreach ($rosterPlayers as $player) {
                 $jid = (int)$player['id_joueur'];
                 $rawStatus = $participationsMap[$jid][$mid] ?? '';
                 $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
                 $category = $statusObj->getCategory();
-                
+
                 if ($category !== 'no_response' && $rawStatus !== '') {
                     $totalAnswered++;
                 }
-                
+
                 if (in_array($category, ['selected', 'present', 'available', 'available_if_needed'])) {
                     $availCount++;
                 }
                 if ($category === 'selected') {
                     $selCount++;
                 }
-                
+
                 if ($event['is_training']) {
                     $trainingSlotsCount++;
                     if (in_array($category, ['present', 'available', 'available_if_needed', 'selected'])) {
@@ -923,9 +923,9 @@ class CaptainController
                     }
                 }
             }
-            
+
             $eventAttendance[$mid] = $availCount;
-            
+
             if ($event['is_match']) {
                 if ($selCount < 6) {
                     $understaffedMatches++;
