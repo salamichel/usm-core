@@ -111,7 +111,7 @@
                                 el.value = newStatus;
                                 el.className = `status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border bg-emerald-600 text-white border-emerald-600`;
                             } else {
-                                el.value = 'Présent(e)';
+                                el.value = '';
                                 el.className = `status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100`;
                             }
                         } else {

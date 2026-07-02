@@ -720,7 +720,7 @@ class EventRepository
             $data['date'],
             $data['duration'] ?? '2h',
             $data['location'],
-            $data['comment'],
+            $data['commentaire'],
             $data['statut'] ?? 'Confirmé'
         ]);
 
@@ -742,7 +742,7 @@ class EventRepository
             $data['date'],
             $data['duration'],
             $data['location'],
-            $data['comment'],
+            $data['commentaire'],
             $data['statut'],
             $id
         ]);

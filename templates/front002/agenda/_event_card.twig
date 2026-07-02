@@ -316,7 +316,8 @@
                             {% else %}
                                 {% set is_present = m.user_status_category == 'present' %}
                                 <select class="status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100{% endif %}">
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' or not is_present %}selected{% endif %}>✓ Présent</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
                                     <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
                                     <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
                                     <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
@@ -358,8 +359,9 @@
     {% if m.commentaire or (m.nb_terrains != 0 and m.nb_terrains != 1 and m.nb_terrains != '.') %}
         <div class="mt-4 pt-3 border-t border-slate-100/60 flex flex-wrap gap-3 w-full md:pl-20">
             {% if m.commentaire %}
-                <div class="text-xs italic text-slate-500 bg-slate-50/50 rounded-2xl p-3 border border-slate-100/60 leading-snug flex-grow min-w-[200px]">
-                    {{ m.commentaire }}
+                <div class="text-xs text-slate-700 bg-slate-100/50 rounded-2xl p-3.5 border border-slate-200/60 leading-relaxed flex-grow min-w-[200px] flex items-start gap-2.5 shadow-sm">
+                    <svg class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                    <span class="italic font-medium leading-relaxed">{{ m.commentaire }}</span>
                 </div>
             {% endif %}
 

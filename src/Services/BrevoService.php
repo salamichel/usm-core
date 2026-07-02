@@ -148,7 +148,7 @@ class BrevoService
             $eventDate .= ' à ' . $eventTime;
         }
         $eventLocation = $event['location'] ?? $event['lieu'] ?? '';
-        $eventComment = $event['comment'] ?? $event['commentaire'] ?? '';
+        $eventComment = $event['commentaire'] ?? '';
 
         $template = <<<'HTML'
 <!DOCTYPE html>

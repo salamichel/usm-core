@@ -58,7 +58,6 @@ class EventNormalizer
             'date_display' => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_display' => $timeDisplay,
             'location'     => $row['Lieu'] ?? null,
-            'comment'      => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
             'status'       => $row['Statut'] ?? null,
             'is_soon'      => $isSoon,
         ];
@@ -124,7 +123,6 @@ class EventNormalizer
             'nb_terrains'                 => (int)($row['Nombre_terrain'] ?? 0),
             'location'                    => $row['Lieu'] ?? null,
             'lieu'                        => $row['Lieu'] ?? null,
-            'comment'                     => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
             'commentaire'                 => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
             'status'                      => $statut,
             'statut'                      => $statut,

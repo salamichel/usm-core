@@ -160,7 +160,7 @@ class CaptainController
             exit;
         }
 
-        $data = $v->getCleanData(['team_id', 'date', 'location', 'comment', 'duration', 'statut']);
+        $data = $v->getCleanData(['team_id', 'date', 'location', 'commentaire', 'duration', 'statut']);
         
         $teamId = (int)$data['team_id'];
         $selectedTeam = null;
@@ -193,7 +193,7 @@ class CaptainController
                 'date' => $dateStr,
                 'duration' => $data['duration'],
                 'location' => $data['location'],
-                'comment' => $data['comment'] ?: null,
+                'commentaire' => $data['commentaire'] ?: null,
                 'statut' => $data['statut']
             ]);
 
@@ -304,7 +304,7 @@ class CaptainController
             exit;
         }
 
-        $data = $v->getCleanData(['date', 'location', 'comment', 'duration', 'statut']);
+        $data = $v->getCleanData(['date', 'location', 'commentaire', 'duration', 'statut']);
 
         // Formater la date HTML datetime-local en SQL DATETIME
         $dateStr = str_replace('T', ' ', $data['date']);
@@ -320,7 +320,7 @@ class CaptainController
                 'date' => $dateStr,
                 'duration' => $data['duration'],
                 'location' => $data['location'],
-                'comment' => $data['comment'] ?: null,
+                'commentaire' => $data['commentaire'] ?: null,
                 'statut' => $data['statut']
             ]);
 
