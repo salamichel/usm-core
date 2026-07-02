@@ -52,6 +52,7 @@
         {% set links = [
           [url('admin/home-blocks'), '🏠 Accueil',       '/admin/home-blocks'],
           [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],          
+          [url('admin/stats'),       '📈 Statistiques',  '/admin/stats'],
           [url('admin/site-config'), '⚙️ Configuration',  '/admin/site-config'],
         ] %}
         {% for link in links %}
@@ -150,6 +151,7 @@
       <div class="space-y-1 pl-2">
         <a href="{{ url('admin/home-blocks') }}" class="block py-1 hover:text-amber-400">🏠 Accueil</a>
         <a href="{{ url('admin/menu') }}"        class="block py-1 hover:text-amber-400">≡ Menu nav</a>
+        <a href="{{ url('admin/stats') }}"       class="block py-1 hover:text-amber-400">📈 Statistiques</a>
         <a href="{{ url('admin/site-config') }}" class="block py-1 hover:text-amber-400">⚙️ Configuration</a>
       </div>
     </div>
@@ -203,14 +205,7 @@
 <div class="lg:ml-52 flex flex-col min-h-screen">
 
   {# Flash #}
-  {% if flash %}
-    <div class="px-6 pt-4">
-      <div class="border-2 border-black p-3 shadow-[3px_3px_0_#000] font-semibold max-w-5xl mx-auto
-        {% if flash.type == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-        {{ flash.message }}
-      </div>
-    </div>
-  {% endif %}
+  {% include '_flash.twig' %}
 
   <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
     {% block content %}{% endblock %}

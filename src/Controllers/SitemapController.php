@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
@@ -23,6 +24,7 @@ class SitemapController
         echo "Allow: /\n";
         echo "Disallow: /admin/\n";
         echo "Disallow: /api/\n";
+        echo "Disallow: /agenda/\n";
         echo "Disallow: /assets/uploads/*.pdf$\n";
         echo "Crawl-delay: 1\n\n";
 

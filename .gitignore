@@ -3,5 +3,6 @@ public/assets/uploads/*
 !public/assets/uploads/.gitkeep
 cache/twig/
 cache/agenda/*.json
+cache/google_analytics/
 data/
 logs/

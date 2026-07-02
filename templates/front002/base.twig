@@ -5,6 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5">
   {% block pwa_meta %}{% endblock %}
 
+  {# ── Google Analytics ── #}
+  {% if site_config.google_analytics_id %}
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ site_config.google_analytics_id }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '{{ site_config.google_analytics_id }}');
+
+      // Suivi de tous les clics
+      document.addEventListener('click', function(event) {
+        var target = event.target;
+        var element = target.closest('a, button, [role="button"], input[type="submit"], input[type="button"]');
+        var trackingTarget = element || target;
+
+        var text = (trackingTarget.innerText || trackingTarget.value || trackingTarget.alt || '').trim().substring(0, 100);
+        var tag = trackingTarget.tagName.toLowerCase();
+
+        var params = {
+          'element_text': text,
+          'element_tag': tag,
+          'element_id': trackingTarget.id || undefined,
+          'element_class': trackingTarget.className || undefined,
+          'page_location': window.location.href
+        };
+
+        if (tag === 'a' && trackingTarget.href) {
+          params['link_url'] = trackingTarget.href;
+        }
+
+        gtag('event', 'click_tracking', params);
+      });
+    </script>
+  {% endif %}
+
   {% set page_title = block('title')|trim %}
   <title>{{ page_title ?: 'USM Volley' }}</title>
 
@@ -18,7 +54,7 @@
       <link rel="canonical" href="{{ base_url ~ current_path }}">
     {% endif %}
   {% else %}
-    <meta name="description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+    <meta name="description" content="{{ 'Unions Salles Mios Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ base_url ~ current_path }}">
   {% endif %}
@@ -43,7 +79,7 @@
     {% endif %}
   {% else %}
     <meta property="og:title" content="{{ page_title ?: 'USM Volley' }}">
-    <meta property="og:description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+    <meta property="og:description" content="{{ 'Unions Salles Mios Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ base_url ~ current_path }}">
   {% endif %}
@@ -57,7 +93,7 @@
     {% endif %}
   {% else %}
     <meta name="twitter:title" content="{{ page_title ?: 'USM Volley' }}">
-    <meta name="twitter:description" content="{{ 'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
+    <meta name="twitter:description" content="{{ 'Unions Salles Mios Volley-Ball — actualités, agenda et équipes.'|truncate(160) }}">
   {% endif %}
 
   {# ── JSON-LD ── #}

@@ -105,7 +105,7 @@ class HomeController
             description: SeoService::description(
                 SiteConfig::get('club_tagline'),
                 null,
-                'Union Sportive Miosienne Volley-Ball — actualités, agenda et équipes.'
+                'Unions Salles Mios Volley-Ball — actualités, agenda et équipes.'
             ),
             ogImage: $ogImage,
             ogType: 'website',

@@ -96,6 +96,205 @@ class BrevoService
         );
     }
 
+    public function sendPlayerSelectionNotification(array $player, array $event): bool
+    {
+        $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
+        if (!$playerEmail) {
+            Logger::errors()->error('Cannot send selection email to player: no email address found', ['player' => $player]);
+            return false;
+        }
+
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $subject = '🏐 Convocation match : ' . $eventTitle;
+        $htmlContent = $this->renderPlayerSelectionTemplate($player, $event);
+
+        return $this->sendEmail(
+            $playerEmail,
+            $playerName,
+            $subject,
+            $htmlContent
+        );
+    }
+
+    public function sendMatchCancellationNotification(array $player, array $event): bool
+    {
+        $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
+        if (!$playerEmail) {
+            Logger::errors()->error('Cannot send cancellation email to player: no email address found', ['player' => $player]);
+            return false;
+        }
+
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $subject = '❌ Match annulé : ' . $eventTitle;
+        $htmlContent = $this->renderMatchCancellationTemplate($player, $event);
+
+        return $this->sendEmail(
+            $playerEmail,
+            $playerName,
+            $subject,
+            $htmlContent
+        );
+    }
+
+    private function renderPlayerSelectionTemplate(array $player, array $event): string
+    {
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
+        $eventTime = $event['time_display'] ?? '';
+        if ($eventTime) {
+            $eventDate .= ' à ' . $eventTime;
+        }
+        $eventLocation = $event['location'] ?? $event['lieu'] ?? '';
+        $eventComment = $event['comment'] ?? $event['commentaire'] ?? '';
+
+        $template = <<<'HTML'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #94674d; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .match-info { background: #f3f4f6; padding: 16px; border-left: 4px solid #94674d; margin: 16px 0; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 12px; color: #666; margin-top: 12px; margin-bottom: 2px; }
+        .field-value { font-size: 16px; color: #111; }
+        .cta-button { display: inline-block; background: #94674d; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏐 CONVOCATION MATCH</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{PLAYER_NAME}}</strong>,</p>
+            <p style="margin-top: 8px;">Vous avez été sélectionné(e) pour participer au match suivant :</p>
+
+            <div class="match-info">
+                <div class="field-label">🏆 Rencontre</div>
+                <div class="field-value" style="font-size: 18px; font-weight: 900;">{{EVENT_TITLE}}</div>
+
+                <div class="field-label">📅 Date et Heure</div>
+                <div class="field-value"><strong>{{EVENT_DATE}}</strong></div>
+
+                <div class="field-label">📍 Lieu</div>
+                <div class="field-value">{{EVENT_LOCATION}}</div>
+                
+                {{COMMENT_HTML}}
+            </div>
+
+            <p style="margin-top: 16px;">Merci de vous connecter à votre espace adhérent pour confirmer vos informations ou consulter l'agenda complet.</p>
+            
+            <a href="{{DASHBOARD_URL}}" class="cta-button">👉 Accéder à mon espace</a>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Ne pas répondre directement à cet email.
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        $commentHtml = '';
+        if ($eventComment) {
+            $commentHtml = '<div class="field-label">💬 Commentaire</div><div class="field-value">' . $this->nl2brHtml($eventComment) . '</div>';
+        }
+
+        return strtr($template, [
+            '{{PLAYER_NAME}}' => $this->escapeHtml($playerName),
+            '{{EVENT_TITLE}}' => $this->escapeHtml($eventTitle),
+            '{{EVENT_DATE}}' => $this->escapeHtml($eventDate),
+            '{{EVENT_LOCATION}}' => $this->escapeHtml($eventLocation),
+            '{{COMMENT_HTML}}' => $commentHtml,
+            '{{DASHBOARD_URL}}' => BASE_URL . '/member/dashboard',
+        ]);
+    }
+
+    private function renderMatchCancellationTemplate(array $player, array $event): string
+    {
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
+        $eventTime = $event['time_display'] ?? '';
+        if ($eventTime) {
+            $eventDate .= ' à ' . $eventTime;
+        }
+        $eventLocation = $event['location'] ?? $event['lieu'] ?? '';
+
+        $template = <<<'HTML'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #b91c1c; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .match-info { background: #fef2f2; padding: 16px; border-left: 4px solid #b91c1c; margin: 16px 0; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 12px; color: #666; margin-top: 12px; margin-bottom: 2px; }
+        .field-value { font-size: 16px; color: #111; }
+        .cta-button { display: inline-block; background: #000; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #fff; margin-top: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ MATCH ANNULÉ</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{PLAYER_NAME}}</strong>,</p>
+            <p style="margin-top: 8px; color: #b91c1c; font-weight: bold;">Le match suivant pour lequel vous étiez sélectionné(e) a été annulé :</p>
+
+            <div class="match-info">
+                <div class="field-label">🏆 Rencontre</div>
+                <div class="field-value" style="font-size: 18px; font-weight: 900;">{{EVENT_TITLE}}</div>
+
+                <div class="field-label">📅 Date et Heure initiales</div>
+                <div class="field-value"><strong>{{EVENT_DATE}}</strong></div>
+
+                <div class="field-label">📍 Lieu</div>
+                <div class="field-value">{{EVENT_LOCATION}}</div>
+            </div>
+
+            <p style="margin-top: 16px;">Veuillez prendre en compte cette annulation dans votre agenda. Vous pouvez consulter les autres événements à venir sur votre espace adhérent.</p>
+            
+            <a href="{{DASHBOARD_URL}}" class="cta-button" style="background: #94674d; color: white; box-shadow: 4px 4px 0 #000;">👉 Accéder à mon espace</a>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Ne pas répondre directement à cet email.
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        return strtr($template, [
+            '{{PLAYER_NAME}}' => $this->escapeHtml($playerName),
+            '{{EVENT_TITLE}}' => $this->escapeHtml($eventTitle),
+            '{{EVENT_DATE}}' => $this->escapeHtml($eventDate),
+            '{{EVENT_LOCATION}}' => $this->escapeHtml($eventLocation),
+            '{{DASHBOARD_URL}}' => BASE_URL . '/member/dashboard',
+        ]);
+    }
+
     private function renderCaptainMessageTemplate(array $captain, array $messageData, string $teamName): string
     {
         $template = <<<'HTML'

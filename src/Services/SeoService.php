@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -28,7 +29,7 @@ class SeoService
         }
 
         if ($text === '') {
-            $text = trim((string)($defaultText ?? SiteConfig::get('club_tagline') ?? 'Union Sportive Miosienne Volley-Ball'));
+            $text = trim((string)($defaultText ?? SiteConfig::get('club_tagline') ?? 'Unions Salles Mios Volley-Ball'));
         }
 
         // Normalize whitespace (newlines, tabs, multiple spaces → single space)

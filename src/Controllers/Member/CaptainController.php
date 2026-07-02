@@ -11,6 +11,8 @@ use App\Services\AgendaService;
 use App\Services\Agenda\EventRepository;
 use App\Services\Validator;
 use App\Core\ExternalDatabase;
+use App\Services\BrevoService;
+use App\Services\Logger;
 
 class CaptainController
 {
@@ -314,6 +316,9 @@ class CaptainController
             $dateStr .= ':00'; // ajouter les secondes
         }
 
+        $wasCancelled = $event['annule'] ?? false;
+        $selectedPlayers = $event['selectionnes'] ?? [];
+
         try {
             \App\Services\Agenda\EventRepository::updateMatch($matchId, [
                 'date' => $dateStr,
@@ -322,6 +327,26 @@ class CaptainController
                 'comment' => $data['comment'] ?: null,
                 'statut' => $data['statut']
             ]);
+
+            // Notification d'annulation par email
+            $isCancelledNow = str_contains($data['statut'], 'Annulé');
+            if (!$wasCancelled && $isCancelledNow && !empty($selectedPlayers)) {
+                $brevo = new BrevoService();
+                foreach ($selectedPlayers as $selPlayer) {
+                    try {
+                        $playerDb = \App\Models\Joueur::findById((int)$selPlayer['id']);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo->sendMatchCancellationNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send match cancellation email', [
+                            'player_id' => $selPlayer['id'],
+                            'match_id' => $matchId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
 
             View::flash('success', 'Match mis à jour avec succès.');
             header('Location: /member/captain');
@@ -490,6 +515,21 @@ class CaptainController
                     $newStatus = "Sélectionné(e) ($orig)";
                     Participation::upsert($jid, $matchId, $newStatus);
                     $this->removeConcurrentParticipations($jid, $event);
+
+                    // Notification par email
+                    try {
+                        $playerDb = \App\Models\Joueur::findById($jid);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo = new BrevoService();
+                            $brevo->sendPlayerSelectionNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send player selection email', [
+                            'player_id' => $jid,
+                            'match_id' => $matchId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             } else {
                 // Si dé-sélectionné (et qu'il était sélectionné), on restaure sa dispo d'origine
@@ -709,6 +749,21 @@ class CaptainController
                     $newStatus = "Sélectionné(e) ($orig)";
                     Participation::upsert($joueurId, $manifestationId, $newStatus);
                     $this->removeConcurrentParticipations($joueurId, $event);
+
+                    // Notification par email
+                    try {
+                        $playerDb = \App\Models\Joueur::findById($joueurId);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo = new BrevoService();
+                            $brevo->sendPlayerSelectionNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send player selection email (API)', [
+                            'player_id' => $joueurId,
+                            'match_id' => $manifestationId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             } elseif ($status === 'deselected') {
                 if ($statusObj->getCategory() === 'selected') {
