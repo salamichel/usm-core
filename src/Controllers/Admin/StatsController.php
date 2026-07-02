@@ -87,6 +87,7 @@ class StatsController extends BaseAdminController
                         ['name' => 'bounceRate'],
                         ['name' => 'averageSessionDuration']
                     ],
+                    'metricAggregations' => ['TOTAL'],
                     'orderBys'   => [[
                         'dimension' => ['dimensionName' => 'date'],
                         'desc'      => false
