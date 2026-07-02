@@ -105,7 +105,7 @@ class BrevoService
         }
 
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
-        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventTitle = $event['titre'] ?? 'Match';
         $subject = '🏐 Convocation match : ' . $eventTitle;
         $htmlContent = $this->renderPlayerSelectionTemplate($player, $event);
 
@@ -126,7 +126,7 @@ class BrevoService
         }
 
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
-        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventTitle = $event['titre'] ?? 'Match';
         $subject = '❌ Match annulé : ' . $eventTitle;
         $htmlContent = $this->renderMatchCancellationTemplate($player, $event);
 
@@ -141,13 +141,13 @@ class BrevoService
     private function renderPlayerSelectionTemplate(array $player, array $event): string
     {
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
-        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventTitle = $event['titre'] ?? 'Match';
         $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
         $eventTime = $event['time_display'] ?? '';
         if ($eventTime) {
             $eventDate .= ' à ' . $eventTime;
         }
-        $eventLocation = $event['location'] ?? $event['lieu'] ?? '';
+        $eventLocation = $event['lieu'] ?? '';
         $eventComment = $event['commentaire'] ?? '';
 
         $template = <<<'HTML'
@@ -224,7 +224,7 @@ HTML;
     private function renderMatchCancellationTemplate(array $player, array $event): string
     {
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
-        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventTitle = $event['titre'] ?? 'Match';
         $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
         $eventTime = $event['time_display'] ?? '';
         if ($eventTime) {

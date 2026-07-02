@@ -54,10 +54,10 @@ class EventNormalizer
 
         return [
             'id'           => (int)($row['id_manifestation'] ?? 0),
-            'title'        => self::extractTitle($row['ManifestationTypée'] ?? ''),
+            'titre'        => self::extractTitle($row['ManifestationTypée'] ?? ''),
             'date_display' => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_display' => $timeDisplay,
-            'location'     => $row['Lieu'] ?? null,
+            'lieu'         => $row['Lieu'] ?? null,
             'status'       => $row['Statut'] ?? null,
             'is_soon'      => $isSoon,
         ];
@@ -108,20 +108,16 @@ class EventNormalizer
         $isSoon      = $date && $date->diff($today)->days <= 3 && $date >= $today;
 
         return [
-            'id_manifestation'            => $id,
             'id'                          => $id,
             'type'                        => $type,
             'titre'                       => $titre,
-            'title'                       => $titre,
             'Date'                        => $dateStr,
             'date'                        => $date ? $date->format('Y-m-d') : null,
             'date_display'                => $date ? self::formatDateDisplay($date) : ($dateStr ?? ''),
             'time_range'                  => $timeRange,
             'time_display'                => $timeDisplay,
             'duration'                    => $row['Durée_créneau'] ?? null,
-            'nb_courts'                   => (int)($row['Nombre_terrain'] ?? 0),
             'nb_terrains'                 => (int)($row['Nombre_terrain'] ?? 0),
-            'location'                    => $row['Lieu'] ?? null,
             'lieu'                        => $row['Lieu'] ?? null,
             'commentaire'                 => !empty($row['Commentaire']) ? $row['Commentaire'] : null,
             'status'                      => $statut,

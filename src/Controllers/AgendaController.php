@@ -163,7 +163,7 @@ class AgendaController
     /**
      * Extract and validate filters from $_GET parameters.
      *
-     * String filters (location, type, manifestation, team) are:
+     * String filters (lieu, type, manifestation, team) are:
      * - Only included if non-empty and not equal to "Tous"
      * - Cast to string for safety
      *
@@ -180,7 +180,7 @@ class AgendaController
         $filters = [];
 
         // String filters: only include if non-empty and not "Tous"
-        foreach (['location', 'type', 'manifestation', 'team'] as $key) {
+        foreach (['lieu', 'type', 'manifestation', 'team'] as $key) {
             if (!empty($_GET[$key]) && $_GET[$key] !== 'Tous') {
                 $filters[$key] = (string) $_GET[$key];
             }

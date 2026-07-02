@@ -381,7 +381,7 @@ Service métier pour la gestion de l'agenda :
 **Méthodes principales** :
 - `getCrossTable(array $filters = [])` — crosstable joueurs × manifestations
   - Retourne : `joueurs`, `manifestations`, `cross` (matrix participation)
-  - Filtres supportés : `team`, `location`, `type`, `manifestation`, `this_week`, `hide_empty_players`
+  - Filtres supportés : `team`, `lieu`, `type`, `manifestation`, `this_week`, `hide_empty_players`
   
 - `getParticipationStats(int $manifestationId)` — stats participation pour UN événement
   - Retourne : counts par catégorie + `enough_players` (bool : >= 6 joueurs dispo)
@@ -442,7 +442,7 @@ Implémentés via `extractFilters()` en AgendaController.
 |--------|------|-------|
 | `team` | string | Restreint joueurs à une équipe |
 | `type` | string | Filtre événements par type (Match, Entraînement, etc.) |
-| `location` | string | Filtre par Lieu |
+| `lieu` | string | Filtre par Lieu |
 | `manifestation` | string | Filtre par nom d'événement (segment 3) |
 | `this_week` | bool | Seulement événements cette semaine (Lun-Dim) |
 | `hide_empty_players` | bool | Masque joueurs sans participation |
