@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -20,7 +21,7 @@ class MemberDashboardService
     {
         $db = ExternalDatabase::get();
         $categories = Joueur::getCategories($userId);
-        
+
         if (empty($categories)) {
             return [
                 'this_week' => 0,
@@ -39,7 +40,7 @@ class MemberDashboardService
         // Calcul des dates limites pour cette semaine et la semaine prochaine
         // On considère une semaine du lundi au dimanche
         $today = new \DateTimeImmutable('today');
-        
+
         // Cette semaine
         $startOfWeek = $today->modify('this week'); // Lundi de cette semaine
         $endOfWeek = $startOfWeek->modify('+6 days 23:59:59'); // Dimanche de cette semaine
@@ -103,7 +104,7 @@ class MemberDashboardService
 
         foreach ($imminent as $m) {
             $normalized = AgendaService::normalizeManifestation($m);
-            
+
             // On calcule l'heure d'affichage
             $dateObj = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $m['Date']);
             $timeDisplay = ($dateObj && $dateObj->format('H:i') !== '00:00') ? $dateObj->format('H:i') : '';
@@ -126,17 +127,6 @@ class MemberDashboardService
             $normalized['user_status_icon'] = $status->getIcon();
             $normalized['user_status_color'] = $status->getBackgroundColor();
             $normalized['enough_players'] = $enoughPlayers;
-            $normalized['valid_statuses'] = array_map(function($s) {
-                $ps = new \App\Helpers\ParticipationStatus($s);
-                return [
-                    'value' => $s,
-                    'category' => $ps->getCategory(),
-                    'label' => $s,
-                    'icon' => $ps->getIcon(),
-                    'bg_color' => $ps->getBackgroundColor(),
-                    'text_color' => $ps->getTextColor(),
-                ];
-            }, \App\Models\MotsClef::getValidStatusesForEvent($m));
 
             $result[] = $normalized;
         }
@@ -246,7 +236,7 @@ class MemberDashboardService
                 if ($status->isPresent() || $status->isAvailable()) {
                     $presentTournaments++;
                 }
-                $events_by_type['tournois']++;            
+                $events_by_type['tournois']++;
             } else {
                 $events_by_type['others']++;
             }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
@@ -63,17 +64,6 @@ class AgendaController
                 $statusStr = $userStatuses[$mid] ?? null;
                 $m['user_status'] = $statusStr;
                 $m['user_status_category'] = $statusStr ? \App\Helpers\ParticipationStatus::categorize($statusStr) : null;
-                $m['valid_statuses'] = array_map(function($s) {
-                    $ps = new \App\Helpers\ParticipationStatus($s);
-                    return [
-                        'value' => $s,
-                        'category' => $ps->getCategory(),
-                        'label' => $s,
-                        'icon' => $ps->getIcon(),
-                        'bg_color' => $ps->getBackgroundColor(),
-                        'text_color' => $ps->getTextColor(),
-                    ];
-                }, \App\Models\MotsClef::getValidStatusesForEvent($m));
             }
             unset($m);
 
@@ -86,7 +76,7 @@ class AgendaController
                 'filters'        => $filters,
                 'filterOptions'  => AgendaService::getFilterOptions(),
                 'currentUserId'  => $userId,
-                'currentUserName'=> $currentUserName,
+                'currentUserName' => $currentUserName,
             ]);
             return;
         }
@@ -142,12 +132,14 @@ class AgendaController
             $userId = (int)$_SESSION['LogInId'];
             $saisonActive = \App\Models\Saison::getActive();
             $captainedTeams = $saisonActive ? \App\Models\EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']) : [];
-            
+
             foreach ($captainedTeams as $team) {
                 $filter = $team['manifestation_filter'] ?: $team['libelle'];
-                if (str_contains($event['titre'] ?? '', $filter) || 
-                    str_contains($event['type'] ?? '', $filter) || 
-                    (isset($event['ManifestationTypée']) && str_contains($event['ManifestationTypée'], $filter))) {
+                if (
+                    str_contains($event['titre'] ?? '', $filter) ||
+                    str_contains($event['type'] ?? '', $filter) ||
+                    (isset($event['ManifestationTypée']) && str_contains($event['ManifestationTypée'], $filter))
+                ) {
                     $isCaptain = true;
                     break;
                 }

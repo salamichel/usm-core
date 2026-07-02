@@ -17,7 +17,7 @@ class Participation
     public static function getUpcomingWithUserStatus(int $userId): array
     {
         $db = ExternalDatabase::get();
-        
+
         $sql = "
             SELECT 
                 m.id_manifestation, 
@@ -31,10 +31,10 @@ class Participation
             WHERE m.Date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
             ORDER BY m.Date ASC
         ";
-        
+
         $stmt = $db->prepare($sql);
         $stmt->execute([$userId]);
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -54,17 +54,6 @@ class Participation
             $stmt = $db->prepare("DELETE FROM Participation WHERE id_joueur = ? AND id_manifestation = ?");
             $stmt->execute([$userId, $manifestationId]);
             return;
-        }
-
-        // Validation du statut fourni
-        $event = \App\Services\AgendaService::getEventById($manifestationId);
-        if ($event) {
-            $validStatuses = MotsClef::getValidStatusesForEvent($event);
-            $baseStatus = preg_replace('/^(.*?)\s*\(.*?\)$/', '$1', $status);
-            
-            if (!in_array(trim($baseStatus), $validStatuses, true) && !in_array($status, $validStatuses, true)) {
-                throw new \InvalidArgumentException("Le statut '$status' n'est pas autorisé pour ce type d'événement.");
-            }
         }
 
         // Vérification de l'existence
@@ -138,7 +127,7 @@ class Participation
             $conditions[] = "`ManifestationTypée` LIKE ?";
             $bindings[] = $pattern;
         }
-        
+
         // Si aucune condition n'est présente (pas de catégories et pas de motifs génériques), retourner vide.
         if (empty($conditions)) {
             return [];
