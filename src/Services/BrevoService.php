@@ -406,6 +406,8 @@ HTML;
                 <div class="field-value"><strong>{{SENDER_NAME}}</strong></div>
                 <div class="field-label">📧 Email</div>
                 <div class="field-value"><a href="mailto:{{SENDER_EMAIL}}" style="color: #94674d; text-decoration: none; font-weight: 900;">{{SENDER_EMAIL}}</a></div>
+                <div class="field-label">📱 Téléphone</div>
+                <div class="field-value"><a href="tel:{{SENDER_PHONE}}" style="color: #94674d; text-decoration: none; font-weight: 900;">{{SENDER_PHONE}}</a></div>
             </div>
 
             <div class="field-label">🏷️ Sujet</div>
@@ -428,6 +430,7 @@ HTML;
         return strtr($template, [
             '{{SENDER_NAME}}' => $this->escapeHtml($contact['name']),
             '{{SENDER_EMAIL}}' => $this->escapeHtml($contact['email']),
+            '{{SENDER_PHONE}}' => $this->escapeHtml($contact['phone'] ?? ''),
             '{{SUBJECT}}' => $this->escapeHtml($contact['subject']),
             '{{MESSAGE}}' => $this->nl2brHtml($contact['message']),
             '{{REPLY_URL}}' => BASE_URL . '/admin/contacts/' . (int)$contact['id'],

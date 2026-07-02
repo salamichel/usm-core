@@ -26,8 +26,10 @@ class ContactController
         }
 
         $v = Validator::make($_POST)
-            ->required('name', 'Le nom est obligatoire.')
-            ->minLength('name', 2)
+            ->required('lastname', 'Le nom est obligatoire.')
+            ->minLength('lastname', 2)
+            ->required('firstname', 'Le prénom est obligatoire.')
+            ->minLength('firstname', 2)
             ->required('email', 'L\'email est obligatoire.')
             ->email('email')
             ->required('phone', 'Le téléphone est obligatoire.')
@@ -41,7 +43,8 @@ class ContactController
                 'locations' => Location::all(),
                 'error' => $v->firstError(),
                 'form_data' => [
-                    'name' => $_POST['name'] ?? '',
+                    'lastname' => $_POST['lastname'] ?? '',
+                    'firstname' => $_POST['firstname'] ?? '',
                     'email' => $_POST['email'] ?? '',
                     'phone' => $_POST['phone'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
@@ -51,7 +54,15 @@ class ContactController
             return;
         }
 
-        $data = $v->getCleanData(['name', 'email', 'phone', 'subject', 'message']);
+        $clean = $v->getCleanData(['lastname', 'firstname', 'email', 'phone', 'subject', 'message']);
+
+        $data = [
+            'name' => trim($clean['firstname'] . ' ' . $clean['lastname']),
+            'email' => $clean['email'],
+            'phone' => $clean['phone'],
+            'subject' => $clean['subject'],
+            'message' => $clean['message'],
+        ];
 
         try {
             $contactId = Contact::create($data);
@@ -74,7 +85,8 @@ class ContactController
                 'locations' => Location::all(),
                 'error' => 'Une erreur est survenue. Veuillez réessayer.',
                 'form_data' => [
-                    'name' => $_POST['name'] ?? '',
+                    'lastname' => $_POST['lastname'] ?? '',
+                    'firstname' => $_POST['firstname'] ?? '',
                     'email' => $_POST['email'] ?? '',
                     'phone' => $_POST['phone'] ?? '',
                     'subject' => $_POST['subject'] ?? '',
