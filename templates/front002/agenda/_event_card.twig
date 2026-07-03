@@ -31,7 +31,11 @@
      data-event-filter="{% if 'forum' in m.titre|lower or 'forum' in m.type|lower %}forum{% elseif m.is_match %}match{% else %}{{ m.type|lower|replace({' ': '-'}) }}{% endif %}"
      data-current-status="{{ m.user_status|default('.') }}"
      data-event-location="{{ m.lieu|default('') }}"
-     data-min-players="{{ m.min_players|default(6) }}">
+     data-min-players="{{ m.min_players|default(6) }}"
+     data-event-type-raw="{{ m.type|default('') }}"
+     data-event-subtype-raw="{{ m.titre|default('') }}"
+     data-event-location-raw="{{ m.lieu|default('') }}"
+     data-event-kind-raw="{% if 'Présences' in m.ManifestationTypée %}Présences{% else %}Disponibilités{% endif %}">
 
     {# Statut Badges #}
     {% if m.annule %}

@@ -117,35 +117,42 @@
                         </h3>
                         <p class="text-xs text-slate-400 mt-1">Déclarez rapidement votre statut sur une sélection de créneaux.</p>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
                         {# 1. Sélectionner le Type #}
                         <div>
-                            <label for="bulk-type-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">1. Type d'événement</label>
+                            <label for="bulk-type-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">1. Type</label>
                             <select id="bulk-type-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
                                 <option value="">Tous les types</option>
-                                <option value="match">Matchs</option>
-                                <option value="entrainement">Entraînements</option>
-                                <option value="tournois">Tournois / Plateaux</option>
-                                <option value="forum">Forums</option>
-                                <option value="club">Club</option>
-                                <option value="beach">Beach Volley</option>
                             </select>
                         </div>
 
-                        {# 2. Sélectionner le Lieu (optionnel) #}
+                        {# 2. Sélectionner le Sous-Type #}
                         <div>
-                            <label for="bulk-location-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">2. Lieu (Optionnel)</label>
+                            <label for="bulk-subtype-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">2. Sous-Type (Équipe)</label>
+                            <select id="bulk-subtype-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Tous les sous-types</option>
+                            </select>
+                        </div>
+
+                        {# 3. Sélectionner le Lieu #}
+                        <div>
+                            <label for="bulk-location-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">3. Lieu</label>
                             <select id="bulk-location-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
                                 <option value="">Tous les lieux</option>
-                                {% for lieu in stats.top_lieux_all|default([]) %}
-                                    <option value="{{ lieu }}">{{ lieu }}</option>
-                                {% endfor %}
                             </select>
                         </div>
 
-                        {# 3. Choisir le Statut #}
+                        {# 4. Nature : Dispo ou Présence #}
                         <div>
-                            <label for="bulk-status-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">3. Statut à appliquer</label>
+                            <label for="bulk-kind-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">4. Dispo ou Présence</label>
+                            <select id="bulk-kind-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Tous (Dispo & Présences)</option>
+                            </select>
+                        </div>
+
+                        {# 5. Choisir le Statut #}
+                        <div>
+                            <label for="bulk-status-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">5. Statut à appliquer</label>
                             <select id="bulk-status-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
                                 <option value="">Choisir un statut...</option>
                                 <option value="Disponible">Disponible / Présent</option>
@@ -155,7 +162,7 @@
                             </select>
                         </div>
 
-                        {# 4. Bouton Appliquer #}
+                        {# 6. Bouton Appliquer #}
                         <div>
                             <button type="button" id="bulk-apply-btn" class="w-full text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm active:scale-98">
                                 Appliquer
@@ -289,5 +296,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url('assets/front002/js/agenda-cards.js') }}"></script>
+    <script src="{{ url('assets/front002/js/agenda-cards.js') }}?v=1.1"></script>
 {% endblock %}

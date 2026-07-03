@@ -2,56 +2,233 @@
     // ==========================================
     // 1. ACTIONS DE MASSE (Bulk actions)
     // ==========================================
-    const applyBulkStatus = (filter, status) => {
-        if (!status) return;
-        const grid = document.getElementById('event-grid');
-        if (!grid) return;
-        const cards = grid.querySelectorAll(`[data-event-filter="${filter}"]`);
-        cards.forEach(card => {
-            const btn = [...card.querySelectorAll('.status-btn')].find(b => b.dataset.status === status);
-            if (btn) btn.click();
-        });
-    };
+    // ==========================================
+    // 1. ACTIONS DE MASSE (Bulk actions)
+    // ==========================================
+    function initBulkFilters() {
+        console.log("initBulkFilters: Initialisation des filtres d'actions groupées...");
+        const typeSelect = document.getElementById('bulk-type-select');
+        const subtypeSelect = document.getElementById('bulk-subtype-select');
+        const locationSelect = document.getElementById('bulk-location-select');
+        const kindSelect = document.getElementById('bulk-kind-select');
+        const applyBtn = document.getElementById('bulk-apply-btn');
 
-    document.getElementById('bulk-apply-btn')?.addEventListener('click', () => {
-        const typeVal = document.getElementById('bulk-type-select').value;
-        const locationVal = document.getElementById('bulk-location-select').value;
-        const statusChoice = document.getElementById('bulk-status-select').value;
-
-        if (!statusChoice) return;
+        if (!typeSelect || !subtypeSelect || !locationSelect || !kindSelect || !applyBtn) {
+            console.log("initBulkFilters: Éléments HTML des actions groupées manquants dans le DOM, abandon.");
+            return;
+        }
 
         const grid = document.getElementById('event-grid');
-        if (!grid) return;
+        if (!grid) {
+            console.log("initBulkFilters: Grille #event-grid introuvable.");
+            return;
+        }
 
-        const cards = grid.querySelectorAll('[data-manifestation-id]');
-        cards.forEach(card => {
-            // 1. Filtrage par type
-            const filterVal = card.dataset.eventFilter || '';
-            let typeMatches = true;
-            if (typeVal) {
-                if (typeVal === 'match') {
-                    typeMatches = filterVal === 'match';
-                } else if (typeVal === 'entrainement') {
-                    typeMatches = filterVal.includes('entrain') || filterVal.includes('entraîn');
-                } else if (typeVal === 'tournois') {
-                    typeMatches = filterVal.includes('tournoi') || filterVal.includes('plateau');
-                } else if (typeVal === 'forum') {
-                    typeMatches = filterVal === 'forum';
-                } else {
-                    typeMatches = filterVal === typeVal;
+        // Récupérer toutes les cartes d'événements
+        const cards = Array.from(grid.querySelectorAll('[data-manifestation-id]'));
+        console.log("initBulkFilters: Nombre de cartes d'événements trouvées :", cards.length);
+
+        function applyBulkFiltersToCards() {
+            const typeVal = typeSelect.value;
+            const subtypeVal = subtypeSelect.value;
+            const locationVal = locationSelect.value;
+            const kindVal = kindSelect.value;
+
+            cards.forEach(card => {
+                // 1. Filtrage type
+                const cardType = card.dataset.eventTypeRaw || '';
+                if (typeVal && cardType !== typeVal) {
+                    card.style.display = 'none';
+                    return;
                 }
+
+                // 2. Filtrage sous-type
+                const cardSubtype = card.dataset.eventSubtypeRaw || '';
+                if (subtypeVal && cardSubtype !== subtypeVal) {
+                    card.style.display = 'none';
+                    return;
+                }
+
+                // 3. Filtrage lieu
+                const cardLocation = card.dataset.eventLocationRaw || '';
+                if (locationVal && cardLocation.toLowerCase().trim() !== locationVal.toLowerCase().trim()) {
+                    card.style.display = 'none';
+                    return;
+                }
+
+                // 4. Filtrage dispo/présence
+                const cardKind = card.dataset.eventKindRaw || '';
+                if (kindVal && cardKind !== kindVal) {
+                    card.style.display = 'none';
+                    return;
+                }
+
+                // Si tout correspond, afficher la carte
+                card.style.display = '';
+            });
+
+            // Gérer le placeholder "Aucun événement ne correspond à ce filtre."
+            const visibleCards = cards.filter(c => c.style.display !== 'none');
+            let placeholder = document.getElementById('no-filter-events-placeholder');
+            if (visibleCards.length === 0) {
+                if (!placeholder) {
+                    placeholder = document.createElement('div');
+                    placeholder.id = 'no-filter-events-placeholder';
+                    placeholder.className = 'p-8 text-center bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm w-full';
+                    placeholder.textContent = 'Aucun événement ne correspond à ces critères.';
+                    grid.appendChild(placeholder);
+                }
+            } else {
+                if (placeholder) placeholder.remove();
             }
 
-            // 2. Filtrage par lieu
-            const cardLocation = card.dataset.eventLocation || '';
-            let locationMatches = true;
-            if (locationVal) {
-                locationMatches = cardLocation.toLowerCase().includes(locationVal.toLowerCase());
+            // Régénérer le slider de dates selon les événements visibles
+            if (typeof buildDateSlider === 'function') {
+                buildDateSlider();
+            }
+        }
+
+        function updateBulkFilters() {
+            const events = cards.map(card => ({
+                type: card.dataset.eventTypeRaw || '',
+                subtype: card.dataset.eventSubtypeRaw || '',
+                location: card.dataset.eventLocationRaw || '',
+                kind: card.dataset.eventKindRaw || ''
+            }));
+
+            console.log("updateBulkFilters: Liste brute des événements :", events);
+
+            // Sélections actuelles
+            let selectedType = typeSelect.value;
+            let selectedSubtype = subtypeSelect.value;
+            let selectedLocation = locationSelect.value;
+            let selectedKind = kindSelect.value;
+
+            // Clear highlights of active dashboard filters if user interacts with bulk filters
+            if (selectedType || selectedSubtype || selectedLocation || selectedKind) {
+                activeFilterType = null;
+                activeFilterValue = null;
+                document.querySelectorAll('[data-kpi-filter]').forEach(el => {
+                    el.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50');
+                });
+                document.querySelectorAll('[data-type-filter]').forEach(el => {
+                    el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+                });
+                document.querySelectorAll('[data-lieu-filter]').forEach(el => {
+                    el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+                });
+                const resetBtn = document.getElementById('reset-dashboard-filters');
+                if (resetBtn) resetBtn.classList.remove('hidden');
             }
 
-            if (typeMatches && locationMatches) {
-                // 3. Déterminer le statut réel à cliquer
-                const isMatch = filterVal === 'match';
+            // Filtrer les événements par type
+            const eventsForType = selectedType ? events.filter(e => e.type === selectedType) : events;
+            
+            // Si le sous-type sélectionné n'est plus valide, le réinitialiser
+            const validSubtypes = [...new Set(eventsForType.map(e => e.subtype))].filter(Boolean);
+            if (selectedSubtype && !validSubtypes.includes(selectedSubtype)) {
+                selectedSubtype = '';
+                subtypeSelect.value = '';
+            }
+
+            // Filtrer les événements par type ET sous-type
+            const eventsForSubtype = selectedSubtype ? eventsForType.filter(e => e.subtype === selectedSubtype) : eventsForType;
+
+            // Si le lieu sélectionné n'est plus valide, le réinitialiser
+            const validLocations = [...new Set(eventsForSubtype.map(e => e.location))].filter(Boolean);
+            if (selectedLocation && !validLocations.includes(selectedLocation)) {
+                selectedLocation = '';
+                locationSelect.value = '';
+            }
+
+            // Filtrer les événements par type, sous-type ET lieu
+            const eventsForLocation = selectedLocation ? eventsForSubtype.filter(e => e.location === selectedLocation) : eventsForSubtype;
+
+            // Si la nature (kind) sélectionnée n'est plus valide, la réinitialiser
+            const validKinds = [...new Set(eventsForLocation.map(e => e.kind))].filter(Boolean);
+            if (selectedKind && !validKinds.includes(selectedKind)) {
+                selectedKind = '';
+                kindSelect.value = '';
+            }
+
+            // Mettre à jour les options des sélecteurs
+            // 1. Type (toujours tous les types uniques du tableau initial)
+            const uniqueTypes = [...new Set(events.map(e => e.type))].filter(Boolean).sort();
+            console.log("updateBulkFilters: Types uniques trouvés :", uniqueTypes);
+            updateSelectOptions(typeSelect, uniqueTypes, selectedType, 'Tous les types');
+
+            // 2. Sous-type (selon le type sélectionné)
+            const uniqueSubtypes = validSubtypes.sort();
+            console.log("updateBulkFilters: Sous-types uniques trouvés :", uniqueSubtypes);
+            updateSelectOptions(subtypeSelect, uniqueSubtypes, selectedSubtype, 'Tous les sous-types');
+
+            // 3. Lieu (selon type + sous-type)
+            const uniqueLocations = validLocations.sort();
+            console.log("updateBulkFilters: Lieux uniques trouvés :", uniqueLocations);
+            updateSelectOptions(locationSelect, uniqueLocations, selectedLocation, 'Tous les lieux');
+
+            // 4. Nature (selon type + sous-type + lieu)
+            const uniqueKinds = validKinds.sort();
+            console.log("updateBulkFilters: Natures uniques trouvées :", uniqueKinds);
+            updateSelectOptions(kindSelect, uniqueKinds, selectedKind, 'Tous (Dispo & Présences)');
+
+            // Appliquer le filtre visuel en direct sur les cartes
+            applyBulkFiltersToCards();
+        }
+
+        function updateSelectOptions(selectElement, optionsArray, currentValue, defaultLabel) {
+            selectElement.innerHTML = `<option value="">${defaultLabel}</option>`;
+            optionsArray.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                if (opt === currentValue) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Enregistrer les écouteurs de changement
+        typeSelect.addEventListener('change', updateBulkFilters);
+        subtypeSelect.addEventListener('change', updateBulkFilters);
+        locationSelect.addEventListener('change', updateBulkFilters);
+        kindSelect.addEventListener('change', updateBulkFilters);
+
+        // Alimentation initiale des sélecteurs
+        updateBulkFilters();
+
+        // Gestionnaire d'application des actions de masse
+        applyBtn.addEventListener('click', () => {
+            const typeVal = typeSelect.value;
+            const subtypeVal = subtypeSelect.value;
+            const locationVal = locationSelect.value;
+            const kindVal = kindSelect.value;
+            const statusChoice = document.getElementById('bulk-status-select').value;
+
+            if (!statusChoice) return;
+
+            console.log("applyBtn click: application du statut groupé...", { typeVal, subtypeVal, locationVal, kindVal, statusChoice });
+
+            cards.forEach(card => {
+                // 1. Filtrage type
+                const cardType = card.dataset.eventTypeRaw || '';
+                if (typeVal && cardType !== typeVal) return;
+
+                // 2. Filtrage sous-type
+                const cardSubtype = card.dataset.eventSubtypeRaw || '';
+                if (subtypeVal && cardSubtype !== subtypeVal) return;
+
+                // 3. Filtrage lieu
+                const cardLocation = card.dataset.eventLocationRaw || '';
+                if (locationVal && cardLocation.toLowerCase().trim() !== locationVal.toLowerCase().trim()) return;
+
+                // 4. Filtrage dispo/présence
+                const cardKind = card.dataset.eventKindRaw || '';
+                if (kindVal && cardKind !== kindVal) return;
+
+                // 5. Détermination du statut
+                const isMatch = (card.dataset.eventFilter === 'match');
                 let targetStatus = statusChoice;
                 if (statusChoice === 'Disponible') {
                     targetStatus = isMatch ? 'Disponible' : 'Présent';
@@ -64,20 +241,24 @@
                 if (btn) {
                     btn.click();
                 }
+            });
+
+            // Filtre visuel de tableau de bord optionnel
+            if (typeVal) {
+                activeFilterType = 'type';
+                if (typeVal.toLowerCase().includes('match')) activeFilterValue = 'match';
+                else if (typeVal.toLowerCase().includes('entrain')) activeFilterValue = 'entrainement';
+                else if (typeVal.toLowerCase().includes('tournoi') || typeVal.toLowerCase().includes('plateau')) activeFilterValue = 'tournois';
+                else if (typeVal.toLowerCase().includes('forum')) activeFilterValue = 'forum';
+                else activeFilterValue = typeVal.toLowerCase();
+                applyDashboardFilters();
+            } else if (locationVal) {
+                activeFilterType = 'lieu';
+                activeFilterValue = locationVal;
+                applyDashboardFilters();
             }
         });
-
-        // Appliquer le filtre visuel pour refléter l'action
-        if (typeVal) {
-            activeFilterType = 'type';
-            activeFilterValue = typeVal;
-            applyDashboardFilters();
-        } else if (locationVal) {
-            activeFilterType = 'lieu';
-            activeFilterValue = locationVal;
-            applyDashboardFilters();
-        }
-    });
+    }
 
     document.getElementById('bulk-reset-all')?.addEventListener('click', () => {
         const grid = document.getElementById('event-grid');
@@ -398,7 +579,8 @@
     // ==========================================
     // 4. INTERACTIVITÉ DU SLIDER & RECHERCHE
     // ==========================================
-    document.addEventListener('DOMContentLoaded', function() {
+    function initAll() {
+        console.log("initAll: Initialisation globale des composants...");
         // Toggle filtres
         const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
         const collapsibleFilters = document.getElementById('collapsible-filters');
@@ -431,7 +613,14 @@
         
         // Initialisation des filtres du tableau de bord adhérent
         initDashboardFilters();
-    });
+        initBulkFilters();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll);
+    } else {
+        initAll();
+    }
 
     // GESTION DU SLIDER DE DATES HORIZONTAL
     const frenchDays = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -753,10 +942,69 @@
         }
     }
 
+    function resetBulkSelectsWithoutTriggering() {
+        const typeSelect = document.getElementById('bulk-type-select');
+        const subtypeSelect = document.getElementById('bulk-subtype-select');
+        const locationSelect = document.getElementById('bulk-location-select');
+        const kindSelect = document.getElementById('bulk-kind-select');
+        if (typeSelect) {
+            typeSelect.value = '';
+            subtypeSelect.value = '';
+            locationSelect.value = '';
+            kindSelect.value = '';
+            
+            // Re-populate selects to default unfiltered states
+            const grid = document.getElementById('event-grid');
+            if (grid) {
+                const cards = Array.from(grid.querySelectorAll('[data-manifestation-id]'));
+                const events = cards.map(card => ({
+                    type: card.dataset.eventTypeRaw || '',
+                    subtype: card.dataset.eventSubtypeRaw || '',
+                    location: card.dataset.eventLocationRaw || '',
+                    kind: card.dataset.eventKindRaw || ''
+                }));
+                const uniqueTypes = [...new Set(events.map(e => e.type))].filter(Boolean).sort();
+                const uniqueSubtypes = [...new Set(events.map(e => e.subtype))].filter(Boolean).sort();
+                const uniqueLocations = [...new Set(events.map(e => e.location))].filter(Boolean).sort();
+                const uniqueKinds = [...new Set(events.map(e => e.kind))].filter(Boolean).sort();
+                
+                typeSelect.innerHTML = `<option value="">Tous les types</option>`;
+                uniqueTypes.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    typeSelect.appendChild(option);
+                });
+                subtypeSelect.innerHTML = `<option value="">Tous les sous-types</option>`;
+                uniqueSubtypes.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    subtypeSelect.appendChild(option);
+                });
+                locationSelect.innerHTML = `<option value="">Tous les lieux</option>`;
+                uniqueLocations.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    locationSelect.appendChild(option);
+                });
+                kindSelect.innerHTML = `<option value="">Tous (Dispo & Présences)</option>`;
+                uniqueKinds.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    kindSelect.appendChild(option);
+                });
+            }
+        }
+    }
+
     function initDashboardFilters() {
         // Enregistrer les écouteurs de clics sur les KPIs
         document.querySelectorAll('[data-kpi-filter]').forEach(el => {
             el.addEventListener('click', () => {
+                resetBulkSelectsWithoutTriggering();
                 const val = el.dataset.kpiFilter;
                 if (activeFilterType === 'kpi' && activeFilterValue === val) {
                     activeFilterType = null;
@@ -772,6 +1020,7 @@
         // Enregistrer les écouteurs sur les types d'événements
         document.querySelectorAll('[data-type-filter]').forEach(el => {
             el.addEventListener('click', () => {
+                resetBulkSelectsWithoutTriggering();
                 const val = el.dataset.typeFilter;
                 if (activeFilterType === 'type' && activeFilterValue === val) {
                     activeFilterType = null;
@@ -787,6 +1036,7 @@
         // Enregistrer les écouteurs sur les lieux
         document.querySelectorAll('[data-lieu-filter]').forEach(el => {
             el.addEventListener('click', () => {
+                resetBulkSelectsWithoutTriggering();
                 const val = el.dataset.lieuFilter;
                 if (activeFilterType === 'lieu' && activeFilterValue === val) {
                     activeFilterType = null;
@@ -801,6 +1051,7 @@
 
         // Bouton réinitialiser
         document.getElementById('reset-dashboard-filters')?.addEventListener('click', () => {
+            resetBulkSelectsWithoutTriggering();
             activeFilterType = null;
             activeFilterValue = null;
             applyDashboardFilters();
