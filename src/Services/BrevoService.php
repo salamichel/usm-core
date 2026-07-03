@@ -23,6 +23,12 @@ class BrevoService
         string $htmlContent,
         string $textContent = null
     ): bool {
+        if (defined('BREVO_REDIRECT_EMAIL') && BREVO_REDIRECT_EMAIL !== '') {
+            $subject = '[DEV-REDIRECT to ' . $toEmail . '] ' . $subject;
+            $toEmail = BREVO_REDIRECT_EMAIL;
+            $toName = 'Destinataire Dev';
+        }
+
         if (!$textContent) {
             $textContent = strip_tags($htmlContent);
         }
@@ -129,6 +135,27 @@ class BrevoService
         $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
         $subject = '❌ Match annulé : ' . $eventTitle;
         $htmlContent = $this->renderMatchCancellationTemplate($player, $event);
+
+        return $this->sendEmail(
+            $playerEmail,
+            $playerName,
+            $subject,
+            $htmlContent
+        );
+    }
+
+    public function sendMatchReminderNotification(array $player, array $event, string $teamName): bool
+    {
+        $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
+        if (!$playerEmail) {
+            Logger::errors()->error('Cannot send reminder email to player: no email address found', ['player' => $player]);
+            return false;
+        }
+
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $subject = '⏰ Rappel : réponse attendue - ' . $eventTitle;
+        $htmlContent = $this->renderMatchReminderTemplate($player, $event, $teamName);
 
         return $this->sendEmail(
             $playerEmail,
@@ -358,6 +385,81 @@ HTML;
             '{{SENDER_EMAIL}}' => $this->escapeHtml($messageData['email']),
             '{{SUBJECT}}' => $this->escapeHtml($messageData['subject']),
             '{{MESSAGE}}' => $this->nl2brHtml($messageData['message']),
+        ]);
+    }
+
+    private function renderMatchReminderTemplate(array $player, array $event, string $teamName): string
+    {
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
+        $eventTime = $event['time_display'] ?? '';
+        if ($eventTime) {
+            $eventDate .= ' à ' . $eventTime;
+        }
+        $eventLocation = $event['location'] ?? $event['lieu'] ?? '';
+
+        $template = <<<'HTML'
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #4f46e5; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .match-info { background: #f5f3ff; padding: 16px; border-left: 4px solid #4f46e5; margin: 16px 0; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 12px; color: #666; margin-top: 12px; margin-bottom: 2px; }
+        .field-value { font-size: 16px; color: #111; }
+        .cta-button { display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ RÉPONSE ATTENDUE</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{PLAYER_NAME}}</strong>,</p>
+            <p style="margin-top: 8px;">Votre capitaine de l'équipe <strong>{{TEAM_NAME}}</strong> attend votre réponse concernant votre présence ou disponibilité pour la rencontre suivante :</p>
+
+            <div class="match-info">
+                <div class="field-label">🏆 Rencontre</div>
+                <div class="field-value" style="font-size: 18px; font-weight: 900;">{{EVENT_TITLE}}</div>
+
+                <div class="field-label">📅 Date et Heure</div>
+                <div class="field-value"><strong>{{EVENT_DATE}}</strong></div>
+
+                <div class="field-label">📍 Lieu</div>
+                <div class="field-value">{{EVENT_LOCATION}}</div>
+            </div>
+
+            <p style="margin-top: 16px;">Merci d'indiquer rapidement si vous êtes disponible ou non afin de faciliter la préparation du match et les convocations.</p>
+            
+            <a href="{{DASHBOARD_URL}}" class="cta-button">👉 Saisir ma présence</a>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Ne pas répondre directement à cet email.
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+        return strtr($template, [
+            '{{PLAYER_NAME}}' => $this->escapeHtml($playerName),
+            '{{TEAM_NAME}}' => $this->escapeHtml($teamName),
+            '{{EVENT_TITLE}}' => $this->escapeHtml($eventTitle),
+            '{{EVENT_DATE}}' => $this->escapeHtml($eventDate),
+            '{{EVENT_LOCATION}}' => $this->escapeHtml($eventLocation),
+            '{{DASHBOARD_URL}}' => BASE_URL . '/member/dashboard',
         ]);
     }
 

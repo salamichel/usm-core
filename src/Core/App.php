@@ -118,6 +118,7 @@ class App
         $r->post('/member/captain/matches/{id}/edit', [CaptainController::class, 'updateMatch']);
         $r->get('/member/captain/matches/{id}/select-players', [CaptainController::class, 'selectPlayersForm']);
         $r->post('/member/captain/matches/{id}/select-players', [CaptainController::class, 'updateSelectedPlayers']);
+        $r->post('/member/captain/matches/{id}/remind', [CaptainController::class, 'remindNoResponse']);
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->post('/api/member/participations/upsert', [ParticipationController::class, 'apiUpsert']);

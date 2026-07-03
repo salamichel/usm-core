@@ -975,4 +975,103 @@ class CaptainController
     {
         return $rangeA[0] < $rangeB[1] && $rangeB[0] < $rangeA[1];
     }
+
+    /**
+     * Envoie un mail de relance par email à tous les joueurs n'ayant pas répondu à une rencontre.
+     * Route: POST /member/captain/matches/{id}/remind
+     */
+    public function remindNoResponse(array $params): void
+    {
+        [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
+        $matchId = (int)$params['id'];
+
+        $event = AgendaService::getEventById($matchId);
+        if (!$event) {
+            View::flash('error', 'Rencontre introuvable.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Vérifier que le match appartient à une équipe gérée par ce capitaine
+        $matchedTeam = null;
+        foreach ($captainedTeams as $team) {
+            $filter = $team['manifestation_filter'] ?: $team['libelle'];
+            if (str_contains($event['titre'] ?? '', $filter) || str_contains($event['ManifestationTypée'] ?? '', $filter)) {
+                $matchedTeam = $team;
+                break;
+            }
+        }
+
+        if (!$matchedTeam) {
+            View::flash('error', 'Vous n\'êtes pas autorisé à gérer cette rencontre.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Récupérer les joueurs de l'équipe pour la saison
+        $joueurs = EquipeSaisonJoueur::findByEquipeSaison($matchedTeam['equipe_saison_id']);
+
+        // Récupérer les participations actuelles pour ce match
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare("SELECT id_joueur, Participation FROM Participation WHERE id_manifestation = ?");
+        $stmt->execute([$matchId]);
+        $participations = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+
+        $brevo = new BrevoService();
+        $sentCount = 0;
+        $failedCount = 0;
+
+        foreach ($joueurs as $j) {
+            $jid = (int)$j['id_joueur'];
+            $rawStatus = $participations[$jid] ?? '';
+            $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+            $cat = $statusObj->getCategory();
+
+            // Sont considérés comme "sans réponse" les joueurs qui ne sont ni sélectionnés,
+            // ni déclarés disponibles, ni déclarés indisponibles/absents (catégories no_response et unknown)
+            $hasAnswered = in_array($cat, ['selected', 'available', 'available_if_needed', 'present', 'unavailable', 'absent']);
+
+            if (!$hasAnswered) {
+                // Charger les détails du joueur depuis la base externe pour obtenir son adresse email
+                try {
+                    $playerDb = \App\Models\Joueur::findById($jid);
+                    if ($playerDb && !empty($playerDb['Mel'])) {
+                        $success = $brevo->sendMatchReminderNotification($playerDb, $event, $matchedTeam['libelle']);
+                        if ($success) {
+                            $sentCount++;
+                        } else {
+                            $failedCount++;
+                        }
+                    } else {
+                        $failedCount++;
+                        Logger::errors()->warning('Reminder email skipped: player has no email address', ['player_id' => $jid]);
+                    }
+                } catch (\Throwable $e) {
+                    $failedCount++;
+                    Logger::errors()->error('Failed to send reminder email to player', [
+                        'player_id' => $jid,
+                        'match_id' => $matchId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+
+        if ($sentCount > 0) {
+            $msg = "$sentCount relance(s) envoyée(s) avec succès.";
+            if ($failedCount > 0) {
+                $msg .= " ($failedCount échec(s) ou e-mail(s) manquant(s)).";
+            }
+            View::flash('success', $msg);
+        } else {
+            if ($failedCount > 0) {
+                View::flash('error', "Impossible d'envoyer les relances ($failedCount échec(s) ou e-mail(s) manquant(s)).");
+            } else {
+                View::flash('info', 'Aucun retardataire à relancer pour cette rencontre.');
+            }
+        }
+
+        header('Location: /member/captain');
+        exit;
+    }
 }
