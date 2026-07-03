@@ -138,7 +138,7 @@ class AgendaService
             if ($isCancelled) {
                 continue;
             }
-            if (str_contains($status, 'Sélectionné')) {
+            if (\App\Helpers\ParticipationStatus::categorize((string)$status) === 'selected') {
                 $selectedEvents[] = $e;
             }
         }
@@ -180,7 +180,7 @@ class AgendaService
         // 3. Flaguer les événements en chevauchement
         foreach ($events as &$e) {
             $status = $e['user_status'] ?? '';
-            if (str_contains($status, 'Sélectionné')) {
+            if (\App\Helpers\ParticipationStatus::categorize((string)$status) === 'selected') {
                 $e['is_selected_by_captain'] = true;
                 continue;
             }
@@ -248,7 +248,7 @@ class AgendaService
                 continue;
             }
 
-            if (str_contains($status, 'Sélectionné') && $mid !== $manifestationId) {
+            if (\App\Helpers\ParticipationStatus::categorize((string)$status) === 'selected' && $mid !== $manifestationId) {
                 $selectedEvents[] = $m;
             }
         }

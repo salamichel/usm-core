@@ -154,7 +154,7 @@ class EventRepository
     {
         try {
             $type     = $filters['type']      ?? null;
-            $location = $filters['location']  ?? null;
+            $location = $filters['lieu']  ?? null;
             $dateFrom = $filters['date_from'] ?? null;
             $dateTo   = $filters['date_to']   ?? null;
 
@@ -184,20 +184,18 @@ class EventRepository
             $db = ExternalDatabase::get();
 
             $types = [];
-            $stmt  = $db->query(
-                "SELECT DISTINCT SUBSTRING_INDEX(Mot, ' - ', 2) AS type_part
-                 FROM Mots_clef
-                 WHERE Catégorie = 'ManifestationTypée'
-                 ORDER BY type_part"
-            );
-            while ($row = $stmt->fetch()) {
-                $type = trim(str_replace('Disponibilités - ', '', $row['type_part'] ?? ''));
-                if (!empty($type)) {
+            $mots = \App\Models\MotsClef::getByCategory('ManifestationTypée');
+            foreach ($mots as $mot) {
+                $parts = explode(' - ', $mot);
+                $typePart = count($parts) >= 2 ? $parts[0] . ' - ' . $parts[1] : $mot;
+                $type = trim(str_replace('Disponibilités - ', '', $typePart));
+                if (!empty($type) && !in_array($type, $types, true)) {
                     $types[] = $type;
                 }
             }
+            sort($types);
 
-            $locations = [];
+            $lieux = [];
             $stmt      = $db->query(
                 "SELECT DISTINCT Lieu FROM Manifestation
                  WHERE id_manifestation > 0 AND Date >= CURDATE() AND Lieu IS NOT NULL
@@ -205,7 +203,7 @@ class EventRepository
             );
             while ($row = $stmt->fetch()) {
                 if (!empty($row['Lieu'])) {
-                    $locations[] = $row['Lieu'];
+                    $lieux[] = $row['Lieu'];
                 }
             }
 
@@ -224,30 +222,27 @@ class EventRepository
             }
 
             $teams = [];
-            $stmt  = $db->query(
-                "SELECT Mot FROM Mots_clef WHERE `Catégorie` = 'EquipeParEquipe' ORDER BY Mot"
-            );
-            while ($row = $stmt->fetch()) {
-                if (!empty($row['Mot'])) {
-                    $teams[] = $row['Mot'];
+            foreach (\App\Models\MotsClef::getByCategory('EquipeParEquipe') as $mot) {
+                if (!empty($mot)) {
+                    $teams[] = $mot;
                 }
             }
 
             return [
                 'types'              => $types,
-                'locations'          => $locations,
+                'lieux'              => $lieux,
                 'manifestationNames' => $manifestationNames,
                 'teams'              => $teams,
             ];
         } catch (\Throwable) {
-            return ['types' => [], 'locations' => []];
+            return ['types' => [], 'lieux' => []];
         }
     }
 
     /**
      * Tableau croisé joueurs × manifestations avec données de participation.
      *
-     * Filtres supportés : team, location, type, manifestation, this_week, hide_empty_players.
+     * Filtres supportés : team, lieu, type, manifestation, this_week, hide_empty_players.
      *
      * @return array{joueurs: array, manifestations: array, cross: array}
      */
@@ -291,7 +286,7 @@ class EventRepository
                          WHERE id_manifestation > 0 AND `Date` >= CURDATE()";
             $bindings = [];
 
-            if (!empty($filters['location']))     { $sql .= " AND Lieu = ?";                    $bindings[] = $filters['location']; }
+            if (!empty($filters['lieu']))     { $sql .= " AND Lieu = ?";                    $bindings[] = $filters['lieu']; }
             if (!empty($filters['type']))         { $sql .= " AND ManifestationTypée LIKE ?";   $bindings[] = '%' . $filters['type'] . '%'; }
             if (!empty($filters['manifestation'])) { $sql .= " AND ManifestationTypée LIKE ?"; $bindings[] = '% - ' . $filters['manifestation']; }
             if (!empty($filters['this_week'])) {
@@ -696,20 +691,7 @@ class EventRepository
         return in_array($team, $categories, true) ? $team : null;
     }
 
-    /**
-     * Récupère les mots clés d'une catégorie donnée.
-     */
-    public static function getKeywordsByCategory(string $category): array
-    {
-        try {
-            $db = ExternalDatabase::get();
-            $stmt = $db->prepare("SELECT Mot FROM Mots_clef WHERE Catégorie = ? ORDER BY Mot");
-            $stmt->execute([$category]);
-            return $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
-        } catch (\Throwable) {
-            return [];
-        }
-    }
+
 
     /**
      * Crée un nouveau match dans la base externe.
@@ -733,7 +715,7 @@ class EventRepository
             $data['date'],
             $data['duration'] ?? '2h',
             $data['location'],
-            $data['comment'],
+            $data['commentaire'],
             $data['statut'] ?? 'Confirmé'
         ]);
 
@@ -755,7 +737,7 @@ class EventRepository
             $data['date'],
             $data['duration'],
             $data['location'],
-            $data['comment'],
+            $data['commentaire'],
             $data['statut'],
             $id
         ]);

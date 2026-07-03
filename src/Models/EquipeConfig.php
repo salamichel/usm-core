@@ -24,11 +24,7 @@ class EquipeConfig
     
     public static function getEquipesSlug(): array
     {
-        $rows = ExternalDatabase::get()
-            ->query("SELECT DISTINCT Mot FROM Mots_clef WHERE `Catégorie` = 'EquipeParEquipe' ORDER BY Mot ASC")
-            ->fetchAll();
-            
-        return array_column($rows, 'Mot');
+        return \App\Models\MotsClef::getByCategory('EquipeParEquipe');
     }  
 
     public static function groupedByCategorie(): array

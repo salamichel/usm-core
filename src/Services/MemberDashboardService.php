@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -20,7 +21,7 @@ class MemberDashboardService
     {
         $db = ExternalDatabase::get();
         $categories = Joueur::getCategories($userId);
-        
+
         if (empty($categories)) {
             return [
                 'this_week' => 0,
@@ -39,7 +40,7 @@ class MemberDashboardService
         // Calcul des dates limites pour cette semaine et la semaine prochaine
         // On considère une semaine du lundi au dimanche
         $today = new \DateTimeImmutable('today');
-        
+
         // Cette semaine
         $startOfWeek = $today->modify('this week'); // Lundi de cette semaine
         $endOfWeek = $startOfWeek->modify('+6 days 23:59:59'); // Dimanche de cette semaine
@@ -103,7 +104,7 @@ class MemberDashboardService
 
         foreach ($imminent as $m) {
             $normalized = AgendaService::normalizeManifestation($m);
-            
+
             // On calcule l'heure d'affichage
             $dateObj = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $m['Date']);
             $timeDisplay = ($dateObj && $dateObj->format('H:i') !== '00:00') ? $dateObj->format('H:i') : '';
@@ -235,7 +236,7 @@ class MemberDashboardService
                 if ($status->isPresent() || $status->isAvailable()) {
                     $presentTournaments++;
                 }
-                $events_by_type['tournois']++;            
+                $events_by_type['tournois']++;
             } else {
                 $events_by_type['others']++;
             }

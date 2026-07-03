@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
@@ -60,7 +61,9 @@ class AgendaController
             }
 
             foreach ($data['manifestations'] as $mid => &$m) {
-                $m['user_status'] = $userStatuses[$mid] ?? null;
+                $statusStr = $userStatuses[$mid] ?? null;
+                $m['user_status'] = $statusStr;
+                $m['user_status_category'] = $statusStr ? \App\Helpers\ParticipationStatus::categorize($statusStr) : null;
             }
             unset($m);
 
@@ -73,10 +76,24 @@ class AgendaController
                 'filters'        => $filters,
                 'filterOptions'  => AgendaService::getFilterOptions(),
                 'currentUserId'  => $userId,
-                'currentUserName'=> $currentUserName,
+                'currentUserName' => $currentUserName,
             ]);
             return;
         }
+
+        // Pre-process cross table for Twig
+        foreach ($data['cross'] as $jid => &$row) {
+            foreach ($data['manifestations'] as $mid => $m) {
+                $statusStr = $row[$mid] ?? '';
+                if (is_string($statusStr) && $statusStr !== '') {
+                    $row[$mid] = [
+                        'text' => $statusStr,
+                        'category' => \App\Helpers\ParticipationStatus::categorize($statusStr)
+                    ];
+                }
+            }
+        }
+        unset($row);
 
         View::render('agenda/index.twig', [
             'joueurs'        => $data['joueurs'],
@@ -115,12 +132,14 @@ class AgendaController
             $userId = (int)$_SESSION['LogInId'];
             $saisonActive = \App\Models\Saison::getActive();
             $captainedTeams = $saisonActive ? \App\Models\EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']) : [];
-            
+
             foreach ($captainedTeams as $team) {
                 $filter = $team['manifestation_filter'] ?: $team['libelle'];
-                if (str_contains($event['titre'] ?? '', $filter) || 
-                    str_contains($event['type'] ?? '', $filter) || 
-                    (isset($event['ManifestationTypée']) && str_contains($event['ManifestationTypée'], $filter))) {
+                if (
+                    str_contains($event['titre'] ?? '', $filter) ||
+                    str_contains($event['type'] ?? '', $filter) ||
+                    (isset($event['ManifestationTypée']) && str_contains($event['ManifestationTypée'], $filter))
+                ) {
                     $isCaptain = true;
                     break;
                 }
@@ -136,7 +155,7 @@ class AgendaController
     /**
      * Extract and validate filters from $_GET parameters.
      *
-     * String filters (location, type, manifestation, team) are:
+     * String filters (lieu, type, manifestation, team) are:
      * - Only included if non-empty and not equal to "Tous"
      * - Cast to string for safety
      *
@@ -153,7 +172,7 @@ class AgendaController
         $filters = [];
 
         // String filters: only include if non-empty and not "Tous"
-        foreach (['location', 'type', 'manifestation', 'team'] as $key) {
+        foreach (['lieu', 'type', 'manifestation', 'team'] as $key) {
             if (!empty($_GET[$key]) && $_GET[$key] !== 'Tous') {
                 $filters[$key] = (string) $_GET[$key];
             }

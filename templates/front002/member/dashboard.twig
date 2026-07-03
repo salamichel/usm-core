@@ -121,10 +121,11 @@
                         <div class="flex items-center gap-1.5 w-full">
                             <select id="bulk-match-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                 <option value="">Matchs</option>
-                                <option value="Disponible">Disponible</option>
-                                <option value="Disponible si nécessaire">Si besoin</option>
-                                <option value="Indisponible">Indisponible</option>
-                                <option value="Ne sait pas encore">Ne sait pas</option>
+                                {% for stat in statuses.match|default([]) %}
+                                    {% if stat != 'Sélectionné(e)' %}
+                                        <option value="{{ stat }}">{{ stat }}</option>
+                                    {% endif %}
+                                {% endfor %}
                             </select>
                             <button type="button" id="bulk-match-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
                         </div>
@@ -132,9 +133,9 @@
                         <div class="flex items-center gap-1.5 w-full">
                             <select id="bulk-entrainement-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                 <option value="">Entraînements</option>
-                                <option value="Présent">Présent</option>
-                                <option value="Absent">Absent</option>
-                                <option value="Ne sait pas encore">Ne sait pas</option>
+                                {% for stat in statuses.entrainement|default([]) %}
+                                    <option value="{{ stat }}">{{ stat }}</option>
+                                {% endfor %}
                             </select>
                             <button type="button" id="bulk-entrainement-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
                         </div>
@@ -142,9 +143,9 @@
                         <div class="flex items-center gap-1.5 w-full">
                             <select id="bulk-club-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                 <option value="">Club</option>
-                                <option value="Présent">Présent</option>
-                                <option value="Absent">Absent</option>
-                                <option value="Ne sait pas encore">Ne sait pas</option>
+                                {% for stat in statuses.club|default([]) %}
+                                    <option value="{{ stat }}">{{ stat }}</option>
+                                {% endfor %}
                             </select>
                             <button type="button" id="bulk-club-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
                         </div>
@@ -152,9 +153,9 @@
                         <div class="flex items-center gap-1.5 w-full">
                             <select id="bulk-beach-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                 <option value="">Beach Volley</option>
-                                <option value="Présent">Présent</option>
-                                <option value="Absent">Absent</option>
-                                <option value="Ne sait pas encore">Ne sait pas</option>
+                                {% for stat in statuses.beach|default([]) %}
+                                    <option value="{{ stat }}">{{ stat }}</option>
+                                {% endfor %}
                             </select>
                             <button type="button" id="bulk-beach-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
                         </div>

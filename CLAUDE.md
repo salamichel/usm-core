@@ -381,7 +381,7 @@ Service métier pour la gestion de l'agenda :
 **Méthodes principales** :
 - `getCrossTable(array $filters = [])` — crosstable joueurs × manifestations
   - Retourne : `joueurs`, `manifestations`, `cross` (matrix participation)
-  - Filtres supportés : `team`, `location`, `type`, `manifestation`, `this_week`, `hide_empty_players`
+  - Filtres supportés : `team`, `lieu`, `type`, `manifestation`, `this_week`, `hide_empty_players`
   
 - `getParticipationStats(int $manifestationId)` — stats participation pour UN événement
   - Retourne : counts par catégorie + `enough_players` (bool : >= 6 joueurs dispo)
@@ -442,7 +442,7 @@ Implémentés via `extractFilters()` en AgendaController.
 |--------|------|-------|
 | `team` | string | Restreint joueurs à une équipe |
 | `type` | string | Filtre événements par type (Match, Entraînement, etc.) |
-| `location` | string | Filtre par Lieu |
+| `lieu` | string | Filtre par Lieu |
 | `manifestation` | string | Filtre par nom d'événement (segment 3) |
 | `this_week` | bool | Seulement événements cette semaine (Lun-Dim) |
 | `hide_empty_players` | bool | Masque joueurs sans participation |
@@ -728,6 +728,12 @@ L'espace capitaine permet aux capitaines d'équipes de piloter les convocations 
 - **Mise à jour d'une participation** : `POST /api/captain/participation/update`
   - Body JSON : `{ joueur_id, manifestation_id, status }`
   - Gère la désélection concurrentielle (`removeConcurrentParticipations`) et recalcule dynamiquement toute la grille et les métriques de l'équipe pour les renvoyer au format JSON.
+
+### Architecture des Présences (ParticipationStatus)
+Pour immuniser le code source contre le changement des libellés de la base de données (ex. renommer "Présent" en "Présent(e)"), une couche d'abstraction a été mise en place :
+1. **Helper `ParticipationStatus`** : Convertit un libellé textuel brut (`Oui`, `Présent(e)`, `Joker`) en une **catégorie abstraite standardisée** en anglais (`present`, `available`, `available_if_needed`, `selected`, `absent`, `unavailable`, `unknown`).
+2. **`EventNormalizer`** : Calcule les totaux et trie les joueurs dans des tableaux (ex. `$manifestationStats['available']`) en se basant **uniquement** sur ces catégories, jamais sur les chaînes brutes.
+3. **Twig & JS** : Les vues Twig (ex. `_event_card.twig`, `detail.twig`) et le code JavaScript (`agenda-cards.js`) s'appuient sur les clés standardisées (ex. `m.user_status_category == 'available'`, `data-status-key="available"`). Les seules chaînes "en dur" conservées sont celles envoyées via les requêtes HTTP `POST` car elles doivent correspondre exactement aux données enregistrées en base.
 
 ---
 

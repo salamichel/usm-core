@@ -17,7 +17,7 @@ class Participation
     public static function getUpcomingWithUserStatus(int $userId): array
     {
         $db = ExternalDatabase::get();
-        
+
         $sql = "
             SELECT 
                 m.id_manifestation, 
@@ -31,10 +31,10 @@ class Participation
             WHERE m.Date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
             ORDER BY m.Date ASC
         ";
-        
+
         $stmt = $db->prepare($sql);
         $stmt->execute([$userId]);
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -127,7 +127,7 @@ class Participation
             $conditions[] = "`ManifestationTypée` LIKE ?";
             $bindings[] = $pattern;
         }
-        
+
         // Si aucune condition n'est présente (pas de catégories et pas de motifs génériques), retourner vide.
         if (empty($conditions)) {
             return [];
