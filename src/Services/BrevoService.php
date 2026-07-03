@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -448,7 +449,7 @@ HTML;
         .match-info { background: #f5f3ff; padding: 16px; border-left: 4px solid #4f46e5; margin: 16px 0; }
         .field-label { font-weight: 900; text-transform: uppercase; font-size: 12px; color: #666; margin-top: 12px; margin-bottom: 2px; }
         .field-value { font-size: 16px; color: #111; }
-        .cta-button { display: inline-block; background: #4f46e5; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
+        .cta-button { display: inline-block; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
         .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
     </style>
 </head>
@@ -680,7 +681,7 @@ HTML;
 
         try {
             $response = @file_get_contents(self::API_URL, false, $context);
-            
+
             // Récupérer le code de statut HTTP
             $statusCode = 0;
             if (isset($http_response_header) && is_array($http_response_header)) {
@@ -721,4 +722,3 @@ HTML;
         }
     }
 }
-
