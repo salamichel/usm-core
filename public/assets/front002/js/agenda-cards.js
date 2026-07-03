@@ -581,6 +581,40 @@
     // ==========================================
     function initAll() {
         console.log("initAll: Initialisation globale des composants...");
+        // Toggle affichage compact
+        const toggleCompactBtn = document.getElementById('toggle-compact-btn');
+        const eventGrid = document.getElementById('event-grid');
+        if (toggleCompactBtn && eventGrid) {
+            const localPref = localStorage.getItem('usm-dashboard-compact');
+            const isCompact = localPref === null ? true : localPref === 'true';
+            
+            if (isCompact) {
+                eventGrid.classList.add('compact-grid');
+                updateCompactBtnUI(true);
+            } else {
+                eventGrid.classList.remove('compact-grid');
+                updateCompactBtnUI(false);
+            }
+
+            toggleCompactBtn.addEventListener('click', () => {
+                const active = eventGrid.classList.toggle('compact-grid');
+                localStorage.setItem('usm-dashboard-compact', active);
+                updateCompactBtnUI(active);
+            });
+        }
+
+        function updateCompactBtnUI(isCompact) {
+            const iconEl = document.getElementById('toggle-compact-icon');
+            const textEl = document.getElementById('toggle-compact-text');
+            if (isCompact) {
+                if (iconEl) iconEl.textContent = '⊞';
+                if (textEl) textEl.textContent = 'Vue détaillée';
+            } else {
+                if (iconEl) iconEl.textContent = '☰';
+                if (textEl) textEl.textContent = 'Vue compacte';
+            }
+        }
+
         // Toggle filtres
         const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
         const collapsibleFilters = document.getElementById('collapsible-filters');
@@ -614,6 +648,41 @@
         // Initialisation des filtres du tableau de bord adhérent
         initDashboardFilters();
         initBulkFilters();
+
+        // Gestion des filtres et du défilement automatique via URL
+        handleUrlParamsOnLoad();
+    }
+
+    function handleUrlParamsOnLoad() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // 1. Gestion du filtre automatique de l'espace membre
+        if (urlParams.get('filter') === 'this-week') {
+            activeFilterType = 'kpi';
+            activeFilterValue = 'this-week';
+            if (typeof applyDashboardFilters === 'function') {
+                applyDashboardFilters();
+            }
+            if (typeof buildDateSlider === 'function') {
+                buildDateSlider();
+            }
+        }
+        
+        // 2. Défilement automatique vers la première carte
+        if (urlParams.get('scroll') === '1') {
+            setTimeout(() => {
+                const firstCard = document.querySelector('#event-grid > div[data-manifestation-id]:not([style*="display: none"])');
+                if (firstCard) {
+                    const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 76;
+                    const dateSlider = document.getElementById('date-slider');
+                    const sliderHeight = dateSlider ? 85 : 0;
+                    const yOffset = -(headerHeight + sliderHeight - 10);
+                    
+                    const y = firstCard.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+            }, 300);
+        }
     }
 
     if (document.readyState === 'loading') {

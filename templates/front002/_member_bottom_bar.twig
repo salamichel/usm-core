@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center h-16 px-4 relative">
         
         {# Onglet 1 : Accueil (Dashboard) #}
-        {% set is_dashboard = 'dashboard' in app.server.REQUEST_URI|default('') %}
+        {% set is_dashboard = 'dashboard' in app.server.REQUEST_URI|default('') and 'filter=this-week' not in app.server.REQUEST_URI|default('') %}
         <a href="{{ url('member/dashboard') }}" class="flex flex-col items-center justify-center w-14 py-1 active:scale-95 transition-all {% if is_dashboard %}text-[var(--primary)]{% else %}text-slate-400{% endif %}">
             <div class="relative">
                 <svg class="w-6 h-6 mb-0.5" fill="{% if is_dashboard %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 20 20">
@@ -18,11 +18,11 @@
             <span class="text-[10px] font-bold tracking-tight">Accueil</span>
         </a>
 
-        {# Onglet 2 : Équipes #}
-        {% set is_equipes = 'equipes' in app.server.REQUEST_URI|default('') %}
-        <a href="{{ url('equipes') }}" class="flex flex-col items-center justify-center w-14 py-1 active:scale-95 transition-all {% if is_equipes %}text-[var(--primary)]{% else %}text-slate-400{% endif %}">
-            <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            <span class="text-[10px] font-medium tracking-tight">Équipes</span>
+        {# Onglet 2 : Ma Semaine #}
+        {% set is_ma_semaine = 'dashboard' in app.server.REQUEST_URI|default('') and 'filter=this-week' in app.server.REQUEST_URI|default('') %}
+        <a href="{{ url('member/dashboard?filter=this-week&scroll=1') }}" class="flex flex-col items-center justify-center w-14 py-1 active:scale-95 transition-all {% if is_ma_semaine %}text-[var(--primary)]{% else %}text-slate-400{% endif %}">
+            <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span class="text-[10px] font-medium tracking-tight">Ma Sem.</span>
         </a>
 
         {# --- FLOATING ACTION BUTTON CENTRAL : AGENDA --- #}
@@ -32,11 +32,11 @@
             </a>
         </div>
 
-        {# Onglet 4 : Actualités / Blog #}
-        {% set is_blog = 'blog' in app.server.REQUEST_URI|default('') %}
-        <a href="{{ url('blog') }}" class="flex flex-col items-center justify-center w-14 py-1 active:scale-95 transition-all {% if is_blog %}text-[var(--primary)]{% else %}text-slate-400{% endif %}">
-            <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-            <span class="text-[10px] font-medium tracking-tight">Actus</span>
+        {# Onglet 4 : Semaine Club #}
+        {% set is_semaine_club = 'agenda' in app.server.REQUEST_URI|default('') and 'this_week' in app.server.REQUEST_URI|default('') %}
+        <a href="{{ url('agenda?this_week=1&view=cards&scroll=1') }}" class="flex flex-col items-center justify-center w-14 py-1 active:scale-95 transition-all {% if is_semaine_club %}text-[var(--primary)]{% else %}text-slate-400{% endif %}">
+            <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span class="text-[10px] font-medium tracking-tight">Sem. Club</span>
         </a>
 
         {# Onglet 5 : Profil #}

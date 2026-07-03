@@ -2,8 +2,84 @@
 {% block title %}Mon Tableau de Bord — USM Volley{% endblock %}
 
 {% block content %}
-{# pb-24 sur mobile pour laisser de l'espace à la barre fixe du bas, md:pb-12 sur ordinateur #}
-<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+<style>
+    /* Mode Compact / Minimaliste pour la grille d'événements */
+    .compact-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .compact-grid > div {
+        padding: 0.75rem 1rem !important;
+        border-radius: 16px !important;
+    }
+
+    .compact-grid .avatar-stack,
+    .compact-grid .avatar-stack + *,
+    .compact-grid .progress-label,
+    .compact-grid .progress-bar,
+    .compact-grid .w-full.bg-slate-100\/80.h-2,
+    .compact-grid .mt-4.pt-3.border-t, /* commentaires et alertes */
+    .compact-grid .text-\[9px\].font-black.text-slate-400,
+    .compact-grid .border-t.border-slate-100.pt-2,
+    .compact-grid .md\:border-t,
+    .compact-grid .md\:pt-2 {
+        display: none !important;
+    }
+
+    /* Masquer le bloc d'avatars et récapitulatif complet */
+    .compact-grid .grid-cols-1 > div:nth-child(3) {
+        display: none !important;
+    }
+
+    @media (min-width: 768px) {
+        .compact-grid .grid-cols-1 {
+            grid-template-columns: 2fr 1fr 1.5fr !important;
+            gap: 1.5rem !important;
+        }
+        .compact-grid .md\:border-l {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+    }
+
+    .compact-grid .w-14.h-14 {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+        border-radius: 12px !important;
+    }
+    .compact-grid .w-14.h-14 .text-xl {
+        font-size: 1rem !important;
+    }
+    .compact-grid .w-14.h-14 .text-\[9px\] {
+        font-size: 7px !important;
+        margin-top: 0px !important;
+    }
+
+    .compact-grid .status-btn {
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 8px !important;
+        font-size: 10px !important;
+        min-width: 50px !important;
+    }
+    .compact-grid .flex-col.gap-2\.5 {
+        gap: 0.125rem !important;
+    }
+    
+    .compact-grid [data-manifestation-id] .absolute.-top-3.-right-3 {
+        top: 0.25rem !important;
+        right: 0.25rem !important;
+    }
+    .compact-grid [data-manifestation-id] .absolute.-top-3.-right-3 span {
+        padding: 0.15rem 0.4rem !important;
+        font-size: 8px !important;
+        border-radius: 6px !important;
+    }
+</style>
+
+{# pb-36 sur mobile pour laisser de l'espace à la barre fixe du bas, md:pb-12 sur ordinateur #}
+<div class="min-h-screen bg-slate-50/50 pb-36 md:pb-12">
     
     {# 1. EN-TÊTE ET ACCUEIL #}
     <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
@@ -103,9 +179,9 @@
                         <svg class="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Événements à venir<span id="active-filter-label" class="text-sm font-normal text-slate-500 italic ml-2"></span>
                     </h2>
-                    <button id="reset-dashboard-filters" class="hidden text-xs font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
-                        ✕ Effacer les filtres
-                    </button>
+                        <button id="reset-dashboard-filters" class="hidden text-xs font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                            ✕ Effacer les filtres
+                        </button>
                 </div>
 
                 {# Panneau Actions groupées #}
@@ -172,7 +248,14 @@
                 </div>
 
                 {# Liste des prochains événements #}
-                <div class="space-y-4" id="event-grid" 
+                <div class="flex items-center gap-2">
+                    <button type="button" id="toggle-compact-btn" class="text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition flex items-center gap-1.5">
+                        <span id="toggle-compact-icon">☰</span>
+                        <span id="toggle-compact-text">Vue compacte</span>
+                    </button>
+                </div>
+                
+                <div class="space-y-4 compact-grid" id="event-grid" 
                      data-logged-in-user-id="{{ app.session.LogInId|default(0) }}" 
                      data-logged-in-user-name="{{ app.session.user_name|default('') }}">
                     {% for m in imminent_events %}
