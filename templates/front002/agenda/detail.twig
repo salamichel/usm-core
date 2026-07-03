@@ -35,10 +35,10 @@
               <div class="font-bold text-sm text-slate-200">{{ event.duration }}</div>
             </div>
           {% endif %}
-          {% if event.nb_courts %}
+          {% if event.nb_terrains %}
             <div>
               <div class="text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">Terrains</div>
-              <div class="font-bold text-sm text-slate-200">{{ event.nb_courts }}</div>
+              <div class="font-bold text-sm text-slate-200">{{ event.nb_terrains }}</div>
             </div>
           {% endif %}
         </div>
@@ -65,18 +65,18 @@
       {% endif %}
 
       {# Lieu #}
-      {% if event.location %}
+      {% if event.lieu %}
         <div class="pb-6 border-b border-slate-100">
           <h2 class="font-serif text-xl font-bold text-slate-900 mb-2">Lieu</h2>
-          <p class="text-slate-600 text-sm font-semibold">{{ event.location }}</p>
+          <p class="text-slate-600 text-sm font-semibold">{{ event.lieu }}</p>
         </div>
       {% endif %}
 
       {# Comment #}
-      {% if event.comment %}
+      {% if event.commentaire %}
         <div class="pb-6 border-b border-slate-100">
           <h2 class="font-serif text-xl font-bold text-slate-900 mb-2">Informations</h2>
-          <p class="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed font-semibold">{{ event.comment }}</p>
+          <p class="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed font-semibold">{{ event.commentaire }}</p>
         </div>
       {% endif %}
 
@@ -169,18 +169,18 @@
         <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-2{% endif %} gap-6">
           {% if event.is_match %}
             {# 1. Sélectionnés #}
-            {{ _self.render_status_list('Sélectionnés', event.selectionnes, 'border-amber-100 text-amber-800 bg-amber-50/10', 'bg-amber-500', event.nb_selection) }}
+            {{ _self.render_status_list('Sélectionnés', event.selected, 'border-amber-100 text-amber-800 bg-amber-50/10', 'bg-amber-500', event.nb_selected) }}
             {# 2. Disponibles #}
-            {{ _self.render_status_list('Disponibles', event.disponibles, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_disponible) }}
+            {{ _self.render_status_list('Disponibles', event.available, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_available) }}
             {# 3. Disponible si besoin #}
-            {{ _self.render_status_list('Si besoin', event.disponibles_si_necessaire, 'border-sky-100 text-sky-800 bg-sky-50/10', 'bg-sky-500', event.nb_disponible_si_necessaire) }}
+            {{ _self.render_status_list('Si besoin', event.available_if_needed, 'border-sky-100 text-sky-800 bg-sky-50/10', 'bg-sky-500', event.nb_available_if_needed) }}
             {# 4. Indisponibles #}
-            {{ _self.render_status_list('Indisponibles', event.indisponibles, 'border-rose-100 text-rose-850 bg-rose-50/10', 'bg-rose-500', event.nb_indisponible) }}
+            {{ _self.render_status_list('Indisponibles', event.unavailable, 'border-rose-100 text-rose-850 bg-rose-50/10', 'bg-rose-500', event.nb_unavailable) }}
           {% else %}
             {# 1. Présents #}
-            {{ _self.render_status_list('Présents', event.presents, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
+            {{ _self.render_status_list('Présents', event.present, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
             {# 2. Absents #}
-            {{ _self.render_status_list('Absents', event.absents, 'border-rose-100 text-rose-800 bg-rose-50/10', 'bg-rose-500', event.nb_absent) }}
+            {{ _self.render_status_list('Absents', event.absent, 'border-rose-100 text-rose-800 bg-rose-50/10', 'bg-rose-500', event.nb_absent) }}
           {% endif %}
         </div>
       </div>

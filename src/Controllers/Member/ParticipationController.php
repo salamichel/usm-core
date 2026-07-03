@@ -47,7 +47,7 @@ class ParticipationController
                 $stmt = $db->prepare("SELECT Participation FROM Participation WHERE id_joueur = ? AND id_manifestation = ?");
                 $stmt->execute([$userId, $manifestationId]);
                 $currentStatus = $stmt->fetchColumn() ?: '';
-                if (str_contains($currentStatus, 'Sélectionné')) {
+                if (\App\Helpers\ParticipationStatus::categorize((string)$currentStatus) === 'selected') {
                     http_response_code(400);
                     echo json_encode(['ok' => false, 'message' => 'Vous êtes convoqué pour ce match, impossible de modifier votre statut.']);
                     exit;
@@ -77,6 +77,9 @@ class ParticipationController
                 'counts' => $counts
             ]);
     
+        } catch (\InvalidArgumentException $e) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'message' => $e->getMessage()]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['ok' => false, 'message' => 'Erreur serveur']);

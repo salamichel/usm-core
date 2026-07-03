@@ -38,6 +38,12 @@ class DashboardController
             'kpis' => $kpis,
             'imminent_events' => $imminentEvents,
             'stats' => $stats,
+            'statuses' => [
+                'match' => \App\Models\MotsClef::getByCategory('Participation_match'),
+                'entrainement' => \App\Models\MotsClef::getByCategory('Participation_entrai'),
+                'club' => \App\Models\MotsClef::getByCategory('Participation_club'),
+                'beach' => \App\Models\MotsClef::getByCategory('Participation_beach')
+            ]
         ]);
     }
 }

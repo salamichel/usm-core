@@ -252,14 +252,14 @@
             </td>
 
             {% for mid, m in manifestations %}
-              {% set part = row[mid] ?? '' %}
-              {% set is_selected = part matches '/Sélectionné/' %}
-              {% set is_present = part matches '/(Présent|Oui)/' %}
-              {% set is_available_if_needed = part matches '/Disponible si n/' %}
-              {% set is_available = part matches '/(Disponible|Joker)/' and not is_available_if_needed %}
-              {% set is_unavailable = part matches '/Indisponible/' %}
-              {% set is_absent = part matches '/(Absent|Non)/' %}
-              {% set is_unknown = part matches '/(Ne sait pas|\\?)/' %}
+              {% set part = row[mid] ?? null %}
+              {% set is_selected = part and part.category == 'selected' %}
+              {% set is_present = part and part.category == 'present' %}
+              {% set is_available_if_needed = part and part.category == 'available_if_needed' %}
+              {% set is_available = part and part.category == 'available' %}
+              {% set is_unavailable = part and part.category == 'unavailable' %}
+              {% set is_absent = part and part.category == 'absent' %}
+              {% set is_unknown = part and part.category == 'unknown' %}
 
               {% if is_selected %}
                 {% set cell_bg = 'bg-amber-100' %}
@@ -277,14 +277,14 @@
                 {% set cell_bg = 'bg-rose-100' %}
                 {% set text_color = 'text-rose-800' %}
               {% elseif is_absent %}
-                {% set cell_bg = 'bg-rose-200' %}
-                {% set text_color = 'text-rose-900' %}
+                {% set cell_bg = 'bg-rose-100' %}
+                {% set text_color = 'text-rose-800' %}
               {% elseif is_unknown %}
-                {% set cell_bg = 'bg-orange-100' %}
-                {% set text_color = 'text-orange-800' %}
+                {% set cell_bg = 'bg-gray-100' %}
+                {% set text_color = 'text-gray-800' %}
               {% else %}
-                {% set cell_bg = 'bg-slate-100' %}
-                {% set text_color = 'text-slate-500' %}
+                {% set cell_bg = 'bg-white' %}
+                {% set text_color = 'text-gray-400' %}
               {% endif %}
 
               {% if m.annule %}
@@ -313,7 +313,7 @@
                 {% set icone = '—' %}{% set libelle = 'S.R.' %}
               {% endif %}
 
-              <td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part }}">
+              <td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part ? part.text : '' }}">
                 <span class="text-sm">{{ icone }}</span> <span class="text-xs">{{ libelle }}</span>
               </td>
             {% endfor %}

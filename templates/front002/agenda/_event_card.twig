@@ -8,7 +8,7 @@
 #}
 
 {# Détermination du style de fond de la carte #}
-{% set is_selected = m.user_status is defined and 'Sélectionné' in m.user_status and not m.annule %}
+{% set is_selected = m.user_status_category is defined and m.user_status_category == 'selected' and not m.annule %}
 {% set is_overlapping_selected = m.is_overlapping_selected|default(false) and not m.annule %}
 
 {% if m.annule %}
@@ -164,7 +164,7 @@
                     <div class="flex flex-col items-start">
                         <span class="text-[9px] font-black text-slate-400 tracking-wider uppercase">Membres</span>
                         <div class="flex items-center mt-1.5 avatar-stack">
-                            {% set list_players = m.is_match ? ((m.annule ? [] : m.selectionnes)|merge(m.disponibles)|merge(m.disponibles_si_necessaire)) : m.presents %}
+                            {% set list_players = m.is_match ? ((m.annule ? [] : m.selected)|merge(m.available)|merge(m.available_if_needed)) : m.present %}
                             {% set max_avatars = 5 %}
                             
                             {% for p in list_players|slice(0, max_avatars) %}
@@ -212,41 +212,47 @@
                                 {% if not m.annule %}
                                     <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 hover:scale-105 transition-all flex items-center gap-0.5" 
                                          data-title="Joueurs convoqués" 
-                                         data-status-key="Sélectionné"
-                                         data-players='{{ m.selectionnes|default([])|json_encode|e('html_attr') }}'>
-                                        <span class="text-[9px]">★</span> <span class="count-value">{{ m.nb_selection|default(0) }}</span>
+                                         data-status-key="selected"
+                                         data-players='{{ m.selected|default([])|json_encode|e('html_attr') }}'>
+                                        <span class="text-[9px]">★</span> <span class="count-value">{{ m.nb_selected|default(0) }}</span>
                                     </div>
                                 {% endif %}
                                 <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs disponibles" 
-                                     data-status-key="Disponible"
-                                     data-players='{{ m.disponibles|default([])|json_encode|e('html_attr') }}'>
-                                    <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_disponible|default(0) }}</span>
+                                     data-status-key="available"
+                                     data-players='{{ m.available|default([])|json_encode|e('html_attr') }}'>
+                                    <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_available|default(0) }}</span>
                                 </div>
                                 <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 hover:bg-blue-100 border border-blue-150 text-blue-700 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs (Si besoin)" 
-                                     data-status-key="Disponible si nécessaire"
-                                     data-players='{{ m.disponibles_si_necessaire|default([])|json_encode|e('html_attr') }}'>
-                                     <span>◐</span> <span class="count-value">{{ m.nb_disponible_si_necessaire|default(0) }}</span>
+                                     data-status-key="available_if_needed"
+                                     data-players='{{ m.available_if_needed|default([])|json_encode|e('html_attr') }}'>
+                                     <span>◐</span> <span class="count-value">{{ m.nb_available_if_needed|default(0) }}</span>
                                 </div>
                                 <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs indisponibles" 
-                                     data-status-key="Indisponible"
-                                     data-players='{{ m.indisponibles|default([])|json_encode|e('html_attr') }}'>
-                                     <span>✗</span> <span class="count-value">{{ m.nb_indisponible|default(0) }}</span>
+                                     data-status-key="unavailable"
+                                     data-players='{{ m.unavailable|default([])|json_encode|e('html_attr') }}'>
+                                     <span>✗</span> <span class="count-value">{{ m.nb_unavailable|default(0) }}</span>
                                 </div>
                             {% else %}
                                 <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs présents" 
-                                     data-status-key="Présent"
-                                     data-players='{{ m.presents|default([])|json_encode|e('html_attr') }}'>
+                                     data-status-key="present"
+                                     data-players='{{ m.present|default([])|json_encode|e('html_attr') }}'>
                                     <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_present|default(0) }}</span>
                                 </div>
                                 <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 hover:scale-105 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs absents" 
-                                     data-status-key="Absent"
-                                     data-players='{{ m.absents|default([])|json_encode|e('html_attr') }}'>
+                                     data-status-key="absent"
+                                     data-players='{{ m.absent|default([])|json_encode|e('html_attr') }}'>
                                     <span class="text-[9px]">✗</span> <span class="count-value">{{ m.nb_absent|default(0) }}</span>
+                                </div>
+                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-50 hover:bg-slate-100 border border-slate-100 text-slate-600 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                     data-title="Joueurs incertains" 
+                                     data-status-key="unknown"
+                                     data-players='{{ m.unknown|default([])|json_encode|e('html_attr') }}'>
+                                    <span class="text-[9px]">?</span> <span class="count-value">{{ m.nb_unknown|default(0) }}</span>
                                 </div>
                             {% endif %}
                         </div>
@@ -259,14 +265,15 @@
                 <div class="flex flex-col gap-2.5 md:border-l md:border-slate-100 md:pl-4 z-20">
                     <div class="flex flex-col">
                         <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Mon Statut</span>
-                        <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-black mt-0.5 {% if m.annule %}text-rose-600 line-through{% elseif m.user_status %}{% if 'Sélectionné' in m.user_status %}text-amber-600{% elseif m.user_status in ['Disponible', 'Présent'] %}text-emerald-600{% elseif m.user_status == 'Disponible si nécessaire' %}text-amber-500{% elseif m.user_status in ['Indisponible', 'Absent'] %}text-rose-500{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
+                        <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-black mt-0.5 {% if m.annule %}text-rose-600 line-through{% elseif m.user_status %}{% if m.user_status_category == 'selected' %}text-amber-600{% elseif m.user_status_category in ['available', 'present'] %}text-emerald-600{% elseif m.user_status_category == 'available_if_needed' %}text-amber-500{% elseif m.user_status_category in ['unavailable', 'absent'] %}text-rose-500{% elseif m.user_status_category == 'unknown' %}text-slate-600{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
                             {% if m.annule %}
                                 Annulé
                             {% elseif m.user_status %}
-                                {% if 'Sélectionné' in m.user_status %} <span class="mr-1 text-xs">★</span> {{ m.user_status }}
-                                {% elseif m.user_status in ['Disponible', 'Présent'] %} <span class="mr-1 text-xs">✓</span> {{ m.user_status }}
-                                {% elseif m.user_status == 'Disponible si nécessaire' %} <span class="mr-1 text-xs">◐</span> Si besoin
-                                {% elseif m.user_status in ['Indisponible', 'Absent'] %} <span class="mr-1 text-xs">✗</span> {{ m.user_status }}
+                                {% if m.user_status_category == 'selected' %} <span class="mr-1 text-xs">★</span> {{ m.user_status }}
+                                {% elseif m.user_status_category in ['available', 'present'] %} <span class="mr-1 text-xs">✓</span> {{ m.user_status }}
+                                {% elseif m.user_status_category == 'available_if_needed' %} <span class="mr-1 text-xs">◐</span> Si besoin
+                                {% elseif m.user_status_category in ['unavailable', 'absent'] %} <span class="mr-1 text-xs">✗</span> {{ m.user_status }}
+                                {% elseif m.user_status_category == 'unknown' %} <span class="mr-1 text-xs">?</span> {{ m.user_status }}
                                 {% else %} {{ m.user_status }} {% endif %}
                             {% else %}
                                 Non renseigné
@@ -289,7 +296,7 @@
                             </div>
                         {% else %}
                             {% if m.is_match %}
-                                {% set is_dispo = m.user_status == 'Disponible' %}
+                                {% set is_dispo = m.user_status_category == 'available' %}
                                 <button type="button" 
                                         class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_dispo %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100{% endif %}" 
                                         data-status="Disponible"
@@ -297,7 +304,7 @@
                                     <span class="text-xs">✓</span> Dispo
                                 </button>
 
-                                {% set is_sib = m.user_status == 'Disponible si nécessaire' %}
+                                {% set is_sib = m.user_status_category == 'available_if_needed' %}
                                 <button type="button" 
                                         class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_sib %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100{% endif %}" 
                                         data-status="Disponible si nécessaire"
@@ -305,7 +312,7 @@
                                     <span class="text-xs">◐</span> Si besoin
                                 </button>
 
-                                {% set is_indispo = m.user_status == 'Indisponible' %}
+                                {% set is_indispo = m.user_status_category == 'unavailable' %}
                                 <button type="button" 
                                         class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_indispo %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100{% endif %}" 
                                         data-status="Indisponible"
@@ -313,20 +320,28 @@
                                     <span class="text-xs">✗</span> Indispo
                                 </button>
                             {% else %}
-                                {% set is_present = m.user_status == 'Présent' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_present %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100{% endif %}" 
-                                        data-status="Présent"
-                                        title="Présent">
-                                    <span class="text-xs">✓</span> Présent
-                                </button>
+                                {% set is_present = m.user_status_category == 'present' %}
+                                <select class="status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100{% endif %}">
+                                    <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 5" {% if m.user_status == 'Présent(e) à 5' %}selected{% endif %}>✓ Présent à 5</option>
+                                </select>
 
-                                {% set is_absent = m.user_status == 'Absent' %}
                                 <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_absent %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100{% endif %}" 
-                                        data-status="Absent"
+                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if m.user_status == 'Absent(e)' %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100{% endif %}" 
+                                        data-status="Absent(e)"
                                         title="Absent">
                                     <span class="text-xs">✗</span> Absent
+                                </button>
+
+                                <button type="button" 
+                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if m.user_status == 'Ne sait pas' %}bg-slate-600 text-white{% else %}bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-100{% endif %}" 
+                                        data-status="Ne sait pas"
+                                        title="Incertain">
+                                    <span class="text-xs">?</span> Ne sait pas
                                 </button>
                             {% endif %}
                             

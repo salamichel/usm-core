@@ -69,13 +69,13 @@
         </div>
       {% endif %}
 
-      {% if filterOptions.locations %}
+      {% if filterOptions.lieux %}
         <div>
           <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Lieu</p>
-          <select onchange="updateAgendaFilter('location', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
+          <select onchange="updateAgendaFilter('lieu', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
             <option value="">Tous les lieux</option>
-            {% for location in filterOptions.locations %}
-              <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
+            {% for lieu in filterOptions.lieux %}
+              <option value="{{ lieu }}" {% if filters.lieu == lieu %}selected{% endif %}>{{ lieu }}</option>
             {% endfor %}
           </select>
         </div>
