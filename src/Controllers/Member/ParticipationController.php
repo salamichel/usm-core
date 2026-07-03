@@ -83,4 +83,109 @@ class ParticipationController
         }
         exit;
     }
+
+    /**
+     * Action publique pour traiter la réponse rapide par email.
+     * Route: GET /public/participation/update
+     */
+    public function publicUpdate(): void
+    {
+        $playerId = isset($_GET['player_id']) ? (int)$_GET['player_id'] : 0;
+        $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
+        $status = isset($_GET['status']) ? trim((string)$_GET['status']) : '';
+        $token = isset($_GET['token']) ? trim((string)$_GET['token']) : '';
+
+        if (!$playerId || !$eventId || !$status || !$token) {
+            View::render('agenda/participation_confirmed.twig', [
+                'success' => false,
+                'message' => 'Lien incomplet ou invalide.'
+            ]);
+            exit;
+        }
+
+        // Vérifier le token
+        $expectedToken = \App\Models\Participation::generateEmailToken($playerId, $eventId, $status);
+        if (!hash_equals($expectedToken, $token)) {
+            View::render('agenda/participation_confirmed.twig', [
+                'success' => false,
+                'message' => 'Ce lien de réponse rapide est invalide ou a expiré.'
+            ]);
+            exit;
+        }
+
+        // Valider le statut
+        $allowedStatuses = ['Disponible', 'Disponible si nécessaire', 'Indisponible', 'Présent', 'Absent'];
+        if (!in_array($status, $allowedStatuses, true)) {
+            View::render('agenda/participation_confirmed.twig', [
+                'success' => false,
+                'message' => 'Statut de participation inconnu.'
+            ]);
+            exit;
+        }
+
+        try {
+            $event = \App\Services\AgendaService::getEventById($eventId);
+            if (!$event) {
+                View::render('agenda/participation_confirmed.twig', [
+                    'success' => false,
+                    'message' => 'Événement introuvable.'
+                ]);
+                exit;
+            }
+
+            // 1. Vérifier si le joueur est sélectionné
+            $db = \App\Core\ExternalDatabase::get();
+            $stmt = $db->prepare("SELECT Participation FROM Participation WHERE id_joueur = ? AND id_manifestation = ?");
+            $stmt->execute([$playerId, $eventId]);
+            $currentStatus = $stmt->fetchColumn() ?: '';
+            if (str_contains($currentStatus, 'Sélectionné')) {
+                View::render('agenda/participation_confirmed.twig', [
+                    'success' => false,
+                    'message' => 'Vous êtes convoqué(e) pour ce match, votre statut ne peut pas être modifié.',
+                    'event' => $event,
+                    'status' => $currentStatus
+                ]);
+                exit;
+            }
+
+            // 2. Vérifier le chevauchement
+            if (\App\Services\AgendaService::isOverlappingSelected($playerId, $eventId)) {
+                View::render('agenda/participation_confirmed.twig', [
+                    'success' => false,
+                    'message' => 'Vous avez un créneau concurrent avec un autre match pour lequel vous êtes déjà sélectionné(e).',
+                    'event' => $event,
+                    'status' => $status
+                ]);
+                exit;
+            }
+
+            // 3. Mettre à jour la participation
+            \App\Models\Participation::upsert($playerId, $eventId, $status);
+
+            // Log de l'action
+            \App\Services\Logger::audit()->info('Public participation update via email link', [
+                'player_id' => $playerId,
+                'event_id' => $eventId,
+                'status' => $status
+            ]);
+
+            View::render('agenda/participation_confirmed.twig', [
+                'success' => true,
+                'message' => 'Votre réponse a bien été enregistrée.',
+                'event' => $event,
+                'status' => $status
+            ]);
+        } catch (\Throwable $e) {
+            \App\Services\Logger::errors()->error('Error in publicUpdate', [
+                'exception' => $e->getMessage(),
+                'player_id' => $playerId,
+                'event_id' => $eventId
+            ]);
+            View::render('agenda/participation_confirmed.twig', [
+                'success' => false,
+                'message' => 'Une erreur interne est survenue. Veuillez vous connecter pour mettre à jour votre disponibilité.'
+            ]);
+        }
+        exit;
+    }
 }

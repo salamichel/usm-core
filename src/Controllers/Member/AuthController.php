@@ -22,8 +22,12 @@ class AuthController
             exit;
         }
 
+        $redirect = $_GET['redirect'] ?? '/member/dashboard';
+
         // Utilise une vue front-end
-        View::render('auth/login.twig');
+        View::render('auth/login.twig', [
+            'redirect' => $redirect,
+        ]);
     }
 
     /**
@@ -32,13 +36,18 @@ class AuthController
      */
     public function login(): void
     {
+        $redirectUrl = $_POST['redirect'] ?? '/member/dashboard';
+        if (!str_starts_with($redirectUrl, '/') || str_starts_with($redirectUrl, '//')) {
+            $redirectUrl = '/member/dashboard';
+        }
+
         $v = Validator::make($_POST)
             ->required('Id', 'L\'adresse email est requise.')
             ->required('IdPassword', 'Le mot de passe est requis.');
 
         if ($v->fails()) {
             View::flash('error', $v->firstError());
-            header('Location: /member/login');
+            header('Location: /member/login?redirect=' . urlencode($redirectUrl));
             exit;
         }
 
@@ -61,12 +70,12 @@ class AuthController
             $_SESSION['IsCaptainSaison'] = !empty($captainedTeams);
 
             View::flash('success', 'Bienvenue ' . $user['Prénom'] . ' !');
-            header('Location: /member/dashboard');
+            header('Location: ' . $redirectUrl);
             exit;
         }
 
         View::flash('error', 'Mot de passe ou email incorrect.');
-        header('Location: /member/login');
+        header('Location: /member/login?redirect=' . urlencode($redirectUrl));
         exit;
     }
 

@@ -399,6 +399,39 @@ HTML;
         }
         $eventLocation = $event['location'] ?? $event['lieu'] ?? '';
 
+        $playerId = (int)($player['id_joueur'] ?? 0);
+        $eventId = (int)($event['id'] ?? $event['id_manifestation'] ?? 0);
+
+        $buttonsHtml = '';
+        if ($playerId && $eventId) {
+            $isMatch = $event['is_match'] ?? false;
+            if ($isMatch) {
+                $options = [
+                    'Disponible' => ['label' => 'Disponible', 'color' => '#10b981'],
+                    'Disponible si nécessaire' => ['label' => 'Si besoin', 'color' => '#f59e0b'],
+                    'Indisponible' => ['label' => 'Indisponible', 'color' => '#ef4444']
+                ];
+            } else {
+                $options = [
+                    'Présent' => ['label' => 'Présent', 'color' => '#10b981'],
+                    'Absent' => ['label' => 'Absent', 'color' => '#ef4444']
+                ];
+            }
+
+            $buttonsHtml .= '<div style="margin-top: 24px; text-align: center;">';
+            foreach ($options as $status => $opt) {
+                $token = \App\Models\Participation::generateEmailToken($playerId, $eventId, $status);
+                $url = BASE_URL . '/public/participation/update?' . http_build_query([
+                    'player_id' => $playerId,
+                    'event_id'  => $eventId,
+                    'status'    => $status,
+                    'token'     => $token
+                ]);
+                $buttonsHtml .= '<a href="' . htmlspecialchars($url) . '" style="display: inline-block; background-color: ' . $opt['color'] . '; color: #ffffff; padding: 12px 20px; border-radius: 10px; font-weight: bold; text-decoration: none; font-size: 14px; margin: 6px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 3px rgba(0,0,0,0.1);">' . htmlspecialchars($opt['label']) . '</a>';
+            }
+            $buttonsHtml .= '</div>';
+        }
+
         $template = <<<'HTML'
 <!DOCTYPE html>
 <html lang="fr">
@@ -440,9 +473,16 @@ HTML;
                 <div class="field-value">{{EVENT_LOCATION}}</div>
             </div>
 
-            <p style="margin-top: 16px;">Merci d'indiquer rapidement si vous êtes disponible ou non afin de faciliter la préparation du match et les convocations.</p>
+            <p style="margin-top: 16px;">Merci d'indiquer rapidement votre réponse en cliquant directement ci-dessous :</p>
             
-            <a href="{{DASHBOARD_URL}}" class="cta-button">👉 Saisir ma présence</a>
+            {{BUTTONS_HTML}}
+            
+            <p style="margin-top: 24px; font-size: 13px; color: #666; text-align: center;">
+                Vous pouvez également vous connecter à votre espace adhérent pour consulter tous les détails et les autres matchs :
+            </p>
+            <div style="text-align: center;">
+                <a href="{{DASHBOARD_URL}}" class="cta-button">👉 Accéder à mon espace</a>
+            </div>
         </div>
 
         <div class="footer">
@@ -459,7 +499,8 @@ HTML;
             '{{EVENT_TITLE}}' => $this->escapeHtml($eventTitle),
             '{{EVENT_DATE}}' => $this->escapeHtml($eventDate),
             '{{EVENT_LOCATION}}' => $this->escapeHtml($eventLocation),
-            '{{DASHBOARD_URL}}' => BASE_URL . '/member/dashboard',
+            '{{BUTTONS_HTML}}' => $buttonsHtml,
+            '{{DASHBOARD_URL}}' => BASE_URL . '/member/dashboard?event_id=' . $eventId,
         ]);
     }
 

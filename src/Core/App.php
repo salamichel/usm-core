@@ -109,6 +109,7 @@ class App
         $r->get('/member/profile', [ProfileController::class, 'show']);
         $r->post('/member/profile', [ProfileController::class, 'update']);
         $r->post('/joueurs/delete/{id}', [JoueurController::class, 'delete']);        
+        $r->get('/public/participation/update', [ParticipationController::class, 'publicUpdate']);
 
         // Espace Capitaine
         $r->get('/member/captain', [CaptainController::class, 'index']);

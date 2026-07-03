@@ -683,6 +683,38 @@
                 }
             }, 300);
         }
+
+        // 3. Défilement et surbrillance d'un événement spécifique
+        const targetEventId = urlParams.get('event_id');
+        if (targetEventId) {
+            setTimeout(() => {
+                // S'assurer que les filtres de la page ne masquent pas cet événement
+                const resetBtn = document.getElementById('reset-dashboard-filters');
+                if (resetBtn) {
+                    resetBtn.click();
+                }
+                
+                const targetCard = document.querySelector(`#event-grid > div[data-manifestation-id="${targetEventId}"]`);
+                if (targetCard) {
+                    targetCard.style.display = ''; // S'assurer qu'elle est visible
+                    
+                    const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 76;
+                    const dateSlider = document.getElementById('date-slider');
+                    const sliderHeight = dateSlider ? 85 : 0;
+                    const yOffset = -(headerHeight + sliderHeight - 15);
+                    
+                    const y = targetCard.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                    
+                    // Appliquer une animation/surbrillance temporaire
+                    targetCard.classList.add('ring-4', 'ring-indigo-600/40', 'border-indigo-500', 'shadow-lg');
+                    
+                    setTimeout(() => {
+                        targetCard.classList.remove('ring-4', 'ring-indigo-600/40');
+                    }, 4000);
+                }
+            }, 500);
+        }
     }
 
     if (document.readyState === 'loading') {
