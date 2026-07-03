@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Agenda;
@@ -6,6 +7,7 @@ namespace App\Services\Agenda;
 use App\Core\ExternalDatabase;
 use App\Helpers\ParticipationStatus;
 use App\Models\EquipeConfig;
+use App\Services\Agenda\ParticipationStatsService;
 
 /**
  * Accès en lecture seule à la base externe (tables Manifestation, Joueurs, Participation).
@@ -161,10 +163,22 @@ class EventRepository
             $sql      = "SELECT COUNT(*) as cnt FROM Manifestation WHERE 1=1";
             $bindings = [];
 
-            if ($type)     { $sql .= " AND ManifestationTypée LIKE ?"; $bindings[] = "% - $type - %"; }
-            if ($location) { $sql .= " AND Lieu = ?";                  $bindings[] = $location; }
-            if ($dateFrom) { $sql .= " AND Date >= ?";                 $bindings[] = $dateFrom; }
-            if ($dateTo)   { $sql .= " AND Date <= ?";                 $bindings[] = $dateTo; }
+            if ($type) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = "% - $type - %";
+            }
+            if ($location) {
+                $sql .= " AND Lieu = ?";
+                $bindings[] = $location;
+            }
+            if ($dateFrom) {
+                $sql .= " AND Date >= ?";
+                $bindings[] = $dateFrom;
+            }
+            if ($dateTo) {
+                $sql .= " AND Date <= ?";
+                $bindings[] = $dateTo;
+            }
 
             $stmt = ExternalDatabase::get()->prepare($sql);
             $stmt->execute($bindings);
@@ -291,9 +305,18 @@ class EventRepository
                          WHERE id_manifestation > 0 AND `Date` >= CURDATE()";
             $bindings = [];
 
-            if (!empty($filters['location']))     { $sql .= " AND Lieu = ?";                    $bindings[] = $filters['location']; }
-            if (!empty($filters['type']))         { $sql .= " AND ManifestationTypée LIKE ?";   $bindings[] = '%' . $filters['type'] . '%'; }
-            if (!empty($filters['manifestation'])) { $sql .= " AND ManifestationTypée LIKE ?"; $bindings[] = '% - ' . $filters['manifestation']; }
+            if (!empty($filters['location'])) {
+                $sql .= " AND Lieu = ?";
+                $bindings[] = $filters['location'];
+            }
+            if (!empty($filters['type'])) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = '%' . $filters['type'] . '%';
+            }
+            if (!empty($filters['manifestation'])) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = '% - ' . $filters['manifestation'];
+            }
             if (!empty($filters['this_week'])) {
                 $sql      .= " AND Date BETWEEN ? AND ?";
                 $bindings[] = date('Y-m-d', strtotime('Monday this week'));
@@ -506,6 +529,9 @@ class EventRepository
                     $event['nb_disponible']   = $s['available']   ?? 0;
                     $event['nb_indisponible'] = $s['unavailable'] ?? 0;
                     $event['nb_ne_sait_pas']  = $s['unknown']     ?? 0;
+                    $event['min_players']     = $s['min_required'] ?? 6;
+                } else {
+                    $event['min_players']     = 6;
                 }
             }
             unset($event);
@@ -543,7 +569,7 @@ class EventRepository
             // Conditions d'entraînements flexibles basées sur le type d'événement contenant 'Entr'
             // et optionnellement le code d'équipe ou des mots clés généraux si non typé par équipe
             $trainingExtraClauses = ["m.ManifestationTypée LIKE '%Entr. Compétition%'"];
-            
+
             if (stripos($category, 'ufolep') !== false || stripos($libelle, 'ufolep') !== false) {
                 $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%UFOLEP%'";
             }
@@ -612,13 +638,14 @@ class EventRepository
             $events = [];
             while ($row = $stmt->fetch()) {
                 $id = (int)$row['id_manifestation'];
-                
+
                 // Normalisation via EventNormalizer pour obtenir un objet quasi complet et standardisé
                 $event = EventNormalizer::buildBaseFields($row);
-                
+                $event['min_players'] = ParticipationStatsService::getMinPlayersRequired($row['ManifestationTypée'] ?? '');
+
                 $event['is_match'] = (stripos($row['ManifestationTypée'], 'match') !== false);
                 $event['is_training'] = (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false);
-                
+
                 // Harmonisation type entraînement
                 if ($event['is_training']) {
                     $event['type'] = 'Entraînement';
@@ -644,6 +671,7 @@ class EventRepository
     {
         $id            = (int)($row['id_manifestation'] ?? 0);
         $manifestation = EventNormalizer::buildBaseFields($row, $totalJoueurs);
+        $manifestation['min_players'] = ParticipationStatsService::getMinPlayersRequired($row['ManifestationTypée'] ?? '');
 
         // Enrichissement participation depuis la BDD externe
         try {

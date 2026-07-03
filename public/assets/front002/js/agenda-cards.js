@@ -188,16 +188,17 @@
                 if (progressBar && progressLabel) {
                     const isMatch = card.dataset.eventFilter === 'match';
                     if (isMatch) {
+                        const minPlayers = parseInt(card.dataset.minPlayers || 6);
                         const totalCount = (data.counts['Présent'] || 0) + (data.counts['Disponible'] || 0) + (data.counts['Disponible si nécessaire'] || 0);
-                        const pct = (totalCount >= 6) ? 100 : (totalCount / 6 * 100);
+                        const pct = (totalCount >= minPlayers) ? 100 : (totalCount / minPlayers * 100);
                         progressBar.style.width = pct + '%';
                         
-                        if (totalCount >= 6) {
+                        if (totalCount >= minPlayers) {
                             progressBar.className = 'progress-bar h-full rounded-full transition-all duration-500 bg-gradient-to-r from-emerald-400 to-teal-500';
                             progressLabel.innerHTML = '<span class="text-emerald-600 flex items-center gap-1">✓ Équipe complète (' + totalCount + ')</span>';
                         } else {
                             progressBar.className = 'progress-bar h-full rounded-full transition-all duration-500 bg-gradient-to-r from-orange-400 to-amber-500';
-                            progressLabel.innerHTML = '<span class="text-orange-500">⚠ Sous-effectif (' + totalCount + '/6)</span>';
+                            progressLabel.innerHTML = '<span class="text-orange-500">⚠ Sous-effectif (' + totalCount + '/' + minPlayers + ')</span>';
                         }
                     } else {
                         const totalPresents = data.counts['Présent'] || 0;

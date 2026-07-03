@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Agenda;
@@ -64,11 +65,17 @@ class ParticipationStatsService
         }
 
         $stats['total_responses'] = array_sum([
-            $stats['present'], $stats['available'], $stats['available_if_needed'],
-            $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown'],
+            $stats['present'],
+            $stats['available'],
+            $stats['available_if_needed'],
+            $stats['unavailable'],
+            $stats['selected'],
+            $stats['absent'],
+            $stats['unknown'],
         ]);
-        
+
         $minRequired = self::getMinPlayersRequired($type);
+        $stats['min_required'] = $minRequired;
         $stats['enough_players'] = (
             $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
         ) >= $minRequired;
@@ -127,12 +134,18 @@ class ParticipationStatsService
 
         foreach ($result as $mid => &$stats) {
             $stats['total_responses'] = array_sum([
-                $stats['present'], $stats['available'], $stats['available_if_needed'],
-                $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown'],
+                $stats['present'],
+                $stats['available'],
+                $stats['available_if_needed'],
+                $stats['unavailable'],
+                $stats['selected'],
+                $stats['absent'],
+                $stats['unknown'],
             ]);
-            
+
             $type = $typesMap[$mid] ?? '';
             $minRequired = self::getMinPlayersRequired($type);
+            $stats['min_required'] = $minRequired;
             $stats['enough_players'] = (
                 $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
             ) >= $minRequired;
@@ -145,8 +158,23 @@ class ParticipationStatsService
     /**
      * Retourne le nombre minimum de joueurs requis pour un événement.
      */
-    private static function getMinPlayersRequired(string $manifestationType): int
+    public static function getMinPlayersRequired(string $manifestationType): int
     {
+        try {
+            $db = \App\Core\Database::get();
+            if ($db) {
+                $teams = $db->query("SELECT libelle, team_filter, manifestation_filter, min_players FROM equipes_config WHERE is_active = 1")->fetchAll();
+                foreach ($teams as $team) {
+                    $filter = $team['manifestation_filter'] ?: $team['libelle'];
+                    if ($filter !== '' && str_contains($manifestationType, $filter)) {
+                        return (int)$team['min_players'];
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // Fallback
+        }
+
         $typeLower = mb_strtolower($manifestationType);
         if (
             str_contains($typeLower, '4x4') ||
@@ -201,6 +229,7 @@ class ParticipationStatsService
         $stats = self::emptyStats();
         $stats['total_responses'] = 0;
         $stats['no_response']     = 0;
+        $stats['min_required']    = 6;
         $stats['enough_players']  = false;
         return $stats;
     }

@@ -30,7 +30,8 @@
      data-event-date="{{ m.date|slice(0, 10) }}"
      data-event-filter="{% if 'forum' in m.titre|lower or 'forum' in m.type|lower %}forum{% elseif m.is_match %}match{% else %}{{ m.type|lower|replace({' ': '-'}) }}{% endif %}"
      data-current-status="{{ m.user_status|default('.') }}"
-     data-event-location="{{ m.lieu|default('') }}">
+     data-event-location="{{ m.lieu|default('') }}"
+     data-min-players="{{ m.min_players|default(6) }}">
 
     {# Statut Badges #}
     {% if m.annule %}
@@ -118,15 +119,16 @@
 
                 {# Barre de progression #}
                 {% if m.is_match %}
+                    {% set min_req = m.min_players|default(6) %}
                     {% set total_count = m.nb_present + m.nb_disponible + m.nb_selection %}
-                    {% set pct = (total_count >= 6) ? 100 : (total_count / 6 * 100) %}
+                    {% set pct = (total_count >= min_req) ? 100 : (total_count / min_req * 100) %}
                     <div>
                         <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1">
                             <span class="progress-label flex items-center gap-1">
-                                {% if total_count >= 6 %}
+                                {% if total_count >= min_req %}
                                     <span class="text-emerald-600 flex items-center gap-1">✓ Équipe complète ({{ total_count }})</span>
                                 {% else %}
-                                    <span class="text-orange-500">⚠ Sous-effectif ({{ total_count }}/6)</span>
+                                    <span class="text-orange-500">⚠ Sous-effectif ({{ total_count }}/{{ min_req }})</span>
                                 {% endif %}
                             </span>
                             <span>Durée : {{ m.duration|default('1h30') }}</span>
@@ -345,7 +347,7 @@
         <div class="mt-4 pt-3 border-t border-slate-100/60 flex flex-wrap gap-3 w-full md:pl-20">
             {% if m.commentaire %}
                 <div class="text-xs text-slate-750 bg-indigo-50/40 rounded-2xl p-3 border border-indigo-100/60 leading-relaxed flex-grow min-w-[200px] flex items-start gap-2 shadow-sm">
-                    <svg class="w-4.0 h-4.0 text-indigo-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                     <span class="italic font-semibold text-slate-700 leading-relaxed">{{ m.commentaire }}</span>

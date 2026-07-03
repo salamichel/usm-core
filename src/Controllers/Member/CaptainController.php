@@ -101,6 +101,7 @@ class CaptainController
                 $match['nb_indisponible'] = $nbIndisponible;
                 $match['nb_sans_reponse'] = $nbSansReponse;
                 $match['total_roster'] = count($rosterPlayers);
+                $match['min_players'] = (int)($team['min_players'] ?? 6);
             }
             unset($match);
 
@@ -929,17 +930,7 @@ class CaptainController
             $eventAttendance[$mid] = $availCount;
             
             if ($event['is_match']) {
-                $minRequired = 6;
-                $typeLower = mb_strtolower($event['ManifestationTypée'] ?? '');
-                if (
-                    str_contains($typeLower, '4x4') ||
-                    str_contains($typeLower, '4*4') ||
-                    str_contains($typeLower, 'm13') ||
-                    str_contains($typeLower, 'm15') ||
-                    str_contains($typeLower, 'ufolep')
-                ) {
-                    $minRequired = 4;
-                }
+                $minRequired = (int)($team['min_players'] ?? 6);
                 if ($selCount < $minRequired) {
                     $understaffedMatches++;
                 }
