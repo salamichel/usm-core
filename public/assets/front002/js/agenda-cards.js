@@ -123,7 +123,7 @@
 
             // Filtrer les événements par type
             const eventsForType = selectedType ? events.filter(e => e.type === selectedType) : events;
-            
+
             // Si le sous-type sélectionné n'est plus valide, le réinitialiser
             const validSubtypes = [...new Set(eventsForType.map(e => e.subtype))].filter(Boolean);
             if (selectedSubtype && !validSubtypes.includes(selectedSubtype)) {
@@ -231,9 +231,9 @@
                 const isMatch = (card.dataset.eventFilter === 'match');
                 let targetStatus = statusChoice;
                 if (statusChoice === 'Disponible') {
-                    targetStatus = isMatch ? 'Disponible' : 'Présent';
+                    targetStatus = isMatch ? 'Disponible' : 'Présent(e)';
                 } else if (statusChoice === 'Indisponible') {
-                    targetStatus = isMatch ? 'Indisponible' : 'Absent';
+                    targetStatus = isMatch ? 'Indisponible' : 'Absent(e)';
                 }
 
                 // Cliquer le bouton correspondant ou changer le select
@@ -646,7 +646,7 @@
         if (toggleCompactBtn && eventGrid) {
             const localPref = localStorage.getItem('usm-dashboard-compact');
             const isCompact = localPref === null ? true : localPref === 'true';
-            
+
             if (isCompact) {
                 eventGrid.classList.add('compact-grid');
                 updateCompactBtnUI(true);
@@ -713,7 +713,7 @@
 
     function handleUrlParamsOnLoad() {
         const urlParams = new URLSearchParams(window.location.search);
-        
+
         // 1. Gestion du filtre automatique de l'espace membre
         if (urlParams.get('filter') === 'this-week') {
             activeFilterType = 'kpi';
@@ -725,7 +725,7 @@
                 buildDateSlider();
             }
         }
-        
+
         // 2. Défilement automatique vers la première carte
         if (urlParams.get('scroll') === '1') {
             setTimeout(() => {
@@ -735,7 +735,7 @@
                     const dateSlider = document.getElementById('date-slider');
                     const sliderHeight = dateSlider ? 85 : 0;
                     const yOffset = -(headerHeight + sliderHeight - 10);
-                    
+
                     const y = firstCard.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
                     window.scrollTo({ top: y, behavior: 'smooth' });
                 }
@@ -751,22 +751,22 @@
                 if (resetBtn) {
                     resetBtn.click();
                 }
-                
+
                 const targetCard = document.querySelector(`#event-grid > div[data-manifestation-id="${targetEventId}"]`);
                 if (targetCard) {
                     targetCard.style.display = ''; // S'assurer qu'elle est visible
-                    
+
                     const headerHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 76;
                     const dateSlider = document.getElementById('date-slider');
                     const sliderHeight = dateSlider ? 85 : 0;
                     const yOffset = -(headerHeight + sliderHeight - 15);
-                    
+
                     const y = targetCard.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) + yOffset;
                     window.scrollTo({ top: y, behavior: 'smooth' });
-                    
+
                     // Appliquer une animation/surbrillance temporaire
                     targetCard.classList.add('ring-4', 'ring-indigo-600/40', 'border-indigo-500', 'shadow-lg');
-                    
+
                     setTimeout(() => {
                         targetCard.classList.remove('ring-4', 'ring-indigo-600/40');
                     }, 4000);
@@ -1059,12 +1059,12 @@
                 } else if (activeFilterValue === 'forum') {
                     matches = filterVal === 'forum';
                 } else if (activeFilterValue === 'others') {
-                    matches = filterVal !== 'match' && 
-                              filterVal !== 'forum' && 
-                              !filterVal.includes('entrain') && 
-                              !filterVal.includes('entraîn') && 
-                              !filterVal.includes('tournoi') && 
-                              !filterVal.includes('plateau');
+                    matches = filterVal !== 'match' &&
+                        filterVal !== 'forum' &&
+                        !filterVal.includes('entrain') &&
+                        !filterVal.includes('entraîn') &&
+                        !filterVal.includes('tournoi') &&
+                        !filterVal.includes('plateau');
                 } else {
                     matches = filterVal.includes(activeFilterValue);
                 }
@@ -1111,7 +1111,7 @@
             subtypeSelect.value = '';
             locationSelect.value = '';
             kindSelect.value = '';
-            
+
             // Re-populate selects to default unfiltered states
             const grid = document.getElementById('event-grid');
             if (grid) {
@@ -1126,7 +1126,7 @@
                 const uniqueSubtypes = [...new Set(events.map(e => e.subtype))].filter(Boolean).sort();
                 const uniqueLocations = [...new Set(events.map(e => e.location))].filter(Boolean).sort();
                 const uniqueKinds = [...new Set(events.map(e => e.kind))].filter(Boolean).sort();
-                
+
                 typeSelect.innerHTML = `<option value="">Tous les types</option>`;
                 uniqueTypes.forEach(opt => {
                     const option = document.createElement('option');
