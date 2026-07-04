@@ -1043,8 +1043,15 @@
                 card.style.display = matches ? '' : 'none';
             });
         } else if (activeFilterType === 'type') {
-            document.querySelectorAll(`[data-type-filter="${activeFilterValue}"]`).forEach(el => {
-                el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+            const activeFilterNorm = normalizeString(activeFilterValue);
+            document.querySelectorAll('[data-type-filter]').forEach(el => {
+                const filterNorm = normalizeString(el.dataset.typeFilter || '');
+                const isMatch = (filterNorm === activeFilterNorm) || 
+                                (filterNorm === 'tournois' && activeFilterNorm === 'tournoi') || 
+                                (filterNorm === 'tournoi' && activeFilterNorm === 'tournois');
+                if (isMatch) {
+                    el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
+                }
             });
 
             const activeFilterLower = activeFilterValue.toLowerCase().trim();
