@@ -69,6 +69,15 @@ class Validator
         return $this;
     }
 
+    public function in(string $field, array $allowedValues, ?string $message = null): self
+    {
+        $value = $this->data[$field] ?? '';
+        if (!in_array($value, $allowedValues, true)) {
+            $this->errors[$field] = $message ?? ucfirst($field) . " n'est pas une valeur autorisée.";
+        }
+        return $this;
+    }
+
     /**
      * Valide qu'un champ HTML (ex: issu de l'éditeur Quill) n'est pas vide.
      * Considère '<p><br></p>', '<p></p>' et '' comme des valeurs vides.
