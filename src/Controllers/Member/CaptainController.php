@@ -325,7 +325,7 @@ class CaptainController
         }
 
         $wasCancelled = $event['annule'] ?? false;
-        $selectedPlayers = $event['selectionnes'] ?? [];
+        $selectedPlayers = $event['selected'] ?? [];
         $oldDate = $event['Date'] ?? '';
         $oldLocation = $event['lieu'] ?? '';
 
