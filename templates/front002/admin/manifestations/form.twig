@@ -1,0 +1,102 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ manifestation ? 'Éditer' : 'Créer' }} une manifestation{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+  <a href="{{ url('admin/manifestations') }}" class="font-bold hover:underline text-sm">&larr; Retour</a>
+  <h1 class="text-3xl font-black">{{ manifestation ? 'Éditer la manifestation' : 'Nouvelle manifestation' }}</h1>
+</div>
+
+{% if error %}
+  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-6 font-semibold text-sm rounded">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="{{ action }}" class="space-y-6">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
+    <h2 class="font-black text-lg">Détails de la manifestation</h2>
+
+    <div class="grid sm:grid-cols-2 gap-6">
+      {# Type de manifestation #}
+      <div class="sm:col-span-2">
+        <label class="block font-black mb-1" for="manifestation_type">Type de manifestation *</label>
+        <select id="manifestation_type" name="manifestation_type" required class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown font-semibold">
+          <option value="">-- Sélectionner un type --</option>
+          {% for type in types %}
+            <option value="{{ type }}" {{ manifestation.manifestation_type == type ? 'selected' : '' }}>{{ type }}</option>
+          {% endfor %}
+        </select>
+        <div class="text-xs text-gray-500 mt-1">Sélectionnez le type d'événement (mots-clés de catégorie ManifestationTypée).</div>
+      </div>
+
+      {# Date #}
+      <div>
+        <label class="block font-black mb-1" for="date">Date & Heure *</label>
+        <input type="datetime-local" id="date" name="date" required
+               value="{{ manifestation.date ?? '' }}"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <div class="text-xs text-gray-500 mt-1">Date et heure de début de la manifestation.</div>
+      </div>
+
+      {# Durée #}
+      <div>
+        <label class="block font-black mb-1" for="duration">Durée *</label>
+        <select id="duration" name="duration" required class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown font-semibold">
+          <option value="">-- Sélectionner une durée --</option>
+          {% for dur in durations %}
+            <option value="{{ dur }}" {{ manifestation.duration == dur ? 'selected' : '' }}>{{ dur }}</option>
+          {% endfor %}
+        </select>
+        <div class="text-xs text-gray-500 mt-1">Durée du créneau de réservation (mots-clés de catégorie Durée_créneau).</div>
+      </div>
+
+      {# Lieu #}
+      <div>
+        <label class="block font-black mb-1" for="location">Lieu *</label>
+        <select id="location" name="location" required class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown font-semibold">
+          <option value="">-- Sélectionner un lieu --</option>
+          {% for loc in locations %}
+            <option value="{{ loc }}" {{ manifestation.location == loc ? 'selected' : '' }}>{{ loc }}</option>
+          {% endfor %}
+        </select>
+        <div class="text-xs text-gray-500 mt-1">Lieu de déroulement de la manifestation.</div>
+      </div>
+
+      {# Nombre de terrains #}
+      <div>
+        <label class="block font-black mb-1" for="nombre_terrain">Nombre de terrains *</label>
+        <input type="number" id="nombre_terrain" name="nombre_terrain" min="0" required
+               value="{{ manifestation.nombre_terrain ?? 1 }}"
+               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <div class="text-xs text-gray-500 mt-1">Nombre de terrains alloués à la manifestation (min 0).</div>
+      </div>
+
+      {# Statut #}
+      <div>
+        <label class="block font-black mb-1" for="statut">Statut *</label>
+        <select id="statut" name="statut" required class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown font-semibold">
+          {% for status in statuses %}
+            <option value="{{ status }}" {{ (manifestation.statut ?? 'Confirmé') == status ? 'selected' : '' }}>{{ status }}</option>
+          {% endfor %}
+        </select>
+        <div class="text-xs text-gray-500 mt-1">Statut initial ou actuel de l'événement.</div>
+      </div>
+
+      {# Commentaire #}
+      <div class="sm:col-span-2">
+        <label class="block font-black mb-1" for="commentaire">Commentaire (optionnel)</label>
+        <textarea id="commentaire" name="commentaire" rows="3"
+                  placeholder="Ex: Contre Pessac..."
+                  class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ manifestation.commentaire ?? '' }}</textarea>
+        <div class="text-xs text-gray-500 mt-1">Commentaire ou informations complémentaires visibles par les adhérents.</div>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit"
+          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+    {{ manifestation ? 'Mettre à jour' : 'Créer la manifestation' }}
+  </button>
+</form>
+{% endblock %}

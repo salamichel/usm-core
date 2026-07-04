@@ -1,0 +1,122 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Mots-clés{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+  <div>
+    <h1 class="text-3xl font-black">Mots-clés (Base Externe)</h1>
+    <p class="text-sm text-gray-600 mt-1">Gérez les éléments des menus déroulants et les types d'événements de la base externe.</p>
+  </div>
+  <a href="{{ url('admin/mots-cles/create') }}" class="inline-block border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all text-center">
+    + Ajouter un mot-clé
+  </a>
+</div>
+
+{# Barre de filtrage #}
+<div class="border-4 border-black bg-amber-50 p-4 mb-6 shadow-[4px_4px_0_#000]">
+  <form method="GET" class="flex flex-col sm:flex-row items-end sm:items-center gap-4">
+    <div class="flex-1 w-full">
+      <label for="category-filter" class="block text-xs font-black uppercase mb-1">Filtrer par catégorie</label>
+      <select id="category-filter" name="category" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+        <option value="">-- Toutes les catégories --</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {{ selectedCat == cat ? 'selected' : '' }}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex gap-2 w-full sm:w-auto">
+      <button type="submit" class="w-full sm:w-auto border-2 border-black bg-black text-white px-4 py-2 font-bold hover:bg-gray-800 transition">
+        Filtrer
+      </button>
+      {% if selectedCat %}
+        <a href="{{ url('admin/mots-cles') }}" class="w-full sm:w-auto border-2 border-black bg-white px-4 py-2 font-bold text-center hover:bg-gray-100 transition">
+          Réinitialiser
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% if motsCles|length %}
+
+{# Mobile #}
+<div class="sm:hidden space-y-3">
+  {% for mc in motsCles %}
+  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+    <div class="text-xs text-gray-500 font-mono mb-1 uppercase tracking-wider bg-gray-100 px-2 py-0.5 inline-block border border-gray-300">{{ mc.Catégorie }}</div>
+    <div class="font-black text-lg mb-3">{{ mc.Mot }}</div>
+    <div class="flex gap-2">
+      <a href="{{ url('admin/mots-cles/' ~ mc.id_mot_clef ~ '/edit') }}" class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+      <form method="POST" action="{{ url('admin/mots-cles/' ~ mc.id_mot_clef ~ '/delete') }}" data-confirm="Supprimer ce mot-clé ?">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="border-2 border-red-600 text-red-600 px-3 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# Desktop #}
+<div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black w-1/3">Catégorie</th>
+        <th class="text-left px-4 py-3 font-black">Mot-clé</th>
+        <th class="px-4 py-3 w-1/4"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mc in motsCles %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 font-bold text-gray-600">
+          <span class="bg-gray-100 border border-gray-300 px-2 py-0.5 rounded text-xs font-mono">{{ mc.Catégorie }}</span>
+        </td>
+        <td class="px-4 py-3 font-semibold text-gray-900">{{ mc.Mot }}</td>
+        <td class="px-4 py-3 flex gap-2 justify-end">
+          <a href="{{ url('admin/mots-cles/' ~ mc.id_mot_clef ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+          <form method="POST" action="{{ url('admin/mots-cles/' ~ mc.id_mot_clef ~ '/delete') }}" data-confirm="Supprimer ce mot-clé ?">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if pagesCount > 1 %}
+<div class="flex items-center justify-center gap-4 mt-8">
+  {% if currentPage > 1 %}
+    <a href="?page={{ currentPage - 1 }}{{ selectedCat ? '&category=' ~ selectedCat : '' }}" class="border-2 border-black bg-white px-3 py-1 font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
+      &larr; Précédent
+    </a>
+  {% else %}
+    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 font-bold cursor-not-allowed">
+      &larr; Précédent
+    </span>
+  {% endif %}
+
+  <span class="font-black text-sm">Page {{ currentPage }} sur {{ pagesCount }} ({{ total }} mots-clés)</span>
+
+  {% if currentPage < pagesCount %}
+    <a href="?page={{ currentPage + 1 }}{{ selectedCat ? '&category=' ~ selectedCat : '' }}" class="border-2 border-black bg-white px-3 py-1 font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
+      Suivant &rarr;
+    </a>
+  {% else %}
+    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 font-bold cursor-not-allowed">
+      Suivant &rarr;
+    </span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">
+    <p class="text-gray-500 italic mb-4">Aucun mot-clé trouvé.</p>
+  </div>
+{% endif %}
+
+{% endblock %}
