@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #94674d; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .greeting { font-size: 18px; margin-bottom: 24px; }
+        .greeting strong { font-weight: 900; }
+        .message-box { background: #f3f4f6; padding: 20px; border-left: 4px solid #94674d; margin: 20px 0; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .signature { margin-top: 24px; font-weight: 900; color: #94674d; font-size: 18px; margin-bottom: 16px; }
+        .signature-box { background: #fef3c7; padding: 16px; border: 2px solid #000; margin-top: 20px; }
+        .contact-line { font-size: 13px; color: #555; margin: 6px 0; line-height: 1.4; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+        p { line-height: 1.6; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✉️ RÉPONSE</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Bonjour <strong>{{ VISITOR_NAME }}</strong>,</p>
+
+            <p>Merci de nous avoir contacté. Voici notre réponse à votre message :</p>
+
+            <div class="message-box">{{ REPLY_TEXT|raw }}</div>
+
+            <p>Si vous avez d'autres questions, n'hésitez pas à nous recontacter.</p>
+
+            <div class="signature-box">
+                {{ SIGNATURE_HTML|raw }}
+                {{ CONTACT_INFO|raw }}
+            </div>
+        </div>
+
+        <div class="footer">
+            © {{ CLUB_NAME }}
+        </div>
+    </div>
+</body>
+</html>

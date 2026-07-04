@@ -1,0 +1,180 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Manifestations{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+  <div>
+    <h1 class="text-3xl font-black">Manifestations (Agenda Externe)</h1>
+    <p class="text-sm text-gray-600 mt-1">Gérez l'ensemble des événements (matchs, entraînements, tournois, vie du club) enregistrés dans l'agenda.</p>
+  </div>
+  <div class="flex flex-col sm:flex-row gap-3">
+    <a href="{{ url('admin/manifestations/generator') }}" class="inline-block border-4 border-black bg-amber-100 text-black font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all text-center">
+      📅 Planifier en série
+    </a>
+    <a href="{{ url('admin/manifestations/create') }}" class="inline-block border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all text-center">
+      + Ajouter une manifestation
+    </a>
+  </div>
+</div>
+
+{# Barre de filtrage #}
+<div class="border-4 border-black bg-amber-50 p-4 mb-6 shadow-[4px_4px_0_#000]">
+  <form method="GET" class="grid sm:grid-cols-3 gap-4 items-end">
+    <div>
+      <label for="type" class="block text-xs font-black uppercase mb-1">Filtrer par type</label>
+      <select id="type" name="type" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+        <option value="">-- Tous les types --</option>
+        {% for type in types %}
+          <option value="{{ type }}" {{ filters.type == type ? 'selected' : '' }}>{{ type }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label for="lieu" class="block text-xs font-black uppercase mb-1">Filtrer par lieu</label>
+      <select id="lieu" name="lieu" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+        <option value="">-- Tous les lieux --</option>
+        {% for loc in locations %}
+          <option value="{{ loc }}" {{ filters.lieu == loc ? 'selected' : '' }}>{{ loc }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="flex gap-2">
+      <div class="flex-1">
+        <label for="statut" class="block text-xs font-black uppercase mb-1">Filtrer par statut</label>
+        <select id="statut" name="statut" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+          <option value="">-- Tous les statuts --</option>
+          {% for status in statuses %}
+            <option value="{{ status }}" {{ filters.statut == status ? 'selected' : '' }}>{{ status }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="flex gap-1">
+        <button type="submit" class="border-2 border-black bg-black text-white px-4 py-2 font-bold hover:bg-gray-800 transition">
+          Filtrer
+        </button>
+        {% if filters.type or filters.lieu or filters.statut %}
+          <a href="{{ url('admin/manifestations') }}" class="border-2 border-black bg-white px-4 py-2 font-bold text-center hover:bg-gray-100 transition">
+            &times;
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+</div>
+
+{% if manifestations|length %}
+
+{# Mobile #}
+<div class="sm:hidden space-y-3">
+  {% for m in manifestations %}
+  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] space-y-2">
+    <div class="flex justify-between items-start">
+      <span class="text-xs font-black uppercase px-2 py-0.5 bg-gray-100 border border-gray-300 font-mono">{{ m.ManifestationTypée }}</span>
+      {% if m.Statut == 'Confirmé' %}
+        <span class="text-xs font-black text-green-700 bg-green-100 border border-green-400 px-2 py-0.5 rounded">Confirmé</span>
+      {% elseif m.Statut == 'Annulé' %}
+        <span class="text-xs font-black text-red-700 bg-red-100 border border-red-400 px-2 py-0.5 rounded">Annulé</span>
+      {% else %}
+        <span class="text-xs font-black text-amber-700 bg-amber-100 border border-amber-400 px-2 py-0.5 rounded">{{ m.Statut }}</span>
+      {% endif %}
+    </div>
+    
+    <div class="font-black text-base">{{ m.Date|date('d/m/Y H:i') }} ({{ m.Durée_créneau }})</div>
+    <div class="text-sm text-gray-700">📍 {{ m.Lieu }}</div>
+    <div class="text-xs text-gray-500">Terrains: {{ m.Nombre_terrain }}</div>
+    {% if m.Commentaire %}
+      <div class="text-xs bg-gray-50 border-l-2 border-usm-brown p-2 italic text-gray-600">{{ m.Commentaire }}</div>
+    {% endif %}
+
+    <div class="flex gap-2 pt-2">
+      <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+      <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="border-2 border-red-600 text-red-600 px-3 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# Desktop #}
+<div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="text-left px-4 py-3 font-black">Type</th>
+        <th class="text-left px-4 py-3 font-black">Date</th>
+        <th class="text-left px-4 py-3 font-black">Lieu</th>
+        <th class="text-left px-4 py-3 font-black">Terrains</th>
+        <th class="text-left px-4 py-3 font-black">Statut</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in manifestations %}
+      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+        <td class="px-4 py-3 font-bold text-gray-800 text-xs">{{ m.ManifestationTypée }}</td>
+        <td class="px-4 py-3">
+          <div class="font-bold">{{ m.Date|date('d/m/Y H:i') }}</div>
+          <div class="text-xs text-gray-500 font-semibold font-mono">{{ m.Durée_créneau }}</div>
+        </td>
+        <td class="px-4 py-3 font-semibold text-gray-700 text-xs">{{ m.Lieu }}</td>
+        <td class="px-4 py-3 font-bold text-gray-600">{{ m.Nombre_terrain }}</td>
+        <td class="px-4 py-3">
+          {% if m.Statut == 'Confirmé' %}
+            <span class="inline-block text-xs font-bold bg-green-100 border border-green-400 text-green-700 px-2 py-0.5 rounded">Confirmé</span>
+          {% elseif m.Statut == 'Annulé' %}
+            <span class="inline-block text-xs font-bold bg-red-100 border border-red-400 text-red-700 px-2 py-0.5 rounded">Annulé</span>
+          {% else %}
+            <span class="inline-block text-xs font-bold bg-amber-100 border border-amber-400 text-amber-700 px-2 py-0.5 rounded">{{ m.Statut }}</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 flex gap-2 justify-end">
+          <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+          <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if pagesCount > 1 %}
+<div class="flex items-center justify-center gap-4 mt-8">
+  {% if currentPage > 1 %}
+    <a href="?page={{ currentPage - 1 }}{{ filters.type ? '&type=' ~ filters.type : '' }}{{ filters.lieu ? '&lieu=' ~ filters.lieu : '' }}{{ filters.statut ? '&statut=' ~ filters.statut : '' }}" class="border-2 border-black bg-white px-3 py-1 font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
+      &larr; Précédent
+    </a>
+  {% else %}
+    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 font-bold cursor-not-allowed">
+      &larr; Précédent
+    </span>
+  {% endif %}
+
+  <span class="font-black text-sm">Page {{ currentPage }} sur {{ pagesCount }} ({{ total }} manifestations)</span>
+
+  {% if currentPage < pagesCount %}
+    <a href="?page={{ currentPage + 1 }}{{ filters.type ? '&type=' ~ filters.type : '' }}{{ filters.lieu ? '&lieu=' ~ filters.lieu : '' }}{{ filters.statut ? '&statut=' ~ filters.statut : '' }}" class="border-2 border-black bg-white px-3 py-1 font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
+      Suivant &rarr;
+    </a>
+  {% else %}
+    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 font-bold cursor-not-allowed">
+      Suivant &rarr;
+    </span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">
+    <p class="text-gray-500 italic mb-4">Aucune manifestation trouvée.</p>
+  </div>
+{% endif %}
+
+{% endblock %}

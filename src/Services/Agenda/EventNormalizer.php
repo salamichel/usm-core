@@ -109,6 +109,7 @@ class EventNormalizer
 
         return [
             'id'                          => $id,
+            'ManifestationTypée'          => $row['ManifestationTypée'] ?? '',
             'type'                        => $type,
             'titre'                       => $titre,
             'Date'                        => $dateStr,

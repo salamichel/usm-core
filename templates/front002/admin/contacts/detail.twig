@@ -10,6 +10,9 @@
                 <h1 class="text-3xl font-bold">{{ contact.subject }}</h1>
                 <p class="text-gray-600 mt-2">
                     <strong>De :</strong> {{ contact.name }} &lt;{{ contact.email }}&gt;<br>
+                    {% if contact.phone %}
+                        <strong>Téléphone :</strong> <a href="tel:{{ contact.phone|replace({' ': ''}) }}" class="text-blue-600 hover:underline">{{ contact.phone }}</a><br>
+                    {% endif %}
                     <strong>Date :</strong> {{ contact.created_at|date_fr }}
                 </p>
             </div>

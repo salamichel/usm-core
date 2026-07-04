@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Agenda;
@@ -29,7 +30,10 @@ class ParticipationStatsService
                 return self::defaultStats();
             }
             $stmt = $db->prepare(
-                "SELECT Participation FROM Participation WHERE id_manifestation = ?"
+                "SELECT p.Participation, m.ManifestationTypée 
+                 FROM Participation p
+                 JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
+                 WHERE p.id_manifestation = ?"
             );
             $stmt->execute([$manifestationId]);
             $rows = $stmt->fetchAll();
@@ -38,9 +42,13 @@ class ParticipationStatsService
         }
 
         $stats = self::emptyStats();
+        $type = '';
 
         foreach ($rows as $row) {
             $statusStr = trim((string)($row['Participation'] ?? ''));
+            if (isset($row['ManifestationTypée'])) {
+                $type = $row['ManifestationTypée'];
+            }
             if ($statusStr === '') {
                 continue;
             }
@@ -57,12 +65,20 @@ class ParticipationStatsService
         }
 
         $stats['total_responses'] = array_sum([
-            $stats['present'], $stats['available'], $stats['available_if_needed'],
-            $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown'],
+            $stats['present'],
+            $stats['available'],
+            $stats['available_if_needed'],
+            $stats['unavailable'],
+            $stats['selected'],
+            $stats['absent'],
+            $stats['unknown'],
         ]);
+
+        $minRequired = self::getMinPlayersRequired($type);
+        $stats['min_required'] = $minRequired;
         $stats['enough_players'] = (
             $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
-        ) >= 6;
+        ) >= $minRequired;
 
         return $stats;
     }
@@ -83,10 +99,11 @@ class ParticipationStatsService
             $db           = ExternalDatabase::get();
             $placeholders = implode(',', array_fill(0, count($manifestationIds), '?'));
             $stmt         = $db->prepare(
-                "SELECT id_manifestation, Participation, COUNT(*) as cnt
-                 FROM Participation
-                 WHERE id_manifestation IN ($placeholders)
-                 GROUP BY id_manifestation, Participation"
+                "SELECT p.id_manifestation, p.Participation, m.ManifestationTypée, COUNT(*) as cnt
+                 FROM Participation p
+                 JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
+                 WHERE p.id_manifestation IN ($placeholders)
+                 GROUP BY p.id_manifestation, m.ManifestationTypée, p.Participation"
             );
             $stmt->execute($manifestationIds);
             $rows = $stmt->fetchAll();
@@ -95,12 +112,17 @@ class ParticipationStatsService
         }
 
         $result = array_fill_keys($manifestationIds, self::emptyStats());
+        $typesMap = [];
 
         foreach ($rows as $row) {
             $mid      = (int)($row['id_manifestation'] ?? 0);
             $count    = (int)($row['cnt'] ?? 0);
             $status   = new ParticipationStatus($row['Participation'] ?? '');
             $category = $status->getCategory();
+
+            if (isset($row['ManifestationTypée'])) {
+                $typesMap[$mid] = $row['ManifestationTypée'];
+            }
 
             if (!isset($result[$mid])) {
                 $result[$mid] = self::emptyStats();
@@ -110,18 +132,60 @@ class ParticipationStatsService
             }
         }
 
-        foreach ($result as &$stats) {
+        foreach ($result as $mid => &$stats) {
             $stats['total_responses'] = array_sum([
-                $stats['present'], $stats['available'], $stats['available_if_needed'],
-                $stats['unavailable'], $stats['selected'], $stats['absent'], $stats['unknown'],
+                $stats['present'],
+                $stats['available'],
+                $stats['available_if_needed'],
+                $stats['unavailable'],
+                $stats['selected'],
+                $stats['absent'],
+                $stats['unknown'],
             ]);
+
+            $type = $typesMap[$mid] ?? '';
+            $minRequired = self::getMinPlayersRequired($type);
+            $stats['min_required'] = $minRequired;
             $stats['enough_players'] = (
                 $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
-            ) >= 6;
+            ) >= $minRequired;
         }
         unset($stats);
 
         return $result;
+    }
+
+    /**
+     * Retourne le nombre minimum de joueurs requis pour un événement.
+     */
+    public static function getMinPlayersRequired(string $manifestationType): int
+    {
+        try {
+            $db = \App\Core\Database::get();
+            if ($db) {
+                $teams = $db->query("SELECT libelle, team_filter, manifestation_filter, min_players FROM equipes_config WHERE is_active = 1")->fetchAll();
+                foreach ($teams as $team) {
+                    $filter = $team['manifestation_filter'] ?: $team['libelle'];
+                    if ($filter !== '' && str_contains($manifestationType, $filter)) {
+                        return (int)$team['min_players'];
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // Fallback
+        }
+
+        $typeLower = mb_strtolower($manifestationType);
+        if (
+            str_contains($typeLower, '4x4') ||
+            str_contains($typeLower, '4*4') ||
+            str_contains($typeLower, 'm13') ||
+            str_contains($typeLower, 'm15') ||
+            str_contains($typeLower, 'ufolep')
+        ) {
+            return 4;
+        }
+        return 6;
     }
 
     /**
@@ -166,6 +230,7 @@ class ParticipationStatsService
         $stats = self::emptyStats();
         $stats['total_responses'] = 0;
         $stats['no_response']     = 0;
+        $stats['min_required']    = 6;
         $stats['enough_players']  = false;
         return $stats;
     }

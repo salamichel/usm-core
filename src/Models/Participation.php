@@ -80,6 +80,15 @@ class Participation
     }
 
     /**
+     * Génère un token sécurisé pour la réponse rapide par email.
+     */
+    public static function generateEmailToken(int $playerId, int $eventId, string $status): string
+    {
+        $salt = defined('ADMIN_PASSWORD_HASH') ? ADMIN_PASSWORD_HASH : 'usm_volley_fallback_salt_2026';
+        return hash_hmac('sha256', $playerId . '-' . $eventId . '-' . $status, $salt);
+    }
+
+    /**
      * Retourne les motifs génériques d'événements à toujours inclure.
      *
      * @return array

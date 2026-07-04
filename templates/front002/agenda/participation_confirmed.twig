@@ -1,0 +1,105 @@
+{% extends 'base.twig' %}
+{% block title %}Confirmation de participation — USM Volley{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+
+  {# En-tête #}
+  <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <nav aria-label="Fil d'Ariane" class="text-sm text-slate-400 mb-6">
+        <a href="{{ url('') }}" class="hover:text-white transition-colors">Accueil</a>
+        <span class="mx-2 text-slate-600">/</span>
+        <span class="text-slate-200">Confirmation de réponse</span>
+      </nav>
+      
+      <div>
+        <span class="inline-block text-xs uppercase tracking-[0.25em] text-[var(--primary)] font-semibold mb-2">Réponse rapide</span>
+        <h1 class="font-serif text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-3">Participation</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-xl mx-auto px-4 sm:px-6 -mt-10">
+    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm space-y-6 text-center">
+      {% if success %}
+        <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-100 shadow-sm">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        
+        <h2 class="text-2xl font-black text-slate-950">Merci !</h2>
+        <p class="text-slate-600 text-sm font-semibold leading-relaxed">
+          {{ message }}
+        </p>
+
+        {% if event %}
+          <div class="bg-slate-50/80 rounded-2xl p-5 border border-slate-100 text-left space-y-3">
+            <div>
+              <span class="text-[9px] font-black uppercase text-indigo-600/80 tracking-wider">Rencontre</span>
+              <h3 class="text-base font-extrabold text-slate-900 leading-snug">{{ event.titre }}</h3>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+              <div>
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Date & Heure</span>
+                <p class="text-xs font-bold text-slate-700 mt-0.5">{{ event.date_display }} à {{ event.time_display|default('Horaire non précisé') }}</p>
+              </div>
+              {% if event.lieu %}
+              <div>
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Lieu</span>
+                <p class="text-xs font-bold text-slate-700 mt-0.5">{{ event.lieu }}</p>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="pt-2 border-t border-slate-100">
+              <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Votre Statut</span>
+              <div class="mt-1">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold {% if status in ['Disponible', 'Présent'] %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elseif status == 'Disponible si nécessaire' %}bg-amber-50 text-amber-700 border border-amber-100{% else %}bg-rose-50 text-rose-700 border border-rose-100{% endif %}">
+                  {% if status in ['Disponible', 'Présent'] %}✓{% elseif status == 'Disponible si nécessaire' %}◐{% else %}✗{% endif %} {{ status }}
+                </span>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto border border-rose-100 shadow-sm">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+
+        <h2 class="text-2xl font-black text-slate-950">Oups...</h2>
+        <p class="text-slate-600 text-sm font-semibold leading-relaxed">
+          {{ message }}
+        </p>
+
+        {% if status %}
+          <div class="bg-slate-50/85 rounded-2xl p-5 border border-slate-100 text-left">
+            <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Statut Actuel</span>
+            <p class="text-xs font-bold text-slate-700 mt-0.5">{{ status }}</p>
+          </div>
+        {% endif %}
+      {% endif %}
+
+      <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3 justify-center">
+        {% if event %}
+          <a href="{{ url('member/login?redirect=' ~ ('/member/dashboard?event_id=' ~ event.id)|url_encode) }}" class="px-6 py-3.5 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-bold rounded-xl text-sm transition-all shadow-sm">
+            👉 Voir le match dans mon espace
+          </a>
+        {% else %}
+          <a href="{{ url('member/login') }}" class="px-6 py-3.5 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-bold rounded-xl text-sm transition-all shadow-sm">
+            Se connecter à mon espace
+          </a>
+        {% endif %}
+        <a href="{{ url('') }}" class="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-all">
+          Retour à l'accueil
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

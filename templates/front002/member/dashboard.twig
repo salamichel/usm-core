@@ -2,8 +2,77 @@
 {% block title %}Mon Tableau de Bord — USM Volley{% endblock %}
 
 {% block content %}
-{# pb-24 sur mobile pour laisser de l'espace à la barre fixe du bas, md:pb-12 sur ordinateur #}
-<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+<style>
+    /* Mode Compact / Minimaliste pour la grille d'événements */
+    .compact-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .compact-grid > div {
+        padding: 0.75rem 1rem !important;
+        border-radius: 16px !important;
+    }
+
+    .compact-grid .avatar-stack,
+    .compact-grid .avatar-stack + *,
+    .compact-grid .progress-label,
+    .compact-grid .progress-bar,
+    .compact-grid .w-full.bg-slate-100\/80.h-2,
+    .compact-grid .mt-4.pt-3.border-t, /* commentaires et alertes */
+    .compact-grid .text-\[9px\].font-black.text-slate-400,
+    .compact-grid .border-t.border-slate-100.pt-2,
+    .compact-grid .md\:border-t,
+    .compact-grid .md\:pt-2 {
+        display: none !important;
+    }
+
+    /* Masquer le bloc d'avatars et récapitulatif complet */
+    .compact-grid .grid-cols-1 > div:nth-child(3) {
+        display: none !important;
+    }
+
+    @media (min-width: 768px) {
+        .compact-grid .grid-cols-1 {
+            grid-template-columns: 2fr 1fr 1.5fr !important;
+            gap: 1.5rem !important;
+        }
+        .compact-grid .md\:border-l {
+            border-left: none !important;
+            padding-left: 0 !important;
+        }
+    }
+
+    .compact-grid .w-14.h-14 {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+        border-radius: 12px !important;
+    }
+    .compact-grid .w-14.h-14 .text-xl {
+        font-size: 1rem !important;
+    }
+    .compact-grid .w-14.h-14 .text-\[9px\] {
+        font-size: 7px !important;
+        margin-top: 0px !important;
+    }
+    .compact-grid .flex-col.gap-2\.5 {
+        gap: 0.125rem !important;
+    }
+    
+    .compact-grid [data-manifestation-id] .absolute.-top-3.-right-3 {
+        top: 0.25rem !important;
+        right: 0.25rem !important;
+    }
+    .compact-grid [data-manifestation-id] .absolute.-top-3.-right-3 span {
+        padding: 0.15rem 0.4rem !important;
+        font-size: 8px !important;
+        border-radius: 6px !important;
+    }
+</style>
+
+{# pb-36 sur mobile pour laisser de l'espace à la barre fixe du bas, md:pb-12 sur ordinateur #}
+<div class="min-h-screen bg-slate-50/50 pb-36 md:pb-12">
     
     {# 1. EN-TÊTE ET ACCUEIL #}
     <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
@@ -36,14 +105,7 @@
                 <h2 class="text-lg font-black flex items-center gap-2">
                     👑 Espace Capitaine
                 </h2>
-                <p class="text-sm font-medium text-slate-900/80 mt-1">Vous êtes capitaine pour cette saison. Gérez les convocations de vos joueurs et créez des matchs.</p>
-                <div class="mt-2.5 bg-white/20 border border-white/10 rounded-xl px-3 py-1.5 inline-flex items-center gap-2 text-xs font-semibold text-slate-900">
-                    <span>🏐 Saisie des RÉSULTATS sur le site FFVB (Code : <strong class="select-all">USM024</strong>)</span>
-                    <a href="https://www.ffvbbeach.org/ffvbapp/resu/saisie_resu.php" target="_blank" rel="noopener noreferrer" class="underline hover:text-black transition-colors flex items-center gap-0.5">
-                        y accéder
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    </a>
-                </div>
+                <p class="text-sm font-medium text-slate-900/80 mt-1">Vous êtes capitaine pour cette saison. Gérez les convocations de vos joueurs et créez des matchs.</p>                
             </div>
             <a href="{{ url('member/captain') }}" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl transition text-center text-sm shadow-sm flex-shrink-0">
                 Accéder à l'espace
@@ -103,9 +165,9 @@
                         <svg class="w-5 h-5 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Événements à venir<span id="active-filter-label" class="text-sm font-normal text-slate-500 italic ml-2"></span>
                     </h2>
-                    <button id="reset-dashboard-filters" class="hidden text-xs font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
-                        ✕ Effacer les filtres
-                    </button>
+                        <button id="reset-dashboard-filters" class="hidden text-xs font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                            ✕ Effacer les filtres
+                        </button>
                 </div>
 
                 {# Panneau Actions groupées #}
@@ -115,55 +177,71 @@
                             <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             Actions groupées
                         </h3>
-                        <p class="text-xs text-slate-400 mt-1">Déclarez rapidement votre statut pour l'ensemble des créneaux de la saison.</p>
+                        <p class="text-xs text-slate-400 mt-1">Déclarez rapidement votre statut sur une sélection de créneaux.</p>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                        <div class="flex items-center gap-1.5 w-full">
-                            <select id="bulk-match-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                <option value="">Matchs</option>
-                                {% for stat in statuses.match|default([]) %}
-                                    {% if stat != 'Sélectionné(e)' %}
-                                        <option value="{{ stat }}">{{ stat }}</option>
-                                    {% endif %}
-                                {% endfor %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+                        {# 1. Sélectionner le Type #}
+                        <div>
+                            <label for="bulk-type-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">1. Type</label>
+                            <select id="bulk-type-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Tous les types</option>
                             </select>
-                            <button type="button" id="bulk-match-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
-                        </div>
-                        
-                        <div class="flex items-center gap-1.5 w-full">
-                            <select id="bulk-entrainement-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                <option value="">Entraînements</option>
-                                {% for stat in statuses.entrainement|default([]) %}
-                                    <option value="{{ stat }}">{{ stat }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="button" id="bulk-entrainement-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
                         </div>
 
-                        <div class="flex items-center gap-1.5 w-full">
-                            <select id="bulk-club-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                <option value="">Club</option>
-                                {% for stat in statuses.club|default([]) %}
-                                    <option value="{{ stat }}">{{ stat }}</option>
-                                {% endfor %}
+                        {# 2. Sélectionner le Sous-Type #}
+                        <div>
+                            <label for="bulk-subtype-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">2. Sous-Type (Équipe)</label>
+                            <select id="bulk-subtype-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Tous les sous-types</option>
                             </select>
-                            <button type="button" id="bulk-club-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
                         </div>
 
-                        <div class="flex items-center gap-1.5 w-full">
-                            <select id="bulk-beach-status" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                                <option value="">Beach Volley</option>
-                                {% for stat in statuses.beach|default([]) %}
-                                    <option value="{{ stat }}">{{ stat }}</option>
-                                {% endfor %}
+                        {# 3. Sélectionner le Lieu #}
+                        <div>
+                            <label for="bulk-location-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">3. Lieu</label>
+                            <select id="bulk-location-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Tous les lieux</option>
                             </select>
-                            <button type="button" id="bulk-beach-apply" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl transition-all shadow-sm">Appliquer</button>
+                        </div>
+
+                        {# 4. Nature : Dispo ou Présence #}
+                        <div>
+                            <label for="bulk-kind-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">4. Dispo ou Présence</label>
+                            <select id="bulk-kind-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Tous (Dispo & Présences)</option>
+                            </select>
+                        </div>
+
+                        {# 5. Choisir le Statut #}
+                        <div>
+                            <label for="bulk-status-select" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">5. Statut à appliquer</label>
+                            <select id="bulk-status-select" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 font-semibold focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all">
+                                <option value="">Choisir un statut...</option>
+                                <option value="Disponible">Disponible / Présent</option>
+                                <option value="Disponible si nécessaire">Si besoin (Matchs uniquement)</option>
+                                <option value="Indisponible">Indisponible / Absent</option>
+                                <option value=".">Réinitialiser (Sans réponse)</option>
+                            </select>
+                        </div>
+
+                        {# 6. Bouton Appliquer #}
+                        <div>
+                            <button type="button" id="bulk-apply-btn" class="w-full text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl transition-all shadow-sm active:scale-98">
+                                Appliquer
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 {# Liste des prochains événements #}
-                <div class="space-y-4" id="event-grid" 
+                <div class="flex items-center gap-2">
+                    <button type="button" id="toggle-compact-btn" class="text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm transition flex items-center gap-1.5">
+                        <span id="toggle-compact-icon">☰</span>
+                        <span id="toggle-compact-text">Vue compacte</span>
+                    </button>
+                </div>
+                
+                <div class="space-y-4 compact-grid" id="event-grid" 
                      data-logged-in-user-id="{{ app.session.LogInId|default(0) }}" 
                      data-logged-in-user-name="{{ app.session.user_name|default('') }}">
                     {% for m in imminent_events %}
@@ -227,34 +305,40 @@
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Événements par type</h3>
                     <div class="space-y-1">
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="entrainement">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
-                                <span class="text-sm font-medium text-slate-600">Entraînements</span>
+                        {% set colors = {
+                            'match': 'bg-blue-500',
+                            'entraînement': 'bg-orange-400',
+                            'entrainement': 'bg-orange-400',
+                            'tournoi': 'bg-purple-500',
+                            'stage': 'bg-indigo-500',
+                            'beach': 'bg-yellow-500',
+                            'club': 'bg-rose-500',
+                            'forum': 'bg-teal-500'
+                        } %}
+                        {% set labels = {
+                            'match': 'Matchs',
+                            'entraînement': 'Entraînements',
+                            'entrainement': 'Entraînements',
+                            'tournoi': 'Tournois',
+                            'stage': 'Stages',
+                            'beach': 'Beach',
+                            'club': 'Club',
+                            'forum': 'Forums'
+                        } %}
+                        {% for type, count in stats.events_by_type %}
+                            {% set type_key = type|lower %}
+                            {% set bullet_color = colors[type_key] | default('bg-slate-400') %}
+                            {% set display_label = labels[type_key] | default(type) %}
+                            <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="{{ type|lower }}">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full {{ bullet_color }}"></span>
+                                    <span class="text-sm font-medium text-slate-600">{{ display_label }}</span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ count }}</span>
                             </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.training }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="match">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                                <span class="text-sm font-medium text-slate-600">Matchs</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.match }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="tournois">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                                <span class="text-sm font-medium text-slate-600">Tournois / Plateaux</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.tournois }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="others">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                                <span class="text-sm font-medium text-slate-600">Autres</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.others }}</span>
-                        </div>
+                        {% else %}
+                            <div class="text-xs text-slate-400 p-1.5 text-center bg-slate-50 rounded-xl py-4 border border-slate-100">Aucun type d'événement.</div>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -280,5 +364,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url('assets/front002/js/agenda-cards.js') }}"></script>
+    <script src="{{ url('assets/front002/js/agenda-cards.js') }}?v=1.1"></script>
 {% endblock %}

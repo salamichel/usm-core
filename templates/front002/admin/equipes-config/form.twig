@@ -71,6 +71,12 @@
                  value="{{ equipe.ordre ?? 0 }}"
                  class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
         </div>
+        <div>
+          <label class="block font-black mb-1 text-sm" for="min_players">Effectif minimum (Équipe complète) *</label>
+          <input id="min_players" name="min_players" type="number" min="1" required
+                 value="{{ equipe.min_players ?? 6 }}"
+                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
         <div class="flex items-end pb-2">
           <label class="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" name="is_active" value="1"

@@ -75,6 +75,8 @@
           [url('admin/saisons/joueurs'),    '👥 Joueurs',       '/admin/saisons/joueurs'],
           [url('admin/equipes-config'),     '⚽ Équipes',       '/admin/equipes-config'],
           [url('admin/categories-equipes'), '🗂️ Catégories',     '/admin/categories-equipes'],
+          [url('admin/manifestations'),     '📅 Manifestations', '/admin/manifestations'],
+          [url('admin/mots-cles'),          '🔤 Mots-clés',     '/admin/mots-cles'],
         ] %}
         {% for link in links %}
           <a href="{{ link[0] }}"
@@ -163,6 +165,8 @@
         <a href="{{ url('admin/saisons/joueurs') }}"   class="block py-1 hover:text-amber-400">👥 Joueurs</a>
         <a href="{{ url('admin/equipes-config') }}"    class="block py-1 hover:text-amber-400">⚽ Équipes</a>
         <a href="{{ url('admin/categories-equipes') }}" class="block py-1 hover:text-amber-400">🗂️ Catégories</a>
+        <a href="{{ url('admin/manifestations') }}"     class="block py-1 hover:text-amber-400">📅 Manifestations</a>
+        <a href="{{ url('admin/mots-cles') }}"          class="block py-1 hover:text-amber-400">🔤 Mots-clés</a>
       </div>
     </div>
 

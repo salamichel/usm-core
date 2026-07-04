@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Agenda;
@@ -6,6 +7,7 @@ namespace App\Services\Agenda;
 use App\Core\ExternalDatabase;
 use App\Helpers\ParticipationStatus;
 use App\Models\EquipeConfig;
+use App\Services\Agenda\ParticipationStatsService;
 
 /**
  * Accès en lecture seule à la base externe (tables Manifestation, Joueurs, Participation).
@@ -161,10 +163,22 @@ class EventRepository
             $sql      = "SELECT COUNT(*) as cnt FROM Manifestation WHERE 1=1";
             $bindings = [];
 
-            if ($type)     { $sql .= " AND ManifestationTypée LIKE ?"; $bindings[] = "% - $type - %"; }
-            if ($location) { $sql .= " AND Lieu = ?";                  $bindings[] = $location; }
-            if ($dateFrom) { $sql .= " AND Date >= ?";                 $bindings[] = $dateFrom; }
-            if ($dateTo)   { $sql .= " AND Date <= ?";                 $bindings[] = $dateTo; }
+            if ($type) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = "% - $type - %";
+            }
+            if ($location) {
+                $sql .= " AND Lieu = ?";
+                $bindings[] = $location;
+            }
+            if ($dateFrom) {
+                $sql .= " AND Date >= ?";
+                $bindings[] = $dateFrom;
+            }
+            if ($dateTo) {
+                $sql .= " AND Date <= ?";
+                $bindings[] = $dateTo;
+            }
 
             $stmt = ExternalDatabase::get()->prepare($sql);
             $stmt->execute($bindings);
@@ -286,13 +300,27 @@ class EventRepository
                          WHERE id_manifestation > 0 AND `Date` >= CURDATE()";
             $bindings = [];
 
-            if (!empty($filters['lieu']))     { $sql .= " AND Lieu = ?";                    $bindings[] = $filters['lieu']; }
-            if (!empty($filters['type']))         { $sql .= " AND ManifestationTypée LIKE ?";   $bindings[] = '%' . $filters['type'] . '%'; }
-            if (!empty($filters['manifestation'])) { $sql .= " AND ManifestationTypée LIKE ?"; $bindings[] = '% - ' . $filters['manifestation']; }
+            $locationFilter = $filters['lieu'] ?? $filters['location'] ?? null;
+            if (!empty($locationFilter)) {
+                $sql .= " AND Lieu = ?";
+                $bindings[] = $locationFilter;
+            }
+            if (!empty($filters['type'])) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = '%' . $filters['type'] . '%';
+            }
+            if (!empty($filters['manifestation'])) {
+                $sql .= " AND ManifestationTypée LIKE ?";
+                $bindings[] = '% - ' . $filters['manifestation'];
+            }
             if (!empty($filters['this_week'])) {
                 $sql      .= " AND Date BETWEEN ? AND ?";
                 $bindings[] = date('Y-m-d', strtotime('Monday this week'));
                 $bindings[] = date('Y-m-d', strtotime('Sunday this week')) . ' 23:59:59';
+            } elseif (!empty($filters['next_week'])) {
+                $sql      .= " AND Date BETWEEN ? AND ?";
+                $bindings[] = date('Y-m-d', strtotime('Monday next week'));
+                $bindings[] = date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59';
             }
             $sql .= " ORDER BY `Date` ASC";
 
@@ -393,7 +421,8 @@ class EventRepository
     public static function getUpcomingMatchesForTeam(
         string $teamCode,
         int $limit = 5,
-        ?string $manifestationFilter = null
+        ?string $manifestationFilter = null,
+        array $filters = []
     ): array {
         try {
             $db = ExternalDatabase::get();
@@ -408,6 +437,25 @@ class EventRepository
                 $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
                 $bindings[]          = '%' . $manifestationFilter;
             }
+
+            if (!empty($filters['location'])) {
+                $manifestationClause .= " AND m.Lieu = ?";
+                $bindings[]          = $filters['location'];
+            }
+            if (!empty($filters['type'])) {
+                $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
+                $bindings[]          = '%' . $filters['type'] . '%';
+            }
+            if (!empty($filters['this_week'])) {
+                $manifestationClause .= " AND m.Date BETWEEN ? AND ?";
+                $bindings[] = date('Y-m-d', strtotime('Monday this week'));
+                $bindings[] = date('Y-m-d', strtotime('Sunday this week')) . ' 23:59:59';
+            } elseif (!empty($filters['next_week'])) {
+                $manifestationClause .= " AND m.Date BETWEEN ? AND ?";
+                $bindings[] = date('Y-m-d', strtotime('Monday next week'));
+                $bindings[] = date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59';
+            }
+
             $bindings[] = $limit;
 
             $stmt = $db->prepare(
@@ -477,6 +525,9 @@ class EventRepository
                     $event['nb_disponible']   = $s['available']   ?? 0;
                     $event['nb_indisponible'] = $s['unavailable'] ?? 0;
                     $event['nb_ne_sait_pas']  = $s['unknown']     ?? 0;
+                    $event['min_players']     = $s['min_required'] ?? 6;
+                } else {
+                    $event['min_players']     = 6;
                 }
             }
             unset($event);
@@ -493,7 +544,8 @@ class EventRepository
      */
     public static function getUpcomingEventsForTeam(
         array $team,
-        int $limit = 8
+        int $limit = 8,
+        array $filters = []
     ): array {
         try {
             $db = ExternalDatabase::get();
@@ -513,7 +565,7 @@ class EventRepository
             // Conditions d'entraînements flexibles basées sur le type d'événement contenant 'Entr'
             // et optionnellement le code d'équipe ou des mots clés généraux si non typé par équipe
             $trainingExtraClauses = ["m.ManifestationTypée LIKE '%Entr. Compétition%'"];
-            
+
             if (stripos($category, 'ufolep') !== false || stripos($libelle, 'ufolep') !== false) {
                 $trainingExtraClauses[] = "m.ManifestationTypée LIKE '%UFOLEP%'";
             }
@@ -529,6 +581,19 @@ class EventRepository
                 $trainingExtraSql = " OR " . implode(" OR ", $trainingExtraClauses);
             }
 
+            $extraFiltersSql = "";
+            if (!empty($filters['location'])) {
+                $extraFiltersSql .= " AND m.Lieu = :location";
+            }
+            if (!empty($filters['type'])) {
+                $extraFiltersSql .= " AND m.ManifestationTypée LIKE :type";
+            }
+            if (!empty($filters['this_week'])) {
+                $extraFiltersSql .= " AND m.Date BETWEEN :week_start AND :week_end";
+            } elseif (!empty($filters['next_week'])) {
+                $extraFiltersSql .= " AND m.Date BETWEEN :week_start AND :week_end";
+            }
+
             $sql = "SELECT m.id_manifestation, m.ManifestationTypée, m.Date,
                             m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
                      FROM Manifestation m
@@ -539,6 +604,7 @@ class EventRepository
                          OR
                          ((m.ManifestationTypée LIKE '%Entr%' OR m.ManifestationTypée LIKE '%Entrainement%') AND (m.ManifestationTypée LIKE :team_code_filter $trainingExtraSql))
                        )
+                       $extraFiltersSql
                      ORDER BY m.Date ASC
                      LIMIT :limit";
 
@@ -547,6 +613,20 @@ class EventRepository
             $stmt->bindValue(':team_code_filter', $teamCodeFilter, \PDO::PARAM_STR);
             $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
 
+            if (!empty($filters['location'])) {
+                $stmt->bindValue(':location', $filters['location'], \PDO::PARAM_STR);
+            }
+            if (!empty($filters['type'])) {
+                $stmt->bindValue(':type', '%' . $filters['type'] . '%', \PDO::PARAM_STR);
+            }
+            if (!empty($filters['this_week'])) {
+                $stmt->bindValue(':week_start', date('Y-m-d', strtotime('Monday this week')), \PDO::PARAM_STR);
+                $stmt->bindValue(':week_end', date('Y-m-d', strtotime('Sunday this week')) . ' 23:59:59', \PDO::PARAM_STR);
+            } elseif (!empty($filters['next_week'])) {
+                $stmt->bindValue(':week_start', date('Y-m-d', strtotime('Monday next week')), \PDO::PARAM_STR);
+                $stmt->bindValue(':week_end', date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59', \PDO::PARAM_STR);
+            }
+
             if (!$stmt->execute()) {
                 return [];
             }
@@ -554,13 +634,14 @@ class EventRepository
             $events = [];
             while ($row = $stmt->fetch()) {
                 $id = (int)$row['id_manifestation'];
-                
+
                 // Normalisation via EventNormalizer pour obtenir un objet quasi complet et standardisé
                 $event = EventNormalizer::buildBaseFields($row);
-                
+                $event['min_players'] = ParticipationStatsService::getMinPlayersRequired($row['ManifestationTypée'] ?? '');
+
                 $event['is_match'] = (stripos($row['ManifestationTypée'], 'match') !== false);
                 $event['is_training'] = (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false);
-                
+
                 // Harmonisation type entraînement
                 if ($event['is_training']) {
                     $event['type'] = 'Entraînement';
@@ -586,6 +667,7 @@ class EventRepository
     {
         $id            = (int)($row['id_manifestation'] ?? 0);
         $manifestation = EventNormalizer::buildBaseFields($row, $totalJoueurs);
+        $manifestation['min_players'] = ParticipationStatsService::getMinPlayersRequired($row['ManifestationTypée'] ?? '');
 
         // Enrichissement participation depuis la BDD externe
         try {
@@ -694,9 +776,9 @@ class EventRepository
 
 
     /**
-     * Crée un nouveau match dans la base externe.
+     * Crée un nouvel événement (match ou entraînement) dans la base externe.
      */
-    public static function createMatch(array $data): int
+    public static function createEvent(array $data): int
     {
         $db = ExternalDatabase::get();
 
@@ -706,7 +788,7 @@ class EventRepository
 
         $stmt = $db->prepare(
             "INSERT INTO Manifestation (id_manifestation, `ManifestationTypée`, Manifestation, `Date`, `Durée_créneau`, Lieu, Nombre_terrain, Creneau, Commentaire, Statut)
-             VALUES (?, ?, '', ?, ?, ?, 1, '', ?, ?)"
+             VALUES (?, ?, '', ?, ?, ?, ?, '', ?, ?)"
         );
 
         $stmt->execute([
@@ -715,11 +797,21 @@ class EventRepository
             $data['date'],
             $data['duration'] ?? '2h',
             $data['location'],
+            (int)($data['nombre_terrain'] ?? 1),
             $data['commentaire'],
             $data['statut'] ?? 'Confirmé'
         ]);
 
         return $nextId;
+    }
+
+    /**
+     * Crée un nouveau match dans la base externe.
+     */
+    public static function createMatch(array $data): int
+    {
+        $data['nombre_terrain'] = 1;
+        return self::createEvent($data);
     }
 
     /**
@@ -741,5 +833,133 @@ class EventRepository
             $data['statut'],
             $id
         ]);
+    }
+
+    /**
+     * Récupère toutes les manifestations (futures et passées) de façon paginée et filtrée (lignes brutes).
+     */
+    public static function allEventsPaginated(int $page, int $perPage, array $filters = []): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+            $offset = ($page - 1) * $perPage;
+
+            $sql = "SELECT * FROM Manifestation WHERE id_manifestation > 0";
+            $params = [];
+
+            if (!empty($filters['type'])) {
+                $sql .= " AND `ManifestationTypée` LIKE ?";
+                $params[] = '%' . $filters['type'] . '%';
+            }
+            if (!empty($filters['lieu'])) {
+                $sql .= " AND Lieu = ?";
+                $params[] = $filters['lieu'];
+            }
+            if (!empty($filters['statut'])) {
+                $sql .= " AND Statut = ?";
+                $params[] = $filters['statut'];
+            }
+
+            $sql .= " ORDER BY `Date` DESC LIMIT ? OFFSET ?";
+
+            $stmt = $db->prepare($sql);
+
+            $paramIndex = 1;
+            foreach ($params as $param) {
+                $stmt->bindValue($paramIndex++, $param);
+            }
+            $stmt->bindValue($paramIndex++, $perPage, \PDO::PARAM_INT);
+            $stmt->bindValue($paramIndex++, $offset, \PDO::PARAM_INT);
+
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Récupère une manifestation brute par son ID (sans normalisation).
+     */
+    public static function findEventRaw(int $id): ?array
+    {
+        try {
+            $db = ExternalDatabase::get();
+            $stmt = $db->prepare("SELECT * FROM Manifestation WHERE id_manifestation = ? LIMIT 1");
+            $stmt->execute([$id]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Compte le nombre de manifestations correspondant aux filtres du CRUD.
+     */
+    public static function countAllEvents(array $filters = []): int
+    {
+        try {
+            $db = ExternalDatabase::get();
+            $sql = "SELECT COUNT(*) FROM Manifestation WHERE id_manifestation > 0";
+            $params = [];
+
+            if (!empty($filters['type'])) {
+                $sql .= " AND `ManifestationTypée` LIKE ?";
+                $params[] = '%' . $filters['type'] . '%';
+            }
+            if (!empty($filters['lieu'])) {
+                $sql .= " AND Lieu = ?";
+                $params[] = $filters['lieu'];
+            }
+            if (!empty($filters['statut'])) {
+                $sql .= " AND Statut = ?";
+                $params[] = $filters['statut'];
+            }
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return (int)$stmt->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Met à jour de façon complète une manifestation.
+     */
+    public static function updateEvent(int $id, array $data): void
+    {
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare(
+            "UPDATE Manifestation 
+             SET `ManifestationTypée` = ?, `Date` = ?, `Durée_créneau` = ?, Lieu = ?, Nombre_terrain = ?, Commentaire = ?, Statut = ?
+             WHERE id_manifestation = ?"
+        );
+        $stmt->execute([
+            $data['manifestation_type'],
+            $data['date'],
+            $data['duration'],
+            $data['location'],
+            (int)$data['nombre_terrain'],
+            $data['commentaire'],
+            $data['statut'],
+            $id
+        ]);
+    }
+
+    /**
+     * Supprime une manifestation et ses participations.
+     */
+    public static function deleteEvent(int $id): void
+    {
+        $db = ExternalDatabase::get();
+
+        // Supprimer d'abord les participations
+        $stmtPart = $db->prepare("DELETE FROM Participation WHERE id_manifestation = ?");
+        $stmtPart->execute([$id]);
+
+        // Supprimer la manifestation
+        $stmtManif = $db->prepare("DELETE FROM Manifestation WHERE id_manifestation = ?");
+        $stmtManif->execute([$id]);
     }
 }

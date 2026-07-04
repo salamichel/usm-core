@@ -14,8 +14,9 @@ class DashboardController
     {
         // Vérification d'accès spécifique aux adhérents (différent de l'admin CMS)
         if (!isset($_SESSION['LogIn']) || $_SESSION['LogIn'] !== true) {
-            View::flash('error', 'Veuillez vous connecter pour accéder à l\'espace adh\u00e9rent.');
-            header('Location: /member/login');
+            View::flash('error', 'Veuillez vous connecter pour accéder à l\'espace adhérent.');
+            $redirect = $_SERVER['REQUEST_URI'] ?? '/member/dashboard';
+            header('Location: /member/login?redirect=' . urlencode($redirect));
             exit;
         }
 

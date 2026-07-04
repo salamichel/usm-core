@@ -99,11 +99,14 @@
     <div class="pt-5 border-t border-slate-100">
       <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Période</p>
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="updateAgendaFilter('this_week', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilterPeriod('all')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.this_week and not filters.next_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Tous les événements
         </button>
-        <button type="button" onclick="updateAgendaFilter('this_week', '1')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilterPeriod('this_week')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.this_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Semaine courante
+        </button>
+        <button type="button" onclick="updateAgendaFilterPeriod('next_week')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.next_week %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Semaine suivante
         </button>
       </div>
     </div>
@@ -111,6 +114,22 @@
 </div>
 
 <script>
+  // Gère de manière exclusive les filtres de période
+  function updateAgendaFilterPeriod(period) {
+    var url = new URL(window.location.href);
+    if (period === 'this_week') {
+        url.searchParams.set('this_week', '1');
+        url.searchParams.delete('next_week');
+    } else if (period === 'next_week') {
+        url.searchParams.set('next_week', '1');
+        url.searchParams.delete('this_week');
+    } else {
+        url.searchParams.delete('this_week');
+        url.searchParams.delete('next_week');
+    }
+    window.location.href = url.toString();
+  }
+
   // Cette fonction s'occupe de mettre à jour un paramètre tout en conservant les autres (y compris view)
   function updateAgendaFilter(filterKey, filterValue) {
     var url = new URL(window.location.href);

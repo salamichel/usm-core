@@ -277,6 +277,7 @@ class EquipeConfigController extends BaseAdminController
             'type'                 => trim($_POST['type'] ?? '') ?: null,
             'hauteur_filet'        => trim($_POST['hauteur_filet'] ?? '') ?: null,
             'ffvb_link'            => trim($_POST['ffvb_link'] ?? '') ?: null,
+            'min_players'          => isset($_POST['min_players']) ? (int)$_POST['min_players'] : 6,
         ];
     }
 }

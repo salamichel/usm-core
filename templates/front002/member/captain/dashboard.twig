@@ -44,8 +44,63 @@
             </div>
             <a href="https://www.ffvbbeach.org/ffvbapp/resu/saisie_resu.php" target="_blank" rel="noopener noreferrer" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold px-5 py-3 rounded-2xl transition text-center text-sm shadow-sm flex-shrink-0 flex items-center justify-center gap-2">
                 Saisir sur le site FFVB
-                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>
+        </div>
+
+        {# Barre de Filtres #}
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm mb-8" id="captain-filters">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h3 class="font-serif text-lg font-bold text-slate-900">Filtres</h3>
+                    <p class="text-slate-500 text-xs mt-0.5">Filtrer les rencontres et présences de vos équipes.</p>
+                </div>
+                {% if filters.type or filters.location or filters.this_week or filters.next_week %}
+                    <button type="button" onclick="resetCaptainFilters()" class="text-sm text-slate-500 hover:text-[var(--primary)] underline underline-offset-4 transition cursor-pointer font-semibold align-self-start sm:align-self-auto">
+                        Réinitialiser
+                    </button>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+                {# Filtre Type #}
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Type d'événement</p>
+                    <select onchange="updateCaptainFilter('type', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
+                        <option value="">Tous les types</option>
+                        {% for type in filterOptions.types %}
+                            <option value="{{ type }}" {% if filters.type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {# Filtre Lieu #}
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Lieu</p>
+                    <select onchange="updateCaptainFilter('location', this.value)" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all">
+                        <option value="">Tous les lieux</option>
+                        {% for location in filterOptions.locations %}
+                            <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>{{ location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {# Période #}
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-2">Période</p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="updateCaptainFilterPeriod('all')" class="flex-1 px-3 py-2.5 text-xs rounded-xl font-bold transition {% if not filters.this_week and not filters.next_week %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+                            Tous
+                        </button>
+                        <button type="button" onclick="updateCaptainFilterPeriod('this_week')" class="flex-1 px-3 py-2.5 text-xs rounded-xl font-bold transition {% if filters.this_week %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+                            Sem. courante
+                        </button>
+                        <button type="button" onclick="updateCaptainFilterPeriod('next_week')" class="flex-1 px-3 py-2.5 text-xs rounded-xl font-bold transition {% if filters.next_week %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+                            Sem. suivante
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="space-y-12">
@@ -111,7 +166,7 @@
                                 {{ t.metrics.understaffed_matches }}
                             </span>
                             <span class="text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
-                                Matchs avec < 6 convoqués
+                                Matchs en sous-effectif
                             </span>
                         </div>
                         <div class="w-12 h-12 rounded-full flex items-center justify-center metric-understaffed-icon {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
@@ -122,12 +177,18 @@
 
                 {# 2. Tableau de Présences #}
                 <div class="mb-10 hidden sm:block">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Tableau de présences des joueurs</h3>
-                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">8 prochains événements</span>
+                    <div class="flex items-center justify-between mb-4 cursor-pointer select-none group" onclick="togglePresenceGrid({{ t.config.equipe_saison_id }})">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider group-hover:text-slate-600 transition-colors">Tableau de présences des joueurs</h3>
+                            <svg id="presence-grid-arrow-{{ t.config.equipe_saison_id }}" class="w-4 h-4 text-slate-450 group-hover:text-slate-600 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">8 prochains événements (cliquer pour afficher)</span>
                     </div>
 
-                    {% if t.upcoming_events|length %}
+                    <div id="presence-grid-content-{{ t.config.equipe_saison_id }}" class="hidden transition-all duration-200">
+                        {% if t.upcoming_events|length %}
                     <div class="overflow-x-auto md:overflow-visible lg:max-h-none border border-slate-200 rounded-2xl bg-white shadow-sm scrollbar-thin">
                         <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
@@ -291,6 +352,7 @@
                         Aucun événement à venir.
                     </div>
                     {% endif %}
+                    </div>
                 </div>
 
                 <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Rencontres et Convocations</h3>
@@ -364,15 +426,23 @@
                         <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-xs font-bold">
-                                    {% if m.nb_selection >= 6 %}
+                                    {% if m.nb_selection >= m.min_players %}
                                         <span class="text-emerald-600">✓ Effectif suffisant</span> ({{ m.nb_selection }} joueurs)
                                     {% else %}
-                                        <span class="text-rose-500">⚠ Sous-effectif</span> ({{ m.nb_selection }}/6 requis)
+                                        <span class="text-rose-500">⚠ Sous-effectif</span> ({{ m.nb_selection }}/{{ m.min_players }} requis)
                                     {% endif %}
                                 </span>
                             </div>
                             
                             <div class="flex flex-wrap gap-2">
+                                {% if m.nb_sans_reponse > 0 %}
+                                <form method="POST" action="{{ url('member/captain/matches/' ~ m.id ~ '/remind') }}" class="inline">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3.5 py-2 rounded-xl transition text-center shadow-sm flex items-center gap-1 cursor-pointer">
+                                        ✉️ Relancer ({{ m.nb_sans_reponse }})
+                                    </button>
+                                </form>
+                                {% endif %}
                                 <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
                                    class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition text-center shadow-sm flex items-center gap-1">
                                     ✏️ Modifier
@@ -404,13 +474,62 @@
 
 {% block scripts %}
 <script>
-    // Inject dynamic valid statuses from backend
-    const VALID_STATUSES = {
-        match: {{ statuses.match|default([])|json_encode|raw }},
-        entrainement: {{ statuses.entrainement|default([])|json_encode|raw }}
-    };
+function updateCaptainFilter(key, value) {
+    var url = new URL(window.location.href);
+    if (value) {
+        url.searchParams.set(key, value);
+    } else {
+        url.searchParams.delete(key);
+    }
+    window.location.href = url.toString();
+}
 
-    document.addEventListener('DOMContentLoaded', () => {
+function updateCaptainFilterPeriod(period) {
+    var url = new URL(window.location.href);
+    if (period === 'this_week') {
+        url.searchParams.set('this_week', '1');
+        url.searchParams.delete('next_week');
+    } else if (period === 'next_week') {
+        url.searchParams.set('next_week', '1');
+        url.searchParams.delete('this_week');
+    } else {
+        url.searchParams.delete('this_week');
+        url.searchParams.delete('next_week');
+    }
+    window.location.href = url.toString();
+}
+
+function resetCaptainFilters() {
+    var url = new URL(window.location.href);
+    url.search = '';
+    window.location.href = url.toString();
+}
+
+function togglePresenceGrid(teamId) {
+    const content = document.getElementById(`presence-grid-content-${teamId}`);
+    const arrow = document.getElementById(`presence-grid-arrow-${teamId}`);
+    if (content) {
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            if (arrow) {
+                arrow.classList.add('rotate-180');
+            }
+        } else {
+            content.classList.add('hidden');
+            if (arrow) {
+                arrow.classList.remove('rotate-180');
+            }
+        }
+    }
+}
+
+// Inject dynamic valid statuses from backend
+const VALID_STATUSES = {
+    match: {{ statuses.match|default([])|json_encode|raw }},
+    entrainement: {{ statuses.entrainement|default([])|json_encode|raw }}
+};
+
+document.addEventListener('DOMContentLoaded', () => {
     let activePopover = null;
 
     document.addEventListener('click', (e) => {

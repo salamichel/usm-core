@@ -34,6 +34,9 @@ use App\Controllers\Admin\LocationController;
 use App\Controllers\Admin\ContactMessageController;
 use App\Controllers\Admin\MediaUploadController;
 use App\Controllers\Admin\PhotoAdminController;
+use App\Controllers\Admin\MotsClefController;
+use App\Controllers\Admin\ManifestationGeneratorController;
+use App\Controllers\Admin\ManifestationController;
 
 class App
 {
@@ -109,6 +112,7 @@ class App
         $r->get('/member/profile', [ProfileController::class, 'show']);
         $r->post('/member/profile', [ProfileController::class, 'update']);
         $r->post('/joueurs/delete/{id}', [JoueurController::class, 'delete']);        
+        $r->get('/public/participation/update', [ParticipationController::class, 'publicUpdate']);
 
         // Espace Capitaine
         $r->get('/member/captain', [CaptainController::class, 'index']);
@@ -118,6 +122,7 @@ class App
         $r->post('/member/captain/matches/{id}/edit', [CaptainController::class, 'updateMatch']);
         $r->get('/member/captain/matches/{id}/select-players', [CaptainController::class, 'selectPlayersForm']);
         $r->post('/member/captain/matches/{id}/select-players', [CaptainController::class, 'updateSelectedPlayers']);
+        $r->post('/member/captain/matches/{id}/remind', [CaptainController::class, 'remindNoResponse']);
 
         // ── API ───────────────────────────────────────────────────────────────
         $r->post('/api/member/participations/upsert', [ParticipationController::class, 'apiUpsert']);
@@ -230,6 +235,26 @@ class App
         $r->get('/admin/locations/{id}/edit',   [LocationController::class, 'edit']);
         $r->post('/admin/locations/{id}/edit',  [LocationController::class, 'update']);
         $r->post('/admin/locations/{id}/delete',[LocationController::class, 'delete']);
+
+        // ── Admin Mots-clés (Base Externe) ────────────────────────────────────
+        $r->get('/admin/mots-cles',             [MotsClefController::class, 'index']);
+        $r->get('/admin/mots-cles/create',      [MotsClefController::class, 'create']);
+        $r->post('/admin/mots-cles/create',     [MotsClefController::class, 'store']);
+        $r->get('/admin/mots-cles/{id}/edit',   [MotsClefController::class, 'edit']);
+        $r->post('/admin/mots-cles/{id}/edit',  [MotsClefController::class, 'update']);
+        $r->post('/admin/mots-cles/{id}/delete',[MotsClefController::class, 'delete']);
+
+        // ── Admin Générateur de manifestations ────────────────────────────────
+        $r->get('/admin/manifestations/generator',  [ManifestationGeneratorController::class, 'showForm']);
+        $r->post('/admin/manifestations/generator', [ManifestationGeneratorController::class, 'generate']);
+
+        // ── Admin Manifestations (CRUD) ───────────────────────────────────────
+        $r->get('/admin/manifestations',             [ManifestationController::class, 'index']);
+        $r->get('/admin/manifestations/create',      [ManifestationController::class, 'create']);
+        $r->post('/admin/manifestations/create',     [ManifestationController::class, 'store']);
+        $r->get('/admin/manifestations/{id}/edit',   [ManifestationController::class, 'edit']);
+        $r->post('/admin/manifestations/{id}/edit',  [ManifestationController::class, 'update']);
+        $r->post('/admin/manifestations/{id}/delete',[ManifestationController::class, 'delete']);
 
         // ── Admin media upload (WYSIWYG editor) ───────────────────────────────
         $r->post('/admin/media/upload', [MediaUploadController::class, 'upload']);

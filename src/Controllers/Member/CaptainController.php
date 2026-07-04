@@ -49,6 +49,13 @@ class CaptainController
     {
         [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
 
+        $filters = [
+            'type'      => $_GET['type'] ?? '',
+            'location'  => $_GET['location'] ?? '',
+            'this_week' => !empty($_GET['this_week']),
+            'next_week' => !empty($_GET['next_week']),
+        ];
+
         $teamsData = [];
         foreach ($captainedTeams as $team) {
             $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($team['equipe_saison_id']);
@@ -58,7 +65,8 @@ class CaptainController
             $matches = AgendaService::getUpcomingMatchesForTeam(
                 $team['slug_colonne'],
                 50,
-                $team['manifestation_filter'] ?? null
+                $team['manifestation_filter'] ?? null,
+                $filters
             );
 
             // Charger les détails de sélection et dispo pour chaque match
@@ -94,11 +102,12 @@ class CaptainController
                 $match['nb_indisponible'] = $nbIndisponible;
                 $match['nb_sans_reponse'] = $nbSansReponse;
                 $match['total_roster'] = count($rosterPlayers);
+                $match['min_players'] = (int)($team['min_players'] ?? 6);
             }
             unset($match);
 
             // 2. Grille de présence et métriques de l'équipe
-            $data = $this->buildTeamGridAndMetrics($team, $rosterPlayers, $playerIds);
+            $data = $this->buildTeamGridAndMetrics($team, $rosterPlayers, $playerIds, $filters);
 
             $teamsData[] = [
                 'config' => $team,
@@ -112,6 +121,8 @@ class CaptainController
         View::render('member/captain/dashboard.twig', [
             'teams' => $teamsData,
             'saison' => $saisonActive,
+            'filters' => $filters,
+            'filterOptions' => AgendaService::getFilterOptions(),
             'statuses' => [
                 'match' => \App\Models\MotsClef::getByCategory('Participation_match'),
                 'entrainement' => \App\Models\MotsClef::getByCategory('Participation_entrai'),
@@ -314,7 +325,12 @@ class CaptainController
         }
 
         $wasCancelled = $event['annule'] ?? false;
-        $selectedPlayers = $event['selectionnes'] ?? [];
+        $selectedPlayers = $event['selected'] ?? [];
+        $oldDate = $event['Date'] ?? '';
+        $oldLocation = $event['lieu'] ?? '';
+
+        $hasDateChanged = ($oldDate !== $dateStr);
+        $hasLocationChanged = ($oldLocation !== $data['location']);
 
         try {
             \App\Services\Agenda\EventRepository::updateMatch($matchId, [
@@ -341,6 +357,28 @@ class CaptainController
                             'match_id' => $matchId,
                             'error' => $e->getMessage()
                         ]);
+                    }
+                }
+            }
+
+            // Notification de modification par email (changement de date ou de lieu)
+            if (($hasDateChanged || $hasLocationChanged) && !empty($selectedPlayers) && !$isCancelledNow) {
+                $newEvent = AgendaService::getEventById($matchId);
+                if ($newEvent) {
+                    $brevo = new BrevoService();
+                    foreach ($selectedPlayers as $selPlayer) {
+                        try {
+                            $playerDb = \App\Models\Joueur::findById((int)$selPlayer['id']);
+                            if ($playerDb && !empty($playerDb['Mel'])) {
+                                $brevo->sendMatchModificationNotification($playerDb, $event, $newEvent);
+                            }
+                        } catch (\Throwable $e) {
+                            Logger::errors()->error('Failed to send match modification email', [
+                                'player_id' => $selPlayer['id'],
+                                'match_id' => $matchId,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
                     }
                 }
             }
@@ -537,6 +575,21 @@ class CaptainController
                     } else {
                         Participation::upsert($jid, $matchId, $orig);
                     }
+
+                    // Notification par email de désélection
+                    try {
+                        $playerDb = \App\Models\Joueur::findById($jid);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo = new BrevoService();
+                            $brevo->sendPlayerDeselectionNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send player deselection email', [
+                            'player_id' => $jid,
+                            'match_id' => $matchId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             }
         }
@@ -558,7 +611,7 @@ class CaptainController
 
         // 1. Trouver les événements candidats dans un intervalle de ±1 jour (non annulés)
         $stmt = $db->prepare(
-            "SELECT id_manifestation, Date, Durée_créneau 
+            "SELECT id_manifestation, Date, Durée_créneau, ManifestationTypée 
              FROM Manifestation 
              WHERE Date >= DATE_SUB(?, INTERVAL 1 DAY) AND Date <= DATE_ADD(?, INTERVAL 1 DAY)
                AND id_manifestation != ?
@@ -569,11 +622,14 @@ class CaptainController
 
         $eventRange = $this->getEventRange($event);
         $overlappingIds = [];
+        $candidateMap = [];
 
         foreach ($candidates as $cand) {
             $candRange = $this->getEventRange($cand);
             if ($this->checkOverlap($eventRange, $candRange)) {
-                $overlappingIds[] = (int)$cand['id_manifestation'];
+                $mid = (int)$cand['id_manifestation'];
+                $overlappingIds[] = $mid;
+                $candidateMap[$mid] = $cand;
             }
         }
 
@@ -610,6 +666,19 @@ class CaptainController
                              WHERE id_joueur = ? AND id_manifestation = ?"
                         );
                         $updateStmt->execute([$newStatus, $joueurId, $mid]);
+
+                        // Envoi de la notification de chevauchement s'il s'agit d'un entraînement
+                        $cand = $candidateMap[$mid] ?? null;
+                        if ($cand) {
+                            $manifType = $cand['ManifestationTypée'] ?? '';
+                            $parts = explode(' - ', $manifType, 3);
+                            $type = $parts[1] ?? '';
+                            $isTraining = str_contains($type, 'Entra');
+
+                            if ($isTraining) {
+                                $this->sendTrainingOverlapNotification($joueurId, $cand, $event);
+                            }
+                        }
                     } else {
                         // Si le statut n'est pas une présence (ex: 'Ne sait pas' ou '.'), on le supprime
                         if ($statusObj->isUnknown() || $currentStatus === '.' || $currentStatus === '') {
@@ -622,6 +691,42 @@ class CaptainController
                     }
                 }
             }
+        }
+    }
+
+    private function sendTrainingOverlapNotification(int $joueurId, array $rawTrainingEvent, array $matchEvent): void
+    {
+        try {
+            $player = \App\Models\Joueur::findById($joueurId);
+            if (!$player || empty($player['Mel'])) {
+                return;
+            }
+
+            $trainingEvent = AgendaService::getEventById((int)$rawTrainingEvent['id_manifestation']);
+            if (!$trainingEvent) {
+                return;
+            }
+
+            // Récupérer le capitaine connecté pour le mettre en copie (CC)
+            $captainId = (int)($_SESSION['LogInId'] ?? 0);
+            $captain = $captainId ? \App\Models\Joueur::findById($captainId) : null;
+            $cc = [];
+            if ($captain && !empty($captain['Mel'])) {
+                $cc[] = [
+                    'email' => $captain['Mel'],
+                    'name'  => trim(($captain['Prénom'] ?? $captain['prenom'] ?? '') . ' ' . ($captain['Nom'] ?? $captain['nom'] ?? ''))
+                ];
+            }
+
+            $brevo = new BrevoService();
+            $brevo->sendTrainingOverlapNotification($player, $trainingEvent, $matchEvent, $cc);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to send training overlap email', [
+                'player_id'   => $joueurId,
+                'training_id' => $rawTrainingEvent['id_manifestation'],
+                'match_id'    => $matchEvent['id'],
+                'error'       => $e->getMessage()
+            ]);
         }
     }
 
@@ -770,6 +875,21 @@ class CaptainController
                     } else {
                         Participation::upsert($joueurId, $manifestationId, $orig);
                     }
+
+                    // Notification par email de désélection (API)
+                    try {
+                        $playerDb = \App\Models\Joueur::findById($joueurId);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo = new BrevoService();
+                            $brevo->sendPlayerDeselectionNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send player deselection email (API)', [
+                            'player_id' => $joueurId,
+                            'match_id' => $manifestationId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             } else {
                 if ($status === '') {
@@ -803,9 +923,10 @@ class CaptainController
     /**
      * Construit et calcule la grille de présence et les métriques d'une équipe.
      */
-    private function buildTeamGridAndMetrics(array $team, array $rosterPlayers, array $playerIds): array
+    private function buildTeamGridAndMetrics(array $team, array $rosterPlayers, array $playerIds, array $filters = []): array
     {
-        $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, 8);
+        $limit = (!empty($filters['this_week']) || !empty($filters['next_week']) || !empty($filters['type']) || !empty($filters['location'])) ? 50 : 8;
+        $upcomingEvents = AgendaService::getUpcomingEventsForTeam($team, $limit, $filters);
         $eventIds = array_column($upcomingEvents, 'id');
 
         $participationsMap = [];
@@ -927,7 +1048,8 @@ class CaptainController
             $eventAttendance[$mid] = $availCount;
 
             if ($event['is_match']) {
-                if ($selCount < 6) {
+                $minRequired = (int)($team['min_players'] ?? 6);
+                if ($selCount < $minRequired) {
                     $understaffedMatches++;
                 }
             }
@@ -961,5 +1083,104 @@ class CaptainController
     private function checkOverlap(array $rangeA, array $rangeB): bool
     {
         return $rangeA[0] < $rangeB[1] && $rangeB[0] < $rangeA[1];
+    }
+
+    /**
+     * Envoie un mail de relance par email à tous les joueurs n'ayant pas répondu à une rencontre.
+     * Route: POST /member/captain/matches/{id}/remind
+     */
+    public function remindNoResponse(array $params): void
+    {
+        [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
+        $matchId = (int)$params['id'];
+
+        $event = AgendaService::getEventById($matchId);
+        if (!$event) {
+            View::flash('error', 'Rencontre introuvable.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Vérifier que le match appartient à une équipe gérée par ce capitaine
+        $matchedTeam = null;
+        foreach ($captainedTeams as $team) {
+            $filter = $team['manifestation_filter'] ?: $team['libelle'];
+            if (str_contains($event['titre'] ?? '', $filter) || str_contains($event['ManifestationTypée'] ?? '', $filter)) {
+                $matchedTeam = $team;
+                break;
+            }
+        }
+
+        if (!$matchedTeam) {
+            View::flash('error', 'Vous n\'êtes pas autorisé à gérer cette rencontre.');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Récupérer les joueurs de l'équipe pour la saison
+        $joueurs = EquipeSaisonJoueur::findByEquipeSaison($matchedTeam['equipe_saison_id']);
+
+        // Récupérer les participations actuelles pour ce match
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare("SELECT id_joueur, Participation FROM Participation WHERE id_manifestation = ?");
+        $stmt->execute([$matchId]);
+        $participations = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+
+        $brevo = new BrevoService();
+        $sentCount = 0;
+        $failedCount = 0;
+
+        foreach ($joueurs as $j) {
+            $jid = (int)$j['id_joueur'];
+            $rawStatus = $participations[$jid] ?? '';
+            $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+            $cat = $statusObj->getCategory();
+
+            // Sont considérés comme "sans réponse" les joueurs qui ne sont ni sélectionnés,
+            // ni déclarés disponibles, ni déclarés indisponibles/absents (catégories no_response et unknown)
+            $hasAnswered = in_array($cat, ['selected', 'available', 'available_if_needed', 'present', 'unavailable', 'absent']);
+
+            if (!$hasAnswered) {
+                // Charger les détails du joueur depuis la base externe pour obtenir son adresse email
+                try {
+                    $playerDb = \App\Models\Joueur::findById($jid);
+                    if ($playerDb && !empty($playerDb['Mel'])) {
+                        $success = $brevo->sendMatchReminderNotification($playerDb, $event, $matchedTeam['libelle']);
+                        if ($success) {
+                            $sentCount++;
+                        } else {
+                            $failedCount++;
+                        }
+                    } else {
+                        $failedCount++;
+                        Logger::errors()->warning('Reminder email skipped: player has no email address', ['player_id' => $jid]);
+                    }
+                } catch (\Throwable $e) {
+                    $failedCount++;
+                    Logger::errors()->error('Failed to send reminder email to player', [
+                        'player_id' => $jid,
+                        'match_id' => $matchId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+
+        if ($sentCount > 0) {
+            $msg = "$sentCount relance(s) envoyée(s) avec succès.";
+            if ($failedCount > 0) {
+                $msg .= " ($failedCount échec(s) ou e-mail(s) manquant(s)).";
+            }
+            View::flash('success', $msg);
+        } else {
+            if ($failedCount > 0) {
+                View::flash('error', "Impossible d'envoyer les relances ($failedCount échec(s) ou e-mail(s) manquant(s)).");
+            } else {
+                View::flash('info', 'Aucun retardataire à relancer pour cette rencontre.');
+            }
+        }
+
+        header('Location: /member/captain');
+        exit;
     }
 }

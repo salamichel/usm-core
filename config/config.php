@@ -38,6 +38,7 @@ define('MINI_AGENDA_LIMIT', (int)(getenv('MINI_AGENDA_LIMIT') ?: 5));
 define('BREVO_API_KEY', getenv('BREVO_API_KEY') ?: '');
 define('BREVO_FROM_EMAIL', getenv('BREVO_FROM_EMAIL') ?: 'noreply@usm-volley.fr');
 define('BREVO_FROM_NAME', getenv('BREVO_FROM_NAME') ?: 'USM Volley');
+define('BREVO_REDIRECT_EMAIL', getenv('BREVO_REDIRECT_EMAIL') ?: '');
 
 // ── Upload ────────────────────────────────────────────────────────────────────
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');

@@ -151,12 +151,7 @@ class MemberDashboardService
                 'presence_match' => 0,
                 'presence_training' => 0,
                 'presence_tournament' => 0,
-                'events_by_type' => [
-                    'match' => 0,
-                    'training' => 0,
-                    'tournois' => 0,
-                    'others' => 0
-                ],
+                'events_by_type' => [],
                 'top_lieux' => []
             ];
         }
@@ -204,15 +199,21 @@ class MemberDashboardService
         $totalTournaments = 0;
         $presentTournaments = 0;
 
-        $events_by_type = [
-            'match' => 0,
-            'training' => 0,
-            'tournois' => 0,
-            'others' => 0
-        ];
+        $events_by_type = [];
 
         foreach ($rows as $row) {
             $typeStr = $row['ManifestationTypée'] ?? '';
+            $parts = explode(' - ', $typeStr, 3);
+            $type = isset($parts[1]) ? trim($parts[1]) : 'Autre';
+            if ($type === '') {
+                $type = 'Autre';
+            }
+
+            if (!isset($events_by_type[$type])) {
+                $events_by_type[$type] = 0;
+            }
+            $events_by_type[$type]++;
+
             $isMatch = stripos($typeStr, 'match') !== false;
             $isTraining = stripos($typeStr, 'entra') !== false;
             $isTournament = stripos($typeStr, 'tournoi') !== false;
@@ -224,23 +225,20 @@ class MemberDashboardService
                 if ($status->isAvailable() || $status->isSelected() || $status->isPresent()) {
                     $presentMatches++;
                 }
-                $events_by_type['match']++;
             } elseif ($isTraining) {
                 $totalTrainings++;
                 if ($status->isPresent()) {
                     $presentTrainings++;
                 }
-                $events_by_type['training']++;
             } elseif ($isTournament) {
                 $totalTournaments++;
                 if ($status->isPresent() || $status->isAvailable()) {
                     $presentTournaments++;
                 }
-                $events_by_type['tournois']++;
-            } else {
-                $events_by_type['others']++;
             }
         }
+
+        arsort($events_by_type);
 
         $presenceMatch = $totalMatches > 0 ? (int) round(($presentMatches / $totalMatches) * 100) : 0;
         $presenceTraining = $totalTrainings > 0 ? (int) round(($presentTrainings / $totalTrainings) * 100) : 0;
@@ -259,6 +257,9 @@ class MemberDashboardService
             }
         }
 
+        $allLieux = array_keys($lieuxCounts);
+        sort($allLieux);
+
         arsort($lieuxCounts);
         $limit = 3;
         foreach ($lieuxCounts as $lieu => $count) {
@@ -274,7 +275,8 @@ class MemberDashboardService
             'presence_training' => $presenceTraining,
             'presence_tournament' => $presenceTournament,
             'events_by_type' => $events_by_type,
-            'top_lieux' => $topLieux
+            'top_lieux' => $topLieux,
+            'top_lieux_all' => $allLieux
         ];
     }
 }

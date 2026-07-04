@@ -82,8 +82,8 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte, type, hauteur_filet, ffvb_link)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte, type, hauteur_filet, ffvb_link, min_players)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link, :min_players)"
         );
         $stmt->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -99,6 +99,7 @@ class EquipeConfig
             ':type'                 => $data['type'] ?? null,
             ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
             ':ffvb_link'            => $data['ffvb_link'] ?? null,
+            ':min_players'          => (int)($data['min_players'] ?? 6),
         ]);
         return (int)$db->lastInsertId();
     }
@@ -119,7 +120,8 @@ class EquipeConfig
                  description_courte   = :description_courte,
                  type                 = :type,
                  hauteur_filet        = :hauteur_filet,
-                 ffvb_link            = :ffvb_link
+                 ffvb_link            = :ffvb_link,
+                 min_players          = :min_players
              WHERE id = :id"
         )->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -135,6 +137,7 @@ class EquipeConfig
             ':type'                 => $data['type'] ?? null,
             ':hauteur_filet'        => $data['hauteur_filet'] ?? null,
             ':ffvb_link'            => $data['ffvb_link'] ?? null,
+            ':min_players'          => (int)($data['min_players'] ?? 6),
             ':id'                   => $id,
         ]);
     }
