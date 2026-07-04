@@ -975,6 +975,14 @@
         return { start: monday, end: sunday };
     }
 
+    function normalizeString(str) {
+        return (str || '')
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+    }
+
     function applyDashboardFilters() {
         const cards = document.querySelectorAll('#event-grid > div[data-manifestation-id]');
         const labelSpan = document.getElementById('active-filter-label');
@@ -1039,34 +1047,28 @@
                 el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
             });
 
+            const activeFilterLower = activeFilterValue.toLowerCase().trim();
             let label = activeFilterValue.charAt(0).toUpperCase() + activeFilterValue.slice(1);
-            if (activeFilterValue === 'entrainement') label = 'Entraînements';
-            else if (activeFilterValue === 'match') label = 'Matchs';
-            else if (activeFilterValue === 'tournois') label = 'Tournois / Plateaux';
-            else if (activeFilterValue === 'forum') label = 'Forums';
-            else if (activeFilterValue === 'others') label = 'Autres';
+            if (activeFilterLower === 'entrainement' || activeFilterLower === 'entraînement') label = 'Entraînements';
+            else if (activeFilterLower === 'match') label = 'Matchs';
+            else if (activeFilterLower === 'tournois' || activeFilterLower === 'tournoi') label = 'Tournois';
+            else if (activeFilterLower === 'forum') label = 'Forums';
             if (labelSpan) labelSpan.textContent = ` (Filtre : ${label})`;
 
             cards.forEach(card => {
-                const filterVal = card.dataset.eventFilter || '';
+                const cardType = card.dataset.eventTypeRaw || '';
+                const normCardType = normalizeString(cardType);
+                const normFilterVal = normalizeString(activeFilterValue);
                 let matches = false;
-                if (activeFilterValue === 'match') {
-                    matches = filterVal === 'match';
-                } else if (activeFilterValue === 'entrainement') {
-                    matches = filterVal.includes('entrain') || filterVal.includes('entraîn');
-                } else if (activeFilterValue === 'tournois') {
-                    matches = filterVal.includes('tournoi') || filterVal.includes('plateau');
-                } else if (activeFilterValue === 'forum') {
-                    matches = filterVal === 'forum';
-                } else if (activeFilterValue === 'others') {
-                    matches = filterVal !== 'match' &&
-                        filterVal !== 'forum' &&
-                        !filterVal.includes('entrain') &&
-                        !filterVal.includes('entraîn') &&
-                        !filterVal.includes('tournoi') &&
-                        !filterVal.includes('plateau');
+
+                if (normFilterVal === 'match') {
+                    matches = normCardType.includes('match');
+                } else if (normFilterVal === 'entrainement') {
+                    matches = normCardType.includes('entrain');
+                } else if (normFilterVal === 'tournois' || normFilterVal === 'tournoi') {
+                    matches = normCardType.includes('tournoi') || normCardType.includes('plateau');
                 } else {
-                    matches = filterVal.includes(activeFilterValue);
+                    matches = normCardType === normFilterVal;
                 }
                 card.style.display = matches ? '' : 'none';
             });

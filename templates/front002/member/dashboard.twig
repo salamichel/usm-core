@@ -305,41 +305,40 @@
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Événements par type</h3>
                     <div class="space-y-1">
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="entrainement">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
-                                <span class="text-sm font-medium text-slate-600">Entraînements</span>
+                        {% set colors = {
+                            'match': 'bg-blue-500',
+                            'entraînement': 'bg-orange-400',
+                            'entrainement': 'bg-orange-400',
+                            'tournoi': 'bg-purple-500',
+                            'stage': 'bg-indigo-500',
+                            'beach': 'bg-yellow-500',
+                            'club': 'bg-rose-500',
+                            'forum': 'bg-teal-500'
+                        } %}
+                        {% set labels = {
+                            'match': 'Matchs',
+                            'entraînement': 'Entraînements',
+                            'entrainement': 'Entraînements',
+                            'tournoi': 'Tournois',
+                            'stage': 'Stages',
+                            'beach': 'Beach',
+                            'club': 'Club',
+                            'forum': 'Forums'
+                        } %}
+                        {% for type, count in stats.events_by_type %}
+                            {% set type_key = type|lower %}
+                            {% set bullet_color = colors[type_key] | default('bg-slate-400') %}
+                            {% set display_label = labels[type_key] | default(type) %}
+                            <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="{{ type|lower }}">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full {{ bullet_color }}"></span>
+                                    <span class="text-sm font-medium text-slate-600">{{ display_label }}</span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ count }}</span>
                             </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.training }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="match">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                                <span class="text-sm font-medium text-slate-600">Matchs</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.match }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="tournois">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                                <span class="text-sm font-medium text-slate-600">Tournois / Plateaux</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.tournois }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="forum">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
-                                <span class="text-sm font-medium text-slate-600">Forums</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.forum }}</span>
-                        </div>
-                        <div class="flex items-center justify-between cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg transition-colors" data-type-filter="others">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                                <span class="text-sm font-medium text-slate-600">Autres</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{{ stats.events_by_type.others }}</span>
-                        </div>
+                        {% else %}
+                            <div class="text-xs text-slate-400 p-1.5 text-center bg-slate-50 rounded-xl py-4 border border-slate-100">Aucun type d'événement.</div>
+                        {% endfor %}
                     </div>
                 </div>
 
