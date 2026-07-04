@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #4f46e5; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .info-box { background: #f9fafb; padding: 16px; border: 2px solid #000; margin: 16px 0; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 11px; color: #666; margin-top: 8px; margin-bottom: 2px; }
+        .field-value { font-size: 15px; color: #111; }
+        .cta-button { display: inline-block; background: #94674d; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ CHEVAUCHEMENT AGENDA</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{ playerName }}</strong>,</p>
+            <p style="margin-top: 8px;">Vous avez été sélectionné(e) pour un match. En conséquence, votre présence a été retirée de l'entraînement suivant qui se déroule au même moment :</p>
+
+            <div class="info-box" style="border-color: #ef4444;">
+                <div style="font-weight: 900; color: #ef4444; text-transform: uppercase; font-size: 12px;">❌ Entraînement annulé (retrait)</div>
+                <div class="field-label">🏃 Séance</div>
+                <div class="field-value"><strong>{{ trainingTitle }}</strong></div>
+                <div class="field-label">📅 Date et Heure</div>
+                <div class="field-value">{{ trainingDate }}</div>
+                <div class="field-label">📍 Lieu</div>
+                <div class="field-value">{{ trainingLocation }}</div>
+            </div>
+
+            <p style="margin-top: 16px;">Voici le match pour lequel vous êtes sélectionné(e) :</p>
+
+            <div class="info-box" style="border-color: #10b981;">
+                <div style="font-weight: 900; color: #10b981; text-transform: uppercase; font-size: 12px;">✅ Match prioritaire</div>
+                <div class="field-label">🏆 Rencontre</div>
+                <div class="field-value"><strong>{{ matchTitle }}</strong></div>
+                <div class="field-label">📅 Date et Heure</div>
+                <div class="field-value">{{ matchDate }}</div>
+                <div class="field-label">📍 Lieu</div>
+                <div class="field-value">{{ matchLocation }}</div>
+            </div>
+
+            <p style="margin-top: 16px;">Votre capitaine a été informé de ce retrait. Vous pouvez consulter les détails sur votre espace adhérent.</p>
+            
+            <a href="{{ dashboardUrl }}" class="cta-button">👉 Accéder à mon espace</a>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Cet email a été envoyé en copie à votre capitaine.
+        </div>
+    </div>
+</body>
+</html>

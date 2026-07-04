@@ -548,6 +548,21 @@ class CaptainController
                     } else {
                         Participation::upsert($jid, $matchId, $orig);
                     }
+
+                    // Notification par email de désélection
+                    try {
+                        $playerDb = \App\Models\Joueur::findById($jid);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo = new BrevoService();
+                            $brevo->sendPlayerDeselectionNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send player deselection email', [
+                            'player_id' => $jid,
+                            'match_id' => $matchId,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             }
         }
@@ -569,7 +584,7 @@ class CaptainController
 
         // 1. Trouver les événements candidats dans un intervalle de ±1 jour (non annulés)
         $stmt = $db->prepare(
-            "SELECT id_manifestation, Date, Durée_créneau 
+            "SELECT id_manifestation, Date, Durée_créneau, ManifestationTypée 
              FROM Manifestation 
              WHERE Date >= DATE_SUB(?, INTERVAL 1 DAY) AND Date <= DATE_ADD(?, INTERVAL 1 DAY)
                AND id_manifestation != ?
@@ -580,11 +595,14 @@ class CaptainController
 
         $eventRange = $this->getEventRange($event);
         $overlappingIds = [];
+        $candidateMap = [];
 
         foreach ($candidates as $cand) {
             $candRange = $this->getEventRange($cand);
             if ($this->checkOverlap($eventRange, $candRange)) {
-                $overlappingIds[] = (int)$cand['id_manifestation'];
+                $mid = (int)$cand['id_manifestation'];
+                $overlappingIds[] = $mid;
+                $candidateMap[$mid] = $cand;
             }
         }
 
@@ -621,6 +639,19 @@ class CaptainController
                              WHERE id_joueur = ? AND id_manifestation = ?"
                         );
                         $updateStmt->execute([$newStatus, $joueurId, $mid]);
+
+                        // Envoi de la notification de chevauchement s'il s'agit d'un entraînement
+                        $cand = $candidateMap[$mid] ?? null;
+                        if ($cand) {
+                            $manifType = $cand['ManifestationTypée'] ?? '';
+                            $parts = explode(' - ', $manifType, 3);
+                            $type = $parts[1] ?? '';
+                            $isTraining = str_contains($type, 'Entra');
+
+                            if ($isTraining) {
+                                $this->sendTrainingOverlapNotification($joueurId, $cand, $event);
+                            }
+                        }
                     } else {
                         // Si le statut n'est pas une présence (ex: 'Ne sait pas' ou '.'), on le supprime
                         if ($statusObj->isUnknown() || $currentStatus === '.' || $currentStatus === '') {
@@ -633,6 +664,42 @@ class CaptainController
                     }
                 }
             }
+        }
+    }
+
+    private function sendTrainingOverlapNotification(int $joueurId, array $rawTrainingEvent, array $matchEvent): void
+    {
+        try {
+            $player = \App\Models\Joueur::findById($joueurId);
+            if (!$player || empty($player['Mel'])) {
+                return;
+            }
+
+            $trainingEvent = AgendaService::getEventById((int)$rawTrainingEvent['id_manifestation']);
+            if (!$trainingEvent) {
+                return;
+            }
+
+            // Récupérer le capitaine connecté pour le mettre en copie (CC)
+            $captainId = (int)($_SESSION['LogInId'] ?? 0);
+            $captain = $captainId ? \App\Models\Joueur::findById($captainId) : null;
+            $cc = [];
+            if ($captain && !empty($captain['Mel'])) {
+                $cc[] = [
+                    'email' => $captain['Mel'],
+                    'name'  => trim(($captain['Prénom'] ?? $captain['prenom'] ?? '') . ' ' . ($captain['Nom'] ?? $captain['nom'] ?? ''))
+                ];
+            }
+
+            $brevo = new BrevoService();
+            $brevo->sendTrainingOverlapNotification($player, $trainingEvent, $matchEvent, $cc);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to send training overlap email', [
+                'player_id'   => $joueurId,
+                'training_id' => $rawTrainingEvent['id_manifestation'],
+                'match_id'    => $matchEvent['id'],
+                'error'       => $e->getMessage()
+            ]);
         }
     }
 
@@ -780,6 +847,21 @@ class CaptainController
                         $db->prepare("DELETE FROM Participation WHERE id_joueur = ? AND id_manifestation = ?")->execute([$joueurId, $manifestationId]);
                     } else {
                         Participation::upsert($joueurId, $manifestationId, $orig);
+                    }
+
+                    // Notification par email de désélection (API)
+                    try {
+                        $playerDb = \App\Models\Joueur::findById($joueurId);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo = new BrevoService();
+                            $brevo->sendPlayerDeselectionNotification($playerDb, $event);
+                        }
+                    } catch (\Throwable $e) {
+                        Logger::errors()->error('Failed to send player deselection email (API)', [
+                            'player_id' => $joueurId,
+                            'match_id' => $manifestationId,
+                            'error' => $e->getMessage()
+                        ]);
                     }
                 }
             } else {

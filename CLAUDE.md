@@ -518,15 +518,25 @@ Intégration avec l'API Brevo pour l'envoi d'emails :
 use App\Services\BrevoService;
 
 $brevo = new BrevoService();
-$brevo->sendEmail($email, $name, $subject, $htmlContent, $textContent);
+$brevo->sendEmail($email, $name, $subject, $htmlContent, $textContent, $cc);
 $brevo->sendContactNotification($contact); // notif admin
 $brevo->sendReplyToVisitor($email, $name, $replyText); // réponse visiteur
+$brevo->sendPlayerSelectionNotification($player, $event); // convocation match
+$brevo->sendPlayerDeselectionNotification($player, $event); // désélection match
+$brevo->sendTrainingOverlapNotification($player, $training, $match, $cc); // retrait entraînement avec CC capitaine
 ```
 
-**Configuration** : Variables d'env `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`.
+**Configuration** : Variables d'env `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`, `BREVO_REDIRECT_EMAIL`.
 
-Templates HTML stylisés en néo-brutalisme (même design que le site).
-Signature inclut les infos du club depuis `site_config`.
+**Templates Twig** : Tous les e-mails sont externalisés en templates Twig dans [templates/front002/emails/](file:///c:/wamp64/www/usm-core/templates/front002/emails/) :
+- `selection.twig` (convocation)
+- `deselection.twig` (désélection)
+- `match_cancellation.twig` (annulation)
+- `match_reminder.twig` (rappel de réponse)
+- `training_overlap.twig` (chevauchement entraînement)
+- `captain_message.twig` (message de contact au capitaine)
+- `contact_notification.twig` (notification de contact admin)
+- `visitor_reply.twig` (réponse de l'admin à un visiteur)
 
 ---
 
