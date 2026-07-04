@@ -524,6 +524,7 @@ $brevo->sendReplyToVisitor($email, $name, $replyText); // réponse visiteur
 $brevo->sendPlayerSelectionNotification($player, $event); // convocation match
 $brevo->sendPlayerDeselectionNotification($player, $event); // désélection match
 $brevo->sendTrainingOverlapNotification($player, $training, $match, $cc); // retrait entraînement avec CC capitaine
+$brevo->sendMatchModificationNotification($player, $oldEvent, $newEvent); // modification date/lieu match
 ```
 
 **Configuration** : Variables d'env `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`, `BREVO_REDIRECT_EMAIL`.
@@ -532,6 +533,7 @@ $brevo->sendTrainingOverlapNotification($player, $training, $match, $cc); // ret
 - `selection.twig` (convocation)
 - `deselection.twig` (désélection)
 - `match_cancellation.twig` (annulation)
+- `match_modification.twig` (modification date/lieu)
 - `match_reminder.twig` (rappel de réponse)
 - `training_overlap.twig` (chevauchement entraînement)
 - `captain_message.twig` (message de contact au capitaine)

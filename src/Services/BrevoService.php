@@ -437,6 +437,58 @@ class BrevoService
         );
     }
 
+    public function sendMatchModificationNotification(array $player, array $oldEvent, array $newEvent): bool
+    {
+        $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
+        if (!$playerEmail) {
+            Logger::errors()->error('Cannot send modification email to player: no email address found', ['player' => $player]);
+            return false;
+        }
+
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $eventTitle = $newEvent['titre'] ?? 'Match';
+        $subject = '⚠️ Modification match : ' . $eventTitle;
+
+        // Old Date formatting
+        $oldDate = $oldEvent['date_display'] ?? $oldEvent['Date'] ?? $oldEvent['date'] ?? '';
+        $oldTime = $oldEvent['time_display'] ?? '';
+        if ($oldTime) {
+            $oldDate .= ' à ' . $oldTime;
+        }
+        $oldLocation = $oldEvent['lieu'] ?? $oldEvent['location'] ?? '';
+
+        // New Date formatting
+        $newDate = $newEvent['date_display'] ?? $newEvent['Date'] ?? $newEvent['date'] ?? '';
+        $newTime = $newEvent['time_display'] ?? '';
+        if ($newTime) {
+            $newDate .= ' à ' . $newTime;
+        }
+        $newLocation = $newEvent['lieu'] ?? $newEvent['location'] ?? '';
+
+        try {
+            $twig = \App\Core\View::getInstance();
+            $htmlContent = $twig->render('emails/match_modification.twig', [
+                'PLAYER_NAME' => $this->escapeHtml($playerName),
+                'EVENT_TITLE' => $this->escapeHtml($eventTitle),
+                'OLD_DATE' => $this->escapeHtml($oldDate),
+                'NEW_DATE' => $this->escapeHtml($newDate),
+                'OLD_LOCATION' => $this->escapeHtml($oldLocation),
+                'NEW_LOCATION' => $this->escapeHtml($newLocation),
+                'DASHBOARD_URL' => BASE_URL . '/member/dashboard',
+            ]);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to render match modification email template via Twig', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        return $this->sendEmail(
+            $playerEmail,
+            $playerName,
+            $subject,
+            $htmlContent
+        );
+    }
+
     private function escapeHtml(string $text): string
     {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');

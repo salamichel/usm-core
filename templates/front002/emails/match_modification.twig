@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fef3c7; color: #111; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #ea580c; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .info-box { background: #f9fafb; padding: 16px; border: 2px solid #000; margin: 16px 0; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 11px; color: #666; margin-top: 8px; margin-bottom: 2px; }
+        .field-value { font-size: 15px; color: #111; }
+        .cta-button { display: inline-block; background: #94674d; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; }
+        .footer { text-align: center; font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ MODIFICATION DE MATCH</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{ PLAYER_NAME }}</strong>,</p>
+            <p style="margin-top: 8px;">Les détails d'une rencontre pour laquelle vous êtes sélectionné(e) ont été modifiés par votre capitaine :</p>
+
+            <div class="info-box" style="border-color: #ea580c;">
+                <div style="font-weight: 900; color: #ea580c; text-transform: uppercase; font-size: 12px;">🏆 Match : {{ EVENT_TITLE }}</div>
+                
+                <div class="field-label">📅 Nouvelle Date / Heure</div>
+                <div class="field-value">
+                    <strong>{{ NEW_DATE }}</strong>
+                    {% if OLD_DATE and OLD_DATE != NEW_DATE %}
+                    <span style="color: #ef4444; text-decoration: line-through; font-size: 13px; margin-left: 10px;">({{ OLD_DATE }})</span>
+                    {% endif %}
+                </div>
+
+                <div class="field-label">📍 Nouveau Lieu</div>
+                <div class="field-value">
+                    {{ NEW_LOCATION }}
+                    {% if OLD_LOCATION and OLD_LOCATION != NEW_LOCATION %}
+                    <span style="color: #ef4444; text-decoration: line-through; font-size: 13px; margin-left: 10px;">({{ OLD_LOCATION }})</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <p style="margin-top: 16px;">Veuillez prendre en compte ces modifications dans votre planning. Merci de vous connecter à votre espace adhérent pour confirmer vos disponibilités.</p>
+            
+            <a href="{{ DASHBOARD_URL }}" class="cta-button">👉 Accéder à mon espace</a>
+        </div>
+
+        <div class="footer">
+            © USM Volley — Ne pas répondre directement à cet email.
+        </div>
+    </div>
+</body>
+</html>

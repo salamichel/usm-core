@@ -326,6 +326,11 @@ class CaptainController
 
         $wasCancelled = $event['annule'] ?? false;
         $selectedPlayers = $event['selectionnes'] ?? [];
+        $oldDate = $event['Date'] ?? '';
+        $oldLocation = $event['lieu'] ?? '';
+
+        $hasDateChanged = ($oldDate !== $dateStr);
+        $hasLocationChanged = ($oldLocation !== $data['location']);
 
         try {
             \App\Services\Agenda\EventRepository::updateMatch($matchId, [
@@ -352,6 +357,28 @@ class CaptainController
                             'match_id' => $matchId,
                             'error' => $e->getMessage()
                         ]);
+                    }
+                }
+            }
+
+            // Notification de modification par email (changement de date ou de lieu)
+            if (($hasDateChanged || $hasLocationChanged) && !empty($selectedPlayers) && !$isCancelledNow) {
+                $newEvent = AgendaService::getEventById($matchId);
+                if ($newEvent) {
+                    $brevo = new BrevoService();
+                    foreach ($selectedPlayers as $selPlayer) {
+                        try {
+                            $playerDb = \App\Models\Joueur::findById((int)$selPlayer['id']);
+                            if ($playerDb && !empty($playerDb['Mel'])) {
+                                $brevo->sendMatchModificationNotification($playerDb, $event, $newEvent);
+                            }
+                        } catch (\Throwable $e) {
+                            Logger::errors()->error('Failed to send match modification email', [
+                                'player_id' => $selPlayer['id'],
+                                'match_id' => $matchId,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
                     }
                 }
             }
