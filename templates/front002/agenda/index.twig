@@ -1,458 +1,535 @@
 {% extends "base.twig" %}
-{% block title %}Agenda — USM Volley{% endblock %}
+{% block title %}Agenda — USM Volley
+{% endblock %}
 
 {% block head %}
 
-{% include '_pwa_tags.twig' %}
+	{% include '_pwa_tags.twig' %}
 
-{# JSON-LD : EventSeries pour l'ensemble des manifestations à venir #}
-{% if manifestations is defined and manifestations|length %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "name": "Agenda USM Volley",
-  "description": "Calendrier des matchs et entraînements de l'Unions Salles Mios Volley-Ball",
-  "itemListElement": [
-    {% for mid, m in manifestations %}{% if loop.index <= 10 %}
-    {
-      "@type": "ListItem",
-      "position": {{ loop.index }},
-      "item": {
-        "@type": "SportsEvent",
-        "name": "{{ m.titre|replace({'"': '\\"'})|raw }}",
-        "startDate": "{{ m.date_display }}",
-        "eventStatus": "{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled{% endif %}",
-        "organizer": {
-          "@type": "SportsOrganization",
-          "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
-        }{% if m.lieu %},
-        "location": {
-          "@type": "Place",
-          "name": "{{ m.lieu|replace({'"': '\\"'})|raw }}"
-        }{% endif %}
-      }
-    }{{ not loop.last and loop.index < 10 ? ',' : '' }}
-    {% endif %}{% endfor %}
-  ]
-}
-</script>
-{% endif %}
+	{# JSON-LD : EventSeries pour l'ensemble des manifestations à venir #}
+	{% if manifestations is defined and manifestations|length %}
+		<script type="application/ld+json">
+			{
+			  "@context": "https://schema.org",
+			  "@type": "ItemList",
+			  "name": "Agenda USM Volley",
+			  "description": "Calendrier des matchs et entraînements de l'Unions Salles Mios Volley-Ball",
+			  "itemListElement": [
+			{% for mid, m in manifestations %}
+				{% if loop.index <= 10 %}
+					{
+					      "@type": "ListItem",
+					      "position":
+					{{ loop.index }},
+					      "item": {
+					        "@type": "SportsEvent",
+					        "name": "{{ m.titre|replace({'"': '\\"'})|raw }}",
+					        "startDate": "{{ m.date_display }}",
+					        "eventStatus": "
+					{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled
+					{% endif %}",
+					        "organizer": {
+					          "@type": "SportsOrganization",
+					          "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
+					        }
+					{% if m.lieu %},
+						        "location": {
+						          "@type": "Place",
+						          "name": "{{ m.lieu|replace({'"': '\\"'})|raw }}"
+						        }
+					{% endif %}
+					}
+					    }{{ not loop.last and loop.index < 10 ? ',' : '' }}
+				{% endif %}
+			{% endfor %}
+			]
+			}
+		</script>
+	{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
-    {# En-tête de page #}
-    <div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-              <span class="text-sm font-semibold text-[var(--primary)] uppercase tracking-wider">Saison {{ saison_active }}</span>
-              <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-1">Agenda du club</h1>
-          </div>
-          
-          {# Toolbar / Sélecteur de vue épuré #}
-          <div class="flex items-center gap-1 bg-white/10 p-1 rounded-full border border-white/10 shadow-sm">
-              <a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                  Liste
-              </a>
-              <a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-xs rounded-full font-medium text-slate-350 hover:text-white transition flex items-center gap-2">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                  Cartes
-              </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
-  
-  {% include 'agenda/filters.twig' %}
+	<div
+		class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
+		{# En-tête de page #}
+		<div class="bg-slate-900 text-white pt-8 pb-20 md:pt-12">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6">
+				<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+					<div>
+						<span class="text-sm font-semibold text-[var(--primary)] uppercase tracking-wider">Saison
+							{{ saison_active }}</span>
+						<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-1">Agenda du club</h1>
+					</div>
 
-  {# Toolbar #}
-  <div class="bg-white rounded-3xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-slate-100 shadow-sm">
-    <div class="flex items-center gap-3">
-      <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Zoom</span>
-      <div class="flex gap-1">
-        <button type="button" data-zoom="1"    class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">100%</button>
-        <button type="button" data-zoom="0.8"  class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">80%</button>
-        <button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">65%</button>
-        <button type="button" data-zoom="0.5"  class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">50%</button>
-      </div>
-    </div>
+					{# Toolbar / Sélecteur de vue épuré #}
+					<div class="flex items-center gap-1 bg-white/10 p-1 rounded-full border border-white/10 shadow-sm">
+						<a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
+							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+							Liste
+						</a>
+						<a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-xs rounded-full font-medium text-slate-350 hover:text-white transition flex items-center gap-2">
+							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+							Cartes
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
 
-  </div>
-  
-  {# Login CTA #}
-  <a href="member/login" target="_blank" rel="noopener"
-     class="group flex items-center gap-4 mb-6 px-6 py-4 rounded-3xl
-            bg-[var(--primary)] text-white shadow-md
-            hover:brightness-110 hover:shadow-lg transition-all duration-200">
-    <span class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-    </span>
-    <span class="flex-1">
-      <span class="block text-sm font-semibold leading-snug">S'identifier pour mettre à jour sa participation</span>
-      <span class="block text-xs text-white/70 mt-0.5">Accéder à l'espace joueurs USM Volley</span>
-    </span>
-    <svg class="w-5 h-5 text-white/60 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-  </a>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 -mt-10">
 
-  {% if manifestations is empty %}
-    <p class="text-slate-600 italic text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">Aucun événement à venir.</p>
-  {% else %}
+			{% include 'agenda/filters.twig' %}
 
-  {# Crosstable #}
-  <div class="agenda-table-container bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
-    <table class="border-collapse text-sm whitespace-nowrap agenda-table">
+			{# Toolbar #}
+			<div class="bg-white rounded-3xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-slate-100 shadow-sm">
+				<div class="flex items-center gap-3">
+					<span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Zoom</span>
+					<div class="flex gap-1">
+						<button type="button" data-zoom="1" class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">100%</button>
+						<button type="button" data-zoom="0.8" class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">80%</button>
+						<button type="button" data-zoom="0.65" class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">65%</button>
+						<button type="button" data-zoom="0.5" class="zoom-btn px-3 py-1.5 text-xs rounded-xl border border-slate-205 bg-white hover:bg-slate-50 font-bold text-slate-700 transition cursor-pointer">50%</button>
+					</div>
+				</div>
 
-      <thead class="sticky top-0 z-20 bg-slate-50">
-        <tr>
-          <th class="sticky-left z-30 bg-slate-100 border-b border-r border-slate-200 px-3 py-3 text-left font-semibold min-w-[160px] text-slate-700">
-            <div class="text-xs uppercase tracking-wider">Joueurs</div>
-          </th>
+			</div>
 
-          {% for mid, m in manifestations %}
+			{# Login CTA #}
+			<a href="/member/login" target="_blank" rel="noopener" class="group flex items-center gap-4 mb-6 px-6 py-4 rounded-3xl
+					            bg-[var(--primary)] text-white shadow-md
+					            hover:brightness-110 hover:shadow-lg transition-all duration-200">
+				<span class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+				</span>
+				<span class="flex-1">
+					<span class="block text-sm font-semibold leading-snug">S'identifier pour mettre à jour sa participation</span>
+					<span class="block text-xs text-white/70 mt-0.5">Accéder à l'espace joueurs USM Volley</span>
+				</span>
+				<svg class="w-5 h-5 text-white/60 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+			</a>
 
-            {# Couleur par type d'événement #}
-            {% if 'Match' in m.type %}
-              {% set type_icon       = '🏆' %}
-              {% set type_text_color = 'text-indigo-600' %}
-              {% set icon_color      = 'text-indigo-400' %}
-              {% set type_border     = 'border-t-2 border-t-indigo-500' %}
-              {% set type_bg         = 'bg-indigo-50/40' %}
-            {% elseif 'Entraînement' in m.type %}
-              {% set type_icon       = '🏐' %}
-              {% set type_text_color = 'text-teal-600' %}
-              {% set icon_color      = 'text-teal-400' %}
-              {% set type_border     = 'border-t-2 border-t-teal-500' %}
-              {% set type_bg         = 'bg-teal-50/40' %}
-            {% else %}
-              {% set type_icon       = '📅' %}
-              {% set type_text_color = 'text-slate-500' %}
-              {% set icon_color      = 'text-slate-400' %}
-              {% set type_border     = 'border-t-2 border-t-[var(--primary)]' %}
-              {% set type_bg         = 'bg-white' %}
-            {% endif %}
+			{% if manifestations is empty %}
+				<p class="text-slate-600 italic text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">Aucun événement à venir.</p>
+			{% else %}
 
-            {# Surcharge statut (annulé/provisoire écrase la couleur de type) #}
-            {% if m.annule %}
-              {% set col_top = 'border-t-2 border-t-rose-400' %}
-              {% set col_bg  = 'bg-rose-50/50' %}
-            {% elseif m.provisoire %}
-              {% set col_top = 'border-t-2 border-t-amber-400' %}
-              {% set col_bg  = 'bg-amber-50/40' %}
-            {% else %}
-              {% set col_top = type_border %}
-              {% set col_bg  = type_bg %}
-            {% endif %}
+				{# Crosstable #}
+				<div class="agenda-table-container bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden" style="max-height:80vh; overflow-y:auto; overflow-x:auto;">
+					<table class="border-collapse text-sm whitespace-nowrap agenda-table">
 
-            {% set ok = (m.nb_present + m.nb_disponible + m.nb_selection) >= 6 %}
-            {% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
+						<thead class="sticky top-0 z-20 bg-slate-50">
+							<tr>
+								<th class="sticky-left z-30 bg-slate-100 border-b border-r border-slate-200 px-3 py-3 text-left font-semibold min-w-[160px] text-slate-700">
+									<div class="text-xs uppercase tracking-wider">Joueurs</div>
+								</th>
 
-            <th class="border-b border-r border-slate-200 {{ col_top }} {{ col_bg }} px-3 py-3 text-left font-normal min-w-[180px] align-top">
+								{% for mid, m in manifestations %}
 
-              <div class="flex items-center justify-between gap-1 mb-2">
-                <span class="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest {{ type_text_color }}">
-                  <span>{{ type_icon }}</span>
-                  <span>{{ m.type }}</span>
-                </span>
-                {% if m.annule %}
-                  <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Annulé</span>
-                {% elseif m.provisoire %}
-                  <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Provisoire</span>
-                {% else %}
-                  <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Confirmé</span>
-                {% endif %}
-              </div>
+									{# Couleur par type d'événement #}
+									{% if 'Match' in m.type %}
+										{% set type_icon       = '🏆' %}
+										{% set type_text_color = 'text-indigo-600' %}
+										{% set icon_color      = 'text-indigo-400' %}
+										{% set type_border     = 'border-t-2 border-t-indigo-500' %}
+										{% set type_bg         = 'bg-indigo-50/40' %}
+									{% elseif 'Entraînement' in m.type %}
+										{% set type_icon       = '🏐' %}
+										{% set type_text_color = 'text-teal-600' %}
+										{% set icon_color      = 'text-teal-400' %}
+										{% set type_border     = 'border-t-2 border-t-teal-500' %}
+										{% set type_bg         = 'bg-teal-50/40' %}
+									{% else %}
+										{% set type_icon       = '📅' %}
+										{% set type_text_color = 'text-slate-500' %}
+										{% set icon_color      = 'text-slate-400' %}
+										{% set type_border     = 'border-t-2 border-t-[var(--primary)]' %}
+										{% set type_bg         = 'bg-white' %}
+									{% endif %}
 
-              <div class="font-serif font-semibold text-base text-slate-900 leading-snug mb-2">{{ m.titre }}</div>
+									{# Surcharge statut (annulé/provisoire écrase la couleur de type) #}
+									{% if m.annule %}
+										{% set col_top = 'border-t-2 border-t-rose-400' %}
+										{% set col_bg  = 'bg-rose-50/50' %}
+									{% elseif m.provisoire %}
+										{% set col_top = 'border-t-2 border-t-amber-400' %}
+										{% set col_bg  = 'bg-amber-50/40' %}
+									{% else %}
+										{% set col_top = type_border %}
+										{% set col_bg  = type_bg %}
+									{% endif %}
 
-              <div class="space-y-1 text-xs text-slate-600 mb-2">
-                <div class="flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 shrink-0 {{ icon_color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                  <span>{{ m.date_display }}</span>
-                </div>
-                {% if m.time_range %}
-                <div class="flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 shrink-0 {{ icon_color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span>{{ m.time_range }}</span>
-                </div>
-                {% endif %}
-                <div class="flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 shrink-0 {{ icon_color }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  <span>{{ m.lieu }}</span>
-                </div>
-                {% if terrain_alert %}
-                <div class="flex items-center gap-1.5 text-rose-600 font-medium">
-                  <span>⚠</span><span>{{ m.nb_terrains }} terrains</span>
-                </div>
-                {% endif %}
-                {% if m.commentaire %}
-                <div class="italic text-slate-500 text-xs">{{ m.commentaire|slice(0, 40) }}</div>
-                {% endif %}
-              </div>
+									{% set ok = (m.nb_present + m.nb_disponible + m.nb_selection) >= 6 %}
+									{% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
 
-              <div class="border-t border-slate-200 pt-2 space-y-1.5 text-[11px]">
-                {% if 'Match' in m.type %}
-                  <div class="px-2 py-1 rounded font-semibold text-xs text-center {% if ok %}text-emerald-700 bg-emerald-50{% else %}text-rose-700 bg-rose-50{% endif %}">
-                    {% if ok %}✓ Équipe OK{% else %}⚠ Sous-effectif{% endif %}
-                  </div>
-                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
-                    {% if m.nb_selection > 0 %}<span class="text-amber-700">Sélection: <strong>{{ m.nb_selection }}</strong></span>{% endif %}
-                    {% if m.nb_present > 0 %}<span class="text-emerald-700">Présents: <strong>{{ m.nb_present }}</strong></span>{% endif %}
-                  </div>
-                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
-                    {% if m.nb_disponible > 0 %}<span class="text-blue-700">Dispos: <strong>{{ m.nb_disponible }}</strong></span>{% endif %}
-                    {% if m.nb_indisponible > 0 %}<span class="text-rose-700">Indispos: <strong>{{ m.nb_indisponible }}</strong></span>{% endif %}
-                  </div>
-                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
-                    {% if m.nb_absent > 0 %}<span class="text-rose-800">Absents: <strong>{{ m.nb_absent }}</strong></span>{% endif %}
-                    {% if m.nb_ne_sait_pas > 0 %}<span class="text-orange-600">Ne sait pas: <strong>{{ m.nb_ne_sait_pas }}</strong></span>{% endif %}
-                  </div>
-                {% else %}
-                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
-                    <span class="text-emerald-700">Présents: <strong>{{ m.nb_present }}</strong></span>
-                    <span class="text-rose-700">Absents: <strong>{{ m.nb_absent }}</strong></span>
-                  </div>
-                  <div class="flex flex-wrap gap-x-2 gap-y-0.5">
-                    {% if m.nb_disponible > 0 %}<span class="text-blue-700">Dispos: <strong>{{ m.nb_disponible }}</strong></span>{% endif %}
-                    {% if m.nb_indisponible > 0 %}<span class="text-rose-700">Indispos: <strong>{{ m.nb_indisponible }}</strong></span>{% endif %}
-                  </div>
-                  {% if m.nb_ne_sait_pas > 0 %}<div><span class="text-orange-600">Ne sait pas: <strong>{{ m.nb_ne_sait_pas }}</strong></span></div>{% endif %}
-                {% endif %}
-              </div>
-            </th>
-          {% endfor %}
-        </tr>
-      </thead>
+									<th class="border-b border-r border-slate-200 {{ col_top }} {{ col_bg }} px-3 py-3 text-left font-normal min-w-[180px] align-top">
 
-      <tbody>
-        {% for jid, nom in joueurs %}
-          {% set row = cross[jid] %}
-          {% set nb_manif = manifestations|length %}
+										<div class="flex items-center justify-between gap-1 mb-2">
+											<span class="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest {{ type_text_color }}">
+												<span>{{ type_icon }}</span>
+												<span>{{ m.type }}</span>
+											</span>
+											{% if m.annule %}
+												<span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Annulé</span>
+											{% elseif m.provisoire %}
+												<span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Provisoire</span>
+											{% else %}
+												<span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Confirmé</span>
+											{% endif %}
+										</div>
 
-          <tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40">
+										<div class="font-serif font-semibold text-base text-slate-900 leading-snug mb-2">{{ m.titre }}</div>
 
-            <td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
-              {% if row.nb_participation < nb_manif %}
-                <img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
-              {% elseif row.nb_ne_sait_pas > 3 %}
-                <span class="text-base" title="Trop d'hésitations">😕</span>
-              {% elseif row.nb_ne_sait_pas_proche > 0 %}
-                <span class="text-base" title="Réponse attendue bientôt">🤔</span>
-              {% else %}
-                <img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
-              {% endif %}
-              {% set parts = nom|split(' ') %}
-              {% set nom_famille = parts[0] %}
-              {% set prenom = parts|last %}
-              <span class="ml-1.5 text-xs">{{ nom_famille|slice(0, 3)|upper }}... {{ prenom }}</span>
-            </td>
+										<div class="space-y-1 text-xs text-slate-600 mb-2">
+											<div class="flex items-center gap-1.5">
+												<svg class="w-3.5 h-3.5 shrink-0 {{ icon_color }}" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+												<span>{{ m.date_display }}</span>
+											</div>
+											{% if m.time_range %}
+												<div class="flex items-center gap-1.5">
+													<svg class="w-3.5 h-3.5 shrink-0 {{ icon_color }}" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+													<span>{{ m.time_range }}</span>
+												</div>
+											{% endif %}
+											<div class="flex items-center gap-1.5">
+												<svg class="w-3.5 h-3.5 shrink-0 {{ icon_color }}" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+												<span>{{ m.lieu }}</span>
+											</div>
+											{% if terrain_alert %}
+												<div class="flex items-center gap-1.5 text-rose-600 font-medium">
+													<span>⚠</span>
+													<span>{{ m.nb_terrains }}
+														terrains</span>
+												</div>
+											{% endif %}
+											{% if m.commentaire %}
+												<div class="italic text-slate-500 text-xs">{{ m.commentaire|slice(0, 40) }}</div>
+											{% endif %}
+										</div>
 
-            {% for mid, m in manifestations %}
-              {% set part = row[mid] ?? null %}
-              {% set is_selected = part and part.category == 'selected' %}
-              {% set is_present = part and part.category == 'present' %}
-              {% set is_available_if_needed = part and part.category == 'available_if_needed' %}
-              {% set is_available = part and part.category == 'available' %}
-              {% set is_unavailable = part and part.category == 'unavailable' %}
-              {% set is_absent = part and part.category == 'absent' %}
-              {% set is_unknown = part and part.category == 'unknown' %}
+										<div class="border-t border-slate-200 pt-2 space-y-1.5 text-[11px]">
+											{% if 'Match' in m.type %}
+												<div class="px-2 py-1 rounded font-semibold text-xs text-center {% if ok %}text-emerald-700 bg-emerald-50{% else %}text-rose-700 bg-rose-50{% endif %}">
+													{% if ok %}✓ Équipe OK{% else %}⚠ Sous-effectif
+													{% endif %}
+												</div>
+												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
+													{% if m.nb_selection > 0 %}
+														<span class="text-amber-700">Sélection:
+															<strong>{{ m.nb_selection }}</strong>
+														</span>
+													{% endif %}
+													{% if m.nb_present > 0 %}
+														<span class="text-emerald-700">Présents:
+															<strong>{{ m.nb_present }}</strong>
+														</span>
+													{% endif %}
+												</div>
+												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
+													{% if m.nb_disponible > 0 %}
+														<span class="text-blue-700">Dispos:
+															<strong>{{ m.nb_disponible }}</strong>
+														</span>
+													{% endif %}
+													{% if m.nb_indisponible > 0 %}
+														<span class="text-rose-700">Indispos:
+															<strong>{{ m.nb_indisponible }}</strong>
+														</span>
+													{% endif %}
+												</div>
+												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
+													{% if m.nb_absent > 0 %}
+														<span class="text-rose-800">Absents:
+															<strong>{{ m.nb_absent }}</strong>
+														</span>
+													{% endif %}
+													{% if m.nb_ne_sait_pas > 0 %}
+														<span class="text-orange-600">Ne sait pas:
+															<strong>{{ m.nb_ne_sait_pas }}</strong>
+														</span>
+													{% endif %}
+												</div>
+											{% else %}
+												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
+													<span class="text-emerald-700">Présents:
+														<strong>{{ m.nb_present }}</strong>
+													</span>
+													<span class="text-rose-700">Absents:
+														<strong>{{ m.nb_absent }}</strong>
+													</span>
+												</div>
+												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
+													{% if m.nb_disponible > 0 %}
+														<span class="text-blue-700">Dispos:
+															<strong>{{ m.nb_disponible }}</strong>
+														</span>
+													{% endif %}
+													{% if m.nb_indisponible > 0 %}
+														<span class="text-rose-700">Indispos:
+															<strong>{{ m.nb_indisponible }}</strong>
+														</span>
+													{% endif %}
+												</div>
+												{% if m.nb_ne_sait_pas > 0 %}
+													<div>
+														<span class="text-orange-600">Ne sait pas:
+															<strong>{{ m.nb_ne_sait_pas }}</strong>
+														</span>
+													</div>
+												{% endif %}
+											{% endif %}
+										</div>
+									</th>
+								{% endfor %}
+							</tr>
+						</thead>
 
-              {% if is_selected %}
-                {% set cell_bg = 'bg-amber-100' %}
-                {% set text_color = 'text-amber-800' %}
-              {% elseif is_present %}
-                {% set cell_bg = 'bg-emerald-100' %}
-                {% set text_color = 'text-emerald-800' %}
-              {% elseif is_available %}
-                {% set cell_bg = 'bg-sky-100' %}
-                {% set text_color = 'text-sky-800' %}
-              {% elseif is_available_if_needed %}
-                {% set cell_bg = 'bg-cyan-100' %}
-                {% set text_color = 'text-cyan-800' %}
-              {% elseif is_unavailable %}
-                {% set cell_bg = 'bg-rose-100' %}
-                {% set text_color = 'text-rose-800' %}
-              {% elseif is_absent %}
-                {% set cell_bg = 'bg-rose-100' %}
-                {% set text_color = 'text-rose-800' %}
-              {% elseif is_unknown %}
-                {% set cell_bg = 'bg-gray-100' %}
-                {% set text_color = 'text-gray-800' %}
-              {% else %}
-                {% set cell_bg = 'bg-white' %}
-                {% set text_color = 'text-gray-400' %}
-              {% endif %}
+						<tbody>
+							{% for jid, nom in joueurs %}
+								{% set row = cross[jid] %}
+								{% set nb_manif = manifestations|length %}
 
-              {% if m.annule %}
-                {% set cell_bg = 'bg-rose-200' %}
-                {% set text_color = 'text-rose-900' %}
-              {% elseif m.provisoire %}
-                {% set cell_bg = 'bg-amber-100' %}
-                {% set text_color = 'text-amber-800' %}
-              {% endif %}
+								<tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40">
 
-              {% if is_selected %}
-                {% set icone = '★' %}{% set libelle = 'Sél.' %}
-              {% elseif is_present %}
-                {% set icone = '✓' %}{% set libelle = 'Prés.' %}
-              {% elseif is_available_if_needed %}
-                {% set icone = '○' %}{% set libelle = 'Si néc.' %}
-              {% elseif is_available %}
-                {% set icone = '◐' %}{% set libelle = 'Dispo' %}
-              {% elseif is_unavailable %}
-                {% set icone = '✗' %}{% set libelle = 'Indispo' %}
-              {% elseif is_absent %}
-                {% set icone = '✗' %}{% set libelle = 'Absent' %}
-              {% elseif is_unknown %}
-                {% set icone = '?' %}{% set libelle = '?' %}
-              {% else %}
-                {% set icone = '—' %}{% set libelle = 'S.R.' %}
-              {% endif %}
+									<td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
+										{% if row.nb_participation < nb_manif %}
+											<img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
+										{% elseif row.nb_ne_sait_pas > 3 %}
+											<span class="text-base" title="Trop d'hésitations">😕</span>
+										{% elseif row.nb_ne_sait_pas_proche > 0 %}
+											<span class="text-base" title="Réponse attendue bientôt">🤔</span>
+										{% else %}
+											<img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
+										{% endif %}
+										{% set parts = nom|split(' ') %}
+										{% set nom_famille = parts[0] %}
+										{% set prenom = parts|last %}
+										<span class="ml-1.5 text-xs">{{ nom_famille|slice(0, 3)|upper }}...
+											{{ prenom }}</span>
+									</td>
 
-              <td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part ? part.text : '' }}">
-                <span class="text-sm">{{ icone }}</span> <span class="text-xs">{{ libelle }}</span>
-              </td>
-            {% endfor %}
+									{% for mid, m in manifestations %}
+										{% set part = row[mid] ?? null %}
+										{% set is_selected = part and part.category == 'selected' %}
+										{% set is_present = part and part.category == 'present' %}
+										{% set is_available_if_needed = part and part.category == 'available_if_needed' %}
+										{% set is_available = part and part.category == 'available' %}
+										{% set is_unavailable = part and part.category == 'unavailable' %}
+										{% set is_absent = part and part.category == 'absent' %}
+										{% set is_unknown = part and part.category == 'unknown' %}
 
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+										{% if is_selected %}
+											{% set cell_bg = 'bg-amber-100' %}
+											{% set text_color = 'text-amber-800' %}
+										{% elseif is_present %}
+											{% set cell_bg = 'bg-emerald-100' %}
+											{% set text_color = 'text-emerald-800' %}
+										{% elseif is_available %}
+											{% set cell_bg = 'bg-sky-100' %}
+											{% set text_color = 'text-sky-800' %}
+										{% elseif is_available_if_needed %}
+											{% set cell_bg = 'bg-cyan-100' %}
+											{% set text_color = 'text-cyan-800' %}
+										{% elseif is_unavailable %}
+											{% set cell_bg = 'bg-rose-100' %}
+											{% set text_color = 'text-rose-800' %}
+										{% elseif is_absent %}
+											{% set cell_bg = 'bg-rose-100' %}
+											{% set text_color = 'text-rose-800' %}
+										{% elseif is_unknown %}
+											{% set cell_bg = 'bg-gray-100' %}
+											{% set text_color = 'text-gray-800' %}
+										{% else %}
+											{% set cell_bg = 'bg-white' %}
+											{% set text_color = 'text-gray-400' %}
+										{% endif %}
 
-  {# Légende #}
-  <div class="mt-10 space-y-6">
-    <h2 class="font-serif text-xl font-semibold text-slate-900">Légende</h2>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-      <div class="flex items-center gap-2.5 bg-emerald-50 rounded-md px-3 py-2.5">
-        <span class="text-lg">✓</span>
-        <div>
-          <div class="text-xs font-semibold text-emerald-900">Présent</div>
-          <div class="text-xs text-emerald-700">Confirmé</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-amber-50 rounded-md px-3 py-2.5">
-        <span class="text-lg">★</span>
-        <div>
-          <div class="text-xs font-semibold text-amber-900">Sélectionné</div>
-          <div class="text-xs text-amber-700">Important</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-sky-50 rounded-md px-3 py-2.5">
-        <span class="text-lg">◐</span>
-        <div>
-          <div class="text-xs font-semibold text-sky-900">Disponible</div>
-          <div class="text-xs text-sky-700">En réserve</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-cyan-50 rounded-md px-3 py-2.5">
-        <span class="text-lg">○</span>
-        <div>
-          <div class="text-xs font-semibold text-cyan-900">Si nécessaire</div>
-          <div class="text-xs text-cyan-700">Recours</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-rose-50 rounded-md px-3 py-2.5">
-        <span class="text-lg">✗</span>
-        <div>
-          <div class="text-xs font-semibold text-rose-900">Indisponible</div>
-          <div class="text-xs text-rose-700">Empêchement</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-rose-100 rounded-md px-3 py-2.5">
-        <span class="text-lg">✗</span>
-        <div>
-          <div class="text-xs font-semibold text-rose-900">Absent</div>
-          <div class="text-xs text-rose-700">Confirmé</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-orange-50 rounded-md px-3 py-2.5">
-        <span class="text-lg">?</span>
-        <div>
-          <div class="text-xs font-semibold text-orange-900">Ne sait pas</div>
-          <div class="text-xs text-orange-700">À confirmer</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2.5 bg-slate-100 rounded-md px-3 py-2.5">
-        <span class="text-lg">—</span>
-        <div>
-          <div class="text-xs font-semibold text-slate-700">Sans réponse</div>
-          <div class="text-xs text-slate-600">À remplir</div>
-        </div>
-      </div>
-    </div>
+										{% if m.annule %}
+											{% set cell_bg = 'bg-rose-200' %}
+											{% set text_color = 'text-rose-900' %}
+										{% elseif m.provisoire %}
+											{% set cell_bg = 'bg-amber-100' %}
+											{% set text_color = 'text-amber-800' %}
+										{% endif %}
 
-    <div class="pt-4 border-t border-slate-200 space-y-2 text-xs text-slate-600">
-      <p><strong class="text-emerald-700">✓ Équipe OK :</strong> effectif suffisant selon les besoins de l'équipe (Présents + Disponibles + Sélectionnés)</p>
-      <p><strong class="text-rose-700">⚠ Sous-effectif :</strong> effectif disponible inférieur au minimum requis pour l'équipe</p>
-      <p><strong>⚠ Alerte terrains :</strong> nombre de terrains anormal (pas 0, 1 ou ".")</p>
-    </div>
-  </div>
+										{% if is_selected %}
+											{% set icone = '★' %}{% set libelle = 'Sél.' %}
+										{% elseif is_present %}
+											{% set icone = '✓' %}{% set libelle = 'Prés.' %}
+										{% elseif is_available_if_needed %}
+											{% set icone = '○' %}{% set libelle = 'Si néc.' %}
+										{% elseif is_available %}
+											{% set icone = '◐' %}{% set libelle = 'Dispo' %}
+										{% elseif is_unavailable %}
+											{% set icone = '✗' %}{% set libelle = 'Indispo' %}
+										{% elseif is_absent %}
+											{% set icone = '✗' %}{% set libelle = 'Absent' %}
+										{% elseif is_unknown %}
+											{% set icone = '?' %}{% set libelle = '?' %}
+										{% else %}
+											{% set icone = '—' %}{% set libelle = 'S.R.' %}
+										{% endif %}
 
-  {% endif %}
+										<td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part ? part.text : '' }}">
+											<span class="text-sm">{{ icone }}</span>
+											<span class="text-xs">{{ libelle }}</span>
+										</td>
+									{% endfor %}
 
-  <div class="mt-12 pb-6">
-    <a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
-  </div>
-</div>
-</div>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
 
-<style>
-  .agenda-table-container {
-    position: relative;
-    touch-action: manipulation;
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 #f1f5f9;
-  }
-  .agenda-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-  }
-  .agenda-table th.sticky-left {
-    position: sticky;
-    left: 0;
-    z-index: 30;
-  }
-  .agenda-table td.sticky-left {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-  }
-  @media (max-width: 640px) {
-    .agenda-table-container { font-size: 0.75rem; }
-    .agenda-table th, .agenda-table td { padding: 4px 6px; }
-  }
-  .zoom-btn.active {
-    background-color: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
-</style>
+				{# Légende #}
+				<div class="mt-10 space-y-6">
+					<h2 class="font-serif text-xl font-semibold text-slate-900">Légende</h2>
+					<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+						<div class="flex items-center gap-2.5 bg-emerald-50 rounded-md px-3 py-2.5">
+							<span class="text-lg">✓</span>
+							<div>
+								<div class="text-xs font-semibold text-emerald-900">Présent</div>
+								<div class="text-xs text-emerald-700">Confirmé</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-amber-50 rounded-md px-3 py-2.5">
+							<span class="text-lg">★</span>
+							<div>
+								<div class="text-xs font-semibold text-amber-900">Sélectionné</div>
+								<div class="text-xs text-amber-700">Important</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-sky-50 rounded-md px-3 py-2.5">
+							<span class="text-lg">◐</span>
+							<div>
+								<div class="text-xs font-semibold text-sky-900">Disponible</div>
+								<div class="text-xs text-sky-700">En réserve</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-cyan-50 rounded-md px-3 py-2.5">
+							<span class="text-lg">○</span>
+							<div>
+								<div class="text-xs font-semibold text-cyan-900">Si nécessaire</div>
+								<div class="text-xs text-cyan-700">Recours</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-rose-50 rounded-md px-3 py-2.5">
+							<span class="text-lg">✗</span>
+							<div>
+								<div class="text-xs font-semibold text-rose-900">Indisponible</div>
+								<div class="text-xs text-rose-700">Empêchement</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-rose-100 rounded-md px-3 py-2.5">
+							<span class="text-lg">✗</span>
+							<div>
+								<div class="text-xs font-semibold text-rose-900">Absent</div>
+								<div class="text-xs text-rose-700">Confirmé</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-orange-50 rounded-md px-3 py-2.5">
+							<span class="text-lg">?</span>
+							<div>
+								<div class="text-xs font-semibold text-orange-900">Ne sait pas</div>
+								<div class="text-xs text-orange-700">À confirmer</div>
+							</div>
+						</div>
+						<div class="flex items-center gap-2.5 bg-slate-100 rounded-md px-3 py-2.5">
+							<span class="text-lg">—</span>
+							<div>
+								<div class="text-xs font-semibold text-slate-700">Sans réponse</div>
+								<div class="text-xs text-slate-600">À remplir</div>
+							</div>
+						</div>
+					</div>
 
-<script>
-(function() {
-  var table = document.querySelector('.agenda-table');
-  var buttons = document.querySelectorAll('.zoom-btn');
-  if (!table || !buttons.length) return;
+					<div class="pt-4 border-t border-slate-200 space-y-2 text-xs text-slate-600">
+						<p>
+							<strong class="text-emerald-700">✓ Équipe OK :</strong>
+							effectif suffisant selon les besoins de l'équipe (Présents + Disponibles + Sélectionnés)</p>
+						<p>
+							<strong class="text-rose-700">⚠ Sous-effectif :</strong>
+							effectif disponible inférieur au minimum requis pour l'équipe</p>
+						<p>
+							<strong>⚠ Alerte terrains :</strong>
+							nombre de terrains anormal (pas 0, 1 ou ".")</p>
+					</div>
+				</div>
 
-  function applyZoom(z) {
-    table.style.zoom = z;
-    buttons.forEach(function(b) { b.classList.toggle('active', parseFloat(b.dataset.zoom) === z); });
-    try { localStorage.setItem('agendaZoom', String(z)); } catch (e) {}
-  }
+			{% endif %}
 
-  var stored = null;
-  try { stored = localStorage.getItem('agendaZoom'); } catch (e) {}
-  var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
-  applyZoom(initial);
-  buttons.forEach(function(b) {
-    b.addEventListener('click', function() { applyZoom(parseFloat(b.dataset.zoom)); });
-  });
+			<div class="mt-12 pb-6">
+				<a href="/" class="text-sm font-medium text-[var(--primary)] hover:underline underline-offset-4">← Retour à l'accueil</a>
+			</div>
+		</div>
+	</div>
+
+	<style>
+		.agenda-table-container {
+			position: relative;
+			touch-action: manipulation;
+			scrollbar-width: thin;
+			scrollbar-color: #cbd5e1 #f1f5f9;
+		}
+		.agenda-table thead {
+			position: sticky;
+			top: 0;
+			z-index: 20;
+		}
+		.agenda-table th.sticky-left {
+			position: sticky;
+			left: 0;
+			z-index: 30;
+		}
+		.agenda-table td.sticky-left {
+			position: sticky;
+			left: 0;
+			z-index: 10;
+		}
+		@media(max-width: 640px) {
+			.agenda-table-container {
+				font-size: 0.75rem;
+			}
+			.agenda-table th,
+			.agenda-table td {
+				padding: 4px 6px;
+			}
+		}
+		.zoom-btn.active {
+			background-color: var(--primary);
+			color: #fff;
+			border-color: var(--primary);
+		}
+	</style>
+
+	<script>
+		(function () {
+var table = document.querySelector('.agenda-table');
+var buttons = document.querySelectorAll('.zoom-btn');
+if (! table || ! buttons.length) 
+return;
+
+
+function applyZoom(z) {
+table.style.zoom = z;
+buttons.forEach(function (b) {
+b.classList.toggle('active', parseFloat(b.dataset.zoom) === z);
+});
+try {
+localStorage.setItem('agendaZoom', String(z));
+} catch (e) {}
+}
+
+var stored = null;
+try {
+stored = localStorage.getItem('agendaZoom');
+} catch (e) {}
+var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
+applyZoom(initial);
+buttons.forEach(function (b) {
+b.addEventListener('click', function () {
+applyZoom(parseFloat(b.dataset.zoom));
+});
+});
 })();
-</script>
+	</script>
 {% endblock %}
