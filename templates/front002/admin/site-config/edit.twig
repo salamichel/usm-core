@@ -7,291 +7,330 @@
 </div>
 
 <p class="text-sm text-gray-600 mb-6">
-  Ces valeurs sont utilisées dans le footer du site (et plus tard sur la page contact).
+  Gérez ici les paramètres globaux du site, l'identité visuelle et les intégrations.
 </p>
+
+{# Onglets de Navigation #}
+<div class="flex flex-wrap gap-2 mb-6 border-b-4 border-black pb-3">
+  <button type="button" onclick="switchTab('general')" id="tab-btn-general" class="tab-btn px-4 py-2.5 font-black border-4 border-black shadow-[4px_4px_0_#000] bg-white hover:bg-gray-50 transition-all select-none cursor-pointer">
+    🏷️ Général & Identité
+  </button>
+  <button type="button" onclick="switchTab('contact')" id="tab-btn-contact" class="tab-btn px-4 py-2.5 font-black border-4 border-black shadow-[4px_4px_0_#000] bg-white hover:bg-gray-50 transition-all select-none cursor-pointer">
+    📞 Contact & Réseaux
+  </button>
+  <button type="button" onclick="switchTab('apparence')" id="tab-btn-apparence" class="tab-btn px-4 py-2.5 font-black border-4 border-black shadow-[4px_4px_0_#000] bg-white hover:bg-gray-50 transition-all select-none cursor-pointer">
+    🎨 Apparence & Design
+  </button>
+  <button type="button" onclick="switchTab('bandeaux')" id="tab-btn-bandeaux" class="tab-btn px-4 py-2.5 font-black border-4 border-black shadow-[4px_4px_0_#000] bg-white hover:bg-gray-50 transition-all select-none cursor-pointer">
+    📱 Bandeaux Mobiles
+  </button>
+  <button type="button" onclick="switchTab('integrations')" id="tab-btn-integrations" class="tab-btn px-4 py-2.5 font-black border-4 border-black shadow-[4px_4px_0_#000] bg-white hover:bg-gray-50 transition-all select-none cursor-pointer">
+    📊 Intégrations & API
+  </button>
+</div>
 
 <form method="POST" action="{{ url('admin/site-config') }}" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-  {# ── Thème actif ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-3">
-    <h2 class="font-black text-lg">Thème actif</h2>
-    <p class="text-xs text-gray-500">Sélectionne le thème (dossier <code>templates/</code>) appliqué au site public. Le cache Twig est invalidé automatiquement à l'enregistrement.</p>
-    <div>
-      <label class="block font-black mb-1" for="theme">Thème</label>
-      <select id="theme" name="theme" class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        {% for t in available_themes %}
-          <option value="{{ t }}" {{ (config.theme|default(theme)) == t ? 'selected' : '' }}>{{ t }}</option>
-        {% endfor %}
-      </select>
-      <div class="text-xs text-gray-500 mt-1">Valeur courante : <code>{{ theme }}</code>.</div>
-    </div>
-  </div>
-
-  {# ── Logo ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Logo du site</h2>
-
-    {% if config.logo_url %}
-      <div class="flex items-center gap-4 p-3 border-2 border-black bg-gray-50">
-        <img src="{{ asset('uploads/' ~ config.logo_url) }}" alt="Logo actuel"
-             class="h-16 w-auto max-w-[200px] object-contain bg-white border border-gray-300">
-        <div class="flex-1">
-          <p class="font-bold text-sm">Logo actuel</p>
-          <p class="text-xs text-gray-600 break-all">{{ config.logo_url }}</p>
-        </div>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" name="delete_logo" value="1" class="w-4 h-4">
-          <span class="font-bold text-sm text-red-700">Supprimer</span>
-        </label>
-      </div>
-    {% endif %}
-
-    <div>
-      <label class="block font-black mb-1" for="logo_file">
-        {{ config.logo_url ? 'Remplacer le logo' : 'Charger un logo' }}
-      </label>
-      <input type="file" id="logo_file" name="logo_file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
-             class="w-full border-2 border-black px-3 py-2 bg-white file:mr-3 file:py-1.5 file:px-3 file:border-2 file:border-black file:bg-usm-brown file:text-white file:font-bold file:cursor-pointer">
-      <div class="text-xs text-gray-500 mt-1">PNG, JPEG, WebP, SVG ou GIF · 10 Mo max.</div>
-    </div>
-
-    <div class="grid sm:grid-cols-2 gap-4">
+  {# ─────────────────── ONGLET 1 : GENERAL & IDENTITE ─────────────────── #}
+  <div id="tab-content-general" class="tab-content space-y-6">
+    {# ── Thème actif ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-3">
+      <h2 class="font-black text-lg">Thème actif</h2>
+      <p class="text-xs text-gray-500">Sélectionne le thème (dossier <code>templates/</code>) appliqué au site public. Le cache Twig est invalidé automatiquement à l'enregistrement.</p>
       <div>
-        <label class="block font-black mb-1" for="logo_display_mode">Affichage dans le header</label>
-        <select id="logo_display_mode" name="logo_display_mode"
-                class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
-          {% set _mode = config.logo_display_mode|default('text_only') %}
-          <option value="text_only"               {% if _mode == 'text_only' %}selected{% endif %}>Texte uniquement (nom du club)</option>
-          <option value="image_only"              {% if _mode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
-          <option value="image_and_text"          {% if _mode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
-          <option value="image_desktop_text_mobile" {% if _mode == 'image_desktop_text_mobile' %}selected{% endif %}>Logo desktop / texte mobile</option>
+        <label class="block font-black mb-1" for="theme">Thème</label>
+        <select id="theme" name="theme" class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% for t in available_themes %}
+            <option value="{{ t }}" {{ (config.theme|default(theme)) == t ? 'selected' : '' }}>{{ t }}</option>
+          {% endfor %}
         </select>
-        <div class="text-xs text-gray-500 mt-1">Choisissez comment le logo apparaît en haut du site.</div>
+        <div class="text-xs text-gray-500 mt-1">Valeur courante : <code>{{ theme }}</code>.</div>
+      </div>
+    </div>
+
+    {# ── Logo ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Logo du site</h2>
+
+      {% if config.logo_url %}
+        <div class="flex items-center gap-4 p-3 border-2 border-black bg-gray-50">
+          <img src="{{ asset('uploads/' ~ config.logo_url) }}" alt="Logo actuel"
+               class="h-16 w-auto max-w-[200px] object-contain bg-white border border-gray-300">
+          <div class="flex-1">
+            <p class="font-bold text-sm">Logo actuel</p>
+            <p class="text-xs text-gray-600 break-all">{{ config.logo_url }}</p>
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="delete_logo" value="1" class="w-4 h-4">
+            <span class="font-bold text-sm text-red-700">Supprimer</span>
+          </label>
+        </div>
+      {% endif %}
+
+      <div>
+        <label class="block font-black mb-1" for="logo_file">
+          {{ config.logo_url ? 'Remplacer le logo' : 'Charger un logo' }}
+        </label>
+        <input type="file" id="logo_file" name="logo_file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+               class="w-full border-2 border-black px-3 py-2 bg-white file:mr-3 file:py-1.5 file:px-3 file:border-2 file:border-black file:bg-usm-brown file:text-white file:font-bold file:cursor-pointer">
+        <div class="text-xs text-gray-500 mt-1">PNG, JPEG, WebP, SVG ou GIF · 10 Mo max.</div>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black mb-1" for="logo_display_mode">Affichage dans le header</label>
+          <select id="logo_display_mode" name="logo_display_mode"
+                  class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+            {% set _mode = config.logo_display_mode|default('text_only') %}
+            <option value="text_only"               {% if _mode == 'text_only' %}selected{% endif %}>Texte uniquement (nom du club)</option>
+            <option value="image_only"              {% if _mode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
+            <option value="image_and_text"          {% if _mode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
+            <option value="image_desktop_text_mobile" {% if _mode == 'image_desktop_text_mobile' %}selected{% endif %}>Logo desktop / texte mobile</option>
+          </select>
+          <div class="text-xs text-gray-500 mt-1">Choisissez comment le logo apparaît en haut du site.</div>
+        </div>
+
+        <div>
+          <label class="block font-black mb-1" for="logo_height">Hauteur du logo (px)</label>
+          <input type="number" id="logo_height" name="logo_height" min="16" max="200"
+                 value="{{ config.logo_height|default('40') }}"
+                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <div class="text-xs text-gray-500 mt-1">Entre 16 et 200 px (par défaut : 40).</div>
+        </div>
       </div>
 
       <div>
-        <label class="block font-black mb-1" for="logo_height">Hauteur du logo (px)</label>
-        <input type="number" id="logo_height" name="logo_height" min="16" max="200"
-               value="{{ config.logo_height|default('40') }}"
+        <label class="block font-black mb-1" for="logo_footer_display_mode">Affichage dans le footer</label>
+        <select id="logo_footer_display_mode" name="logo_footer_display_mode"
+                class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% set _fmode = config.logo_footer_display_mode|default('hidden') %}
+          <option value="hidden"         {% if _fmode == 'hidden' %}selected{% endif %}>Masqué (pas de logo dans le footer)</option>
+          <option value="image_only"     {% if _fmode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
+          <option value="image_and_text" {% if _fmode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
+        </select>
+        <div class="text-xs text-gray-500 mt-1">Choisissez si le logo apparaît dans le bas de page.</div>
+      </div>
+    </div>
+
+    {# ── Identité du club ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Identité du club</h2>
+
+      <div>
+        <label class="block font-black mb-1" for="club_name">Nom du club</label>
+        <input type="text" id="club_name" name="club_name"
+               value="{{ config.club_name|default('') }}"
                class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <div class="text-xs text-gray-500 mt-1">Entre 16 et 200 px (par défaut : 40).</div>
       </div>
-    </div>
 
-    <div>
-      <label class="block font-black mb-1" for="logo_footer_display_mode">Affichage dans le footer</label>
-      <select id="logo_footer_display_mode" name="logo_footer_display_mode"
-              class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        {% set _fmode = config.logo_footer_display_mode|default('hidden') %}
-        <option value="hidden"         {% if _fmode == 'hidden' %}selected{% endif %}>Masqué (pas de logo dans le footer)</option>
-        <option value="image_only"     {% if _fmode == 'image_only' %}selected{% endif %}>Logo image uniquement</option>
-        <option value="image_and_text" {% if _fmode == 'image_and_text' %}selected{% endif %}>Logo image + nom du club</option>
-      </select>
-      <div class="text-xs text-gray-500 mt-1">Choisissez si le logo apparaît dans le bas de page.</div>
-    </div>
-  </div>
-
-  {# ── Identité ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Identité du club</h2>
-
-    <div>
-      <label class="block font-black mb-1" for="club_name">Nom du club</label>
-      <input type="text" id="club_name" name="club_name"
-             value="{{ config.club_name|default('') }}"
-             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-    </div>
-
-    <div>
-      <label class="block font-black mb-1" for="club_tagline">Phrase d'accroche</label>
-      <input type="text" id="club_tagline" name="club_tagline"
-             value="{{ config.club_tagline|default('') }}"
-             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-      <div class="text-xs text-gray-500 mt-1">Affichée sous le nom du club dans le footer.</div>
-    </div>
-
-    <div>
-      <label class="block font-black mb-1" for="address">Adresse</label>
-      <textarea id="address" name="address" rows="3"
-                class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.address|default('') }}</textarea>
-      <div class="text-xs text-gray-500 mt-1">Une ligne par paragraphe (les retours à la ligne sont conservés).</div>
-    </div>
-  </div>
-
-  {# ── Contact ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Contact</h2>
-
-    <div class="grid sm:grid-cols-2 gap-4">
       <div>
-        <label class="block font-black mb-1" for="email">Email</label>
-        <input type="email" id="email" name="email"
-               value="{{ config.email|default('') }}"
-               placeholder="contact@usm-volley.fr"
+        <label class="block font-black mb-1" for="club_tagline">Phrase d'accroche</label>
+        <input type="text" id="club_tagline" name="club_tagline"
+               value="{{ config.club_tagline|default('') }}"
                class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <div class="text-xs text-gray-500 mt-1">Affichée sous le nom du club dans le footer.</div>
       </div>
-      <div>
-        <label class="block font-black mb-1" for="phone">Téléphone (optionnel)</label>
-        <input type="text" id="phone" name="phone"
-               value="{{ config.phone|default('') }}"
-               placeholder="06 12 34 56 78"
-               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+    </div>
+
+    {# ── Affichage home page ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Affichage page d'accueil</h2>
+      <p class="text-xs text-gray-500">Configuration du nombre d'articles affichés sur la page d'accueil.</p>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black mb-1" for="home_slider_posts_count">Posts dans le slider héro</label>
+          <input type="number" id="home_slider_posts_count" name="home_slider_posts_count"
+                 value="{{ config.home_slider_posts_count|default('3') }}"
+                 min="1" max="10"
+                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <div class="text-xs text-gray-500 mt-1">Nombre d'articles dans le slider d'accueil (1-10).</div>
+        </div>
+
+        <div>
+          <label class="block font-black mb-1" for="home_latest_posts_count">Posts en bas de page</label>
+          <input type="number" id="home_latest_posts_count" name="home_latest_posts_count"
+                 value="{{ config.home_latest_posts_count|default('3') }}"
+                 min="1" max="12"
+                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <div class="text-xs text-gray-500 mt-1">Nombre d'articles "Dernières actualités" (1-12).</div>
+        </div>
       </div>
     </div>
   </div>
 
-  {# ── Réseaux ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Réseaux sociaux</h2>
-    <p class="text-xs text-gray-500">Laissez vide pour masquer l'icône dans le footer.</p>
+  {# ─────────────────── ONGLET 2 : CONTACT & RESEAUX ─────────────────── #}
+  <div id="tab-content-contact" class="tab-content space-y-6 hidden">
+    {# ── Contact ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Contact</h2>
 
-    <div>
-      <label class="block font-black mb-1" for="facebook_url">URL Facebook</label>
-      <input type="url" id="facebook_url" name="facebook_url"
-             value="{{ config.facebook_url|default('') }}"
-             placeholder="https://www.facebook.com/usmvolley"
-             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
-    </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black mb-1" for="email">Email</label>
+          <input type="email" id="email" name="email"
+                 value="{{ config.email|default('') }}"
+                 placeholder="contact@usm-volley.fr"
+                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        </div>
+        <div>
+          <label class="block font-black mb-1" for="phone">Téléphone (optionnel)</label>
+          <input type="text" id="phone" name="phone"
+                 value="{{ config.phone|default('') }}"
+                 placeholder="06 12 34 56 78"
+                 class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        </div>
+      </div>
 
-    <div>
-      <label class="block font-black mb-1" for="instagram_url">URL Instagram</label>
-      <input type="url" id="instagram_url" name="instagram_url"
-             value="{{ config.instagram_url|default('') }}"
-             placeholder="https://www.instagram.com/usmvolley"
-             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
-    </div>
-  </div>
-
-  {# ── Google Analytics ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Google Analytics</h2>
-    <p class="text-xs text-gray-500">Configurez le suivi d'audience (front-end) et la connexion au tableau de bord des statistiques de visites (API Google Analytics Data).</p>
-    
-    <div>
-      <label class="block font-black mb-1" for="google_analytics_id">ID de mesure Google Analytics (G-XXXXXX)</label>
-      <input type="text" id="google_analytics_id" name="google_analytics_id"
-             value="{{ config.google_analytics_id|default('') }}"
-             placeholder="G-XXXXXXXXXX"
-             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
-      <span class="text-xs text-gray-400">Utilisé pour charger le script de suivi sur les pages publiques.</span>
-    </div>
-
-    <div class="border-t border-black/10 pt-4 mt-4 space-y-4">
-      <h3 class="font-black text-sm uppercase tracking-wider text-gray-500">Connexion API (Tableau de Bord)</h3>
-      
       <div>
-        <label class="block font-black mb-1" for="google_analytics_property_id">ID de propriété Google Analytics 4 (GA4)</label>
-        <input type="text" id="google_analytics_property_id" name="google_analytics_property_id"
-               value="{{ config.google_analytics_property_id|default('') }}"
-               placeholder="Ex: 123456789"
+        <label class="block font-black mb-1" for="address">Adresse</label>
+        <textarea id="address" name="address" rows="3"
+                  class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.address|default('') }}</textarea>
+        <div class="text-xs text-gray-500 mt-1">Une ligne par paragraphe (les retours à la ligne sont conservés).</div>
+      </div>
+    </div>
+
+    {# ── Réseaux ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Réseaux sociaux</h2>
+      <p class="text-xs text-gray-500">Laissez vide pour masquer l'icône dans le footer.</p>
+
+      <div>
+        <label class="block font-black mb-1" for="facebook_url">URL Facebook</label>
+        <input type="url" id="facebook_url" name="facebook_url"
+               value="{{ config.facebook_url|default('') }}"
+               placeholder="https://www.facebook.com/usmvolley"
                class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <span class="text-xs text-gray-400">ID numérique de votre propriété GA4 (dans Administration > Paramètres de la propriété).</span>
       </div>
 
       <div>
-        <label class="block font-black mb-1" for="google_analytics_service_account">Compte de service (Clé JSON Google Cloud)</label>
-        <textarea id="google_analytics_service_account" name="google_analytics_service_account" rows="6"
-                  placeholder='Ex: {"type": "service_account", "project_id": "...", "private_key": "...", ...}'
-                  class="w-full border-2 border-black px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.google_analytics_service_account|default('') }}</textarea>
-        <span class="text-xs text-gray-400">Collez ici l'intégralité du contenu du fichier JSON de clé généré pour votre compte de service Google Cloud.</span>
+        <label class="block font-black mb-1" for="instagram_url">URL Instagram</label>
+        <input type="url" id="instagram_url" name="instagram_url"
+               value="{{ config.instagram_url|default('') }}"
+               placeholder="https://www.instagram.com/usmvolley"
+               class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+      </div>
+    </div>
+
+    {# ── Mentions légales ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Mentions légales</h2>
+
+      <div>
+        <label class="block font-black mb-1" for="legal_text">Texte (footer bas)</label>
+        <textarea id="legal_text" name="legal_text" rows="2"
+                  class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.legal_text|default('') }}</textarea>
       </div>
     </div>
   </div>
 
-  {# ── Mentions légales ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Mentions légales</h2>
+  {# ─────────────────── ONGLET 3 : APPARENCE & DESIGN ─────────────────── #}
+  <div id="tab-content-apparence" class="tab-content space-y-6 hidden">
+    {# ── Apparence ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
+      <h2 class="font-black text-lg">Apparence globale</h2>
 
-    <div>
-      <label class="block font-black mb-1" for="legal_text">Texte (footer bas)</label>
-      <textarea id="legal_text" name="legal_text" rows="2"
-                class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.legal_text|default('') }}</textarea>
-    </div>
-  </div>
-
-  {# ── Affichage home page ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-    <h2 class="font-black text-lg">Affichage page d'accueil</h2>
-    <p class="text-xs text-gray-500">Configuration du nombre d'articles affichés sur la page d'accueil.</p>
-
-    <div class="grid sm:grid-cols-2 gap-4">
+      {# Couleur principale #}
       <div>
-        <label class="block font-black mb-1" for="home_slider_posts_count">Posts dans le slider héro</label>
-        <input type="number" id="home_slider_posts_count" name="home_slider_posts_count"
-               value="{{ config.home_slider_posts_count|default('3') }}"
-               min="1" max="10"
-               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <div class="text-xs text-gray-500 mt-1">Nombre d'articles dans le slider d'accueil (1-10).</div>
+        <label class="block font-black mb-2" for="primary_color">Couleur principale</label>
+        <div class="flex items-center gap-3 mb-3">
+          <input type="color" id="primary_color" name="primary_color"
+                 value="{{ config.primary_color|default('#94674d') }}"
+                 class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
+                 oninput="document.getElementById('hex_input').value=this.value">
+          <input type="text" id="hex_input" placeholder="#94674d" maxlength="7"
+                 value="{{ config.primary_color|default('#94674d') }}"
+                 class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
+                 oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('primary_color').value=this.value}">
+          <span class="text-xs text-gray-500">Défaut USM Mios : #94674d</span>
+        </div>
+
+        {# Raccourcis palettes #}
+        <div class="flex flex-wrap gap-2">
+          {% for preset in [
+            {l:'Marron Mios',v:'#94674d'},{l:'Rouge Volley',v:'#ef4444'},{l:'Bleu USM',v:'#1d4ed8'},
+            {l:'Vert Forêt', v:'#15803d'},{l:'Bordeaux',   v:'#7b2d3e'},{l:'Ardoise',  v:'#475569'},
+            {l:'Orange',     v:'#c2410c'},{l:'Rose',       v:'#be185d'},{l:'Indigo',   v:'#4f46e5'},
+            {l:'Cyan',       v:'#0e7490'},{l:'Noir',       v:'#111827'}
+          ] %}
+            <button type="button"
+                    onclick="document.getElementById('primary_color').value='{{ preset.v }}';document.getElementById('hex_input').value='{{ preset.v }}';"
+                    class="flex items-center gap-1.5 px-2 py-1 border border-black text-xs font-semibold hover:bg-gray-50 transition cursor-pointer select-none">
+              <span class="w-3 h-3 border border-black/30 rounded-sm inline-block" style="background:{{ preset.v }}"></span>{{ preset.l }}
+            </button>
+          {% endfor %}
+        </div>
       </div>
 
-      <div>
-        <label class="block font-black mb-1" for="home_latest_posts_count">Posts en bas de page</label>
-        <input type="number" id="home_latest_posts_count" name="home_latest_posts_count"
-               value="{{ config.home_latest_posts_count|default('3') }}"
-               min="1" max="12"
-               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <div class="text-xs text-gray-500 mt-1">Nombre d'articles "Dernières actualités" (1-12).</div>
+      {# Couleur Frame Dark #}
+      <div class="pt-4 border-t-2 border-black">
+        <label class="block font-black mb-2" for="frame_dark_bg_color">Couleur des cadres sombres (.frame-dark)</label>
+        <div class="flex items-center gap-3">
+          <input type="color" id="frame_dark_bg_color" name="frame_dark_bg_color"
+                 value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
+                 class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
+                 oninput="document.getElementById('hex_input_fd').value=this.value">
+          <input type="text" id="hex_input_fd" placeholder="#0f172a" maxlength="7"
+                 value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
+                 class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
+                 oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('frame_dark_bg_color').value=this.value}">
+          <span class="text-xs text-gray-500">Défaut front002 : #0f172a</span>
+        </div>
       </div>
-    </div>
-  </div>
 
-  {# ── Apparence ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
-    <h2 class="font-black text-lg">Apparence</h2>
+      {# Typographie #}
+      <div class="pt-4 border-t-2 border-black">
+        <label class="block font-black mb-2">Typographie</label>
+        {% set knownFonts = ['Inter','Space Grotesk','DM Sans','Syne','Outfit','Poppins','Plus Jakarta Sans','Raleway','Montserrat','Work Sans','Unbounded'] %}
+        {% set currentFont = config.font_family|default('') %}
+        {% set isCustom = currentFont is not empty and currentFont not in knownFonts %}
 
-    {# Couleur principale #}
-    <div>
-      <label class="block font-black mb-2" for="primary_color">Couleur principale</label>
-      <div class="flex items-center gap-3 mb-3">
-        <input type="color" id="primary_color" name="primary_color"
-               value="{{ config.primary_color|default('#94674d') }}"
-               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
-               oninput="document.getElementById('hex_input').value=this.value">
-        <input type="text" id="hex_input" placeholder="#94674d" maxlength="7"
-               value="{{ config.primary_color|default('#94674d') }}"
-               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
-               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('primary_color').value=this.value}">
-        <span class="text-xs text-gray-500">ou saisir le code hex</span>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        {% for preset in [
-          {l:'Marron',   v:'#94674d'},{l:'Marine',   v:'#1e3a5f'},{l:'Vert',     v:'#2d6a4f'},
-          {l:'Bordeaux', v:'#7b2d3e'},{l:'Ardoise',  v:'#475569'},{l:'Orange',   v:'#c2410c'},
-          {l:'Rose',     v:'#be185d'},{l:'Indigo',   v:'#4f46e5'},{l:'Cyan',     v:'#0e7490'},
-          {l:'Noir',     v:'#111827'}
-        ] %}
-          <button type="button"
-                  onclick="document.getElementById('primary_color').value='{{ preset.v }}';document.getElementById('hex_input').value='{{ preset.v }}';"
-                  class="flex items-center gap-1.5 px-2 py-1 border border-black text-xs font-semibold hover:bg-gray-50 transition">
-            <span class="w-3 h-3 border border-black/30 rounded-sm inline-block" style="background:{{ preset.v }}"></span>{{ preset.l }}
-          </button>
-        {% endfor %}
-      </div>
-    </div>
+        <div class="space-y-1.5 mb-3">
+          {# Système #}
+          <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
+                        {{ currentFont == '' ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}">
+            <input type="radio" name="font_family" value="" class="w-4 h-4 font-radio"
+                   {{ currentFont == '' ? 'checked' : '' }}>
+            <span class="text-sm font-semibold w-36">Système (défaut)</span>
+            <span class="text-base text-gray-500" style="font-family: ui-sans-serif, system-ui, sans-serif">Club USM Mios — Volley</span>
+          </label>
 
-    {# Couleur Frame Dark #}
-    <div class="pt-4 border-t-2 border-black">
-      <label class="block font-black mb-2" for="frame_dark_bg_color">Couleur des cadres sombres (.frame-dark)</label>
-      <div class="flex items-center gap-3">
-        <input type="color" id="frame_dark_bg_color" name="frame_dark_bg_color"
-               value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
-               class="w-12 h-12 border-2 border-black cursor-pointer p-0.5 bg-white"
-               oninput="document.getElementById('hex_input_fd').value=this.value">
-        <input type="text" id="hex_input_fd" placeholder="#0f172a" maxlength="7"
-               value="{{ config.frame_dark_bg_color|default('#0f172a') }}"
-               class="w-28 border-2 border-black px-2 py-2 font-mono text-sm focus:outline-none"
-               oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('frame_dark_bg_color').value=this.value}">
-        <span class="text-xs text-gray-500">Défaut front002 : #0f172a</span>
+          {# Polices connues #}
+          {% for f in knownFonts %}
+            <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
+                          {{ currentFont == f ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}">
+              <input type="radio" name="font_family" value="{{ f }}" class="w-4 h-4 font-radio"
+                     {{ currentFont == f ? 'checked' : '' }}>
+              <span class="text-sm font-semibold w-36">{{ f }}</span>
+              <span class="text-base text-gray-700" style="font-family: '{{ f }}', sans-serif">Club USM Mios — Volley</span>
+            </label>
+          {% endfor %}
+
+          {# Police personnalisée #}
+          <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
+                        {{ isCustom ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}"
+                 id="custom-font-label">
+            <input type="radio" name="font_family" value="__custom__" class="w-4 h-4 font-radio" id="radio-custom"
+                   {{ isCustom ? 'checked' : '' }}>
+            <span class="text-sm font-semibold w-36">Personnalisée</span>
+            <input type="text" id="custom_font_input"
+                   value="{{ isCustom ? currentFont : '' }}"
+                   placeholder="Ex: Nunito, Josefin Sans, Pacifico…"
+                   class="flex-1 border border-gray-300 px-2 py-0.5 text-sm focus:outline-none focus:border-black"
+                   onclick="document.getElementById('radio-custom').checked=true"
+                   oninput="document.getElementById('radio-custom').checked=true">
+          </label>
+        </div>
+        <div class="text-xs text-gray-500">Noms exacts tels qu'ils apparaissent sur <a href="https://fonts.google.com" target="_blank" class="underline">fonts.google.com</a>.</div>
       </div>
     </div>
 
     {# Couleurs du header #}
-    <div class="border-2 border-black p-4 bg-gray-50 space-y-5">
-      <p class="font-black text-sm uppercase">Couleurs du header</p>
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-5">
+      <h2 class="font-black text-lg">Couleurs du header (Menu principal)</h2>
 
-      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
+      <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {# Zone 1 : Fond du header #}
         {% set z = {id:'header_bg_color', hex:'hex_bg', label:'Fond du menu',
           val: config.header_bg_color|default('#ffffff'),
@@ -309,7 +348,7 @@
           <div class="flex flex-wrap gap-1">
             {% for p in z.presets %}
               <button type="button" onclick="setColor('{{ z.id }}','{{ z.hex }}','{{ p.v }}')"
-                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                 <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
               </button>
             {% endfor %}
@@ -335,7 +374,7 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Marron',v:'#94674d'},{l:'Doré',v:'#f1c40f'},{l:'Marine',v:'#1e3a5f'},{l:'Noir',v:'#111827'},{l:'Blanc',v:'#ffffff'}] %}
                   <button type="button" onclick="setColor('logo_bg_color','hex_logo_bg','{{ p.v }}')"
-                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
                 {% endfor %}
@@ -356,7 +395,7 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Marine',v:'#1e3a5f'},{l:'Marron',v:'#4a2c1a'}] %}
                   <button type="button" onclick="setColor('logo_text_color','hex_logo_txt','{{ p.v }}')"
-                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
                 {% endfor %}
@@ -382,7 +421,7 @@
           <div class="flex flex-wrap gap-1">
             {% for p in z.presets %}
               <button type="button" onclick="setColor('{{ z.id }}','{{ z.hex }}','{{ p.v }}')"
-                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                 <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
               </button>
             {% endfor %}
@@ -408,7 +447,7 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Marron',v:'#94674d'},{l:'Doré',v:'#f1c40f'},{l:'Marine',v:'#1e3a5f'},{l:'Noir',v:'#111827'},{l:'Blanc',v:'#ffffff'}] %}
                   <button type="button" onclick="setColor('header_hover_bg_color','hex_hover_bg','{{ p.v }}')"
-                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
                 {% endfor %}
@@ -429,7 +468,7 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Crème',v:'#fffdef'},{l:'Marine',v:'#1e3a5f'}] %}
                   <button type="button" onclick="setColor('header_hover_text_color','hex_hover_txt','{{ p.v }}')"
-                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
                 {% endfor %}
@@ -457,7 +496,7 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Marron',v:'#94674d'},{l:'Doré',v:'#f1c40f'},{l:'Marine',v:'#1e3a5f'},{l:'Noir',v:'#111827'},{l:'Blanc',v:'#ffffff'}] %}
                   <button type="button" onclick="setColor('header_active_bg_color','hex_active_bg','{{ p.v }}')"
-                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
                 {% endfor %}
@@ -478,7 +517,7 @@
               <div class="flex flex-wrap gap-1 mt-1">
                 {% for p in [{l:'Noir',v:'#000000'},{l:'Blanc',v:'#ffffff'},{l:'Crème',v:'#fffdef'},{l:'Marine',v:'#1e3a5f'}] %}
                   <button type="button" onclick="setColor('header_active_text_color','hex_active_txt','{{ p.v }}')"
-                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                          class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                     <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
                   </button>
                 {% endfor %}
@@ -486,12 +525,11 @@
             </div>
           </div>
         </div>
-
       </div>
 
-      {# Live preview #}
+      {# Live preview header #}
       <div>
-        <p class="text-xs text-gray-500 mb-1 font-bold">Aperçu :</p>
+        <p class="text-xs text-gray-500 mb-1 font-bold">Aperçu du header :</p>
         <div id="header-preview" class="h-16 flex items-center px-6 gap-4 border-4 border-black shadow-[4px_4px_0_#000]"
              style="background:{{ config.header_bg_color|default('#ffffff') }}">
           <span id="prev-logo" class="font-black text-sm px-3 py-1.5 border-2 border-black shadow-[3px_3px_0_#000]"
@@ -514,60 +552,11 @@
       </div>
     </div>
 
-    {# Typographie #}
-    <div>
-      <label class="block font-black mb-2">Typographie</label>
-      {% set knownFonts = ['Inter','Space Grotesk','DM Sans','Syne','Outfit','Poppins','Plus Jakarta Sans','Raleway','Montserrat','Work Sans','Unbounded'] %}
-      {% set currentFont = config.font_family|default('') %}
-      {% set isCustom = currentFont is not empty and currentFont not in knownFonts %}
-
-      <div class="space-y-1.5 mb-3">
-
-        {# Système #}
-        <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
-                      {{ currentFont == '' ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}">
-          <input type="radio" name="font_family" value="" class="w-4 h-4 font-radio"
-                 {{ currentFont == '' ? 'checked' : '' }}>
-          <span class="text-sm font-semibold w-36">Système (défaut)</span>
-          <span class="text-base text-gray-500" style="font-family: ui-sans-serif, system-ui, sans-serif">Club USM Mios — Volley</span>
-        </label>
-
-        {# Polices connues #}
-        {% for f in knownFonts %}
-          <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
-                        {{ currentFont == f ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}">
-            <input type="radio" name="font_family" value="{{ f }}" class="w-4 h-4 font-radio"
-                   {{ currentFont == f ? 'checked' : '' }}>
-            <span class="text-sm font-semibold w-36">{{ f }}</span>
-            <span class="text-base text-gray-700" style="font-family: '{{ f }}', sans-serif">Club USM Mios — Volley</span>
-          </label>
-        {% endfor %}
-
-        {# Police personnalisée #}
-        <label class="flex items-center gap-3 px-3 py-2 border-2 cursor-pointer transition
-                      {{ isCustom ? 'border-black bg-amber-50' : 'border-gray-200 hover:border-gray-400' }}"
-               id="custom-font-label">
-          <input type="radio" name="font_family" value="__custom__" class="w-4 h-4 font-radio" id="radio-custom"
-                 {{ isCustom ? 'checked' : '' }}>
-          <span class="text-sm font-semibold w-36">Personnalisée</span>
-          <input type="text" id="custom_font_input"
-                 value="{{ isCustom ? currentFont : '' }}"
-                 placeholder="Ex: Nunito, Josefin Sans, Pacifico…"
-                 class="flex-1 border border-gray-300 px-2 py-0.5 text-sm focus:outline-none focus:border-black"
-                 onclick="document.getElementById('radio-custom').checked=true"
-                 oninput="document.getElementById('radio-custom').checked=true">
-        </label>
-      </div>
-      <div class="text-xs text-gray-500">Noms exacts tels qu'ils apparaissent sur <a href="https://fonts.google.com" target="_blank" class="underline">fonts.google.com</a>.</div>
-    </div>
-  </div>
-
     {# Couleurs du footer #}
-    <div class="border-2 border-black p-4 bg-gray-50 space-y-5">
-      <p class="font-black text-sm uppercase">Couleurs du footer</p>
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-5">
+      <h2 class="font-black text-lg">Couleurs du footer (Bas de page)</h2>
 
       <div class="grid sm:grid-cols-3 gap-4">
-
         {# Fond #}
         {% set z = {id:'footer_bg_color', hex:'hex_footer_bg', label:'Fond',
           val: config.footer_bg_color|default('#0f172a'),
@@ -585,7 +574,7 @@
           <div class="flex flex-wrap gap-1">
             {% for p in z.presets %}
               <button type="button" onclick="setColorFooter('{{ z.id }}','{{ z.hex }}','{{ p.v }}')"
-                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                 <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
               </button>
             {% endfor %}
@@ -609,7 +598,7 @@
           <div class="flex flex-wrap gap-1">
             {% for p in z.presets %}
               <button type="button" onclick="setColorFooter('{{ z.id }}','{{ z.hex }}','{{ p.v }}')"
-                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                 <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
               </button>
             {% endfor %}
@@ -633,18 +622,17 @@
           <div class="flex flex-wrap gap-1">
             {% for p in z.presets %}
               <button type="button" onclick="setColorFooter('{{ z.id }}','{{ z.hex }}','{{ p.v }}')"
-                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100">
+                      class="flex items-center gap-1 px-1.5 py-0.5 border border-black text-xs hover:bg-gray-100 cursor-pointer">
                 <span class="w-2.5 h-2.5 border border-black/20 inline-block" style="background:{{ p.v }}"></span>{{ p.l }}
               </button>
             {% endfor %}
           </div>
         </div>
-
       </div>
 
       {# Aperçu footer #}
       <div>
-        <p class="text-xs text-gray-500 mb-1 font-bold">Aperçu :</p>
+        <p class="text-xs text-gray-500 mb-1 font-bold">Aperçu du footer :</p>
         <div id="footer-preview" class="rounded p-4 border-4 border-black shadow-[4px_4px_0_#000]"
              style="background:{{ config.footer_bg_color|default('#0f172a') }}">
           <div class="flex items-start justify-between gap-4 pb-3 mb-3 border-b border-white/10">
@@ -676,11 +664,231 @@
         </div>
       </div>
     </div>
+  </div>
 
-  <button type="submit"
-          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    Enregistrer
-  </button>
+  {# ─────────────────── ONGLET 4 : BANDEAUX MOBILES (NOUVEAU) ─────────────────── #}
+  <div id="tab-content-bandeaux" class="tab-content space-y-6 hidden">
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
+      <h2 class="font-black text-lg">Bandeaux du bas (Mobile)</h2>
+      <p class="text-xs text-gray-500">Configurez les onglets affichés dans la barre de navigation du bas sur mobile.</p>
+
+      <div class="space-y-6">
+        <h3 class="font-black text-md border-b-2 border-black pb-2 text-gray-800 uppercase tracking-wide">Bandeau Visiteur (non connecté)</h3>
+
+        {# Visiteur 1 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_label_1">Onglet 1 - Libellé</label>
+            <input type="text" id="visitor_bottom_label_1" name="visitor_bottom_label_1"
+                   value="{{ config.visitor_bottom_label_1|default('Accueil') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_1">Onglet 1 - Lien (Chemin ou URL)</label>
+            <input type="text" id="visitor_bottom_url_1" name="visitor_bottom_url_1"
+                   value="{{ config.visitor_bottom_url_1|default('') }}"
+                   placeholder="Ex: / ou blog (relatif) ou https://... (absolu)"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Visiteur 2 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_label_2">Onglet 2 - Libellé</label>
+            <input type="text" id="visitor_bottom_label_2" name="visitor_bottom_label_2"
+                   value="{{ config.visitor_bottom_label_2|default('Équipes') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_2">Onglet 2 - Lien (Chemin ou URL)</label>
+            <input type="text" id="visitor_bottom_url_2" name="visitor_bottom_url_2"
+                   value="{{ config.visitor_bottom_url_2|default('equipes') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Visiteur 3 (Bouton central) #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-slate-900 pl-4 py-1 bg-slate-50 p-2">
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_label_3">Bouton Central (Connexion) - Info-bulle</label>
+            <input type="text" id="visitor_bottom_label_3" name="visitor_bottom_label_3"
+                   value="{{ config.visitor_bottom_label_3|default('Se connecter') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_3">Bouton Central (Connexion) - Lien (Chemin ou URL)</label>
+            <input type="text" id="visitor_bottom_url_3" name="visitor_bottom_url_3"
+                   value="{{ config.visitor_bottom_url_3|default('member/login') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Visiteur 4 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_label_4">Onglet 3 - Libellé</label>
+            <input type="text" id="visitor_bottom_label_4" name="visitor_bottom_label_4"
+                   value="{{ config.visitor_bottom_label_4|default('Actus') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_4">Onglet 3 - Lien (Chemin ou URL)</label>
+            <input type="text" id="visitor_bottom_url_4" name="visitor_bottom_url_4"
+                   value="{{ config.visitor_bottom_url_4|default('blog') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Visiteur 5 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_label_5">Onglet 4 - Libellé</label>
+            <input type="text" id="visitor_bottom_label_5" name="visitor_bottom_label_5"
+                   value="{{ config.visitor_bottom_label_5|default('Contact') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_5">Onglet 4 - Lien (Chemin ou URL)</label>
+            <input type="text" id="visitor_bottom_url_5" name="visitor_bottom_url_5"
+                   value="{{ config.visitor_bottom_url_5|default('contact') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6 pt-6 border-t-2 border-black">
+        <h3 class="font-black text-md border-b-2 border-black pb-2 text-gray-800 uppercase tracking-wide">Bandeau Membre (connecté)</h3>
+
+        {# Membre 1 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_label_1">Onglet 1 - Libellé</label>
+            <input type="text" id="member_bottom_label_1" name="member_bottom_label_1"
+                   value="{{ config.member_bottom_label_1|default('Accueil') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_url_1">Onglet 1 - Lien (Chemin ou URL)</label>
+            <input type="text" id="member_bottom_url_1" name="member_bottom_url_1"
+                   value="{{ config.member_bottom_url_1|default('member/dashboard') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Membre 2 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_label_2">Onglet 2 - Libellé</label>
+            <input type="text" id="member_bottom_label_2" name="member_bottom_label_2"
+                   value="{{ config.member_bottom_label_2|default('Ma Sem.') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_url_2">Onglet 2 - Lien (Chemin ou URL)</label>
+            <input type="text" id="member_bottom_url_2" name="member_bottom_url_2"
+                   value="{{ config.member_bottom_url_2|default('member/dashboard?filter=this-week&scroll=1') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Membre 3 (Bouton central) #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-[var(--primary)] pl-4 py-1 bg-slate-50 p-2">
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_label_3">Bouton Central (FAB Agenda) - Info-bulle</label>
+            <input type="text" id="member_bottom_label_3" name="member_bottom_label_3"
+                   value="{{ config.member_bottom_label_3|default('Agenda') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_url_3">Bouton Central (FAB Agenda) - Lien (Chemin ou URL)</label>
+            <input type="text" id="member_bottom_url_3" name="member_bottom_url_3"
+                   value="{{ config.member_bottom_url_3|default('agenda?view=cards#filters') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Membre 4 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_label_4">Onglet 3 - Libellé</label>
+            <input type="text" id="member_bottom_label_4" name="member_bottom_label_4"
+                   value="{{ config.member_bottom_label_4|default('Sem. Club') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_url_4">Onglet 3 - Lien (Chemin ou URL)</label>
+            <input type="text" id="member_bottom_url_4" name="member_bottom_url_4"
+                   value="{{ config.member_bottom_url_4|default('agenda?this_week=1&view=cards&scroll=1') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+
+        {# Membre 5 #}
+        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_label_5">Onglet 4 - Libellé</label>
+            <input type="text" id="member_bottom_label_5" name="member_bottom_label_5"
+                   value="{{ config.member_bottom_label_5|default('Profil') }}"
+                   class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_url_5">Onglet 4 - Lien (Chemin ou URL)</label>
+            <input type="text" id="member_bottom_url_5" name="member_bottom_url_5"
+                   value="{{ config.member_bottom_url_5|default('member/profile') }}"
+                   class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ─────────────────── ONGLET 5 : INTEGRATIONS & API ─────────────────── #}
+  <div id="tab-content-integrations" class="tab-content space-y-6 hidden">
+    {# ── Google Analytics ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Google Analytics</h2>
+      <p class="text-xs text-gray-500">Configurez le suivi d'audience (front-end) et la connexion au tableau de bord des statistiques de visites (API Google Analytics Data).</p>
+
+      <div>
+        <label class="block font-black mb-1" for="google_analytics_id">ID de mesure Google Analytics (G-XXXXXX)</label>
+        <input type="text" id="google_analytics_id" name="google_analytics_id"
+               value="{{ config.google_analytics_id|default('') }}"
+               placeholder="G-XXXXXXXXXX"
+               class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        <span class="text-xs text-gray-400">Utilisé pour charger le script de suivi sur les pages publiques.</span>
+      </div>
+
+      <div class="border-t border-black/10 pt-4 mt-4 space-y-4">
+        <h3 class="font-black text-sm uppercase tracking-wider text-gray-500">Connexion API (Tableau de Bord)</h3>
+
+        <div>
+          <label class="block font-black mb-1" for="google_analytics_property_id">ID de propriété Google Analytics 4 (GA4)</label>
+          <input type="text" id="google_analytics_property_id" name="google_analytics_property_id"
+                 value="{{ config.google_analytics_property_id|default('') }}"
+                 placeholder="Ex: 123456789"
+                 class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <span class="text-xs text-gray-400">ID numérique de votre propriété GA4 (dans Administration > Paramètres de la propriété).</span>
+        </div>
+
+        <div>
+          <label class="block font-black mb-1" for="google_analytics_service_account">Compte de service (Clé JSON Google Cloud)</label>
+          <textarea id="google_analytics_service_account" name="google_analytics_service_account" rows="6"
+                    placeholder='Ex: {"type": "service_account", "project_id": "...", "private_key": "...", ...}'
+                    class="w-full border-2 border-black px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ config.google_analytics_service_account|default('') }}</textarea>
+          <span class="text-xs text-gray-400">Collez ici l\'intégralité du contenu du fichier JSON de clé généré pour votre compte de service Google Cloud.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Bouton Soumettre persistant et visible globalement #}
+  <div class="pt-4">
+    <button type="submit"
+            class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3.5 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all select-none cursor-pointer">
+      Enregistrer toutes les modifications
+    </button>
+  </div>
 </form>
 {% endblock %}
 
@@ -692,10 +900,42 @@
 
 {% block scripts %}
 <script>
+  // Système d'onglets dynamique
+  function switchTab(tabId) {
+    // Masquer tous les contenus
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    // Afficher le contenu actif
+    const activeContent = document.getElementById('tab-content-' + tabId);
+    if (activeContent) {
+      activeContent.classList.remove('hidden');
+    }
+
+    // Gérer l'état actif des boutons (style neobrutaliste)
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('bg-amber-50', 'translate-y-1', 'translate-x-1', 'shadow-[1px_1px_0_#000]');
+      btn.classList.add('bg-white', 'shadow-[4px_4px_0_#000]');
+    });
+
+    const activeBtn = document.getElementById('tab-btn-' + tabId);
+    if (activeBtn) {
+      activeBtn.classList.remove('bg-white', 'shadow-[4px_4px_0_#000]');
+      activeBtn.classList.add('bg-amber-50', 'translate-y-1', 'translate-x-1', 'shadow-[1px_1px_0_#000]');
+    }
+
+    // Sauvegarder dans localStorage
+    localStorage.setItem('active_config_tab', tabId);
+  }
+
+  // Restaurer l'onglet actif au chargement
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTab = localStorage.getItem('active_config_tab') || 'general';
+    switchTab(savedTab);
+  });
+
   // Sync custom font radio value before submit
   document.querySelector('form').addEventListener('submit', function () {
     const radio = document.getElementById('radio-custom');
-    if (radio.checked) {
+    if (radio && radio.checked) {
       const val = document.getElementById('custom_font_input').value.trim();
       radio.value = val;
     }

@@ -129,6 +129,9 @@ class ParticipationStatsService
             }
             if (isset($result[$mid][$category])) {
                 $result[$mid][$category] += $count;
+                if ($category === 'present') {
+                    $result[$mid][$category] += $status->getCompanionCount() * $count;
+                }
             }
         }
 

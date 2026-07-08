@@ -39,6 +39,17 @@ class SiteConfigController
         'cta_feature_1_label', 'cta_feature_1_sub',
         'cta_feature_2_label', 'cta_feature_2_sub',
         'cta_feature_3_label', 'cta_feature_3_sub',
+        // Bandeaux du bas (Mobile)
+        'visitor_bottom_url_1', 'visitor_bottom_label_1',
+        'visitor_bottom_url_2', 'visitor_bottom_label_2',
+        'visitor_bottom_url_3', 'visitor_bottom_label_3',
+        'visitor_bottom_url_4', 'visitor_bottom_label_4',
+        'visitor_bottom_url_5', 'visitor_bottom_label_5',
+        'member_bottom_url_1', 'member_bottom_label_1',
+        'member_bottom_url_2', 'member_bottom_label_2',
+        'member_bottom_url_3', 'member_bottom_label_3',
+        'member_bottom_url_4', 'member_bottom_label_4',
+        'member_bottom_url_5', 'member_bottom_label_5',
     ];
 
     private const ALLOWED_DISPLAY_MODES = [

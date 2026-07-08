@@ -161,7 +161,12 @@ class EventNormalizer
         string $rawStatus
     ): void {
         $category   = $status->getCategory();
-        $playerInfo = ['id' => $jid, 'nom' => $nomJoueur];
+        $playerInfo = [
+            'id'              => $jid,
+            'nom'             => $nomJoueur,
+            'companion_count' => $status->getCompanionCount(),
+            'raw_status'      => $rawStatus
+        ];
 
         // Initialisation défensive des tableaux
         if (!isset($manifestationStats['present'])) {

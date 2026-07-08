@@ -285,7 +285,7 @@
             'Sélectionné(e)': 'selected', 'En réserve': 'selected',
             'Disponible': 'available', 'Joker': 'available',
             'Disponible si nécessaire': 'available_if_needed', 'Disponible si n': 'available_if_needed',
-            'Indisponible': 'unavailable', 'Absent': 'absent', 'Non': 'absent',
+            'Indisponible': 'unavailable', 'Absent': 'absent', 'Absent(e)': 'absent', 'Non': 'absent',
             'Présent': 'present', 'Présent(e)': 'present', 'Présent(e) à 2': 'present', 'Présent(e) à 3': 'present', 'Présent(e) à 4': 'present', 'Présent(e) à 5': 'present',
             'Ne sait pas': 'unknown', '?': 'unknown', 'Ne sait pas encore': 'unknown'
         };
@@ -426,7 +426,14 @@
                             const key = bubble.dataset.statusKey;
                             const newCat = helperCat(newStatus);
                             if (key === newCat) {
-                                players.push({ id: currentUserId, nom: currentUserName });
+                                let compCount = 0;
+                                if (newStatus && (newStatus.indexOf('Présent') !== -1 || newStatus.indexOf('present') !== -1)) {
+                                    const match = newStatus.match(/(\d+)/);
+                                    if (match) {
+                                        compCount = Math.max(0, parseInt(match[1]) - 1);
+                                    }
+                                }
+                                players.push({ id: currentUserId, nom: currentUserName, companion_count: compCount });
                             }
 
                             bubble.dataset.players = JSON.stringify(players);
@@ -626,8 +633,13 @@
         if (trigger.classList.contains('text-rose-700') || trigger.classList.contains('bg-rose-50')) colorClass = 'bg-rose-100 text-rose-700';
 
         try {
-            const playersArray = JSON.parse(playersJson);
-            names = playersArray.map(p => p.nom);
+            const playersArray = JSON.parse(playersJson || '[]');
+            names = playersArray.map(p => {
+                if (p.companion_count && p.companion_count > 0) {
+                    return `${p.nom} (à ${p.companion_count + 1})`;
+                }
+                return p.nom;
+            });
         } catch (err) {
             console.error("Erreur de parsing des joueurs", err);
         }

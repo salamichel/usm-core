@@ -211,7 +211,7 @@
           {% for p in players %}
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200 text-slate-700" title="{{ p.nom }}">
               <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span>
-              {{ p.nom }}
+              {{ p.nom }}{% if p.companion_count is defined and p.companion_count > 0 %} (à {{ p.companion_count + 1 }}){% endif %}
             </span>
           {% endfor %}
         </div>
