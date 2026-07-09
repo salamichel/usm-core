@@ -10,40 +10,40 @@
 	{% if manifestations is defined and manifestations|length %}
 		<script type="application/ld+json">
 			{
-			  "@context": "https://schema.org",
-			  "@type": "ItemList",
-			  "name": "Agenda USM Volley",
-			  "description": "Calendrier des matchs et entraînements de l'Unions Salles Mios Volley-Ball",
-			  "itemListElement": [
+						  "@context": "https://schema.org",
+						  "@type": "ItemList",
+						  "name": "Agenda USM Volley",
+						  "description": "Calendrier des matchs et entraînements de l'Unions Salles Mios Volley-Ball",
+						  "itemListElement": [
 			{% for mid, m in manifestations %}
 				{% if loop.index <= 10 %}
 					{
-					      "@type": "ListItem",
-					      "position":
+										      "@type": "ListItem",
+										      "position":
 					{{ loop.index }},
-					      "item": {
-					        "@type": "SportsEvent",
-					        "name": "{{ m.titre|replace({'"': '\\"'})|raw }}",
-					        "startDate": "{{ m.date_display }}",
-					        "eventStatus": "
+										      "item": {
+										        "@type": "SportsEvent",
+										        "name": "{{ m.titre|replace({'"': '\\"'})|raw }}",
+										        "startDate": "{{ m.date_display }}",
+										        "eventStatus": "
 					{% if m.annule %}https://schema.org/EventCancelled{% else %}https://schema.org/EventScheduled
 					{% endif %}",
-					        "organizer": {
-					          "@type": "SportsOrganization",
-					          "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
-					        }
+										        "organizer": {
+										          "@type": "SportsOrganization",
+										          "name": "{{ site_config.club_name|default('USM Volley')|replace({'"': '\\"'})|raw }}"
+										        }
 					{% if m.lieu %},
-						        "location": {
-						          "@type": "Place",
-						          "name": "{{ m.lieu|replace({'"': '\\"'})|raw }}"
-						        }
+												        "location": {
+												          "@type": "Place",
+												          "name": "{{ m.lieu|replace({'"': '\\"'})|raw }}"
+												        }
 					{% endif %}
 					}
-					    }{{ not loop.last and loop.index < 10 ? ',' : '' }}
+										    }{{ not loop.last and loop.index < 10 ? ',' : '' }}
 				{% endif %}
 			{% endfor %}
 			]
-			}
+						}
 		</script>
 	{% endif %}
 {% endblock %}
@@ -66,6 +66,8 @@
 						<a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
 							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
 							Liste
+							{% if not can_view_player_details %}🔒
+							{% endif %}
 						</a>
 						<a href="{{ url('agenda?view=cards') }}" class="px-4 py-2 text-xs rounded-full font-medium text-slate-350 hover:text-white transition flex items-center gap-2">
 							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
@@ -93,20 +95,6 @@
 				</div>
 
 			</div>
-
-			{# Login CTA #}
-			<a href="/member/login" target="_blank" rel="noopener" class="group flex items-center gap-4 mb-6 px-6 py-4 rounded-3xl
-					            bg-[var(--primary)] text-white shadow-md
-					            hover:brightness-110 hover:shadow-lg transition-all duration-200">
-				<span class="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-				</span>
-				<span class="flex-1">
-					<span class="block text-sm font-semibold leading-snug">S'identifier pour mettre à jour sa participation</span>
-					<span class="block text-xs text-white/70 mt-0.5">Accéder à l'espace joueurs USM Volley</span>
-				</span>
-				<svg class="w-5 h-5 text-white/60 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewbox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-			</a>
 
 			{% if manifestations is empty %}
 				<p class="text-slate-600 italic text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">Aucun événement à venir.</p>
@@ -283,99 +271,116 @@
 						</thead>
 
 						<tbody>
-							{% for jid, nom in joueurs %}
-								{% set row = cross[jid] %}
-								{% set nb_manif = manifestations|length %}
+							{% if can_view_player_details %}
+								{% for jid, nom in joueurs %}
+									{% set row = cross[jid] %}
+									{% set nb_manif = manifestations|length %}
 
-								<tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40">
+									<tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40">
 
-									<td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
-										{% if row.nb_participation < nb_manif %}
-											<img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
-										{% elseif row.nb_ne_sait_pas > 3 %}
-											<span class="text-base" title="Trop d'hésitations">😕</span>
-										{% elseif row.nb_ne_sait_pas_proche > 0 %}
-											<span class="text-base" title="Réponse attendue bientôt">🤔</span>
-										{% else %}
-											<img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
-										{% endif %}
-										{% set parts = nom|split(' ') %}
-										{% set nom_famille = parts[0] %}
-										{% set prenom = parts|last %}
-										<span class="ml-1.5 text-xs">{{ nom_famille|slice(0, 3)|upper }}...
-											{{ prenom }}</span>
-									</td>
-
-									{% for mid, m in manifestations %}
-										{% set part = row[mid] ?? null %}
-										{% set is_selected = part and part.category == 'selected' %}
-										{% set is_present = part and part.category == 'present' %}
-										{% set is_available_if_needed = part and part.category == 'available_if_needed' %}
-										{% set is_available = part and part.category == 'available' %}
-										{% set is_unavailable = part and part.category == 'unavailable' %}
-										{% set is_absent = part and part.category == 'absent' %}
-										{% set is_unknown = part and part.category == 'unknown' %}
-
-										{% if is_selected %}
-											{% set cell_bg = 'bg-amber-100' %}
-											{% set text_color = 'text-amber-800' %}
-										{% elseif is_present %}
-											{% set cell_bg = 'bg-emerald-100' %}
-											{% set text_color = 'text-emerald-800' %}
-										{% elseif is_available %}
-											{% set cell_bg = 'bg-sky-100' %}
-											{% set text_color = 'text-sky-800' %}
-										{% elseif is_available_if_needed %}
-											{% set cell_bg = 'bg-cyan-100' %}
-											{% set text_color = 'text-cyan-800' %}
-										{% elseif is_unavailable %}
-											{% set cell_bg = 'bg-rose-100' %}
-											{% set text_color = 'text-rose-800' %}
-										{% elseif is_absent %}
-											{% set cell_bg = 'bg-rose-100' %}
-											{% set text_color = 'text-rose-800' %}
-										{% elseif is_unknown %}
-											{% set cell_bg = 'bg-gray-100' %}
-											{% set text_color = 'text-gray-800' %}
-										{% else %}
-											{% set cell_bg = 'bg-white' %}
-											{% set text_color = 'text-gray-400' %}
-										{% endif %}
-
-										{% if m.annule %}
-											{% set cell_bg = 'bg-rose-200' %}
-											{% set text_color = 'text-rose-900' %}
-										{% elseif m.provisoire %}
-											{% set cell_bg = 'bg-amber-100' %}
-											{% set text_color = 'text-amber-800' %}
-										{% endif %}
-
-										{% if is_selected %}
-											{% set icone = '★' %}{% set libelle = 'Sél.' %}
-										{% elseif is_present %}
-											{% set icone = '✓' %}{% set libelle = part.companion_count > 0 ? 'Prés. à ' ~ (part.companion_count + 1) : 'Prés.' %}
-										{% elseif is_available_if_needed %}
-											{% set icone = '○' %}{% set libelle = 'Si néc.' %}
-										{% elseif is_available %}
-											{% set icone = '◐' %}{% set libelle = 'Dispo' %}
-										{% elseif is_unavailable %}
-											{% set icone = '✗' %}{% set libelle = 'Indispo' %}
-										{% elseif is_absent %}
-											{% set icone = '✗' %}{% set libelle = 'Absent' %}
-										{% elseif is_unknown %}
-											{% set icone = '?' %}{% set libelle = '?' %}
-										{% else %}
-											{% set icone = '—' %}{% set libelle = 'S.R.' %}
-										{% endif %}
-
-										<td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part ? part.text : '' }}">
-											<span class="text-sm">{{ icone }}</span>
-											<span class="text-xs">{{ libelle }}</span>
+										<td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
+											{% if row.nb_participation < nb_manif %}
+												<img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
+											{% elseif row.nb_ne_sait_pas > 3 %}
+												<span class="text-base" title="Trop d'hésitations">😕</span>
+											{% elseif row.nb_ne_sait_pas_proche > 0 %}
+												<span class="text-base" title="Réponse attendue bientôt">🤔</span>
+											{% else %}
+												<img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
+											{% endif %}
+											{% set parts = nom|split(' ') %}
+											{% set nom_famille = parts[0] %}
+											{% set prenom = parts|last %}
+											<span class="ml-1.5 text-xs">{{ nom_famille|slice(0, 3)|upper }}...
+												{{ prenom }}</span>
 										</td>
-									{% endfor %}
 
+										{% for mid, m in manifestations %}
+											{% set part = row[mid] ?? null %}
+											{% set is_selected = part and part.category == 'selected' %}
+											{% set is_present = part and part.category == 'present' %}
+											{% set is_available_if_needed = part and part.category == 'available_if_needed' %}
+											{% set is_available = part and part.category == 'available' %}
+											{% set is_unavailable = part and part.category == 'unavailable' %}
+											{% set is_absent = part and part.category == 'absent' %}
+											{% set is_unknown = part and part.category == 'unknown' %}
+
+											{% if is_selected %}
+												{% set cell_bg = 'bg-amber-100' %}
+												{% set text_color = 'text-amber-800' %}
+											{% elseif is_present %}
+												{% set cell_bg = 'bg-emerald-100' %}
+												{% set text_color = 'text-emerald-800' %}
+											{% elseif is_available %}
+												{% set cell_bg = 'bg-sky-100' %}
+												{% set text_color = 'text-sky-800' %}
+											{% elseif is_available_if_needed %}
+												{% set cell_bg = 'bg-cyan-100' %}
+												{% set text_color = 'text-cyan-800' %}
+											{% elseif is_unavailable %}
+												{% set cell_bg = 'bg-rose-100' %}
+												{% set text_color = 'text-rose-800' %}
+											{% elseif is_absent %}
+												{% set cell_bg = 'bg-rose-100' %}
+												{% set text_color = 'text-rose-800' %}
+											{% elseif is_unknown %}
+												{% set cell_bg = 'bg-gray-100' %}
+												{% set text_color = 'text-gray-800' %}
+											{% else %}
+												{% set cell_bg = 'bg-white' %}
+												{% set text_color = 'text-gray-400' %}
+											{% endif %}
+
+											{% if m.annule %}
+												{% set cell_bg = 'bg-rose-200' %}
+												{% set text_color = 'text-rose-900' %}
+											{% elseif m.provisoire %}
+												{% set cell_bg = 'bg-amber-100' %}
+												{% set text_color = 'text-amber-800' %}
+											{% endif %}
+
+											{% if is_selected %}
+												{% set icone = '★' %}{% set libelle = 'Sél.' %}
+											{% elseif is_present %}
+												{% set icone = '✓' %}{% set libelle = part.companion_count > 0 ? 'Prés. à ' ~ (part.companion_count + 1) : 'Prés.' %}
+											{% elseif is_available_if_needed %}
+												{% set icone = '○' %}{% set libelle = 'Si néc.' %}
+											{% elseif is_available %}
+												{% set icone = '◐' %}{% set libelle = 'Dispo' %}
+											{% elseif is_unavailable %}
+												{% set icone = '✗' %}{% set libelle = 'Indispo' %}
+											{% elseif is_absent %}
+												{% set icone = '✗' %}{% set libelle = 'Absent' %}
+											{% elseif is_unknown %}
+												{% set icone = '?' %}{% set libelle = '?' %}
+											{% else %}
+												{% set icone = '—' %}{% set libelle = 'S.R.' %}
+											{% endif %}
+
+											<td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part ? part.text : '' }}">
+												<span class="text-sm">{{ icone }}</span>
+												<span class="text-xs">{{ libelle }}</span>
+											</td>
+										{% endfor %}
+
+									</tr>
+								{% endfor %}
+							{% else %}
+								<tr>
+									<td colspan="{{ manifestations|length + 1 }}" class="p-8 bg-slate-50/50 text-left">
+										<div class="sticky left-6 max-w-md py-6 px-4">
+											<div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 border border-indigo-100 shadow-sm">
+												<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+											</div>
+											<h3 class="text-base font-black text-slate-900 mb-1.5">Disponibilités des joueurs masquées</h3>
+											<p class="text-xs text-slate-500 mb-6 font-semibold leading-relaxed">Les présences individuelles et la grille des joueurs sont réservées aux membres connectés de l'USM Volley.</p>
+											<a href="/member/login?redirect={{ url('agenda?view=table')|url_encode }}" class="btn-primary rounded-xl font-bold py-3 px-6 inline-flex text-xs cursor-pointer shadow-sm hover:scale-105 transition-transform">
+												Se connecter pour voir les présences
+											</a>
+										</div>
+									</td>
 								</tr>
-							{% endfor %}
+							{% endif %}
 						</tbody>
 					</table>
 				</div>
@@ -507,6 +512,7 @@ var table = document.querySelector('.agenda-table');
 var buttons = document.querySelectorAll('.zoom-btn');
 if (! table || ! buttons.length) 
 return;
+
 
 
 function applyZoom(z) {

@@ -31,6 +31,19 @@ class AgendaController
         $filters = $this->extractFilters();
         $view = $_GET['view'] ?? 'cards'; // Default to 'cards' view if not specified
 
+        // Confidentialité de l'agenda
+        $privacy = \App\Models\SiteConfig::get('agenda_privacy', 'hybrid');
+        $isLoggedIn = isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true;
+
+        if ($privacy === 'private' && !$isLoggedIn) {
+            View::flash('error', 'Veuillez vous connecter pour consulter l\'agenda.');
+            $redirect = $_SERVER['REQUEST_URI'] ?? '/agenda';
+            header('Location: /member/login?redirect=' . urlencode($redirect));
+            exit;
+        }
+
+        $canViewPlayerDetails = ($privacy === 'public') || ($privacy === 'hybrid' && $isLoggedIn);
+
         // Obtenir les données de la table croisée qui sert de source unique de vérité
         $data = AgendaService::getCrossTable($filters);
 
@@ -77,25 +90,28 @@ class AgendaController
                 'filterOptions'  => AgendaService::getFilterOptions(),
                 'currentUserId'  => $userId,
                 'currentUserName' => $currentUserName,
+                'can_view_player_details' => $canViewPlayerDetails,
             ]);
             return;
         }
 
-        // Pre-process cross table for Twig
-        foreach ($data['cross'] as $jid => &$row) {
-            foreach ($data['manifestations'] as $mid => $m) {
-                $statusStr = $row[$mid] ?? '';
-                if (is_string($statusStr) && $statusStr !== '') {
-                    $status = new \App\Helpers\ParticipationStatus($statusStr);
-                    $row[$mid] = [
-                        'text' => $statusStr,
-                        'category' => $status->getCategory(),
-                        'companion_count' => $status->getCompanionCount()
-                    ];
+        // Pre-process cross table for Twig (only if authorized to view player details)
+        if ($canViewPlayerDetails) {
+            foreach ($data['cross'] as $jid => &$row) {
+                foreach ($data['manifestations'] as $mid => $m) {
+                    $statusStr = $row[$mid] ?? '';
+                    if (is_string($statusStr) && $statusStr !== '') {
+                        $status = new \App\Helpers\ParticipationStatus($statusStr);
+                        $row[$mid] = [
+                            'text' => $statusStr,
+                            'category' => $status->getCategory(),
+                            'companion_count' => $status->getCompanionCount()
+                        ];
+                    }
                 }
             }
+            unset($row);
         }
-        unset($row);
 
         View::render('agenda/index.twig', [
             'joueurs'        => $data['joueurs'],
@@ -103,6 +119,7 @@ class AgendaController
             'cross'          => $data['cross'],
             'filters'        => $filters,
             'filterOptions'  => AgendaService::getFilterOptions(),
+            'can_view_player_details' => $canViewPlayerDetails,
         ]);
     }
 
@@ -124,6 +141,17 @@ class AgendaController
             $this->notFound();
             return;
         }
+
+        $privacy = \App\Models\SiteConfig::get('agenda_privacy', 'hybrid');
+        $isLoggedIn = isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true;
+
+        if ($privacy === 'private' && !$isLoggedIn) {
+            View::flash('error', 'Veuillez vous connecter pour consulter le détail de cet événement.');
+            header('Location: /member/login?redirect=' . urlencode('/agenda/' . $id));
+            exit;
+        }
+
+        $canViewPlayerDetails = ($privacy === 'public') || ($privacy === 'hybrid' && $isLoggedIn);
 
         $participationStats = AgendaService::getParticipationStats($id);
         $event['participation_stats'] = $participationStats;
@@ -151,6 +179,7 @@ class AgendaController
         View::render('agenda/detail.twig', [
             'event' => $event,
             'is_captain' => $isCaptain,
+            'can_view_player_details' => $canViewPlayerDetails,
         ]);
     }
 

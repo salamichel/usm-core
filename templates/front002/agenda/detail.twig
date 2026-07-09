@@ -165,24 +165,37 @@
           {% endif %}
         {% endif %}
 
-        <h3 class="font-serif text-xl font-bold text-slate-900 mb-4 mt-8">Répartition des joueurs</h3>
-        <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-2{% endif %} gap-6">
-          {% if event.is_match %}
-            {# 1. Sélectionnés #}
-            {{ _self.render_status_list('Sélectionnés', event.selected, 'border-amber-100 text-amber-800 bg-amber-50/10', 'bg-amber-500', event.nb_selected) }}
-            {# 2. Disponibles #}
-            {{ _self.render_status_list('Disponibles', event.available, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_available) }}
-            {# 3. Disponible si besoin #}
-            {{ _self.render_status_list('Si besoin', event.available_if_needed, 'border-sky-100 text-sky-800 bg-sky-50/10', 'bg-sky-500', event.nb_available_if_needed) }}
-            {# 4. Indisponibles #}
-            {{ _self.render_status_list('Indisponibles', event.unavailable, 'border-rose-100 text-rose-850 bg-rose-50/10', 'bg-rose-500', event.nb_unavailable) }}
-          {% else %}
-            {# 1. Présents #}
-            {{ _self.render_status_list('Présents', event.present, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
-            {# 2. Absents #}
-            {{ _self.render_status_list('Absents', event.absent, 'border-rose-100 text-rose-800 bg-rose-50/10', 'bg-rose-500', event.nb_absent) }}
-          {% endif %}
-        </div>
+        {% if can_view_player_details %}
+          <h3 class="font-serif text-xl font-bold text-slate-900 mb-4 mt-8">Répartition des joueurs</h3>
+          <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-2{% endif %} gap-6">
+            {% if event.is_match %}
+              {# 1. Sélectionnés #}
+              {{ _self.render_status_list('Sélectionnés', event.selected, 'border-amber-100 text-amber-800 bg-amber-50/10', 'bg-amber-500', event.nb_selected) }}
+              {# 2. Disponibles #}
+              {{ _self.render_status_list('Disponibles', event.available, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_available) }}
+              {# 3. Disponible si besoin #}
+              {{ _self.render_status_list('Si besoin', event.available_if_needed, 'border-sky-100 text-sky-800 bg-sky-50/10', 'bg-sky-500', event.nb_available_if_needed) }}
+              {# 4. Indisponibles #}
+              {{ _self.render_status_list('Indisponibles', event.unavailable, 'border-rose-100 text-rose-850 bg-rose-50/10', 'bg-rose-500', event.nb_unavailable) }}
+            {% else %}
+              {# 1. Présents #}
+              {{ _self.render_status_list('Présents', event.present, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
+              {# 2. Absents #}
+              {{ _self.render_status_list('Absents', event.absent, 'border-rose-100 text-rose-800 bg-rose-50/10', 'bg-rose-500', event.nb_absent) }}
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="mt-10 rounded-3xl border border-slate-100 bg-slate-50/50 p-8 text-center shadow-sm">
+            <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 border border-indigo-105 shadow-sm">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h3 class="text-base font-black text-slate-900 mb-1.5">Liste des joueurs masquée</h3>
+            <p class="text-xs text-slate-500 mb-6 font-semibold max-w-sm mx-auto leading-relaxed">Par respect pour la vie privée de nos adhérents, la liste détaillée des disponibilités et sélections est réservée aux membres connectés de l'USM Volley.</p>
+            <a href="/member/login?redirect={{ url('agenda/' ~ event.id)|url_encode }}" class="btn-primary rounded-xl font-bold py-3 px-6 inline-flex text-xs cursor-pointer shadow-sm hover:scale-105 transition-transform">
+              Se connecter pour voir les joueurs
+            </a>
+          </div>
+        {% endif %}
       </div>
     </article>
 

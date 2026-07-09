@@ -164,42 +164,46 @@
                     <div class="flex flex-col items-start">
                         <span class="text-[9px] font-black text-slate-400 tracking-wider uppercase">Membres</span>
                         <div class="flex items-center mt-1.5 avatar-stack">
-                            {% set list_players = m.is_match ? ((m.annule ? [] : m.selected)|merge(m.available)|merge(m.available_if_needed)) : m.present %}
-                            {% set max_avatars = 5 %}
-                            
-                            {% for p in list_players|slice(0, max_avatars) %}
-                                {% set parts = p.nom|split(' ') %}
-                                {% set prenom = parts|last %}
-                                {% set initial = prenom|slice(0, 1)|upper %}
-                                {% set colors = [
-                                    'bg-blue-100 text-blue-700',
-                                    'bg-emerald-100 text-emerald-700',
-                                    'bg-violet-100 text-violet-700',
-                                    'bg-pink-100 text-pink-700',
-                                    'bg-amber-100 text-amber-700',
-                                    'bg-teal-100 text-teal-700'
-                                ] %}
-                                {% set color_class = colors[p.id % colors|length] %}
-                                <div class="w-7 h-7 rounded-full border-2 border-white {{ color_class }} flex items-center justify-center text-[9px] font-black -ml-2.5 first:ml-0 shadow-sm relative z-30" title="{{ p.nom }}">
-                                    {{ initial }}
-                                </div>
-                            {% endfor %}
-                            
-                            {% set total_players = list_players|length %}
-                            {% if total_players > max_avatars %}
-                                <div class="player-list-trigger cursor-pointer w-7 h-7 rounded-full border-2 border-white bg-slate-100 text-slate-700 flex items-center justify-center text-[9px] font-black -ml-2.5 relative z-30 shadow-sm hover:scale-110 hover:z-40 transition-all" 
-                                     data-title="Joueurs inscrits" 
-                                     data-players='{{ list_players|json_encode|e('html_attr') }}'>
-                                    +{{ total_players - max_avatars }}
-                                </div>
-                            {% elseif total_players > 0 %}
-                                <div class="player-list-trigger cursor-pointer w-7 h-7 rounded-full border-2 border-white bg-slate-50 text-slate-400 flex items-center justify-center text-[9px] font-bold -ml-2.5 relative z-30 shadow-sm hover:scale-110 hover:z-40 transition-all" 
-                                     data-title="Joueurs inscrits" 
-                                     data-players='{{ list_players|json_encode|e('html_attr') }}'>
-                                    ℹ
-                                </div>
+                            {% if can_view_player_details %}
+                                {% set list_players = m.is_match ? ((m.annule ? [] : m.selected)|merge(m.available)|merge(m.available_if_needed)) : m.present %}
+                                {% set max_avatars = 5 %}
+                                
+                                {% for p in list_players|slice(0, max_avatars) %}
+                                    {% set parts = p.nom|split(' ') %}
+                                    {% set prenom = parts|last %}
+                                    {% set initial = prenom|slice(0, 1)|upper %}
+                                    {% set colors = [
+                                        'bg-blue-100 text-blue-700',
+                                        'bg-emerald-100 text-emerald-700',
+                                        'bg-violet-100 text-violet-700',
+                                        'bg-pink-100 text-pink-700',
+                                        'bg-amber-100 text-amber-700',
+                                        'bg-teal-100 text-teal-700'
+                                    ] %}
+                                    {% set color_class = colors[p.id % colors|length] %}
+                                    <div class="w-7 h-7 rounded-full border-2 border-white {{ color_class }} flex items-center justify-center text-[9px] font-black -ml-2.5 first:ml-0 shadow-sm relative z-30" title="{{ p.nom }}">
+                                        {{ initial }}
+                                    </div>
+                                {% endfor %}
+                                
+                                {% set total_players = list_players|length %}
+                                {% if total_players > max_avatars %}
+                                    <div class="player-list-trigger cursor-pointer w-7 h-7 rounded-full border-2 border-white bg-slate-100 text-slate-700 flex items-center justify-center text-[9px] font-black -ml-2.5 relative z-30 shadow-sm hover:scale-110 hover:z-40 transition-all" 
+                                         data-title="Joueurs inscrits" 
+                                         data-players='{{ list_players|json_encode|e('html_attr') }}'>
+                                        +{{ total_players - max_avatars }}
+                                    </div>
+                                {% elseif total_players > 0 %}
+                                    <div class="player-list-trigger cursor-pointer w-7 h-7 rounded-full border-2 border-white bg-slate-50 text-slate-400 flex items-center justify-center text-[9px] font-bold -ml-2.5 relative z-30 shadow-sm hover:scale-110 hover:z-40 transition-all" 
+                                         data-title="Joueurs inscrits" 
+                                         data-players='{{ list_players|json_encode|e('html_attr') }}'>
+                                        ℹ
+                                    </div>
+                                {% else %}
+                                    <span class="text-[10px] text-slate-400 italic -ml-1">Aucun</span>
+                                {% endif %}
                             {% else %}
-                                <span class="text-[10px] text-slate-400 italic -ml-1">Aucun</span>
+                                <span class="text-[10px] text-slate-400 italic font-semibold">Masqué</span>
                             {% endif %}
                         </div>
                     </div>
@@ -210,48 +214,48 @@
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap justify-end md:justify-start">
                             {% if m.is_match %}
                                 {% if not m.annule %}
-                                    <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                    <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 border border-amber-200 text-amber-800 transition-all flex items-center gap-0.5" 
                                          data-title="Joueurs convoqués" 
                                          data-status-key="selected"
-                                         data-players='{{ m.selected|default([])|json_encode|e('html_attr') }}'>
+                                         {% if can_view_player_details %}data-players='{{ m.selected|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                         <span class="text-[9px]">★</span> <span class="count-value">{{ m.nb_selected|default(0) }}</span>
                                     </div>
                                 {% endif %}
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 border border-emerald-100 text-emerald-700 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs disponibles" 
                                      data-status-key="available"
-                                     data-players='{{ m.available|default([])|json_encode|e('html_attr') }}'>
+                                     {% if can_view_player_details %}data-players='{{ m.available|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                     <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_available|default(0) }}</span>
                                 </div>
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 hover:bg-blue-100 border border-blue-150 text-blue-700 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 border border-blue-150 text-blue-700 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs (Si besoin)" 
                                      data-status-key="available_if_needed"
-                                     data-players='{{ m.available_if_needed|default([])|json_encode|e('html_attr') }}'>
+                                     {% if can_view_player_details %}data-players='{{ m.available_if_needed|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                      <span>◐</span> <span class="count-value">{{ m.nb_available_if_needed|default(0) }}</span>
                                 </div>
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 border border-rose-100 text-rose-600 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs indisponibles" 
                                      data-status-key="unavailable"
-                                     data-players='{{ m.unavailable|default([])|json_encode|e('html_attr') }}'>
+                                     {% if can_view_player_details %}data-players='{{ m.unavailable|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                      <span>✗</span> <span class="count-value">{{ m.nb_unavailable|default(0) }}</span>
                                 </div>
                             {% else %}
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 border border-emerald-100 text-emerald-700 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs présents" 
                                      data-status-key="present"
-                                     data-players='{{ m.present|default([])|json_encode|e('html_attr') }}'>
+                                     {% if can_view_player_details %}data-players='{{ m.present|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                     <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_present|default(0) }}</span>
                                 </div>
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-600 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 border border-rose-100 text-rose-600 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs absents" 
                                      data-status-key="absent"
-                                     data-players='{{ m.absent|default([])|json_encode|e('html_attr') }}'>
+                                     {% if can_view_player_details %}data-players='{{ m.absent|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                     <span class="text-[9px]">✗</span> <span class="count-value">{{ m.nb_absent|default(0) }}</span>
                                 </div>
-                                <div class="player-list-trigger cursor-pointer px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-50 hover:bg-slate-100 border border-slate-100 text-slate-600 hover:scale-105 transition-all flex items-center gap-0.5" 
+                                <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-50 border border-slate-100 text-slate-600 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs incertains" 
                                      data-status-key="unknown"
-                                     data-players='{{ m.unknown|default([])|json_encode|e('html_attr') }}'>
+                                     {% if can_view_player_details %}data-players='{{ m.unknown|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                     <span class="text-[9px]">?</span> <span class="count-value">{{ m.nb_unknown|default(0) }}</span>
                                 </div>
                             {% endif %}

@@ -158,6 +158,21 @@
         </div>
       </div>
     </div>
+
+    {# ── Confidentialité de l'agenda ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Sécurité & Confidentialité de l'agenda</h2>
+      <p class="text-xs text-gray-500">Définissez la politique d'accès et de visibilité des informations de l'agenda des manifestations (RGPD).</p>
+      <div>
+        <label class="block font-black mb-1" for="agenda_privacy">Politique d'accès</label>
+        <select id="agenda_privacy" name="agenda_privacy" class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% set _privacy = config.agenda_privacy|default('hybrid') %}
+          <option value="public" {% if _privacy == 'public' %}selected{% endif %}>Public : tout le monde peut tout voir (liste, tableau et joueurs)</option>
+          <option value="hybrid" {% if _privacy == 'hybrid' %}selected{% endif %}>Hybride (Recommandé) : calendrier public, mais présences et détails des joueurs réservés aux connectés</option>
+          <option value="private" {% if _privacy == 'private' %}selected{% endif %}>Privé : l'agenda complet nécessite d'être connecté</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   {# ─────────────────── ONGLET 2 : CONTACT & RESEAUX ─────────────────── #}
