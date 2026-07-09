@@ -662,7 +662,7 @@ $cover = Photo::getEntityCover('equipe_saison', $es['id']);
 // Remplace : $cover = Photo::forEntity(...)[0] ?? null;
 ```
 
-### Twig dans les pages CMS
+### Twig dans les pages CMS & Configuration Globale
 
 Les pages et articles supportent la compilation Twig pour référencer la configuration du site.
 Cela permet aux éditeurs de construire du contenu dynamique sans code :
@@ -674,9 +674,14 @@ Adresse: {{ site_config.address }}
 © {{ site_config.club_name }}
 ```
 
+> [!NOTE]
+> **Variable Globale Twig vs Variable Locale** :
+> - Sur le site public (front-end), la configuration du site est injectée globalement dans tous les templates Twig sous la variable `site_config` (ex: `{{ site_config.club_name }}`).
+> - Dans le template d'administration `admin/site-config/edit.twig`, les configurations de la table `site_config` sont passées localement par le contrôleur sous le nom de variable `config` (ex: `{{ config.club_name }}`).
+
 **Champs disponibles** : `club_name`, `club_tagline`, `address`, `email`, `phone`,
 `facebook_url`, `instagram_url`, `legal_text`, `home_slider_posts_count`,
-`home_latest_posts_count`.
+`home_latest_posts_count`, et les clés de configuration des bandeaux mobiles (`visitor_bottom_*`, `member_bottom_*`).
 
 **Fonctionnement** :
 - À chaque rendu d'une page ou article, le contenu est compilé comme template Twig
