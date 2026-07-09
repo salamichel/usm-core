@@ -353,7 +353,7 @@
 										{% if is_selected %}
 											{% set icone = '★' %}{% set libelle = 'Sél.' %}
 										{% elseif is_present %}
-											{% set icone = '✓' %}{% set libelle = 'Prés.' %}
+											{% set icone = '✓' %}{% set libelle = part.companion_count > 0 ? 'Prés. à ' ~ (part.companion_count + 1) : 'Prés.' %}
 										{% elseif is_available_if_needed %}
 											{% set icone = '○' %}{% set libelle = 'Si néc.' %}
 										{% elseif is_available %}

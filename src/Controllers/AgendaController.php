@@ -86,9 +86,11 @@ class AgendaController
             foreach ($data['manifestations'] as $mid => $m) {
                 $statusStr = $row[$mid] ?? '';
                 if (is_string($statusStr) && $statusStr !== '') {
+                    $status = new \App\Helpers\ParticipationStatus($statusStr);
                     $row[$mid] = [
                         'text' => $statusStr,
-                        'category' => \App\Helpers\ParticipationStatus::categorize($statusStr)
+                        'category' => $status->getCategory(),
+                        'companion_count' => $status->getCompanionCount()
                     ];
                 }
             }

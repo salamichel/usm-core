@@ -11,7 +11,7 @@ use App\Models\SiteConfig;
 class SiteConfigController
 {
     private const FIELDS = [
-        'theme',
+        'theme', 'agenda_privacy',
         'club_name', 'club_tagline', 'address', 'email', 'phone',
         'facebook_url', 'instagram_url', 'legal_text',
         'google_analytics_id',
@@ -39,6 +39,23 @@ class SiteConfigController
         'cta_feature_1_label', 'cta_feature_1_sub',
         'cta_feature_2_label', 'cta_feature_2_sub',
         'cta_feature_3_label', 'cta_feature_3_sub',
+        // Bandeaux du bas (Mobile)
+        'visitor_bottom_url_1', 'visitor_bottom_label_1',
+        'visitor_bottom_url_2', 'visitor_bottom_label_2',
+        'visitor_bottom_url_3', 'visitor_bottom_label_3',
+        'visitor_bottom_url_4', 'visitor_bottom_label_4',
+        'visitor_bottom_url_5', 'visitor_bottom_label_5',
+        'member_bottom_url_1', 'member_bottom_label_1',
+        'member_bottom_url_2', 'member_bottom_label_2',
+        'member_bottom_url_3', 'member_bottom_label_3',
+        'member_bottom_url_4', 'member_bottom_label_4',
+        'member_bottom_url_5', 'member_bottom_label_5',
+        'visitor_bottom_icon_1', 'visitor_bottom_icon_2',
+        'visitor_bottom_icon_3', 'visitor_bottom_icon_4',
+        'visitor_bottom_icon_5',
+        'member_bottom_icon_1', 'member_bottom_icon_2',
+        'member_bottom_icon_3', 'member_bottom_icon_4',
+        'member_bottom_icon_5',
     ];
 
     private const ALLOWED_DISPLAY_MODES = [
