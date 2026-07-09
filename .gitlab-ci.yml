@@ -16,7 +16,7 @@ deploy_ftp:
     - apk add lftp
   script:
     - echo "Démarrage du déploiement vers InfinityFree... $FTP_HOME "    
-    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=1 --no-perms --exclude-glob '.*' --exclude-glob '*.md' --exclude-glob 'public/' --exclude-glob 'vendor/' --exclude-glob 'docker/' --exclude-glob 'docs/' --exclude-glob 'scripts/' --exclude-glob 'tests/' --exclude-glob 'logs/' --exclude-glob 'database/' --exclude-glob 'config/' --exclude-glob '.agents/'  --exclude-glob '.git/'  "
+    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=1 --no-perms --exclude-glob '.*' --exclude-glob '*.md' --exclude-glob 'public/' --exclude-glob 'vendor/' --exclude-glob 'docker/' --exclude-glob 'docs/' --exclude-glob 'scripts/' --exclude-glob 'tests/' --exclude-glob 'logs/' --exclude-glob 'database/' --exclude-glob 'config/' --exclude-glob '.agents/'  --exclude-glob '.git/' --exclude-glob 'Dockerfile' --exclude-glob '*.yml' --exclude-glob 'composer.*' "
     - echo "Démarrage du déploiement Dossier Public..."    
     - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./public /$FTP_HOME --ignore-time --parallel=1 --no-perms"
     - echo "Déploiement terminé !"
