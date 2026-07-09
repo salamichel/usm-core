@@ -1,0 +1,95 @@
+stages:
+  - deploy
+  - backup
+  - local_extract
+
+# =========================================================
+# JOB 1 : DÉPLOIEMENT VERS LE FTP (Automatique sur main)
+# =========================================================
+deploy_ftp:
+  stage: deploy
+  image: alpine:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    - apk update
+    - apk add lftp
+  script:
+    - echo "Démarrage du déploiement vers InfinityFree... $FTP_HOME "    
+    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./ /$FTP_HOME --ignore-time --parallel=1 --no-perms --exclude-glob '.*' --exclude-glob '*.md' --exclude-glob 'public/' --exclude-glob 'vendor/' --exclude-glob 'docker/' --exclude-glob 'docs/' --exclude-glob 'scripts/' --exclude-glob 'tests/' --exclude-glob 'logs/' --exclude-glob 'database/' --exclude-glob 'config/' --exclude-glob '.agents/'  --exclude-glob '.git/' --exclude-glob 'Dockerfile' --exclude-glob '*.yml' --exclude-glob 'composer.*' "
+    - echo "Démarrage du déploiement Dossier Public..."    
+    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -Rnv ./public /$FTP_HOME --ignore-time --parallel=1 --no-perms"
+    - echo "Déploiement terminé !"
+  environment:
+    name: production
+
+# =========================================================
+# JOB 2 : SAUVEGARDE DEPUIS LE FTP (Manuel / Planifié)
+# =========================================================
+pull_from_ftp:
+  stage: backup
+  image: alpine:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  before_script:
+    - 'apk update'
+    - 'apk add lftp zip'
+  script:
+    - 'DATE_STR=$(date +%Y-%m-%d_%Hh%M)'
+    - 'echo "Horodatage généré : $DATE_STR"'
+    - 'mkdir -p ./sauvegarde_locale'
+    - 'lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v /htdocs ./sauvegarde_locale --parallel=2"'
+    - 'zip -r "backup_$DATE_STR.zip" ./sauvegarde_locale/'
+    - 'echo "Sauvegarde terminée !"'
+  artifacts:
+    name: "Sauvegarde-InfinityFree-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - 'backup_*.zip'
+    expire_in: 1 week
+
+# =========================================================
+# JOB 3 : CONNEXION SSH ET EXTRACTION SUR LA MACHINE LOCALE
+# =========================================================
+extract_to_local:
+  stage: local_extract
+    # On remplace 'latest' par '3.16' qui accepte parfaitement les clés RSA
+  image: alpine:3.16 
+  
+  rules:
+    # S'exécute à la suite du job de sauvegarde s'il est lancé manuellement ou planifié
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  before_script:
+    - 'apk update && apk add openssh-client bash'
+    - 'eval $(ssh-agent -s)'
+    - 'mkdir -p ~/.ssh'
+    - 'chmod 700 ~/.ssh'
+    
+    # 1. On sauvegarde la clé dans un fichier sécurisé au lieu du stdin
+    - 'echo "$SSH_PRIVATE_KEY" | tr -d "\r" > ~/.ssh/id_rsa'
+    - 'chmod 600 ~/.ssh/id_rsa'
+    
+    # 2. On ajoute la clé depuis le fichier
+    - 'ssh-add ~/.ssh/id_rsa'
+    
+    # 3. Ajout de la machine distante
+    - 'ssh-keyscan -H 192.168.0.105 >> ~/.ssh/known_hosts'
+    - 'chmod 644 ~/.ssh/known_hosts'
+
+    # 4. Création sécurisée du répertoire de configuration SSH
+    - 'mkdir -p ~/.ssh'
+    - 'chmod 700 ~/.ssh'
+
+    # 5. Ajout de l'empreinte de la machine pour éviter le blocage d'authentification interactif
+    - 'ssh-keyscan -H 192.168.0.105 >> ~/.ssh/known_hosts'
+    - 'chmod 644 ~/.ssh/known_hosts'
+  script:
+    - 'echo "Copie de l''archive artefact vers la machine distante..."'
+    # IMPORTANT : Remplacez 'votre_utilisateur' par le login réel de votre machine 192.168.0.105
+    - 'scp backup_*.zip root@192.168.0.105:~/usm/usm-core-backup/'
+    
+    - 'echo "Connexion SSH et extraction de l''archive sur place..."'
+    # Connexion à distance pour décompresser l'archive puis nettoyer le fichier zip transféré
+    - 'ssh root@192.168.0.105 "cd ~/usm/usm-core-backup && unzip -o backup_*.zip && rm backup_*.zip"'
+    - 'echo "Extraction locale terminée avec succès !"'
