@@ -158,6 +158,21 @@
         </div>
       </div>
     </div>
+
+    {# ── Confidentialité de l'agenda ── #}
+    <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+      <h2 class="font-black text-lg">Sécurité & Confidentialité de l'agenda</h2>
+      <p class="text-xs text-gray-500">Définissez la politique d'accès et de visibilité des informations de l'agenda des manifestations (RGPD).</p>
+      <div>
+        <label class="block font-black mb-1" for="agenda_privacy">Politique d'accès</label>
+        <select id="agenda_privacy" name="agenda_privacy" class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          {% set _privacy = config.agenda_privacy|default('hybrid') %}
+          <option value="public" {% if _privacy == 'public' %}selected{% endif %}>Public : tout le monde peut tout voir (liste, tableau et joueurs)</option>
+          <option value="hybrid" {% if _privacy == 'hybrid' %}selected{% endif %}>Hybride (Recommandé) : calendrier public, mais présences et détails des joueurs réservés aux connectés</option>
+          <option value="private" {% if _privacy == 'private' %}selected{% endif %}>Privé : l'agenda complet nécessite d'être connecté</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   {# ─────────────────── ONGLET 2 : CONTACT & RESEAUX ─────────────────── #}
@@ -676,12 +691,29 @@
         <h3 class="font-black text-md border-b-2 border-black pb-2 text-gray-800 uppercase tracking-wide">Bandeau Visiteur (non connecté)</h3>
 
         {# Visiteur 1 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-amber-500 pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_label_1">Onglet 1 - Libellé</label>
             <input type="text" id="visitor_bottom_label_1" name="visitor_bottom_label_1"
                    value="{{ config.visitor_bottom_label_1|default('Accueil') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_icon_1">Onglet 1 - Icône</label>
+            <select id="visitor_bottom_icon_1" name="visitor_bottom_icon_1" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.visitor_bottom_icon_1|default('home') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_url_1">Onglet 1 - Lien (Chemin ou URL)</label>
@@ -693,12 +725,29 @@
         </div>
 
         {# Visiteur 2 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-amber-500 pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_label_2">Onglet 2 - Libellé</label>
             <input type="text" id="visitor_bottom_label_2" name="visitor_bottom_label_2"
                    value="{{ config.visitor_bottom_label_2|default('Équipes') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_icon_2">Onglet 2 - Icône</label>
+            <select id="visitor_bottom_icon_2" name="visitor_bottom_icon_2" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.visitor_bottom_icon_2|default('users') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_url_2">Onglet 2 - Lien (Chemin ou URL)</label>
@@ -709,7 +758,7 @@
         </div>
 
         {# Visiteur 3 (Bouton central) #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-slate-900 pl-4 py-1 bg-slate-50 p-2">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-slate-900 pl-4 py-1 bg-slate-50 p-2">
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_label_3">Bouton Central (Connexion) - Info-bulle</label>
             <input type="text" id="visitor_bottom_label_3" name="visitor_bottom_label_3"
@@ -717,7 +766,24 @@
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
           </div>
           <div>
-            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_3">Bouton Central (Connexion) - Lien (Chemin ou URL)</label>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_icon_3">Bouton Central - Icône</label>
+            <select id="visitor_bottom_icon_3" name="visitor_bottom_icon_3" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.visitor_bottom_icon_3|default('lock') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_url_3">Bouton Central - Lien (Chemin ou URL)</label>
             <input type="text" id="visitor_bottom_url_3" name="visitor_bottom_url_3"
                    value="{{ config.visitor_bottom_url_3|default('member/login') }}"
                    class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
@@ -725,12 +791,29 @@
         </div>
 
         {# Visiteur 4 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-amber-500 pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_label_4">Onglet 3 - Libellé</label>
             <input type="text" id="visitor_bottom_label_4" name="visitor_bottom_label_4"
                    value="{{ config.visitor_bottom_label_4|default('Actus') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_icon_4">Onglet 3 - Icône</label>
+            <select id="visitor_bottom_icon_4" name="visitor_bottom_icon_4" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.visitor_bottom_icon_4|default('newspaper') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_url_4">Onglet 3 - Lien (Chemin ou URL)</label>
@@ -741,12 +824,29 @@
         </div>
 
         {# Visiteur 5 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-amber-500 pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-amber-500 pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_label_5">Onglet 4 - Libellé</label>
             <input type="text" id="visitor_bottom_label_5" name="visitor_bottom_label_5"
                    value="{{ config.visitor_bottom_label_5|default('Contact') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="visitor_bottom_icon_5">Onglet 4 - Icône</label>
+            <select id="visitor_bottom_icon_5" name="visitor_bottom_icon_5" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.visitor_bottom_icon_5|default('mail') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="visitor_bottom_url_5">Onglet 4 - Lien (Chemin ou URL)</label>
@@ -761,12 +861,29 @@
         <h3 class="font-black text-md border-b-2 border-black pb-2 text-gray-800 uppercase tracking-wide">Bandeau Membre (connecté)</h3>
 
         {# Membre 1 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-usm-brown pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_label_1">Onglet 1 - Libellé</label>
             <input type="text" id="member_bottom_label_1" name="member_bottom_label_1"
                    value="{{ config.member_bottom_label_1|default('Accueil') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_icon_1">Onglet 1 - Icône</label>
+            <select id="member_bottom_icon_1" name="member_bottom_icon_1" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.member_bottom_icon_1|default('home') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_url_1">Onglet 1 - Lien (Chemin ou URL)</label>
@@ -777,12 +894,29 @@
         </div>
 
         {# Membre 2 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-usm-brown pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_label_2">Onglet 2 - Libellé</label>
             <input type="text" id="member_bottom_label_2" name="member_bottom_label_2"
                    value="{{ config.member_bottom_label_2|default('Ma Sem.') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_icon_2">Onglet 2 - Icône</label>
+            <select id="member_bottom_icon_2" name="member_bottom_icon_2" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.member_bottom_icon_2|default('clipboard-check') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_url_2">Onglet 2 - Lien (Chemin ou URL)</label>
@@ -793,7 +927,7 @@
         </div>
 
         {# Membre 3 (Bouton central) #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-[var(--primary)] pl-4 py-1 bg-slate-50 p-2">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-[var(--primary)] pl-4 py-1 bg-slate-50 p-2">
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_label_3">Bouton Central (FAB Agenda) - Info-bulle</label>
             <input type="text" id="member_bottom_label_3" name="member_bottom_label_3"
@@ -801,7 +935,24 @@
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
           </div>
           <div>
-            <label class="block font-black text-sm mb-1" for="member_bottom_url_3">Bouton Central (FAB Agenda) - Lien (Chemin ou URL)</label>
+            <label class="block font-black text-sm mb-1" for="member_bottom_icon_3">Bouton Central - Icône</label>
+            <select id="member_bottom_icon_3" name="member_bottom_icon_3" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.member_bottom_icon_3|default('calendar') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_url_3">Bouton Central - Lien (Chemin ou URL)</label>
             <input type="text" id="member_bottom_url_3" name="member_bottom_url_3"
                    value="{{ config.member_bottom_url_3|default('agenda?view=cards#filters') }}"
                    class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
@@ -809,12 +960,29 @@
         </div>
 
         {# Membre 4 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-usm-brown pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_label_4">Onglet 3 - Libellé</label>
             <input type="text" id="member_bottom_label_4" name="member_bottom_label_4"
                    value="{{ config.member_bottom_label_4|default('Sem. Club') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_icon_4">Onglet 3 - Icône</label>
+            <select id="member_bottom_icon_4" name="member_bottom_icon_4" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.member_bottom_icon_4|default('calendar') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_url_4">Onglet 3 - Lien (Chemin ou URL)</label>
@@ -825,12 +993,29 @@
         </div>
 
         {# Membre 5 #}
-        <div class="grid sm:grid-cols-2 gap-4 border-l-4 border-usm-brown pl-4 py-1">
+        <div class="grid sm:grid-cols-3 gap-4 border-l-4 border-usm-brown pl-4 py-1">
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_label_5">Onglet 4 - Libellé</label>
             <input type="text" id="member_bottom_label_5" name="member_bottom_label_5"
                    value="{{ config.member_bottom_label_5|default('Profil') }}"
                    class="w-full border-2 border-black px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          </div>
+          <div>
+            <label class="block font-black text-sm mb-1" for="member_bottom_icon_5">Onglet 4 - Icône</label>
+            <select id="member_bottom_icon_5" name="member_bottom_icon_5" class="w-full border-2 border-black px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown">
+              {% set _icon = config.member_bottom_icon_5|default('user') %}
+              <option value="home" {% if _icon == 'home' %}selected{% endif %}>🏠 Accueil / Maison</option>
+              <option value="users" {% if _icon == 'users' %}selected{% endif %}>👥 Équipes (Groupe)</option>
+              <option value="user" {% if _icon == 'user' %}selected{% endif %}>👤 Profil / Utilisateur</option>
+              <option value="calendar" {% if _icon == 'calendar' %}selected{% endif %}>📅 Agenda / Calendrier</option>
+              <option value="lock" {% if _icon == 'lock' %}selected{% endif %}>🔒 Connexion / Cadenas</option>
+              <option value="newspaper" {% if _icon == 'newspaper' %}selected{% endif %}>📰 Actualités / Journal</option>
+              <option value="mail" {% if _icon == 'mail' %}selected{% endif %}>✉️ Contact / Email</option>
+              <option value="clipboard-check" {% if _icon == 'clipboard-check' %}selected{% endif %}>📋 Ma Semaine (Liste)</option>
+              <option value="trophy" {% if _icon == 'trophy' %}selected{% endif %}>🏆 Trophée / Résultats</option>
+              <option value="map-pin" {% if _icon == 'map-pin' %}selected{% endif %}>📍 Lieux / Adresses</option>
+              <option value="cog" {% if _icon == 'cog' %}selected{% endif %}>⚙️ Paramètres / Engrenage</option>
+            </select>
           </div>
           <div>
             <label class="block font-black text-sm mb-1" for="member_bottom_url_5">Onglet 4 - Lien (Chemin ou URL)</label>
