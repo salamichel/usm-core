@@ -60,6 +60,7 @@ class EventNormalizer
             'lieu'         => $row['Lieu'] ?? null,
             'status'       => $row['Statut'] ?? null,
             'is_soon'      => $isSoon,
+            'google_calendar_url' => self::buildGoogleCalendarUrl($row),
         ];
     }
 
@@ -146,6 +147,7 @@ class EventNormalizer
             'is_training'                 => str_contains($type, 'Entra'),
             'type_simple'                 => $type,
             'type_libelle'                => $type,
+            'google_calendar_url'         => self::buildGoogleCalendarUrl($row),
         ];
     }
 
@@ -256,5 +258,88 @@ class EventNormalizer
         $monthEn = $date->format('M');
         $monthFr = self::$MONTHS_FR[$monthEn] ?? $monthEn;
         return $dayFr . ' ' . $date->format('j') . ' ' . $monthFr;
+    }
+
+    /**
+     * Génère un lien de modèle Google Agenda pour la manifestation.
+     */
+    public static function buildGoogleCalendarUrl(array $row): string
+    {
+        $title = self::extractTitle($row['ManifestationTypée'] ?? '');
+        $parts = explode(' - ', $row['ManifestationTypée'] ?? '', 3);
+        $type  = $parts[1] ?? '';
+        if ($type !== '' && !str_contains(mb_strtolower($title), mb_strtolower($type))) {
+            $fullTitle = "$type - $title";
+        } else {
+            $fullTitle = preg_replace('/^(Disponibilités|Présences)\s*-\s*/iu', '', $title);
+        }
+
+        $dateStr = $row['Date'] ?? null;
+        if (!$dateStr) {
+            return '';
+        }
+
+        try {
+            $tzLocal = new \DateTimeZone('Europe/Paris');
+            $tzUtc   = new \DateTimeZone('UTC');
+            
+            $startDt = new \DateTime($dateStr, $tzLocal);
+            
+            // Si l'heure est 00:00:00, c'est un événement sur toute la journée
+            $isAllDay = $startDt->format('H:i:s') === '00:00:00';
+            
+            if ($isAllDay) {
+                $startDateStr = $startDt->format('Ymd');
+                $endDt = clone $startDt;
+                $endDt->modify('+1 day');
+                $endDateStr = $endDt->format('Ymd');
+                $dates = "$startDateStr/$endDateStr";
+            } else {
+                $durationStr = $row['Durée_créneau'] ?? '2h';
+                $hours = 2;
+                $minutes = 0;
+                if (!empty($durationStr)) {
+                    if (str_contains($durationStr, 'h')) {
+                        $parts = explode('h', $durationStr);
+                        $hours = (int)($parts[0] ?? 2);
+                        $minutes = isset($parts[1]) && $parts[1] !== '' ? (int)$parts[1] : 0;
+                    } elseif (str_contains($durationStr, 'm')) {
+                        $hours = 0;
+                        $minutes = (int)str_replace('m', '', $durationStr);
+                    }
+                }
+                
+                $endDt = clone $startDt;
+                $endDt->modify("+{$hours} hour +{$minutes} minute");
+                
+                // Google Agenda attend des dates UTC pour les événements avec heure
+                $startDt->setTimezone($tzUtc);
+                $endDt->setTimezone($tzUtc);
+                
+                $startDateStr = $startDt->format('Ymd\THis\Z');
+                $endDateStr = $endDt->format('Ymd\THis\Z');
+                $dates = "$startDateStr/$endDateStr";
+            }
+        } catch (\Throwable) {
+            return '';
+        }
+
+        $location = $row['Lieu'] ?? '';
+        
+        $details = '';
+        if (!empty($row['Commentaire'])) {
+            $details = $row['Commentaire'];
+        }
+        
+        $eventUrl = (defined('BASE_URL') ? BASE_URL : 'http://localhost') . '/agenda/' . ($row['id_manifestation'] ?? 0);
+        $details .= ($details ? "\n\n" : "") . "Plus de détails et participation : " . $eventUrl;
+
+        return 'https://calendar.google.com/calendar/render?' . http_build_query([
+            'action'   => 'TEMPLATE',
+            'text'     => $fullTitle,
+            'dates'    => $dates,
+            'details'  => $details,
+            'location' => $location,
+        ], '', '&', PHP_QUERY_RFC3986);
     }
 }
