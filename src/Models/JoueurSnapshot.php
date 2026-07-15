@@ -28,6 +28,23 @@ class JoueurSnapshot
 
         $db->beginTransaction();
         try {
+            // 0. Récupérer les capitaines actuels (id_joueur et equipe_id) pour les préserver
+            $stmtCaptains = $db->prepare(
+                "SELECT js.id_joueur, es.equipe_id
+                 FROM equipe_saison_joueur esj
+                 JOIN joueur_snapshots js ON js.id = esj.snapshot_id
+                 JOIN equipe_saison es ON es.id = esj.equipe_saison_id
+                 WHERE es.saison_id = ? AND esj.is_captain = 1"
+            );
+            $stmtCaptains->execute([$saisonId]);
+            $existingCaptains = $stmtCaptains->fetchAll(\PDO::FETCH_ASSOC);
+
+            $captainKeys = [];
+            foreach ($existingCaptains as $cap) {
+                $key = $cap['id_joueur'] . '-' . $cap['equipe_id'];
+                $captainKeys[$key] = true;
+            }
+
             // 1. Remplacer les snapshots : supprimer les anciens puis réinsérer
             $db->prepare(
                 "DELETE FROM joueur_snapshots WHERE saison_id = ?"
@@ -66,8 +83,13 @@ class JoueurSnapshot
                      VALUES (?, ?, ?)"
                 );
                 foreach ($snaps as $snap) {
-                    if (!empty($snap['data'][$col])) {
-                        $isCaptain = str_contains($snap['data']['Caracteristique'] ?? '', 'Capitaine') ? 1 : 0;
+                    $key = $snap['id_joueur'] . '-' . $eq['id'];
+                    $wasCaptain = isset($captainKeys[$key]);
+
+                    // Le joueur doit être inséré s'il est dans la colonne de l'équipe de la base externe,
+                    // OU s'il était déjà capitaine de cette équipe.
+                    if (!empty($snap['data'][$col]) || $wasCaptain) {
+                        $isCaptain = $wasCaptain ? 1 : (str_contains($snap['data']['Caracteristique'] ?? '', 'Capitaine') ? 1 : 0);
                         $ins->execute([$es['id'], $snap['id'], $isCaptain]);
                     }
                 }
