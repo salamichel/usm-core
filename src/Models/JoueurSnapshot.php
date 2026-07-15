@@ -39,6 +39,8 @@ class JoueurSnapshot
             $stmtCaptains->execute([$saisonId]);
             $existingCaptains = $stmtCaptains->fetchAll(\PDO::FETCH_ASSOC);
 
+            $hasExistingCaptains = !empty($existingCaptains);
+
             $captainKeys = [];
             foreach ($existingCaptains as $cap) {
                 $key = $cap['id_joueur'] . '-' . $cap['equipe_id'];
@@ -89,7 +91,14 @@ class JoueurSnapshot
                     // Le joueur doit être inséré s'il est dans la colonne de l'équipe de la base externe,
                     // OU s'il était déjà capitaine de cette équipe.
                     if (!empty($snap['data'][$col]) || $wasCaptain) {
-                        $isCaptain = $wasCaptain ? 1 : (str_contains($snap['data']['Caracteristique'] ?? '', 'Capitaine') ? 1 : 0);
+                        if ($hasExistingCaptains) {
+                            // Si des capitaines existent déjà localement pour cette saison,
+                            // on préserve l'existant local sans importer de nouveau capitaine de la base externe.
+                            $isCaptain = $wasCaptain ? 1 : 0;
+                        } else {
+                            // Sinon (premier flash de la saison), on importe le capitaine de la base externe.
+                            $isCaptain = str_contains($snap['data']['Caracteristique'] ?? '', 'Capitaine') ? 1 : 0;
+                        }
                         $ins->execute([$es['id'], $snap['id'], $isCaptain]);
                     }
                 }
