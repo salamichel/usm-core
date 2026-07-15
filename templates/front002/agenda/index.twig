@@ -298,8 +298,7 @@
 											{% set parts = nom|split(' ') %}
 											{% set nom_famille = parts[0] %}
 											{% set prenom = parts|last %}
-											<span class="ml-1.5 text-xs">{{ nom_famille|upper }}...
-												{{ prenom }}</span>
+											<span class="ml-1.5 text-xs">{{ nom_famille|upper }} {{ prenom }}</span>
 										</td>
 
 										{% for mid, m in manifestations %}
