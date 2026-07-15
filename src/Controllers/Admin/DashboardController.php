@@ -74,11 +74,14 @@ class DashboardController extends BaseAdminController
             // base externe indisponible — valeurs null affichées "—" dans le template
         }
 
+        $gaStatsResult = \App\Services\GoogleAnalyticsService::getStatsForPeriod('30days');
+
         View::render('admin/dashboard.twig', [
             'stats'         => $stats,
             'clubStats'     => $clubStats,
             'extStats'      => $extStats,
             'supportStats'  => $supportStats,
+            'gaStats'       => $gaStatsResult,
         ]);
     }
 }
