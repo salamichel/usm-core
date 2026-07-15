@@ -63,7 +63,7 @@
 
 					{# Toolbar / Sélecteur de vue épuré #}
 					<div class="flex items-center gap-1 bg-white/10 p-1 rounded-full border border-white/10 shadow-sm">
-						<a href="{{ url('agenda?view=table') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
+						<a href="{{ url('agenda?view=table&hide_empty_players=1') }}" class="px-4 py-2 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow transition flex items-center gap-2">
 							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
 							Liste
 							{% if not can_view_player_details %}🔒
@@ -298,7 +298,7 @@
 											{% set parts = nom|split(' ') %}
 											{% set nom_famille = parts[0] %}
 											{% set prenom = parts|last %}
-											<span class="ml-1.5 text-xs">{{ nom_famille|slice(0, 3)|upper }}...
+											<span class="ml-1.5 text-xs">{{ nom_famille|upper }}...
 												{{ prenom }}</span>
 										</td>
 
