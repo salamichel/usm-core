@@ -47,10 +47,7 @@ pull_from_ftp:
       open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; 
       mirror -v $FTP_HOME ./sauvegarde_locale 
       --exclude-glob .git/ 
-      --exclude-glob cache/ 
-      --exclude-glob vendor/ 
-      --exclude-glob node_modules/ 
-      --exclude-glob logs/ 
+      --exclude-glob cache/
       --parallel=2"
       
     # 2. Added '-9' flag to zip for maximum compression
