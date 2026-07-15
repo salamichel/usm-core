@@ -40,7 +40,7 @@ pull_from_ftp:
     - 'echo "Horodatage généré : $DATE_STR"'
     - echo "Démarrage du backup... $FTP_HOME "    
     - 'mkdir -p ./sauvegarde_locale'
-    - 'lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v $FTP_HOME ./sauvegarde_locale --exclude-glob 'cache' --exclude-glob 'vendor/' --parallel=2"'
+    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v $FTP_HOME ./sauvegarde_locale --exclude-glob 'cache' --exclude-glob 'vendor/' --parallel=2"
     - 'zip -r "backup_$DATE_STR.zip" ./sauvegarde_locale/'
     - 'echo "Sauvegarde terminée !"'
   artifacts:
