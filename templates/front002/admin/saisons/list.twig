@@ -26,18 +26,10 @@
       <span class="text-gray-600">{{ s.snapshot_count }} joueurs</span>
     </div>
     <div class="flex flex-wrap gap-2">
-      {% if not s.is_active %}
-      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/activate') }}">
+      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" data-confirm="Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Activer</button>
+        <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
       </form>
-      {% endif %}
-      {% if s.is_active %}
-        <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" data-confirm="Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
-        </form>
-      {% endif %}  
       <a href="{{ url('admin/saisons/' ~ s.id ~ '/edit') }}"
          class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Modifier</a>
       <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
@@ -78,18 +70,10 @@
         <td class="px-4 py-3 text-gray-600">{{ s.snapshot_count }} joueurs</td>
         <td class="px-4 py-3">
           <div class="flex gap-2 justify-end flex-wrap">
-            {% if not s.is_active %}
-            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/activate') }}">
+            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" data-confirm="Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Activer</button>
+              <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
             </form>
-            {% endif %}
-            {% if s.is_active %}
-              <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/flash') }}" data-confirm="Flasher la saison « {{ s.libelle }} » ? Les ajustements manuels des équipes seront réinitialisés.">
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="border-2 border-usm-brown text-usm-brown px-2 py-1 text-xs font-bold hover:bg-usm-brown hover:text-white transition">Flash</button>
-              </form>
-            {% endif %}
             <a href="{{ url('admin/saisons/' ~ s.id ~ '/edit') }}"
                class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Modifier</a>
             <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"

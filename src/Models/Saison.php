@@ -9,52 +9,83 @@ class Saison
 {
     public static function all(): array
     {
-        return Database::get()
+        $rows = Database::get()
             ->query("SELECT * FROM saisons ORDER BY created_at DESC")
             ->fetchAll();
+
+        $active = self::getActive();
+        $activeId = $active ? (int)$active['id'] : null;
+
+        foreach ($rows as &$row) {
+            $row['is_active'] = ($activeId !== null && (int)$row['id'] === $activeId) ? 1 : 0;
+        }
+        unset($row);
+
+        return $rows;
     }
 
     public static function find(int $id): ?array
     {
         $stmt = Database::get()->prepare("SELECT * FROM saisons WHERE id = ? LIMIT 1");
         $stmt->execute([$id]);
-        return $stmt->fetch() ?: null;
+        $row = $stmt->fetch() ?: null;
+
+        if ($row) {
+            $active = self::getActive();
+            $activeId = $active ? (int)$active['id'] : null;
+            $row['is_active'] = ($activeId !== null && (int)$row['id'] === $activeId) ? 1 : 0;
+        }
+
+        return $row;
     }
 
     public static function getActive(): ?array
     {
-        $stmt = Database::get()->prepare("SELECT * FROM saisons WHERE is_active = 1 LIMIT 1");
+        $db = Database::get();
+        
+        // 1. Chercher la saison dont les bornes de dates incluent le jour actuel (inclusif)
+        $stmt = $db->prepare("
+            SELECT * FROM saisons 
+            WHERE date_debut IS NOT NULL 
+              AND date_fin IS NOT NULL 
+              AND date_debut <= CURRENT_DATE() 
+              AND date_fin >= CURRENT_DATE() 
+            ORDER BY date_debut DESC, id DESC 
+            LIMIT 1
+        ");
         $stmt->execute();
-        return $stmt->fetch() ?: null;
+        $saison = $stmt->fetch() ?: null;
+        if ($saison) {
+            $saison['is_active'] = 1;
+            return $saison;
+        }
+
+        // 2. Repli : chercher la dernière saison par date de début
+        $stmt = $db->prepare("
+            SELECT * FROM saisons 
+            ORDER BY date_debut DESC, id DESC 
+            LIMIT 1
+        ");
+        $stmt->execute();
+        $saison = $stmt->fetch() ?: null;
+        if ($saison) {
+            $saison['is_active'] = 1;
+        }
+        return $saison;
     }
 
     public static function create(array $data): int
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO saisons (libelle, date_debut, date_fin, is_active) VALUES (:libelle, :date_debut, :date_fin, :is_active)"
+            "INSERT INTO saisons (libelle, date_debut, date_fin) VALUES (:libelle, :date_debut, :date_fin)"
         );
         $stmt->execute([
             ':libelle'    => $data['libelle'],
             ':date_debut' => $data['date_debut'],
             ':date_fin'   => $data['date_fin'],
-            ':is_active'  => (int)($data['is_active'] ?? 0),
         ]);
         return (int)$db->lastInsertId();
-    }
-
-    public static function activate(int $id): void
-    {
-        $db = Database::get();
-        $db->beginTransaction();
-        try {
-            $db->prepare("UPDATE saisons SET is_active = 0")->execute();
-            $db->prepare("UPDATE saisons SET is_active = 1 WHERE id = ?")->execute([$id]);
-            $db->commit();
-        } catch (\Throwable $e) {
-            $db->rollBack();
-            throw $e;
-        }
     }
 
     public static function delete(int $id): void

@@ -65,20 +65,6 @@ class SaisonController extends BaseAdminController
         $this->redirect('/admin/saisons');
     }
 
-    public function activate(array $params): void
-    {
-        Auth::require();
-        $id = (int)$params['id'];
-        $s  = Saison::find($id);
-        if (!$s) {
-            $this->notFound();
-            return;
-        }
-        Saison::activate($id);
-        View::flash('success', "Saison « {$s['libelle']} » activée.");
-        $this->redirect('/admin/saisons');
-    }
-
     public function delete(array $params): void
     {
         Auth::require();
@@ -101,7 +87,36 @@ class SaisonController extends BaseAdminController
         // Récupération des catégories d'équipes pour l'affichage
         $categories = EquipeConfig::getEquipesSlug();
 
-        View::render('admin/saisons/joueurs.twig', ['joueurs' => $joueurs, 'error' => $error, 'categories' => $categories]);
+        // Récupération des saisons pour le formulaire de flashage
+        $seasons = Saison::all();
+        $saisonActive = Saison::getActive();
+
+        View::render('admin/saisons/joueurs.twig', [
+            'joueurs'       => $joueurs,
+            'error'         => $error,
+            'categories'    => $categories,
+            'seasons'       => $seasons,
+            'saison_active' => $saisonActive,
+        ]);
+    }
+
+    public function flashSelect(array $params): void
+    {
+        Auth::require();
+        $saisonId = (int)($_POST['saison_id'] ?? 0);
+        $s        = Saison::find($saisonId);
+        if (!$s) {
+            View::flash('error', 'Saison introuvable.');
+            $this->redirect('/admin/saisons/joueurs');
+            return;
+        }
+        try {
+            $count = JoueurSnapshot::flashForSaison($saisonId);
+            View::flash('success', "{$count} joueurs enregistrés pour la saison « {$s['libelle']} ».");
+        } catch (\Throwable $e) {
+            View::flash('error', 'Erreur lors du flash : ' . $e->getMessage());
+        }
+        $this->redirect('/admin/saisons/' . $saisonId . '/snapshots');
     }
 
     public function flash(array $params): void

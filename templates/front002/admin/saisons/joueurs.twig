@@ -8,6 +8,41 @@
   <p class="text-gray-400 text-sm mt-1">Données en temps réel depuis la base USM. Lecture seule.</p>
 </div>
 
+{% if seasons|length %}
+<div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] mb-6">
+  <h2 class="text-lg font-black mb-2 flex items-center gap-2">
+    <span>⚡</span> Importer / Flasher les joueurs
+  </h2>
+  <p class="text-xs text-gray-500 mb-4">
+    Cette action récupère les joueurs de la base externe ci-dessous et les enregistre (snapshot) pour la saison de votre choix. 
+    Les liaisons d'équipes seront automatiquement créées. <strong class="text-red-600">Attention : cela réinitialise les ajustements manuels de l'équipe pour la saison concernée.</strong>
+  </p>
+  
+  <form method="POST" action="{{ url('admin/saisons/flash-select') }}" class="flex flex-col sm:flex-row gap-3 items-end sm:items-center" data-confirm="Voulez-vous vraiment flasher les joueurs pour la saison sélectionnée ? Les ajustements manuels existants seront écrasés.">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+    <div class="flex-1 w-full">
+      <label class="block text-xs font-bold uppercase mb-1 text-gray-600" for="saison_id">Sélectionner la saison concernée :</label>
+      <select id="saison_id" name="saison_id" class="w-full border-4 border-black p-2 font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white">
+        {% for s in seasons %}
+          <option value="{{ s.id }}" {% if saison_active and s.id == saison_active.id %}selected{% endif %}>
+            {{ s.libelle }} {% if s.is_active %}(Active){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="w-full sm:w-auto border-4 border-black bg-usm-brown text-white font-black px-6 py-2.5 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all whitespace-nowrap">
+      Flasher les joueurs
+    </button>
+  </form>
+</div>
+{% else %}
+<div class="border-4 border-black bg-yellow-50 p-4 shadow-[4px_4px_0_#000] mb-6">
+  <p class="font-bold text-sm text-yellow-800">
+    ⚠️ Aucune saison n'est disponible. Veuillez <a href="{{ url('admin/saisons/create') }}" class="underline font-black">créer une saison</a> avant de pouvoir flasher les joueurs.
+  </p>
+</div>
+{% endif %}
+
 {% if error %}
   <div class="border-2 border-red-600 bg-red-50 text-red-700 p-4 mb-4 font-semibold">
     {{ error }}
