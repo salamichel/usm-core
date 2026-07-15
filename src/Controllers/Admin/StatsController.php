@@ -11,8 +11,6 @@ class StatsController extends BaseAdminController
 {
     public function index(array $params): void
     {
-        Auth::require();
-
         // Période sélectionnée
         $period = $_GET['period'] ?? '30days';
         if (!array_key_exists($period, GoogleAnalyticsService::PERIODS)) {

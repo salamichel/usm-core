@@ -12,7 +12,6 @@ class MenuController extends BaseAdminController
 {
     public function index(array $params): void
     {
-        Auth::require();
         View::render('admin/menu/list.twig', [
             'items' => MenuItem::getTree(),
         ]);
@@ -20,7 +19,6 @@ class MenuController extends BaseAdminController
 
     public function create(array $params): void
     {
-        Auth::require();
         View::render('admin/menu/form.twig', [
             'item'   => null,
             'action' => BASE_URL . '/admin/menu/create',
@@ -31,7 +29,6 @@ class MenuController extends BaseAdminController
 
     public function store(array $params): void
     {
-        Auth::require();
         $data = $this->formData();
         if (empty($data['label'])) {
             View::render('admin/menu/form.twig', [
@@ -50,7 +47,6 @@ class MenuController extends BaseAdminController
 
     public function edit(array $params): void
     {
-        Auth::require();
         $item = MenuItem::find((int)$params['id']);
         if (!$item) {
             $this->notFound();
@@ -66,7 +62,6 @@ class MenuController extends BaseAdminController
 
     public function update(array $params): void
     {
-        Auth::require();
         $id   = (int)$params['id'];
         $item = MenuItem::find($id);
         if (!$item) {
@@ -95,7 +90,6 @@ class MenuController extends BaseAdminController
 
     public function delete(array $params): void
     {
-        Auth::require();
         MenuItem::delete((int)$params['id']);
         View::flash('success', 'Élément de menu supprimé.');
         $this->redirect('/admin/menu');

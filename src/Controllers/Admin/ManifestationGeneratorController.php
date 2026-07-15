@@ -16,8 +16,6 @@ class ManifestationGeneratorController extends BaseAdminController
      */
     public function showForm(array $params): void
     {
-        Auth::require();
-
         // Récupérer toutes les manifestations typées et filtrer celles liées aux entraînements
         $allTypes = MotsClef::getByCategory('ManifestationTypée');
         $trainingTypes = array_filter($allTypes, function(string $type) {
@@ -48,8 +46,6 @@ class ManifestationGeneratorController extends BaseAdminController
      */
     public function generate(array $params): void
     {
-        Auth::require();
-
         $formData = [
             'manifestation_type' => trim($_POST['manifestation_type'] ?? ''),
             'date_debut'         => trim($_POST['date_debut'] ?? ''),

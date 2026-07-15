@@ -7,62 +7,84 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Location;
 
-class LocationController extends BaseAdminController
+class LocationController extends AdminCrudController
 {
-    public function index(array $params): void
+    public function __construct()
     {
-        Auth::require();
-        View::render('admin/locations/list.twig', [
-            'locations' => Location::all(),
-        ]);
+        parent::__construct();
+        $this->entityType = 'location';
+        $this->itemName = 'location';
+        $this->itemsName = 'locations';
+        $this->templates = [
+            'list' => 'admin/locations/list.twig',
+            'form' => 'admin/locations/form.twig',
+        ];
     }
 
-    public function create(array $params): void
+    protected function getModel(): string
     {
-        Auth::require();
-        View::render('admin/locations/form.twig', [
-            'location' => null,
-            'action'   => BASE_URL . '/admin/locations/create',
-        ]);
+        return Location::class;
+    }
+
+    protected function getEntity(int $id): ?array
+    {
+        return Location::find($id);
+    }
+
+    protected function getAllEntities(): array
+    {
+        return Location::all();
+    }
+
+    protected function createEntity(array $data): int
+    {
+        return Location::create($data);
+    }
+
+    protected function updateEntity(int $id, array $data): void
+    {
+        Location::update($id, $data);
+    }
+
+    protected function deleteEntity(int $id): void
+    {
+        Location::delete($id);
+    }
+
+    protected function getFormData(): array
+    {
+        return [
+            'name'      => trim($_POST['name'] ?? ''),
+            'address'   => trim($_POST['address'] ?? ''),
+            'latitude'  => $_POST['latitude'] !== '' ? (float)($_POST['latitude'] ?? 0) : null,
+            'longitude' => $_POST['longitude'] !== '' ? (float)($_POST['longitude'] ?? 0) : null,
+        ];
+    }
+
+    protected function validateData(array $data, ?array $existingEntity = null): ?string
+    {
+        if (empty($data['name'])) {
+            return 'Le nom est obligatoire.';
+        }
+        if (empty($data['address'])) {
+            return 'L\'adresse est obligatoire.';
+        }
+        return null;
     }
 
     public function store(array $params): void
     {
-        Auth::require();
-        $data = $this->formData();
-
-        if (empty($data['name'])) {
-            View::render('admin/locations/form.twig', [
+        $data = $this->getFormData();
+        $error = $this->validateData($data);
+        if ($error) {
+            View::render($this->getFormTemplate(false), array_merge($this->getCreateData(), [
                 'location' => $data,
-                'action'   => BASE_URL . '/admin/locations/create',
-                'error'    => 'Le nom est obligatoire.',
-            ]);
+                'error'    => $error,
+            ]));
             return;
         }
 
-        if (empty($data['address'])) {
-            View::render('admin/locations/form.twig', [
-                'location' => $data,
-                'action'   => BASE_URL . '/admin/locations/create',
-                'error'    => 'L\'adresse est obligatoire.',
-            ]);
-            return;
-        }
-
-        // Utiliser les coordonnées manuelles si fournies, sinon tenter la géolocalisation
-        if (!$data['latitude'] || !$data['longitude']) {
-            $coords = $this->geocode($data['address']);
-            if ($coords) {
-                $data['latitude']  = $coords['latitude'];
-                $data['longitude'] = $coords['longitude'];
-                $method = 'geoloc';
-            } else {
-                $method = 'none';
-            }
-        } else {
-            $method = 'manual';
-        }
-
+        $method = $this->resolveCoordinates($data);
         $id = Location::create($data);
 
         if ($method === 'manual') {
@@ -76,25 +98,9 @@ class LocationController extends BaseAdminController
         $this->redirect('/admin/locations/' . $id . '/edit');
     }
 
-    public function edit(array $params): void
-    {
-        Auth::require();
-        $location = Location::find((int)$params['id']);
-        if (!$location) {
-            $this->notFound();
-            return;
-        }
-
-        View::render('admin/locations/form.twig', [
-            'location' => $location,
-            'action'   => BASE_URL . '/admin/locations/' . $location['id'] . '/edit',
-        ]);
-    }
-
     public function update(array $params): void
     {
-        Auth::require();
-        $id       = (int)$params['id'];
+        $id = (int)$params['id'];
         $location = Location::find($id);
 
         if (!$location) {
@@ -102,40 +108,17 @@ class LocationController extends BaseAdminController
             return;
         }
 
-        $data = $this->formData();
-
-        if (empty($data['name'])) {
-            View::render('admin/locations/form.twig', [
+        $data = $this->getFormData();
+        $error = $this->validateData($data, $location);
+        if ($error) {
+            View::render($this->getFormTemplate(true), array_merge($this->getEditData($location), [
                 'location' => array_merge($location, $data),
-                'action'   => BASE_URL . '/admin/locations/' . $id . '/edit',
-                'error'    => 'Le nom est obligatoire.',
-            ]);
+                'error'    => $error,
+            ]));
             return;
         }
 
-        if (empty($data['address'])) {
-            View::render('admin/locations/form.twig', [
-                'location' => array_merge($location, $data),
-                'action'   => BASE_URL . '/admin/locations/' . $id . '/edit',
-                'error'    => 'L\'adresse est obligatoire.',
-            ]);
-            return;
-        }
-
-        // Utiliser les coordonnées manuelles si fournies, sinon tenter la géolocalisation
-        if (!$data['latitude'] || !$data['longitude']) {
-            $coords = $this->geocode($data['address']);
-            if ($coords) {
-                $data['latitude']  = $coords['latitude'];
-                $data['longitude'] = $coords['longitude'];
-                $method = 'geoloc';
-            } else {
-                $method = 'none';
-            }
-        } else {
-            $method = 'manual';
-        }
-
+        $method = $this->resolveCoordinates($data);
         Location::update($id, $data);
 
         if ($method === 'manual') {
@@ -149,22 +132,18 @@ class LocationController extends BaseAdminController
         $this->redirect('/admin/locations');
     }
 
-    public function delete(array $params): void
+    private function resolveCoordinates(array &$data): string
     {
-        Auth::require();
-        Location::delete((int)$params['id']);
-        View::flash('success', 'Emplacement supprimé avec succès.');
-        $this->redirect('/admin/locations');
-    }
-
-    private function formData(): array
-    {
-        return [
-            'name'      => trim($_POST['name'] ?? ''),
-            'address'   => trim($_POST['address'] ?? ''),
-            'latitude'  => $_POST['latitude'] !== '' ? (float)($_POST['latitude'] ?? 0) : null,
-            'longitude' => $_POST['longitude'] !== '' ? (float)($_POST['longitude'] ?? 0) : null,
-        ];
+        if (!$data['latitude'] || !$data['longitude']) {
+            $coords = $this->geocode($data['address']);
+            if ($coords) {
+                $data['latitude']  = $coords['latitude'];
+                $data['longitude'] = $coords['longitude'];
+                return 'geoloc';
+            }
+            return 'none';
+        }
+        return 'manual';
     }
 
     private function geocode(string $address): ?array

@@ -8,114 +8,121 @@ use App\Core\View;
 use App\Models\HomeBlock;
 use App\Models\Photo;
 
-class HomeBlockController extends BaseAdminController
+class HomeBlockController extends AdminCrudController
 {
-    public function index(array $params): void
+    public function __construct()
     {
-        Auth::require();
-        $blocks = HomeBlock::all();
-        // Pour chaque bloc, récupérer sa photo de couverture
-        foreach ($blocks as &$block) {
+        parent::__construct();
+        $this->entityType = 'home_block';
+        $this->itemName = 'block';
+        $this->itemsName = 'home-blocks';
+        $this->templates = [
+            'list' => 'admin/home-blocks/list.twig',
+            'form' => 'admin/home-blocks/form.twig',
+        ];
+    }
+
+    protected function getModel(): string
+    {
+        return HomeBlock::class;
+    }
+
+    protected function getEntity(int $id): ?array
+    {
+        return HomeBlock::find($id);
+    }
+
+    protected function getAllEntities(): array
+    {
+        return HomeBlock::all();
+    }
+
+    protected function createEntity(array $data): int
+    {
+        return HomeBlock::create($data);
+    }
+
+    protected function updateEntity(int $id, array $data): void
+    {
+        HomeBlock::update($id, $data);
+    }
+
+    protected function deleteEntity(int $id): void
+    {
+        HomeBlock::delete($id);
+    }
+
+    protected function getFormData(): array
+    {
+        return [
+            'titre'     => trim($_POST['titre'] ?? ''),
+            'contenu'   => $_POST['contenu'] ?? '',
+            'cta_label' => trim($_POST['cta_label'] ?? '') ?: null,
+            'cta_url'   => trim($_POST['cta_url'] ?? '') ?: null,
+            'position'  => (int)($_POST['position'] ?? 0),
+            'is_active' => isset($_POST['is_active']) ? 1 : 0,
+            'photo_id'  => (int)($_POST['photo_id'] ?? 0),
+        ];
+    }
+
+    protected function validateData(array $data, ?array $existingEntity = null): ?string
+    {
+        if (empty($data['titre'])) {
+            return 'Le titre est obligatoire.';
+        }
+        return null;
+    }
+
+    protected function getIndexData(array $entities): array
+    {
+        foreach ($entities as &$block) {
             $block['cover_photo'] = Photo::getEntityCover('home_block', (int)$block['id']);
         }
-        View::render('admin/home-blocks/list.twig', [
-            'blocks' => $blocks,
-        ]);
+        return [
+            'blocks' => $entities,
+        ];
     }
 
-    public function create(array $params): void
+    protected function getEditData(array $entity): array
     {
-        Auth::require();
-        View::render('admin/home-blocks/form.twig', [
+        $entity['photos']      = Photo::forEntity('home_block', $entity['id']);
+        $entity['cover_photo'] = Photo::getEntityCover('home_block', $entity['id']);
+        return [
+            'block'  => $entity,
+            'action' => BASE_URL . '/admin/home-blocks/' . $entity['id'] . '/edit',
+        ];
+    }
+
+    protected function getCreateData(): array
+    {
+        return [
             'block'  => null,
             'action' => BASE_URL . '/admin/home-blocks/create',
-        ]);
+        ];
     }
 
-    public function store(array $params): void
+    protected function afterStore(int $id, array $data): void
     {
-        Auth::require();
-        $data = $this->formData();
-        if ($data['titre'] === '') {
-            View::render('admin/home-blocks/form.twig', [
-                'block'  => $data,
-                'action' => BASE_URL . '/admin/home-blocks/create',
-                'error'  => 'Le titre est obligatoire.',
-            ]);
-            return;
-        }
-        $id = HomeBlock::create($data);
-        // Si un photoId est présent dans les données, l'attacher au HomeBlock
         if (isset($data['photo_id']) && $data['photo_id'] > 0) {
-            HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
+            HomeBlock::attachPhoto($id, $data['photo_id']);
         }
-        View::flash('success', 'Bloc créé avec succès.');
-        $this->redirect('/admin/home-blocks/' . $id . '/edit');
     }
 
-    public function edit(array $params): void
+    protected function afterUpdate(int $id, array $data): void
     {
-        Auth::require();
-        $block = HomeBlock::find((int)$params['id']);
-        if (!$block) {
-            $this->notFound();
-            return;
-        }
-        // Récupérer les photos associées au bloc
-        $block['photos']      = Photo::forEntity('home_block', (int)$params['id']);
-        $block['cover_photo'] = Photo::getEntityCover('home_block', (int)$params['id']);
-
-        View::render('admin/home-blocks/form.twig', [
-            'block'  => $block,
-            'action' => BASE_URL . '/admin/home-blocks/' . $block['id'] . '/edit',
-        ]);
-    }
-
-    public function update(array $params): void
-    {
-        Auth::require();
-        $id    = (int)$params['id'];
-        $block = HomeBlock::find($id);
-        if (!$block) {
-            $this->notFound();
-            return;
-        }
-        $data = $this->formData();
-        if ($data['titre'] === '') {
-            View::render('admin/home-blocks/form.twig', [
-                'block'  => array_merge($block, $data),
-                'action' => BASE_URL . '/admin/home-blocks/' . $id . '/edit',
-                'error'  => 'Le titre est obligatoire.',
-            ]);
-            return;
-        }
-        HomeBlock::update($id, $data);
-        // Gérer l'attachement d'une nouvelle photo si fournie
         if (isset($data['photo_id']) && $data['photo_id'] > 0) {
-            HomeBlock::attachPhoto((int)$id, (int)$data['photo_id']);
+            HomeBlock::attachPhoto($id, $data['photo_id']);
         }
-        View::flash('success', 'Bloc mis à jour.');
-        $this->redirect('/admin/home-blocks/' . $id . '/edit');
-    }
-
-    public function delete(array $params): void
-    {
-        Auth::require();
-        HomeBlock::delete((int)$params['id']);
-        View::flash('success', 'Bloc supprimé.');
-        $this->redirect('/admin/home-blocks');
     }
 
     public function moveUp(array $params): void
     {
-        Auth::require();
         HomeBlock::moveUp((int)$params['id']);
         $this->redirect('/admin/home-blocks');
     }
 
     public function moveDown(array $params): void
     {
-        Auth::require();
         HomeBlock::moveDown((int)$params['id']);
         $this->redirect('/admin/home-blocks');
     }
@@ -126,7 +133,6 @@ class HomeBlockController extends BaseAdminController
      */
     public function uploadImage(array $params): void
     {
-        Auth::require();
         try {
             $uploaded = Photo::uploadSingle($_FILES['file'] ?? null, 'home_block');
 
@@ -149,21 +155,8 @@ class HomeBlockController extends BaseAdminController
             ]);
         } catch (\RuntimeException $e) {
             $this->jsonError($e->getMessage());
-            return; // jsonError() appelle exit(), return pour la lisibilité statique
+            return;
         }
         exit;
-    }
-
-    private function formData(): array
-    {
-        return [
-            'titre'     => trim($_POST['titre'] ?? ''),
-            'contenu'   => $_POST['contenu'] ?? '',
-            'cta_label' => trim($_POST['cta_label'] ?? '') ?: null,
-            'cta_url'   => trim($_POST['cta_url'] ?? '') ?: null,
-            'position'  => (int)($_POST['position'] ?? 0),
-            'is_active' => isset($_POST['is_active']) ? 1 : 0,
-            'photo_id'  => (int)($_POST['photo_id'] ?? 0), // Pour l'image temporaire uploadée
-        ];
     }
 }

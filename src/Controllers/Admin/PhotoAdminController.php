@@ -6,11 +6,10 @@ namespace App\Controllers\Admin;
 use App\Core\Auth;
 use App\Models\Photo;
 
-class PhotoAdminController
+class PhotoAdminController extends BaseAdminController
 {
     public function reorder(array $params): void
     {
-        Auth::require();
         header('Content-Type: application/json');
         $body = json_decode(file_get_contents('php://input'), true);
         $ids  = array_values(array_filter(

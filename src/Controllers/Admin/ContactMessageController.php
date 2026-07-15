@@ -11,7 +11,6 @@ class ContactMessageController extends BaseAdminController
 {
     public function index(array $params): void
     {
-        Auth::require();
         View::render('admin/contact-messages/list.twig', [
             'messages' => ContactMessage::all(),
         ]);
@@ -19,7 +18,6 @@ class ContactMessageController extends BaseAdminController
 
     public function show(array $params): void
     {
-        Auth::require();
         $message = ContactMessage::find((int)$params['id']);
 
         if (!$message) {
@@ -38,7 +36,6 @@ class ContactMessageController extends BaseAdminController
 
     public function delete(array $params): void
     {
-        Auth::require();
         ContactMessage::delete((int)$params['id']);
         View::flash('success', 'Message supprimé.');
         $this->redirect('/admin/contact-messages');

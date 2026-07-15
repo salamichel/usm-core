@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use App\Core\Auth;
 use App\Core\View;
 
 /**
@@ -11,6 +12,10 @@ use App\Core\View;
  */
 abstract class BaseAdminController
 {
+    public function __construct()
+    {
+        Auth::require();
+    }
     /**
      * Renvoie une réponse 404 avec le template approprié.
      */

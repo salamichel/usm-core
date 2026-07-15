@@ -17,8 +17,6 @@ class ManifestationController extends BaseAdminController
      */
     public function index(array $params): void
     {
-        Auth::require();
-
         $page = (int)($_GET['page'] ?? 1);
         if ($page < 1) {
             $page = 1;
@@ -62,8 +60,6 @@ class ManifestationController extends BaseAdminController
      */
     public function create(array $params): void
     {
-        Auth::require();
-
         $types = MotsClef::getByCategory('ManifestationTypée');
         $locations = MotsClef::getByCategory('Lieu');
         $durations = MotsClef::getByCategory('Durée_créneau');
@@ -84,8 +80,6 @@ class ManifestationController extends BaseAdminController
      */
     public function store(array $params): void
     {
-        Auth::require();
-
         $formData = [
             'manifestation_type' => trim($_POST['manifestation_type'] ?? ''),
             'date'               => trim($_POST['date'] ?? ''),
@@ -141,7 +135,6 @@ class ManifestationController extends BaseAdminController
      */
     public function edit(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         $event = EventRepository::findEventRaw($id);
 
@@ -187,7 +180,6 @@ class ManifestationController extends BaseAdminController
      */
     public function update(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         $event = EventRepository::findEventRaw($id);
 
@@ -251,7 +243,6 @@ class ManifestationController extends BaseAdminController
      */
     public function delete(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/manifestations');
 
         $id = (int)$params['id'];

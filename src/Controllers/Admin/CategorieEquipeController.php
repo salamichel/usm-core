@@ -8,93 +8,71 @@ use App\Core\View;
 use App\Helpers\HtmlHelper;
 use App\Models\CategorieEquipe;
 
-class CategorieEquipeController extends BaseAdminController
+class CategorieEquipeController extends AdminCrudController
 {
-    public function index(array $params): void
+    public function __construct()
     {
-        Auth::require();
-        View::render('admin/categories-equipes/list.twig', [
-            'categories' => CategorieEquipe::all(),
-        ]);
+        parent::__construct();
+        $this->entityType = 'categorie_equipe';
+        $this->itemName = 'categorie';
+        $this->itemsName = 'categories-equipes';
+        $this->templates = [
+            'list' => 'admin/categories-equipes/list.twig',
+            'form' => 'admin/categories-equipes/form.twig',
+        ];
     }
 
-    public function create(array $params): void
+    protected function getModel(): string
     {
-        Auth::require();
-        View::render('admin/categories-equipes/form.twig', [
-            'categorie' => null,
-            'action'    => BASE_URL . '/admin/categories-equipes/create',
-        ]);
+        return CategorieEquipe::class;
     }
 
-    public function store(array $params): void
+    protected function getEntity(int $id): ?array
     {
-        Auth::require();
-        $data = $this->formData();
-        if ($data['nom'] === '') {
-            View::render('admin/categories-equipes/form.twig', [
-                'categorie' => $data,
-                'action'    => BASE_URL . '/admin/categories-equipes/create',
-                'error'     => 'Le nom de la catégorie est obligatoire.',
-            ]);
-            return;
-        }
-        $id = CategorieEquipe::create($data);
-        View::flash('success', "Catégorie « {$data['nom']} » créée.");
-        $this->redirect('/admin/categories-equipes/' . $id . '/edit');
+        return CategorieEquipe::find($id);
     }
 
-    public function edit(array $params): void
+    protected function getAllEntities(): array
     {
-        Auth::require();
-        $categorie = CategorieEquipe::find((int)$params['id']);
-        if (!$categorie) {
-            $this->notFound('error.twig', ['error' => 'Catégorie introuvable.']);
-            return;
-        }
-        View::render('admin/categories-equipes/form.twig', [
-            'categorie' => $categorie,
-            'action'    => BASE_URL . '/admin/categories-equipes/' . $categorie['id'] . '/edit',
-        ]);
+        return CategorieEquipe::all();
     }
 
-    public function update(array $params): void
+    protected function createEntity(array $data): int
     {
-        Auth::require();
-        $id        = (int)$params['id'];
-        $categorie = CategorieEquipe::find($id);
-        if (!$categorie) {
-            $this->notFound('error.twig', ['error' => 'Catégorie introuvable.']);
-            return;
-        }
-        $data = $this->formData();
-        if ($data['nom'] === '') {
-            View::render('admin/categories-equipes/form.twig', [
-                'categorie' => array_merge($categorie, $data),
-                'action'    => BASE_URL . '/admin/categories-equipes/' . $id . '/edit',
-                'error'     => 'Le nom de la catégorie est obligatoire.',
-            ]);
-            return;
-        }
+        return CategorieEquipe::create($data);
+    }
+
+    protected function updateEntity(int $id, array $data): void
+    {
         CategorieEquipe::update($id, $data);
-        View::flash('success', "Catégorie « {$data['nom']} » mise à jour.");
-        $this->redirect('/admin/categories-equipes/' . $id . '/edit');
     }
 
-    public function delete(array $params): void
+    protected function deleteEntity(int $id): void
     {
-        Auth::require();
-        CategorieEquipe::delete((int)$params['id']);
-        View::flash('success', 'Catégorie supprimée.');
-        $this->redirect('/admin/categories-equipes');
+        CategorieEquipe::delete($id);
     }
 
-    private function formData(): array
+    protected function getFormData(): array
     {
         return [
             'nom'         => trim($_POST['nom'] ?? ''),
             'description' => HtmlHelper::nullIfEmptyHtml($_POST['description'] ?? null),
             'ordre'       => (int)($_POST['ordre'] ?? 0),
+        ];
+    }
+
+    protected function validateData(array $data, ?array $existingEntity = null): ?string
+    {
+        if (empty($data['nom'])) {
+            return 'Le nom de la catégorie est obligatoire.';
+        }
+        return null;
+    }
+
+    protected function getIndexData(array $entities): array
+    {
+        return [
+            'categories' => $entities,
         ];
     }
 }

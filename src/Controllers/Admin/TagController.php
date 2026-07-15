@@ -7,102 +7,90 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\Tag;
 
-class TagController extends BaseAdminController
+class TagController extends AdminCrudController
 {
-    public function index(array $params): void
+    public function __construct()
     {
-        Auth::require();
-        $tags = Tag::all();
-        foreach ($tags as &$tag) {
+        parent::__construct();
+        $this->entityType = 'tag';
+        $this->itemName = 'tag';
+        $this->itemsName = 'tags';
+        $this->templates = [
+            'list' => 'admin/tags/list.twig',
+            'form' => 'admin/tags/form.twig',
+        ];
+    }
+
+    protected function getModel(): string
+    {
+        return Tag::class;
+    }
+
+    protected function getEntity(int $id): ?array
+    {
+        return Tag::find($id);
+    }
+
+    protected function getAllEntities(): array
+    {
+        return Tag::all();
+    }
+
+    protected function createEntity(array $data): int
+    {
+        return Tag::create($data);
+    }
+
+    protected function updateEntity(int $id, array $data): void
+    {
+        Tag::update($id, $data);
+    }
+
+    protected function deleteEntity(int $id): void
+    {
+        Tag::delete($id);
+    }
+
+    protected function getFormData(): array
+    {
+        return [
+            'name' => trim($_POST['name'] ?? ''),
+            'slug' => trim($_POST['slug'] ?? ''),
+        ];
+    }
+
+    protected function validateData(array $data, ?array $existingEntity = null): ?string
+    {
+        if (empty($data['name'])) {
+            return 'Le nom du tag est obligatoire.';
+        }
+        return null;
+    }
+
+    protected function getIndexData(array $entities): array
+    {
+        foreach ($entities as &$tag) {
             $tag['post_count'] = Tag::getPostCount($tag['id']);
         }
-        View::render('admin/tags/list.twig', ['tags' => $tags]);
+        return [
+            'tags' => $entities,
+        ];
     }
 
-    public function create(array $params): void
+    protected function getEditData(array $entity): array
     {
-        Auth::require();
-        View::render('admin/tags/form.twig', [
+        $entity['post_count'] = Tag::getPostCount($entity['id']);
+        return [
+            'tag'    => $entity,
+            'action' => BASE_URL . '/admin/tags/' . $entity['id'] . '/edit',
+        ];
+    }
+
+    protected function getCreateData(): array
+    {
+        return [
             'tag'    => null,
             'action' => BASE_URL . '/admin/tags/create',
-        ]);
-    }
-
-    public function store(array $params): void
-    {
-        Auth::require();
-        $name = trim($_POST['name'] ?? '');
-        $slug = trim($_POST['slug'] ?? '');
-
-        if (empty($name)) {
-            View::render('admin/tags/form.twig', [
-                'tag'    => ['name' => $name, 'slug' => $slug],
-                'action' => BASE_URL . '/admin/tags/create',
-                'error'  => 'Le nom du tag est obligatoire.',
-            ]);
-            return;
-        }
-
-        $id = Tag::create(['name' => $name, 'slug' => $slug]);
-        View::flash('success', 'Tag créé avec succès.');
-        $this->redirect('/admin/tags/' . $id . '/edit');
-    }
-
-    public function edit(array $params): void
-    {
-        Auth::require();
-        $tag = Tag::find((int)$params['id']);
-        if (!$tag) {
-            $this->notFound('error.twig', ['error' => 'Tag non trouvé']);
-            return;
-        }
-        $tag['post_count'] = Tag::getPostCount($tag['id']);
-        View::render('admin/tags/form.twig', [
-            'tag'    => $tag,
-            'action' => BASE_URL . '/admin/tags/' . $tag['id'] . '/edit',
-        ]);
-    }
-
-    public function update(array $params): void
-    {
-        Auth::require();
-        $id  = (int)$params['id'];
-        $tag = Tag::find($id);
-        if (!$tag) {
-            $this->notFound('error.twig', ['error' => 'Tag non trouvé']);
-            return;
-        }
-
-        $name = trim($_POST['name'] ?? '');
-        $slug = trim($_POST['slug'] ?? '');
-
-        if (empty($name)) {
-            $tag['post_count'] = Tag::getPostCount($id);
-            View::render('admin/tags/form.twig', [
-                'tag'    => array_merge($tag, ['name' => $name, 'slug' => $slug]),
-                'action' => BASE_URL . '/admin/tags/' . $id . '/edit',
-                'error'  => 'Le nom du tag est obligatoire.',
-            ]);
-            return;
-        }
-
-        Tag::update($id, ['name' => $name, 'slug' => $slug]);
-        View::flash('success', 'Tag mis à jour avec succès.');
-        $this->redirect('/admin/tags');
-    }
-
-    public function delete(array $params): void
-    {
-        Auth::require();
-        $id  = (int)$params['id'];
-        $tag = Tag::find($id);
-        if (!$tag) {
-            $this->notFound('error.twig', ['error' => 'Tag non trouvé']);
-            return;
-        }
-
-        Tag::delete($id);
-        View::flash('success', 'Tag supprimé avec succès.');
-        $this->redirect('/admin/tags');
+        ];
     }
 }

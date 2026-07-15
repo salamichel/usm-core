@@ -18,8 +18,6 @@ class ContactAdminController extends BaseAdminController
 
     public function index(array $params): void
     {
-        Auth::require();
-
         $status = $_GET['status'] ?? 'new';
         if (!in_array($status, [...self::VALID_STATUSES, 'all'])) {
             $status = 'new';
@@ -38,8 +36,6 @@ class ContactAdminController extends BaseAdminController
 
     public function show(array $params): void
     {
-        Auth::require();
-
         $contact = Contact::find((int)$params['id']);
         if (!$contact) {
             $this->notFound();
@@ -56,7 +52,6 @@ class ContactAdminController extends BaseAdminController
 
     public function reply(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/contacts/' . $params['id']);
 
         $contact = Contact::find((int)$params['id']);
@@ -99,7 +94,6 @@ class ContactAdminController extends BaseAdminController
 
     public function updateStatus(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/contacts');
 
         $contact = Contact::find((int)$params['id']);
@@ -120,7 +114,6 @@ class ContactAdminController extends BaseAdminController
 
     public function delete(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/contacts');
 
         Contact::delete((int)$params['id']);
@@ -130,7 +123,6 @@ class ContactAdminController extends BaseAdminController
 
     public function bulkAction(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/contacts');
 
         $action     = $_POST['action'] ?? '';
