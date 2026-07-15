@@ -38,8 +38,9 @@ pull_from_ftp:
   script:
     - 'DATE_STR=$(date +%Y-%m-%d_%Hh%M)'
     - 'echo "Horodatage généré : $DATE_STR"'
+    - echo "Démarrage du backup... $FTP_HOME "    
     - 'mkdir -p ./sauvegarde_locale'
-    - 'lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v /htdocs ./sauvegarde_locale --parallel=2"'
+    - 'lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v $FTP_HOME ./sauvegarde_locale --parallel=2"'
     - 'zip -r "backup_$DATE_STR.zip" ./sauvegarde_locale/'
     - 'echo "Sauvegarde terminée !"'
   artifacts:
@@ -58,8 +59,8 @@ extract_to_local:
   
   rules:
     # S'exécute à la suite du job de sauvegarde s'il est lancé manuellement ou planifié
-    - if: $CI_PIPELINE_SOURCE == "web"
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    #- if: $CI_PIPELINE_SOURCE == "web"
+    #- if: $CI_PIPELINE_SOURCE == "schedule"
   before_script:
     - 'apk update && apk add openssh-client bash'
     - 'eval $(ssh-agent -s)'
