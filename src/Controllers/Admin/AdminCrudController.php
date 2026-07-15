@@ -22,75 +22,107 @@ abstract class AdminCrudController extends BaseAdminController
     abstract protected function deleteEntity(int $id): void;
     abstract protected function getFormData(): array;
 
+    protected function validateData(array $data, ?array $existingEntity = null): ?string
+    {
+        if (empty($data['title'])) {
+            return 'Le titre est obligatoire.';
+        }
+        return null;
+    }
+
+    protected function getIndexData(array $entities): array
+    {
+        return [
+            $this->itemsName => $entities,
+        ];
+    }
+
+    protected function getCreateData(): array
+    {
+        return [
+            $this->itemName => null,
+            'photos'        => [],
+            'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
+        ];
+    }
+
+    protected function getEditData(array $entity): array
+    {
+        return [
+            $this->itemName => $entity,
+            'photos'        => Photo::forEntity($this->entityType, $entity['id']),
+            'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $entity['id'] . '/edit',
+        ];
+    }
+
+    protected function afterStore(int $id, array $data): void {}
+    protected function afterUpdate(int $id, array $data): void {}
+
+    protected function getRedirectUrl(int $id, bool $isEdit = true): string
+    {
+        if ($isEdit) {
+            return BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit';
+        }
+        return BASE_URL . '/admin/' . $this->itemsName;
+    }
+
     protected function getListTemplate(): string
     {
         return $this->templates['list'] ?? "admin/{$this->itemsName}/list.twig";
     }
 
-    protected function getFormTemplate(): string
+    protected function getFormTemplate(bool $isEdit = false): string
     {
-        return $this->templates['form'] ?? "admin/{$this->itemsName}/form.twig";
+        if ($isEdit) {
+            return $this->templates['edit'] ?? $this->templates['form'] ?? "admin/{$this->itemsName}/form.twig";
+        }
+        return $this->templates['create'] ?? $this->templates['form'] ?? "admin/{$this->itemsName}/form.twig";
     }
 
     public function index(array $params): void
     {
-        Auth::require();
-        View::render($this->getListTemplate(), [
-            $this->itemsName => $this->getAllEntities(),
-        ]);
+        View::render($this->getListTemplate(), $this->getIndexData($this->getAllEntities()));
     }
 
     public function create(array $params): void
     {
-        Auth::require();
-        View::render($this->getFormTemplate(), [
-            $this->itemName => null,
-            'photos'        => [],
-            'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
-        ]);
+        View::render($this->getFormTemplate(false), $this->getCreateData());
     }
 
     public function store(array $params): void
     {
-        Auth::require();
         $data = $this->getFormData();
 
-        if (empty($data['title'])) {
-            View::render($this->getFormTemplate(), [
+        $error = $this->validateData($data);
+        if ($error !== null) {
+            View::render($this->getFormTemplate(false), array_merge($this->getCreateData(), [
                 $this->itemName => $data,
-                'photos'        => [],
-                'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
-                'error'         => 'Le titre est obligatoire.',
-            ]);
+                'error'         => $error,
+            ]));
             return;
         }
 
         $id = $this->createEntity($data);
         $this->handlePhotoUploads($id);
+        $this->afterStore($id, $data);
         View::flash('success', ucfirst($this->itemName) . ' créé(e) avec succès.');
-        header('Location: ' . BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit');
+        header('Location: ' . $this->getRedirectUrl($id, false));
         exit;
     }
 
     public function edit(array $params): void
     {
-        Auth::require();
         $entity = $this->getEntity((int)$params['id']);
         if (!$entity) {
             $this->notFound();
             return;
         }
 
-        View::render($this->getFormTemplate(), [
-            $this->itemName => $entity,
-            'photos'        => Photo::forEntity($this->entityType, $entity['id']),
-            'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $entity['id'] . '/edit',
-        ]);
+        View::render($this->getFormTemplate(true), $this->getEditData($entity));
     }
 
     public function update(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         $entity = $this->getEntity($id);
 
@@ -101,32 +133,31 @@ abstract class AdminCrudController extends BaseAdminController
 
         $data = $this->getFormData();
 
-        if (empty($data['title'])) {
-            View::render($this->getFormTemplate(), [
+        $error = $this->validateData($data, $entity);
+        if ($error !== null) {
+            View::render($this->getFormTemplate(true), array_merge($this->getEditData($entity), [
                 $this->itemName => array_merge($entity, $data),
-                'photos'        => Photo::forEntity($this->entityType, $id),
-                'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit',
-                'error'         => 'Le titre est obligatoire.',
-            ]);
+                'error'         => $error,
+            ]));
             return;
         }
 
         $this->updateEntity($id, $data);
-        $error = $this->handlePhotoUploads($id);
+        $photoError = $this->handlePhotoUploads($id);
+        $this->afterUpdate($id, $data);
 
-        if ($error) {
-            View::flash('error', $error);
+        if ($photoError) {
+            View::flash('error', $photoError);
         } else {
             View::flash('success', ucfirst($this->itemName) . ' mis à jour.');
         }
 
-        header('Location: ' . BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit');
+        header('Location: ' . $this->getRedirectUrl($id, true));
         exit;
     }
 
     public function delete(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         Photo::deleteAllForEntity($this->entityType, $id);
         $this->deleteEntity($id);
@@ -137,7 +168,6 @@ abstract class AdminCrudController extends BaseAdminController
 
     public function uploadPhoto(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         $entity = $this->getEntity($id);
 
@@ -157,7 +187,6 @@ abstract class AdminCrudController extends BaseAdminController
 
     public function deletePhoto(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         $pid = (int)$params['pid'];
         $photo = Photo::find($pid);
@@ -173,7 +202,6 @@ abstract class AdminCrudController extends BaseAdminController
 
     public function deletePhotoXhr(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
         $pid = (int)$params['pid'];
         $photo = Photo::find($pid);

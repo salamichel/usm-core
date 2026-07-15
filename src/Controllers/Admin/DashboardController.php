@@ -14,7 +14,6 @@ class DashboardController extends BaseAdminController
 {
     public function index(array $params): void
     {
-        Auth::require();
         $db = Database::get();
 
         // ── Stats CMS ──────────────────────────────────────────────────────────

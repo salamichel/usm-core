@@ -8,7 +8,7 @@ use App\Core\View;
 use App\Models\Photo;
 use App\Models\SiteConfig;
 
-class SiteConfigController
+class SiteConfigController extends BaseAdminController
 {
     private const FIELDS = [
         'theme', 'agenda_privacy',
@@ -68,7 +68,6 @@ class SiteConfigController
 
     public function edit(array $params): void
     {
-        Auth::require();
         View::render('admin/site-config/edit.twig', [
             'config'           => SiteConfig::all(),
             'available_themes' => self::availableThemes(),
@@ -77,7 +76,6 @@ class SiteConfigController
 
     public function update(array $params): void
     {
-        Auth::require();
         $themes = self::availableThemes();
         $existing = SiteConfig::all();
 

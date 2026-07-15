@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use App\Core\Auth;
 use App\Core\View;
 
 /**
@@ -11,6 +12,10 @@ use App\Core\View;
  */
 abstract class BaseAdminController
 {
+    public function __construct()
+    {
+        Auth::require();
+    }
     /**
      * Renvoie une réponse 404 avec le template approprié.
      */
@@ -59,5 +64,19 @@ abstract class BaseAdminController
         header('Content-Type: application/json');
         echo json_encode(array_merge(['ok' => true], $data));
         exit;
+    }
+
+    /**
+     * Tente de trouver une entité par son ID.
+     * Si l'entité n'existe pas, affiche une page 404 et interrompt l'exécution.
+     */
+    protected function findOr404(string $modelClass, int $id, string $template = 'error.twig', array $context = []): array
+    {
+        $entity = $modelClass::find($id);
+        if (!$entity) {
+            $this->notFound($template, array_merge(['error' => 'Élément introuvable.'], $context));
+            exit;
+        }
+        return $entity;
     }
 }

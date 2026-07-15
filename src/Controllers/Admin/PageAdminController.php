@@ -10,6 +10,7 @@ class PageAdminController extends AdminCrudController
 {
     public function __construct()
     {
+        parent::__construct();
         $this->entityType = 'page';
         $this->itemName = 'page';
         $this->itemsName = 'pages';

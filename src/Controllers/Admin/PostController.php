@@ -12,6 +12,7 @@ class PostController extends AdminCrudController
 {
     public function __construct()
     {
+        parent::__construct();
         $this->entityType = 'post';
         $this->itemName = 'post';
         $this->itemsName = 'posts';
@@ -23,8 +24,6 @@ class PostController extends AdminCrudController
 
     public function index(array $params): void
     {
-        \App\Core\Auth::require();
-
         $filters = [];
 
         if (!empty($_GET['month']) && preg_match('/^\d{4}-\d{2}$/', $_GET['month'])) {
@@ -92,129 +91,44 @@ class PostController extends AdminCrudController
         Post::delete($id);
     }
 
-    public function edit(array $params): void
+    protected function getCreateData(): array
     {
-        \App\Core\Auth::require();
-        $entity = $this->getEntity((int)$params['id']);
-        if (!$entity) {
-            $this->notFound();
-            return;
-        }
-
-        $tags = Tag::findByPost($entity['id']);
-        $tagIds = array_map(fn($tag) => $tag['id'], $tags);
-        $allTags = Tag::all();
-
-        \App\Core\View::render($this->getFormTemplate(), [
-            $this->itemName => $entity,
-            'photos'        => \App\Models\Photo::forEntity($this->entityType, $entity['id']),
-            'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $entity['id'] . '/edit',
-            'tags'          => $tags,
-            'tag_ids'       => $tagIds,
-            'all_tags'      => $allTags,
-        ]);
-    }
-
-    public function create(array $params): void
-    {
-        \App\Core\Auth::require();
-        $allTags = Tag::all();
-        \App\Core\View::render($this->getFormTemplate(), [
-            $this->itemName => null,
-            'photos'        => [],
-            'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
+        return array_merge(parent::getCreateData(), [
+            'all_tags'      => Tag::all(),
             'tags'          => [],
             'tag_ids'       => [],
-            'all_tags'      => $allTags,
             'default_date'  => (new \DateTime('now', new \DateTimeZone('Europe/Paris')))->format('Y-m-d\TH:i'),
         ]);
     }
 
-    public function store(array $params): void
+    protected function getEditData(array $entity): array
     {
-        \App\Core\Auth::require();
-        $data = $this->getFormData();
-
-        if (empty($data['title'])) {
-            $allTags = Tag::all();
-            \App\Core\View::render($this->getFormTemplate(), [
-                $this->itemName => $data,
-                'photos'        => [],
-                'action'        => BASE_URL . '/admin/' . $this->itemsName . '/create',
-                'error'         => 'Le titre est obligatoire.',
-                'tags'          => [],
-                'tag_ids'       => [],
-                'all_tags'      => $allTags,
-            ]);
-            return;
-        }
-
-        $id = $this->createEntity($data);
-
-        // Download external images in content
-        $downloader = new ExternalImageDownloader();
-        $processedContent = $downloader->processContent($data['content'], $id, $this->entityType);
-        if ($processedContent !== $data['content']) {
-            Post::updateContent($id, $processedContent);
-        }
-
-        $this->handlePhotoUploads($id);
-        $this->saveTags($id);
-
-        \App\Core\View::flash('success', ucfirst($this->itemName) . ' créé(e) avec succès.');
-        header('Location: ' . BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit');
-        exit;
+        $tags = Tag::findByPost($entity['id']);
+        return array_merge(parent::getEditData($entity), [
+            'tags'          => $tags,
+            'tag_ids'       => array_map(fn($tag) => $tag['id'], $tags),
+            'all_tags'      => Tag::all(),
+        ]);
     }
 
-    public function update(array $params): void
+    protected function afterStore(int $id, array $data): void
     {
-        \App\Core\Auth::require();
-        $id = (int)$params['id'];
-        $entity = $this->getEntity($id);
-
-        if (!$entity) {
-            $this->notFound();
-            return;
-        }
-
-        $data = $this->getFormData();
-
-        if (empty($data['title'])) {
-            $tags = Tag::findByPost($id);
-            $tagIds = array_map(fn($tag) => $tag['id'], $tags);
-            $allTags = Tag::all();
-            \App\Core\View::render($this->getFormTemplate(), [
-                $this->itemName => array_merge($entity, $data),
-                'photos'        => \App\Models\Photo::forEntity($this->entityType, $id),
-                'action'        => BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit',
-                'error'         => 'Le titre est obligatoire.',
-                'tags'          => $tags,
-                'tag_ids'       => $tagIds,
-                'all_tags'      => $allTags,
-            ]);
-            return;
-        }
-
-        $this->updateEntity($id, $data);
-
-        // Download external images in content
         $downloader = new ExternalImageDownloader();
         $processedContent = $downloader->processContent($data['content'], $id, $this->entityType);
         if ($processedContent !== $data['content']) {
             Post::updateContent($id, $processedContent);
         }
-
-        $error = $this->handlePhotoUploads($id);
         $this->saveTags($id);
+    }
 
-        if ($error) {
-            \App\Core\View::flash('error', $error);
-        } else {
-            \App\Core\View::flash('success', ucfirst($this->itemName) . ' mis à jour.');
+    protected function afterUpdate(int $id, array $data): void
+    {
+        $downloader = new ExternalImageDownloader();
+        $processedContent = $downloader->processContent($data['content'], $id, $this->entityType);
+        if ($processedContent !== $data['content']) {
+            Post::updateContent($id, $processedContent);
         }
-
-        header('Location: ' . BASE_URL . '/admin/' . $this->itemsName . '/' . $id . '/edit');
-        exit;
+        $this->saveTags($id);
     }
 
     protected function getFormData(): array
@@ -235,7 +149,6 @@ class PostController extends AdminCrudController
 
     public function toggleSlider(array $params): void
     {
-        \App\Core\Auth::require();
         $id = (int)$params['id'];
         $post = Post::find($id);
         if (!$post) {

@@ -7,12 +7,12 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\MenuItem;
 use App\Models\PageStatique;
+use App\Services\Validator;
 
 class MenuController extends BaseAdminController
 {
     public function index(array $params): void
     {
-        Auth::require();
         View::render('admin/menu/list.twig', [
             'items' => MenuItem::getTree(),
         ]);
@@ -20,7 +20,6 @@ class MenuController extends BaseAdminController
 
     public function create(array $params): void
     {
-        Auth::require();
         View::render('admin/menu/form.twig', [
             'item'   => null,
             'action' => BASE_URL . '/admin/menu/create',
@@ -31,15 +30,17 @@ class MenuController extends BaseAdminController
 
     public function store(array $params): void
     {
-        Auth::require();
         $data = $this->formData();
-        if (empty($data['label'])) {
+        $v = Validator::make($data)
+            ->required('label', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             View::render('admin/menu/form.twig', [
                 'item'   => $data,
                 'action' => BASE_URL . '/admin/menu/create',
                 'roots'  => MenuItem::roots(),
                 'pages'  => PageStatique::allPublished(),
-                'error'  => 'Le libellé est obligatoire.',
+                'error'  => $v->firstError(),
             ]);
             return;
         }
@@ -50,12 +51,7 @@ class MenuController extends BaseAdminController
 
     public function edit(array $params): void
     {
-        Auth::require();
-        $item = MenuItem::find((int)$params['id']);
-        if (!$item) {
-            $this->notFound();
-            return;
-        }
+        $item = $this->findOr404(MenuItem::class, (int)$params['id']);
         View::render('admin/menu/form.twig', [
             'item'   => $item,
             'action' => BASE_URL . '/admin/menu/' . $item['id'] . '/edit',
@@ -66,21 +62,19 @@ class MenuController extends BaseAdminController
 
     public function update(array $params): void
     {
-        Auth::require();
         $id   = (int)$params['id'];
-        $item = MenuItem::find($id);
-        if (!$item) {
-            $this->notFound();
-            return;
-        }
+        $item = $this->findOr404(MenuItem::class, $id);
         $data = $this->formData();
-        if (empty($data['label'])) {
+        $v = Validator::make($data)
+            ->required('label', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             View::render('admin/menu/form.twig', [
                 'item'   => array_merge($item, $data),
                 'action' => BASE_URL . '/admin/menu/' . $id . '/edit',
                 'roots'  => MenuItem::roots(),
                 'pages'  => PageStatique::allPublished(),
-                'error'  => 'Le libellé est obligatoire.',
+                'error'  => $v->firstError(),
             ]);
             return;
         }
@@ -95,7 +89,6 @@ class MenuController extends BaseAdminController
 
     public function delete(array $params): void
     {
-        Auth::require();
         MenuItem::delete((int)$params['id']);
         View::flash('success', 'Élément de menu supprimé.');
         $this->redirect('/admin/menu');

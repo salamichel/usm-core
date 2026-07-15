@@ -13,6 +13,7 @@ use App\Models\EquipeSaisonJoueur;
 use App\Models\JoueurSnapshot;
 use App\Models\Photo;
 use App\Models\Saison;
+use App\Services\Validator;
 
 class EquipeConfigController extends BaseAdminController
 {
@@ -20,7 +21,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function index(array $params): void
     {
-        Auth::require();
         $saison = \App\Models\Saison::getActive();
         View::render('admin/equipes-config/list.twig', [
             'equipes' => EquipeConfig::all(),
@@ -30,7 +30,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function create(array $params): void
     {
-        Auth::require();
         View::render('admin/equipes-config/form.twig', [
             'equipe'      => null,
             'saisons'     => [],
@@ -41,15 +40,18 @@ class EquipeConfigController extends BaseAdminController
 
     public function store(array $params): void
     {
-        Auth::require();
         $data = $this->formData();
-        if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
+        $v = Validator::make($data)
+            ->required('slug_colonne', 'La colonne est obligatoire.')
+            ->required('libelle', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             View::render('admin/equipes-config/form.twig', [
                 'equipe'      => $data,
                 'saisons'     => [],
                 'categories'  => CategorieEquipe::all(),
                 'action'      => BASE_URL . '/admin/equipes-config/create',
-                'error'       => 'Colonne et libellé sont obligatoires.',
+                'error'       => $v->firstError(),
             ]);
             return;
         }
@@ -60,12 +62,7 @@ class EquipeConfigController extends BaseAdminController
 
     public function edit(array $params): void
     {
-        Auth::require();
-        $equipe = EquipeConfig::find((int)$params['id']);
-        if (!$equipe) {
-            $this->notFound();
-            return;
-        }
+        $equipe = $this->findOr404(EquipeConfig::class, (int)$params['id']);
 
         $saisons = Saison::all();
         foreach ($saisons as &$s) {
@@ -84,22 +81,21 @@ class EquipeConfigController extends BaseAdminController
 
     public function update(array $params): void
     {
-        Auth::require();
         $id     = (int)$params['id'];
-        $equipe = EquipeConfig::find($id);
-        if (!$equipe) {
-            $this->notFound();
-            return;
-        }
+        $equipe = $this->findOr404(EquipeConfig::class, $id);
         $data = $this->formData();
-        if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
+        $v = Validator::make($data)
+            ->required('slug_colonne', 'La colonne est obligatoire.')
+            ->required('libelle', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             $saisons = Saison::all();
             View::render('admin/equipes-config/form.twig', [
                 'equipe'      => array_merge($equipe, $data),
                 'saisons'     => $saisons,
                 'categories'  => CategorieEquipe::all(),
                 'action'      => BASE_URL . '/admin/equipes-config/' . $id . '/edit',
-                'error'       => 'Colonne et libellé sont obligatoires.',
+                'error'       => $v->firstError(),
             ]);
             return;
         }
@@ -110,7 +106,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function delete(array $params): void
     {
-        Auth::require();
         EquipeConfig::delete((int)$params['id']);
         View::flash('success', 'Équipe supprimée.');
         $this->redirect('/admin/equipes-config');
@@ -120,7 +115,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function saisonPhotos(array $params): void
     {
-        Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
             $this->notFound();
@@ -141,7 +135,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function uploadSaisonPhoto(array $params): void
     {
-        Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
             $this->jsonError('Équipe ou saison introuvable.', 404);
@@ -168,7 +161,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function deleteSaisonPhotoXhr(array $params): void
     {
-        Auth::require();
         $pid   = (int)$params['pid'];
         $photo = Photo::find($pid);
         if ($photo && $photo['entity_type'] === 'equipe_saison') {
@@ -186,7 +178,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function saisonJoueurs(array $params): void
     {
-        Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
             $this->notFound();
@@ -206,7 +197,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function addJoueur(array $params): void
     {
-        Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
             $this->notFound();
@@ -222,7 +212,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function removeJoueur(array $params): void
     {
-        Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
             $this->notFound();
@@ -236,7 +225,6 @@ class EquipeConfigController extends BaseAdminController
 
     public function toggleCaptain(array $params): void
     {
-        Auth::require();
         [$equipe, $saison, $es] = $this->resolveEquipeSaison($params);
         if (!$equipe || !$saison) {
             $this->notFound();

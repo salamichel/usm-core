@@ -8,74 +8,114 @@ use App\Core\View;
 use App\Models\JoueurSnapshot;
 use App\Models\Saison;
 use App\Models\EquipeConfig;
+use App\Services\Validator;
 
-class SaisonController extends BaseAdminController
+class SaisonController extends AdminCrudController
 {
-    public function index(array $params): void
+    public function __construct()
     {
-        Auth::require();
-        $saisons = Saison::all();
-        foreach ($saisons as &$s) {
+        parent::__construct();
+        $this->entityType = 'saison';
+        $this->itemName = 'saison';
+        $this->itemsName = 'saisons';
+        $this->templates = [
+            'list'   => 'admin/saisons/list.twig',
+            'create' => 'admin/saisons/create.twig',
+            'edit'   => 'admin/saisons/edit.twig',
+        ];
+    }
+
+    protected function getModel(): string
+    {
+        return Saison::class;
+    }
+
+    protected function getEntity(int $id): ?array
+    {
+        return Saison::find($id);
+    }
+
+    protected function getAllEntities(): array
+    {
+        return Saison::all();
+    }
+
+    protected function createEntity(array $data): int
+    {
+        return Saison::create($data);
+    }
+
+    protected function updateEntity(int $id, array $data): void
+    {
+        Saison::update($id, $data);
+    }
+
+    protected function deleteEntity(int $id): void
+    {
+        Saison::delete($id);
+    }
+
+    protected function getFormData(): array
+    {
+        return [
+            'libelle'    => trim($_POST['libelle'] ?? ''),
+            'date_debut' => trim($_POST['date_debut'] ?? ''),
+            'date_fin'   => trim($_POST['date_fin'] ?? ''),
+        ];
+    }
+
+    protected function validateData(array $data, ?array $existingEntity = null): ?string
+    {
+        $v = Validator::make($data)
+            ->required('libelle', 'Le libellé est obligatoire.')
+            ->required('date_debut', 'La date de début est obligatoire.')
+            ->required('date_fin', 'La date de fin est obligatoire.');
+        return $v->fails() ? $v->firstError() : null;
+    }
+
+    protected function getIndexData(array $entities): array
+    {
+        foreach ($entities as &$s) {
             $s['snapshot_count'] = Saison::snapshotCount($s['id']);
         }
-        View::render('admin/saisons/list.twig', ['saisons' => $saisons]);
+        return [
+            'saisons' => $entities,
+        ];
     }
 
-    public function create(array $params): void
+    public function update(array $params): void
     {
-        Auth::require();
-        View::render('admin/saisons/create.twig', ['saison' => null]);
-    }
+        $id     = (int)$params['id'];
+        $saison = $this->findOr404(Saison::class, $id);
 
-    public function store(array $params): void
-    {
-        Auth::require();
-        $libelle   = trim($_POST['libelle'] ?? '');
-        $dateDebut = trim($_POST['date_debut'] ?? '');
-        $dateFin   = trim($_POST['date_fin'] ?? '');
-
-        if ($libelle === '') {
-            View::render('admin/saisons/create.twig', [
-                'saison' => ['libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => 'Le libellé est obligatoire.',
-            ]);
-            return;
-        }
-        if ($dateDebut === '') {
-            View::render('admin/saisons/create.twig', [
-                'saison' => ['libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => 'La date de début est obligatoire.',
-            ]);
-            return;
-        }
-        if ($dateFin === '') {
-            View::render('admin/saisons/create.twig', [
-                'saison' => ['libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => 'La date de fin est obligatoire.',
+        $data = $this->getFormData();
+        $error = $this->validateData($data, $saison);
+        if ($error !== null) {
+            View::render($this->getFormTemplate(true), [
+                'saison' => array_merge($saison, $data),
+                'error'  => $error,
             ]);
             return;
         }
 
-        Saison::create([
-            'libelle'    => $libelle,
-            'date_debut' => $dateDebut,
-            'date_fin'   => $dateFin,
-        ]);
-        View::flash('success', "Saison « {$libelle} » créée.");
-        $this->redirect('/admin/saisons');
-    }
+        try {
+            Saison::update($id, $data);
+            View::flash('success', "Saison « {$data['libelle']} » mise à jour.");
+            $this->redirect('/admin/saisons');
+        } catch (\PDOException $e) {
+            $error = $e->getCode() === '23000' || str_contains($e->getMessage(), '1062')
+                ? "Le libellé « {$data['libelle']} » existe déjà pour une autre saison."
+                : "Erreur lors de la mise à jour : " . $e->getMessage();
 
-    public function delete(array $params): void
-    {
-        Auth::require();
-        Saison::delete((int)$params['id']);
-        View::flash('success', 'Saison supprimée.');
-        $this->redirect('/admin/saisons');
+            View::render($this->getFormTemplate(true), [
+                'saison' => array_merge($saison, $data),
+                'error'  => $error,
+            ]);
+        }
     }
 
     public function joueurs(array $params): void
     {
-        Auth::require();
         try {
             $joueurs = JoueurSnapshot::getExternalJoueurs();
             $error   = null;
@@ -102,7 +142,6 @@ class SaisonController extends BaseAdminController
 
     public function flashSelect(array $params): void
     {
-        Auth::require();
         $saisonId = (int)($_POST['saison_id'] ?? 0);
         $s        = Saison::find($saisonId);
         if (!$s) {
@@ -121,13 +160,8 @@ class SaisonController extends BaseAdminController
 
     public function flash(array $params): void
     {
-        Auth::require();
         $id = (int)$params['id'];
-        $s  = Saison::find($id);
-        if (!$s) {
-            $this->notFound();
-            return;
-        }
+        $s  = $this->findOr404(Saison::class, $id);
         try {
             $count = JoueurSnapshot::flashForSaison($id);
             View::flash('success', "{$count} joueurs enregistrés pour la saison « {$s['libelle']} ».");
@@ -139,13 +173,8 @@ class SaisonController extends BaseAdminController
 
     public function snapshots(array $params): void
     {
-        Auth::require();
         $id     = (int)$params['id'];
-        $saison = Saison::find($id);
-        if (!$saison) {
-            $this->notFound();
-            return;
-        }
+        $saison = $this->findOr404(Saison::class, $id);
         $snapshots = JoueurSnapshot::findBySaison($id);
 
         // Récupération des catégories d'équipes pour l'affichage
@@ -156,73 +185,5 @@ class SaisonController extends BaseAdminController
             'snapshots'  => $snapshots,
             'categories' => $categories,
         ]);
-    }
-
-    public function edit(array $params): void
-    {
-        Auth::require();
-        $id     = (int)$params['id'];
-        $saison = Saison::find($id);
-        if (!$saison) {
-            $this->notFound();
-            return;
-        }
-        View::render('admin/saisons/edit.twig', ['saison' => $saison]);
-    }
-
-    public function update(array $params): void
-    {
-        Auth::require();
-        $id     = (int)$params['id'];
-        $saison = Saison::find($id);
-        if (!$saison) {
-            $this->notFound();
-            return;
-        }
-
-        $libelle   = trim($_POST['libelle'] ?? '');
-        $dateDebut = trim($_POST['date_debut'] ?? '');
-        $dateFin   = trim($_POST['date_fin'] ?? '');
-
-        if ($libelle === '') {
-            View::render('admin/saisons/edit.twig', [
-                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => 'Le libellé est obligatoire.',
-            ]);
-            return;
-        }
-        if ($dateDebut === '') {
-            View::render('admin/saisons/edit.twig', [
-                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => 'La date de début est obligatoire.',
-            ]);
-            return;
-        }
-        if ($dateFin === '') {
-            View::render('admin/saisons/edit.twig', [
-                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => 'La date de fin est obligatoire.',
-            ]);
-            return;
-        }
-
-        try {
-            Saison::update($id, [
-                'libelle'    => $libelle,
-                'date_debut' => $dateDebut,
-                'date_fin'   => $dateFin,
-            ]);
-            View::flash('success', "Saison « {$libelle} » mise à jour.");
-            $this->redirect('/admin/saisons');
-        } catch (\PDOException $e) {
-            $error = $e->getCode() === '23000' || str_contains($e->getMessage(), '1062')
-                ? "Le libellé « {$libelle} » existe déjà pour une autre saison."
-                : "Erreur lors de la mise à jour : " . $e->getMessage();
-
-            View::render('admin/saisons/edit.twig', [
-                'saison' => ['id' => $id, 'libelle' => $libelle, 'date_debut' => $dateDebut, 'date_fin' => $dateFin],
-                'error'  => $error,
-            ]);
-        }
     }
 }

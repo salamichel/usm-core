@@ -9,7 +9,7 @@
       <nav aria-label="Fil d'Ariane" class="text-sm text-slate-400 mb-6">
         <a href="{{ url('') }}" class="hover:text-white transition-colors">Accueil</a>
         <span class="mx-2 text-slate-600">/</span>
-        <a href="{{ url('agenda') }}" class="hover:text-white transition-colors">Agenda</a>
+        <a href="{{ url('agenda?view=table&hide_empty_players=1') }}" class="hover:text-white transition-colors">Agenda</a>
         <span class="mx-2 text-slate-600">/</span>
         <span class="text-slate-200">{{ event.titre }}</span>
       </nav>
@@ -200,7 +200,7 @@
     </article>
 
     <div class="mt-10 grid sm:grid-cols-3 gap-3 pb-6">
-      <a href="{{ url('agenda') }}" class="btn-primary justify-center py-3.5 rounded-xl font-bold">← Retour à l'agenda</a>
+      <a href="{{ url('agenda?view=table&hide_empty_players=1') }}" class="btn-primary justify-center py-3.5 rounded-xl font-bold">← Retour à l'agenda</a>
       {% if event.google_calendar_url %}
         <a href="{{ event.google_calendar_url }}" target="_blank" rel="noopener noreferrer" class="btn-secondary justify-center py-3.5 rounded-xl font-bold bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50/50 flex items-center justify-center gap-2">
           <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

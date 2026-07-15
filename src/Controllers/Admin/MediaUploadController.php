@@ -7,7 +7,7 @@ use App\Core\Auth;
 use App\Services\ImageResizer;
 use App\Services\UploadPathManager;
 
-class MediaUploadController
+class MediaUploadController extends BaseAdminController
 {
     private const ALLOWED_IMAGES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     private const ALLOWED_FILES  = [
@@ -21,8 +21,6 @@ class MediaUploadController
 
     public function upload(array $params): void
     {
-        Auth::require();
-
         // Jodit sends files as files[0]; fallback to file for direct calls
         $file = $this->resolveFile();
 

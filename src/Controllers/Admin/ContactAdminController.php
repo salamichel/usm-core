@@ -18,8 +18,6 @@ class ContactAdminController extends BaseAdminController
 
     public function index(array $params): void
     {
-        Auth::require();
-
         $status = $_GET['status'] ?? 'new';
         if (!in_array($status, [...self::VALID_STATUSES, 'all'])) {
             $status = 'new';
@@ -38,15 +36,10 @@ class ContactAdminController extends BaseAdminController
 
     public function show(array $params): void
     {
-        Auth::require();
+        $id = (int)$params['id'];
+        $contact = $this->findOr404(Contact::class, $id);
 
-        $contact = Contact::find((int)$params['id']);
-        if (!$contact) {
-            $this->notFound();
-            return;
-        }
-
-        $replies = ContactReply::findByContact((int)$params['id']);
+        $replies = ContactReply::findByContact($id);
 
         View::render('admin/contacts/detail.twig', [
             'contact' => $contact,
@@ -56,14 +49,10 @@ class ContactAdminController extends BaseAdminController
 
     public function reply(array $params): void
     {
-        Auth::require();
-        $this->requirePost('/admin/contacts/' . $params['id']);
+        $id = (int)$params['id'];
+        $this->requirePost('/admin/contacts/' . $id);
 
-        $contact = Contact::find((int)$params['id']);
-        if (!$contact) {
-            $this->notFound();
-            return;
-        }
+        $contact = $this->findOr404(Contact::class, $id);
 
         $v = Validator::make($_POST)
             ->required('reply', 'La réponse est obligatoire.')
@@ -71,7 +60,7 @@ class ContactAdminController extends BaseAdminController
 
         if ($v->fails()) {
             View::flash('error', 'Erreur : ' . $v->firstError());
-            $this->redirect('/admin/contacts/' . $params['id']);
+            $this->redirect('/admin/contacts/' . $id);
             return;
         }
 
@@ -79,8 +68,8 @@ class ContactAdminController extends BaseAdminController
 
         try {
             $fromEmail = \App\Models\SiteConfig::get('email') ?: ADMIN_EMAIL;
-            ContactReply::create((int)$params['id'], $fromEmail, $replyText);
-            Contact::updateStatus((int)$params['id'], 'replied');
+            ContactReply::create($id, $fromEmail, $replyText);
+            Contact::updateStatus($id, 'replied');
 
             try {
                 $brevo = new BrevoService();
@@ -94,33 +83,28 @@ class ContactAdminController extends BaseAdminController
             View::flash('error', 'Une erreur est survenue.');
         }
 
-        $this->redirect('/admin/contacts/' . $params['id']);
+        $this->redirect('/admin/contacts/' . $id);
     }
 
     public function updateStatus(array $params): void
     {
-        Auth::require();
+        $id = (int)$params['id'];
         $this->requirePost('/admin/contacts');
 
-        $contact = Contact::find((int)$params['id']);
-        if (!$contact) {
-            $this->notFound();
-            return;
-        }
+        $contact = $this->findOr404(Contact::class, $id);
 
         $status = $_POST['status'] ?? 'new';
         if (!in_array($status, self::VALID_STATUSES)) {
             $status = 'new';
         }
 
-        Contact::updateStatus((int)$params['id'], $status);
+        Contact::updateStatus($id, $status);
         View::flash('success', 'Statut mis à jour.');
-        $this->redirect('/admin/contacts/' . $params['id']);
+        $this->redirect('/admin/contacts/' . $id);
     }
 
     public function delete(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/contacts');
 
         Contact::delete((int)$params['id']);
@@ -130,7 +114,6 @@ class ContactAdminController extends BaseAdminController
 
     public function bulkAction(array $params): void
     {
-        Auth::require();
         $this->requirePost('/admin/contacts');
 
         $action     = $_POST['action'] ?? '';
