@@ -17,6 +17,9 @@
   {% for s in saisons %}
   <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
     <div class="font-black text-base mb-1">{{ s.libelle }}</div>
+    <div class="text-xs text-gray-500 mb-2">
+      Du {{ s.date_debut ? s.date_debut|date('d/m/Y') : '—' }} au {{ s.date_fin ? s.date_fin|date('d/m/Y') : '—' }}
+    </div>
     <div class="flex items-center gap-2 flex-wrap text-xs mb-3">
       {% if s.is_active %}
         <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 font-bold rounded">Active</span>
@@ -51,6 +54,8 @@
     <thead class="bg-black text-white">
       <tr>
         <th class="text-left px-4 py-3 font-black">Libellé</th>
+        <th class="text-left px-4 py-3 font-black">Date de début</th>
+        <th class="text-left px-4 py-3 font-black">Date de fin</th>
         <th class="text-left px-4 py-3 font-black">Statut</th>
         <th class="text-left px-4 py-3 font-black">Joueurs</th>
         <th class="px-4 py-3"></th>
@@ -60,6 +65,8 @@
       {% for s in saisons %}
       <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
         <td class="px-4 py-3 font-semibold">{{ s.libelle }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ s.date_debut ? s.date_debut|date('d/m/Y') : '—' }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ s.date_fin ? s.date_fin|date('d/m/Y') : '—' }}</td>
         <td class="px-4 py-3">
           {% if s.is_active %}
             <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">Active</span>
