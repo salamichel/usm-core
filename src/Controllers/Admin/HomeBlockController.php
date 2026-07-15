@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\HomeBlock;
 use App\Models\Photo;
+use App\Services\Validator;
 
 class HomeBlockController extends AdminCrudController
 {
@@ -67,10 +68,9 @@ class HomeBlockController extends AdminCrudController
 
     protected function validateData(array $data, ?array $existingEntity = null): ?string
     {
-        if (empty($data['titre'])) {
-            return 'Le titre est obligatoire.';
-        }
-        return null;
+        $v = Validator::make($data)
+            ->required('titre', 'Le titre est obligatoire.');
+        return $v->fails() ? $v->firstError() : null;
     }
 
     protected function getIndexData(array $entities): array

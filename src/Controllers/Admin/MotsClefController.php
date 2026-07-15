@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\MotsClef;
 use App\Services\Validator;
+use App\Services\Pagination;
 
 class MotsClefController extends AdminCrudController
 {
@@ -103,34 +104,26 @@ class MotsClefController extends AdminCrudController
      */
     public function index(array $params): void
     {
-        $page = (int)($_GET['page'] ?? 1);
-        if ($page < 1) {
-            $page = 1;
-        }
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
         $category = $_GET['category'] ?? null;
         if ($category === '') {
             $category = null;
         }
 
-        $perPage = 30;
         $total = MotsClef::count($category);
-        $pagesCount = (int)ceil($total / $perPage);
+        $pagination = new Pagination($total, 30, $page);
 
-        if ($page > $pagesCount && $pagesCount > 0) {
-            $page = $pagesCount;
-        }
-
-        $motsCles = MotsClef::allPaginated($page, $perPage, $category);
+        $motsCles = MotsClef::allPaginated($pagination->currentPage, $pagination->perPage, $category);
         $categories = MotsClef::getCategories();
 
         View::render('admin/mots-cles/list.twig', [
             'motsCles'     => $motsCles,
             'categories'   => $categories,
             'selectedCat'  => $category,
-            'currentPage'  => $page,
-            'pagesCount'   => $pagesCount,
-            'total'        => $total,
+            'currentPage'  => $pagination->currentPage,
+            'pagesCount'     => $pagination->totalPages,
+            'total'          => $total,
         ]);
     }
 

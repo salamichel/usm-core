@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Helpers\HtmlHelper;
 use App\Models\CategorieEquipe;
+use App\Services\Validator;
 
 class CategorieEquipeController extends AdminCrudController
 {
@@ -63,10 +64,9 @@ class CategorieEquipeController extends AdminCrudController
 
     protected function validateData(array $data, ?array $existingEntity = null): ?string
     {
-        if (empty($data['nom'])) {
-            return 'Le nom de la catégorie est obligatoire.';
-        }
-        return null;
+        $v = Validator::make($data)
+            ->required('nom', 'Le nom de la catégorie est obligatoire.');
+        return $v->fails() ? $v->firstError() : null;
     }
 
     protected function getIndexData(array $entities): array

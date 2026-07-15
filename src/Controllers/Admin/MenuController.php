@@ -7,6 +7,7 @@ use App\Core\Auth;
 use App\Core\View;
 use App\Models\MenuItem;
 use App\Models\PageStatique;
+use App\Services\Validator;
 
 class MenuController extends BaseAdminController
 {
@@ -30,13 +31,16 @@ class MenuController extends BaseAdminController
     public function store(array $params): void
     {
         $data = $this->formData();
-        if (empty($data['label'])) {
+        $v = Validator::make($data)
+            ->required('label', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             View::render('admin/menu/form.twig', [
                 'item'   => $data,
                 'action' => BASE_URL . '/admin/menu/create',
                 'roots'  => MenuItem::roots(),
                 'pages'  => PageStatique::allPublished(),
-                'error'  => 'Le libellé est obligatoire.',
+                'error'  => $v->firstError(),
             ]);
             return;
         }
@@ -69,13 +73,16 @@ class MenuController extends BaseAdminController
             return;
         }
         $data = $this->formData();
-        if (empty($data['label'])) {
+        $v = Validator::make($data)
+            ->required('label', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             View::render('admin/menu/form.twig', [
                 'item'   => array_merge($item, $data),
                 'action' => BASE_URL . '/admin/menu/' . $id . '/edit',
                 'roots'  => MenuItem::roots(),
                 'pages'  => PageStatique::allPublished(),
-                'error'  => 'Le libellé est obligatoire.',
+                'error'  => $v->firstError(),
             ]);
             return;
         }

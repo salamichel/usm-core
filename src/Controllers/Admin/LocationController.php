@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Core\Auth;
 use App\Core\View;
 use App\Models\Location;
+use App\Services\Validator;
 
 class LocationController extends AdminCrudController
 {
@@ -63,13 +64,10 @@ class LocationController extends AdminCrudController
 
     protected function validateData(array $data, ?array $existingEntity = null): ?string
     {
-        if (empty($data['name'])) {
-            return 'Le nom est obligatoire.';
-        }
-        if (empty($data['address'])) {
-            return 'L\'adresse est obligatoire.';
-        }
-        return null;
+        $v = Validator::make($data)
+            ->required('name', 'Le nom est obligatoire.')
+            ->required('address', 'L\'adresse est obligatoire.');
+        return $v->fails() ? $v->firstError() : null;
     }
 
     public function store(array $params): void

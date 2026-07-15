@@ -9,6 +9,7 @@ use App\Core\View;
 use App\Models\MotsClef;
 use App\Services\Agenda\EventRepository;
 use App\Services\Validator;
+use App\Services\Pagination;
 
 class ManifestationController extends BaseAdminController
 {
@@ -17,10 +18,7 @@ class ManifestationController extends BaseAdminController
      */
     public function index(array $params): void
     {
-        $page = (int)($_GET['page'] ?? 1);
-        if ($page < 1) {
-            $page = 1;
-        }
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
         $filters = [
             'type'   => $_GET['type'] ?? '',
@@ -28,15 +26,10 @@ class ManifestationController extends BaseAdminController
             'statut' => $_GET['statut'] ?? '',
         ];
 
-        $perPage = 30;
         $total = EventRepository::countAllEvents($filters);
-        $pagesCount = (int)ceil($total / $perPage);
+        $pagination = new Pagination($total, 30, $page);
 
-        if ($page > $pagesCount && $pagesCount > 0) {
-            $page = $pagesCount;
-        }
-
-        $manifestations = EventRepository::allEventsPaginated($page, $perPage, $filters);
+        $manifestations = EventRepository::allEventsPaginated($pagination->currentPage, $pagination->perPage, $filters);
 
         // Récupérer les options de filtres depuis MotsClef
         $types = MotsClef::getByCategory('ManifestationTypée');
@@ -49,8 +42,8 @@ class ManifestationController extends BaseAdminController
             'locations'      => $locations,
             'statuses'       => $statuses,
             'filters'        => $filters,
-            'currentPage'    => $page,
-            'pagesCount'     => $pagesCount,
+            'currentPage'    => $pagination->currentPage,
+            'pagesCount'     => $pagination->totalPages,
             'total'          => $total,
         ]);
     }
@@ -60,19 +53,10 @@ class ManifestationController extends BaseAdminController
      */
     public function create(array $params): void
     {
-        $types = MotsClef::getByCategory('ManifestationTypée');
-        $locations = MotsClef::getByCategory('Lieu');
-        $durations = MotsClef::getByCategory('Durée_créneau');
-        $statuses = MotsClef::getByCategory('Statut');
-
-        View::render('admin/manifestations/form.twig', [
+        View::render('admin/manifestations/form.twig', array_merge($this->getFormOptions(), [
             'manifestation' => null,
-            'types'         => $types,
-            'locations'     => $locations,
-            'durations'     => $durations,
-            'statuses'      => $statuses,
             'action'        => BASE_URL . '/admin/manifestations/create',
-        ]);
+        ]));
     }
 
     /**
@@ -106,15 +90,11 @@ class ManifestationController extends BaseAdminController
         }
 
         if ($validator->fails()) {
-            View::render('admin/manifestations/form.twig', [
+            View::render('admin/manifestations/form.twig', array_merge($this->getFormOptions(), [
                 'manifestation' => $formData,
-                'types'         => MotsClef::getByCategory('ManifestationTypée'),
-                'locations'     => MotsClef::getByCategory('Lieu'),
-                'durations'     => MotsClef::getByCategory('Durée_créneau'),
-                'statuses'      => $statuses,
                 'action'        => BASE_URL . '/admin/manifestations/create',
                 'error'         => $validator->firstError(),
-            ]);
+            ]));
             return;
         }
 
@@ -160,19 +140,10 @@ class ManifestationController extends BaseAdminController
             'commentaire'        => $event['Commentaire'],
         ];
 
-        $types = MotsClef::getByCategory('ManifestationTypée');
-        $locations = MotsClef::getByCategory('Lieu');
-        $durations = MotsClef::getByCategory('Durée_créneau');
-        $statuses = MotsClef::getByCategory('Statut');
-
-        View::render('admin/manifestations/form.twig', [
+        View::render('admin/manifestations/form.twig', array_merge($this->getFormOptions(), [
             'manifestation' => $manifestationData,
-            'types'         => $types,
-            'locations'     => $locations,
-            'durations'     => $durations,
-            'statuses'      => $statuses,
             'action'        => BASE_URL . '/admin/manifestations/' . $id . '/edit',
-        ]);
+        ]));
     }
 
     /**
@@ -215,15 +186,11 @@ class ManifestationController extends BaseAdminController
 
         if ($validator->fails()) {
             $formData['id'] = $id;
-            View::render('admin/manifestations/form.twig', [
+            View::render('admin/manifestations/form.twig', array_merge($this->getFormOptions(), [
                 'manifestation' => $formData,
-                'types'         => MotsClef::getByCategory('ManifestationTypée'),
-                'locations'     => MotsClef::getByCategory('Lieu'),
-                'durations'     => MotsClef::getByCategory('Durée_créneau'),
-                'statuses'      => $statuses,
                 'action'        => BASE_URL . '/admin/manifestations/' . $id . '/edit',
                 'error'         => $validator->firstError(),
-            ]);
+            ]));
             return;
         }
 
@@ -256,5 +223,18 @@ class ManifestationController extends BaseAdminController
         EventRepository::deleteEvent($id);
         View::flash('success', 'Manifestation supprimée avec succès.');
         $this->redirect('/admin/manifestations');
+    }
+
+    /**
+     * Retourne les options de formulaires récupérées depuis MotsClef.
+     */
+    private function getFormOptions(): array
+    {
+        return [
+            'types'     => MotsClef::getByCategory('ManifestationTypée'),
+            'locations' => MotsClef::getByCategory('Lieu'),
+            'durations' => MotsClef::getByCategory('Durée_créneau'),
+            'statuses'  => MotsClef::getByCategory('Statut'),
+        ];
     }
 }

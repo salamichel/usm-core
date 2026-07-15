@@ -13,6 +13,7 @@ use App\Models\EquipeSaisonJoueur;
 use App\Models\JoueurSnapshot;
 use App\Models\Photo;
 use App\Models\Saison;
+use App\Services\Validator;
 
 class EquipeConfigController extends BaseAdminController
 {
@@ -40,13 +41,17 @@ class EquipeConfigController extends BaseAdminController
     public function store(array $params): void
     {
         $data = $this->formData();
-        if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
+        $v = Validator::make($data)
+            ->required('slug_colonne', 'La colonne est obligatoire.')
+            ->required('libelle', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             View::render('admin/equipes-config/form.twig', [
                 'equipe'      => $data,
                 'saisons'     => [],
                 'categories'  => CategorieEquipe::all(),
                 'action'      => BASE_URL . '/admin/equipes-config/create',
-                'error'       => 'Colonne et libellé sont obligatoires.',
+                'error'       => $v->firstError(),
             ]);
             return;
         }
@@ -87,14 +92,18 @@ class EquipeConfigController extends BaseAdminController
             return;
         }
         $data = $this->formData();
-        if ($data['slug_colonne'] === '' || $data['libelle'] === '') {
+        $v = Validator::make($data)
+            ->required('slug_colonne', 'La colonne est obligatoire.')
+            ->required('libelle', 'Le libellé est obligatoire.');
+
+        if ($v->fails()) {
             $saisons = Saison::all();
             View::render('admin/equipes-config/form.twig', [
                 'equipe'      => array_merge($equipe, $data),
                 'saisons'     => $saisons,
                 'categories'  => CategorieEquipe::all(),
                 'action'      => BASE_URL . '/admin/equipes-config/' . $id . '/edit',
-                'error'       => 'Colonne et libellé sont obligatoires.',
+                'error'       => $v->firstError(),
             ]);
             return;
         }

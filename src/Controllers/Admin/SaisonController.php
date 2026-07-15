@@ -8,6 +8,7 @@ use App\Core\View;
 use App\Models\JoueurSnapshot;
 use App\Models\Saison;
 use App\Models\EquipeConfig;
+use App\Services\Validator;
 
 class SaisonController extends AdminCrudController
 {
@@ -65,16 +66,11 @@ class SaisonController extends AdminCrudController
 
     protected function validateData(array $data, ?array $existingEntity = null): ?string
     {
-        if (empty($data['libelle'])) {
-            return 'Le libellé est obligatoire.';
-        }
-        if (empty($data['date_debut'])) {
-            return 'La date de début est obligatoire.';
-        }
-        if (empty($data['date_fin'])) {
-            return 'La date de fin est obligatoire.';
-        }
-        return null;
+        $v = Validator::make($data)
+            ->required('libelle', 'Le libellé est obligatoire.')
+            ->required('date_debut', 'La date de début est obligatoire.')
+            ->required('date_fin', 'La date de fin est obligatoire.');
+        return $v->fails() ? $v->firstError() : null;
     }
 
     protected function getIndexData(array $entities): array
