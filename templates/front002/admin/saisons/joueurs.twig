@@ -15,10 +15,10 @@
   </h2>
   <p class="text-xs text-gray-500 mb-4">
     Cette action récupère les joueurs de la base externe ci-dessous et les enregistre (snapshot) pour la saison de votre choix. 
-    Les liaisons d'équipes seront automatiquement créées. <strong class="text-red-600">Attention : cela réinitialise les ajustements manuels de l'équipe pour la saison concernée.</strong>
+    Les liaisons d'équipes seront automatiquement créées. <strong class="text-red-600">Attention : cela réinitialise les ajustements manuels de composition d'équipe (les capitaines désignés seront toutefois conservés).</strong>
   </p>
   
-  <form method="POST" action="{{ url('admin/saisons/flash-select') }}" class="flex flex-col sm:flex-row gap-3 items-end sm:items-center" data-confirm="Voulez-vous vraiment flasher les joueurs pour la saison sélectionnée ? Les ajustements manuels existants seront écrasés.">
+  <form method="POST" action="{{ url('admin/saisons/flash-select') }}" class="flex flex-col sm:flex-row gap-3 items-end sm:items-center" data-confirm="Voulez-vous vraiment flasher les joueurs pour la saison sélectionnée ? Les ajustements manuels de composition d'équipe seront écrasés (les capitaines désignés seront conservés).">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
     <div class="flex-1 w-full">
       <label class="block text-xs font-bold uppercase mb-1 text-gray-600" for="saison_id">Sélectionner la saison concernée :</label>
