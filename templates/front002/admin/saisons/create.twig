@@ -1,4 +1,5 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}Nouvelle saison{% endblock %}
 
 {% block content %}
@@ -7,9 +8,7 @@
   <h1 class="text-3xl font-black mt-1">Nouvelle saison</h1>
 </div>
 
-{% if error is defined and error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-4 font-semibold">{{ error }}</div>
-{% endif %}
+{{ m.form_error(error ?? null) }}
 
 <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] max-w-lg">
   <form method="POST" action="{{ url('admin/saisons/create') }}">
@@ -29,10 +28,7 @@
            value="{{ saison.date_fin ?? '' }}"
            class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 mb-4"
            required>
-    <button type="submit"
-            class="border-4 border-black bg-usm-brown text-white font-black px-6 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-      Créer
-    </button>
+    {{ m.btn_submit('Créer') }}
   </form>
 </div>
 {% endblock %}

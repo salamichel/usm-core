@@ -62,11 +62,7 @@ class EquipeConfigController extends BaseAdminController
 
     public function edit(array $params): void
     {
-        $equipe = EquipeConfig::find((int)$params['id']);
-        if (!$equipe) {
-            $this->notFound();
-            return;
-        }
+        $equipe = $this->findOr404(EquipeConfig::class, (int)$params['id']);
 
         $saisons = Saison::all();
         foreach ($saisons as &$s) {
@@ -86,11 +82,7 @@ class EquipeConfigController extends BaseAdminController
     public function update(array $params): void
     {
         $id     = (int)$params['id'];
-        $equipe = EquipeConfig::find($id);
-        if (!$equipe) {
-            $this->notFound();
-            return;
-        }
+        $equipe = $this->findOr404(EquipeConfig::class, $id);
         $data = $this->formData();
         $v = Validator::make($data)
             ->required('slug_colonne', 'La colonne est obligatoire.')

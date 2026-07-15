@@ -135,12 +135,7 @@ class MotsClefController extends AdminCrudController
         $this->requirePost('/admin/mots-cles');
 
         $id = (int)$params['id'];
-        $motCle = MotsClef::find($id);
-
-        if (!$motCle) {
-            $this->notFound('error.twig', ['error' => 'Mot-clé non trouvé.']);
-            return;
-        }
+        $motCle = $this->findOr404(MotsClef::class, $id, 'error.twig', ['error' => 'Mot-clé non trouvé.']);
 
         MotsClef::delete($id);
         View::flash('success', 'Mot-clé supprimé avec succès.');

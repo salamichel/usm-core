@@ -27,53 +27,6 @@ class View
                 'auto_reload' => true,
             ]);
 
-            // Global variables available in every template
-            $twig->addGlobal('menu_items', MenuItem::getTree());
-            $twig->addGlobal('base_url',   BASE_URL);
-            $twig->addGlobal('admin_logged_in', Auth::check());
-            $twig->addGlobal('flash', self::getFlash());
-            $twig->addGlobal('saison_active', Saison::getActive()['libelle']);
-            $twig->addGlobal('site_config', SiteConfig::all());
-            $twig->addGlobal('csrf_token', CsrfToken::generate());
-            $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
-            $twig->addGlobal('_POST', $_POST);
-            $twig->addGlobal('theme', $theme);
-            $twig->addGlobal('app', [
-                'session' => $_SESSION,
-                'request' => $_REQUEST,
-                'get'     => $_GET,
-                'post'    => $_POST,
-                'server'  => $_SERVER,
-                ]);
-
-            // Member events this week count for bottom bar badge
-            $memberEventsThisWeek = 0;
-            if (!empty($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
-                try {
-                    $userId = (int) $_SESSION['LogInId'];
-                    $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
-                    $memberEventsThisWeek = $kpis['this_week'] ?? 0;
-                } catch (\Throwable) {
-                    $memberEventsThisWeek = 0;
-                }
-            }
-            $twig->addGlobal('member_events_this_week', $memberEventsThisWeek);
-
-            // Contact stats for admin menu badge
-            if (Auth::check()) {
-                try {
-                    $twig->addGlobal('contact_stats', [
-                        'new' => \App\Models\Contact::countByStatus('new'),
-                    ]);
-                    $twig->addGlobal('unread_contact_messages', ContactMessage::countUnread());
-                } catch (\Throwable) {
-                    // Table might not exist yet during migration
-                    $twig->addGlobal('unread_contact_messages', 0);
-                }
-            } else {
-                $twig->addGlobal('unread_contact_messages', 0);
-            }
-
             // |date_fr filter
             $twig->addFilter(new TwigFilter('date_fr', function (?string $date, string $format = 'd/m/Y'): string {
                 if (!$date) return '';
@@ -139,9 +92,58 @@ class View
     {
         $twig = self::getInstance();
 
-        // If no 'meta' provided in $data, add a default empty one
         if (!isset($data['meta'])) {
             $data['meta'] = null;
+        }
+
+        $theme = self::resolveTheme();
+
+        // Register basic globals
+        $twig->addGlobal('base_url',   BASE_URL);
+        $twig->addGlobal('admin_logged_in', Auth::check());
+        $twig->addGlobal('flash', self::getFlash());
+        $twig->addGlobal('csrf_token', CsrfToken::generate());
+        $twig->addGlobal('current_path', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+        $twig->addGlobal('_POST', $_POST);
+        $twig->addGlobal('theme', $theme);
+        $twig->addGlobal('app', [
+            'session' => $_SESSION,
+            'request' => $_REQUEST,
+            'get'     => $_GET,
+            'post'    => $_POST,
+            'server'  => $_SERVER,
+        ]);
+
+        // Cheap/always needed DB globals
+        $twig->addGlobal('site_config', SiteConfig::all());
+        $saison = Saison::getActive();
+        $twig->addGlobal('saison_active', $saison ? $saison['libelle'] : '');
+
+        // Load public menu only if not rendering admin pages
+        if (!str_starts_with($template, 'admin/')) {
+            $twig->addGlobal('menu_items', MenuItem::getTree());
+        }
+
+        // Member events count (only if member is logged in)
+        $memberEventsThisWeek = 0;
+        if (!empty($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+            try {
+                $userId = (int) $_SESSION['LogInId'];
+                $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
+                $memberEventsThisWeek = $kpis['this_week'] ?? 0;
+            } catch (\Throwable) {
+            }
+        }
+        $twig->addGlobal('member_events_this_week', $memberEventsThisWeek);
+
+        // Contact stats for admin menu badge (only if admin is logged in and template is in admin)
+        if (Auth::check() && str_starts_with($template, 'admin/')) {
+            try {
+                $twig->addGlobal('contact_stats', [
+                    'new' => \App\Models\Contact::countByStatus('new'),
+                ]);
+            } catch (\Throwable) {
+            }
         }
 
         echo $twig->render($template, $data);

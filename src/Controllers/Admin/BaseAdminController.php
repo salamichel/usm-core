@@ -65,4 +65,18 @@ abstract class BaseAdminController
         echo json_encode(array_merge(['ok' => true], $data));
         exit;
     }
+
+    /**
+     * Tente de trouver une entité par son ID.
+     * Si l'entité n'existe pas, affiche une page 404 et interrompt l'exécution.
+     */
+    protected function findOr404(string $modelClass, int $id, string $template = 'error.twig', array $context = []): array
+    {
+        $entity = $modelClass::find($id);
+        if (!$entity) {
+            $this->notFound($template, array_merge(['error' => 'Élément introuvable.'], $context));
+            exit;
+        }
+        return $entity;
+    }
 }

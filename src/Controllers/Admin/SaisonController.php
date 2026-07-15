@@ -86,11 +86,7 @@ class SaisonController extends AdminCrudController
     public function update(array $params): void
     {
         $id     = (int)$params['id'];
-        $saison = Saison::find($id);
-        if (!$saison) {
-            $this->notFound();
-            return;
-        }
+        $saison = $this->findOr404(Saison::class, $id);
 
         $data = $this->getFormData();
         $error = $this->validateData($data, $saison);
@@ -165,11 +161,7 @@ class SaisonController extends AdminCrudController
     public function flash(array $params): void
     {
         $id = (int)$params['id'];
-        $s  = Saison::find($id);
-        if (!$s) {
-            $this->notFound();
-            return;
-        }
+        $s  = $this->findOr404(Saison::class, $id);
         try {
             $count = JoueurSnapshot::flashForSaison($id);
             View::flash('success', "{$count} joueurs enregistrés pour la saison « {$s['libelle']} ».");
@@ -182,11 +174,7 @@ class SaisonController extends AdminCrudController
     public function snapshots(array $params): void
     {
         $id     = (int)$params['id'];
-        $saison = Saison::find($id);
-        if (!$saison) {
-            $this->notFound();
-            return;
-        }
+        $saison = $this->findOr404(Saison::class, $id);
         $snapshots = JoueurSnapshot::findBySaison($id);
 
         // Récupération des catégories d'équipes pour l'affichage

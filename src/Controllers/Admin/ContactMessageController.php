@@ -18,12 +18,8 @@ class ContactMessageController extends BaseAdminController
 
     public function show(array $params): void
     {
-        $message = ContactMessage::find((int)$params['id']);
-
-        if (!$message) {
-            $this->notFound();
-            return;
-        }
+        $id = (int)$params['id'];
+        $message = $this->findOr404(ContactMessage::class, $id);
 
         if (!$message['read_at']) {
             ContactMessage::markAsRead($message['id']);

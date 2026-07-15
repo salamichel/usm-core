@@ -51,11 +51,7 @@ class MenuController extends BaseAdminController
 
     public function edit(array $params): void
     {
-        $item = MenuItem::find((int)$params['id']);
-        if (!$item) {
-            $this->notFound();
-            return;
-        }
+        $item = $this->findOr404(MenuItem::class, (int)$params['id']);
         View::render('admin/menu/form.twig', [
             'item'   => $item,
             'action' => BASE_URL . '/admin/menu/' . $item['id'] . '/edit',
@@ -67,11 +63,7 @@ class MenuController extends BaseAdminController
     public function update(array $params): void
     {
         $id   = (int)$params['id'];
-        $item = MenuItem::find($id);
-        if (!$item) {
-            $this->notFound();
-            return;
-        }
+        $item = $this->findOr404(MenuItem::class, $id);
         $data = $this->formData();
         $v = Validator::make($data)
             ->required('label', 'Le libellé est obligatoire.');
