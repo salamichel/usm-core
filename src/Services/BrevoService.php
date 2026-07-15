@@ -231,7 +231,32 @@ class BrevoService
 
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
         $eventTitle = $event['titre'] ?? 'Match';
-        $subject = '❌ Match annulé : ' . $eventTitle;
+
+        $type = $event['type'] ?? '';
+        if (!$type && !empty($event['ManifestationTypée'])) {
+            $parts = explode(' - ', $event['ManifestationTypée'], 3);
+            $type = $parts[1] ?? '';
+        }
+        $isMatch = (mb_strtolower($type) === 'match');
+
+        if ($isMatch) {
+            $subject = '❌ Match annulé : ' . $eventTitle;
+            $eventTypeUpper = 'MATCH';
+            $cancellationText = 'Le match suivant pour lequel vous étiez sélectionné(e) a été annulé :';
+        } else {
+            $typeLabel = $type ?: 'Événement';
+            $subject = '❌ ' . $typeLabel . ' annulé : ' . $eventTitle;
+            $eventTypeUpper = mb_strtoupper($typeLabel);
+
+            $firstChar = mb_strtolower(mb_substr($typeLabel, 0, 1));
+            $isVowel = in_array($firstChar, ['a', 'e', 'i', 'o', 'u', 'y', 'é', 'è', 'à', 'ù']);
+            $determinant = $isVowel ? "L'" : "Le ";
+            if (mb_strtolower($typeLabel) === 'réunion') {
+                $determinant = "La ";
+            }
+
+            $cancellationText = $determinant . mb_strtolower($typeLabel) . ' suivant pour lequel vous étiez présent(e) a été annulé :';
+        }
 
         $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
         $eventTime = $event['time_display'] ?? '';
@@ -248,6 +273,8 @@ class BrevoService
                 'EVENT_DATE' => $this->escapeHtml($eventDate),
                 'EVENT_LOCATION' => $this->escapeHtml($eventLocation),
                 'DASHBOARD_URL' => BASE_URL . '/member/dashboard',
+                'EVENT_TYPE_UPPER' => $eventTypeUpper,
+                'CANCELLATION_TEXT' => $cancellationText,
             ]);
         } catch (\Throwable $e) {
             Logger::errors()->error('Failed to render match cancellation email template via Twig', ['error' => $e->getMessage()]);

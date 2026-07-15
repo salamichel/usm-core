@@ -343,21 +343,10 @@ class CaptainController
 
             // Notification d'annulation par email
             $isCancelledNow = str_contains($data['statut'], 'Annulé');
-            if (!$wasCancelled && $isCancelledNow && !empty($selectedPlayers)) {
-                $brevo = new BrevoService();
-                foreach ($selectedPlayers as $selPlayer) {
-                    try {
-                        $playerDb = \App\Models\Joueur::findById((int)$selPlayer['id']);
-                        if ($playerDb && !empty($playerDb['Mel'])) {
-                            $brevo->sendMatchCancellationNotification($playerDb, $event);
-                        }
-                    } catch (\Throwable $e) {
-                        Logger::errors()->error('Failed to send match cancellation email', [
-                            'player_id' => $selPlayer['id'],
-                            'match_id' => $matchId,
-                            'error' => $e->getMessage()
-                        ]);
-                    }
+            if (!$wasCancelled && $isCancelledNow) {
+                $fullEvent = \App\Services\Agenda\EventRepository::getEventById((int)$matchId);
+                if ($fullEvent) {
+                    \App\Services\Agenda\EventNotificationService::sendCancellationNotifications($fullEvent);
                 }
             }
 

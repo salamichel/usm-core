@@ -200,7 +200,18 @@ class ManifestationController extends BaseAdminController
         }
         $formData['date'] = $dateStr;
 
+        $wasCancelled = str_contains((string)($event['Statut'] ?? ''), 'Annulé');
+        $isCancelledNow = str_contains($formData['statut'], 'Annulé');
+
         EventRepository::updateEvent($id, $formData);
+
+        if (!$wasCancelled && $isCancelledNow) {
+            $fullEvent = EventRepository::getEventById($id);
+            if ($fullEvent) {
+                \App\Services\Agenda\EventNotificationService::sendCancellationNotifications($fullEvent);
+            }
+        }
+
         View::flash('success', 'Manifestation mise à jour avec succès.');
         $this->redirect('/admin/manifestations');
     }

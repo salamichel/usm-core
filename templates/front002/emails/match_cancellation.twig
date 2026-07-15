@@ -20,12 +20,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>❌ MATCH ANNULÉ</h1>
+            <h1>❌ {{ EVENT_TYPE_UPPER|default('MATCH') }} ANNULÉ</h1>
         </div>
 
         <div class="content">
             <p>Bonjour <strong>{{ PLAYER_NAME }}</strong>,</p>
-            <p style="margin-top: 8px; color: #b91c1c; font-weight: bold;">Le match suivant pour lequel vous étiez sélectionné(e) a été annulé :</p>
+            <p style="margin-top: 8px; color: #b91c1c; font-weight: bold;">{{ CANCELLATION_TEXT|default('Le match suivant pour lequel vous étiez sélectionné(e) a été annulé :')|raw }}</p>
 
             <div class="match-info">
                 <div class="field-label">🏆 Rencontre</div>
