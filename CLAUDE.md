@@ -45,10 +45,11 @@ automatiquement tous les fichiers SQL dans l'ordre puis s'arrêtent.
 ├── src/
 │   ├── Core/
 │   │   ├── App.php            ← configuration globale et enregistrement de toutes les routes
+│   │   ├── AbstractDatabase.php ← classe abstraite parente des singletons PDO (connexion, configuration)
 │   │   ├── Database.php       ← singleton PDO pour la base de données locale (usm_volley)
 │   │   ├── ExternalDatabase.php ← singleton PDO pour la base externe (simulée/réelle)
 │   │   ├── Router.php         ← dispatching des requêtes HTTP et extraction des paramètres
-│   │   ├── View.php           ← wrapper de rendu Twig, variables globales et gestion du flash
+│   │   ├── View.php           ← wrapper de rendu Twig, lazy-loading des variables globales et gestion du flash
 │   │   ├── Auth.php           ← gestion de la session et des accès de l'administrateur
 │   │   ├── CsrfToken.php      ← génération et validation des jetons de sécurité CSRF
 │   │   └── NotFoundHandler.php ← trait fournissant des helpers pour les erreurs 404
@@ -242,10 +243,28 @@ les routes paramétrées (`/{id}`) pour éviter les conflits.
 
 ### Ajouter un contrôleur admin
 
-1. Créer `src/Controllers/Admin/MonController.php`
-2. Appeler `Auth::require()` en tête de chaque action
-3. Utiliser `View::flash('success', '...')` + `header('Location: ...')` pour les redirections
+Le pattern dépend de la complexité du contrôleur :
+
+#### CRUD standard — étendre `AdminCrudController`
+
+Pour la majorité des fonctionnalités CRUD admin (création, édition, suppression avec photos optionnelles) :
+
+1. Créer `src/Controllers/Admin/MonController.php` qui étend `AdminCrudController`
+2. Implémenter les méthodes abstraites et les hooks nécessaires
+3. Ne **pas** appeler `Auth::require()` — c'est automatique via `BaseAdminController`
 4. Ajouter l'`use` et les routes dans `App.php`
+
+Voir la règle 7 de `AGENTS.md` pour un exemple complet.
+
+#### Contrôleur spécialisé — étendre `BaseAdminController`
+
+Pour les contrôleurs avec une logique métier spécifique qui ne s'adapte pas au CRUD standard :
+
+1. Créer `src/Controllers/Admin/MonController.php` qui étend `BaseAdminController`
+2. Ne **pas** appeler `Auth::require()` dans les méthodes — le constructeur de `BaseAdminController` le fait automatiquement
+3. Utiliser `$this->findOr404(MonModel::class, $id)` pour récupérer les entités
+4. Utiliser `$this->redirect('/admin/mon-chemin')` pour les redirections post-action
+5. Ajouter l'`use` et les routes dans `App.php`
 
 ### Photos (upload Dropzone)
 
