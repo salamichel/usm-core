@@ -22,7 +22,6 @@ deploy_ftp:
     - echo "Déploiement terminé !"
   environment:
     name: production
-
 # =========================================================
 # JOB 2 : SAUVEGARDE DEPUIS LE FTP (Manuel / Planifié)
 # =========================================================
@@ -38,17 +37,33 @@ pull_from_ftp:
   script:
     - 'DATE_STR=$(date +%Y-%m-%d_%Hh%M)'
     - 'echo "Horodatage généré : $DATE_STR"'
-    - echo "Démarrage du backup... $FTP_HOME "    
+    - 'echo "Démarrage du backup... $FTP_HOME"'
     - 'mkdir -p ./sauvegarde_locale'
-    - lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; mirror -v $FTP_HOME ./sauvegarde_locale --exclude-glob 'cache' --exclude-glob 'vendor/' --parallel=2"
-    - 'zip -r "backup_$DATE_STR.zip" ./sauvegarde_locale/'
+    
+    # 1. Improved lftp exclusions: Added trailing slashes for directories 
+    # and ignored hidden git folders, node_modules, and logs.
+    - >
+      lftp -c "set ftp:ssl-allow no; set ftp:passive-mode true; 
+      open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST; 
+      mirror -v $FTP_HOME ./sauvegarde_locale 
+      --exclude-glob .git/ 
+      --exclude-glob cache/ 
+      --exclude-glob vendor/ 
+      --exclude-glob node_modules/ 
+      --exclude-glob logs/ 
+      --parallel=2"
+      
+    # 2. Added '-9' flag to zip for maximum compression
+    - 'zip -r -9 "backup_$DATE_STR.zip" ./sauvegarde_locale/'
+    
+    # 3. Clean up the uncompressed folder immediately so the runner doesn't run out of disk space
+    - 'rm -rf ./sauvegarde_locale/'
     - 'echo "Sauvegarde terminée !"'
   artifacts:
     name: "Sauvegarde-InfinityFree-$CI_COMMIT_SHORT_SHA"
     paths:
       - 'backup_*.zip'
     expire_in: 1 week
-
 # =========================================================
 # JOB 3 : CONNEXION SSH ET EXTRACTION SUR LA MACHINE LOCALE
 # =========================================================
