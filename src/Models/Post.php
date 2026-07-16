@@ -286,4 +286,9 @@ class Post
         return $posts;
     }
 
+    public static function setFacebookPostId(int $id, string $fbPostId): void
+    {
+        Database::get()->prepare("UPDATE posts SET fb_post_id = ?, updated_at = NOW() WHERE id = ?")
+            ->execute([$fbPostId, $id]);
+    }
 }
