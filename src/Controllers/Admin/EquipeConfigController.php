@@ -124,9 +124,11 @@ class EquipeConfigController extends BaseAdminController
         $photos     = Photo::forEntity('equipe_saison', $es['id']);
         $upload_url = BASE_URL . '/admin/equipes-config/' . $equipe['id']
                       . '/saisons/' . $saison['id'] . '/photos/upload';
+        $saisons    = Saison::all();
         View::render('admin/equipes-config/saison_photos.twig', [
             'equipe'     => $equipe,
             'saison'     => $saison,
+            'saisons'    => $saisons,
             'es'         => $es,
             'photos'     => $photos,
             'upload_url' => $upload_url,
@@ -186,9 +188,11 @@ class EquipeConfigController extends BaseAdminController
 
         $joueurs   = EquipeSaisonJoueur::findByEquipeSaison($es['id']);
         $available = EquipeSaisonJoueur::getAvailableSnapshots($es['id'], $saison['id']);
+        $saisons   = Saison::all();
         View::render('admin/equipes-config/saison_joueurs.twig', [
             'equipe'    => $equipe,
             'saison'    => $saison,
+            'saisons'   => $saisons,
             'es'        => $es,
             'joueurs'   => $joueurs,
             'available' => $available,

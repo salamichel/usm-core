@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Models;
@@ -88,7 +89,7 @@ class JoueurSnapshot
                     $key = $snap['id_joueur'] . '-' . $eq['id'];
                     $wasCaptain = isset($captainKeys[$key]);
 
-                    // Le joueur doit être inséré s'il est dans la colonne de l'équipe de la base externe,
+                    // Le joueur doi^ùm7t être inséré s'il est dans la colonne de l'équipe de la base externe,
                     // OU s'il était déjà capitaine de cette équipe.
                     if (!empty($snap['data'][$col]) || $wasCaptain) {
                         if ($hasExistingCaptains) {
