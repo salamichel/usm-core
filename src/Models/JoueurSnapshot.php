@@ -105,6 +105,9 @@ class JoueurSnapshot
                 }
             }
 
+            // Initialiser les préférences d'emails des joueurs (sans écraser les modifications existantes)
+            self::initializePreferencesForSaison($saisonId);
+
             $db->commit();
         } catch (\Throwable $e) {
             $db->rollBack();
@@ -112,6 +115,82 @@ class JoueurSnapshot
         }
 
         return count($joueurs);
+    }
+
+    /**
+     * Initialise les préférences d'abonnements d'e-mails pour tous les joueurs d'une saison,
+     * en pré-cochant les entraînements associés à leurs équipes.
+     */
+    public static function initializePreferencesForSaison(int $saisonId): void
+    {
+        $db = Database::get();
+
+        // 1. Récupérer toutes les configurations d'équipes actives
+        $equipesConfig = EquipeConfig::allActive();
+
+        // 2. Récupérer tous les types d'entraînements
+        $trainingTypes = MotsClef::getTrainingTypes();
+
+        // 3. Récupérer toutes les adhésions aux équipes
+        $stmtMembers = $db->prepare("
+            SELECT js.id_joueur, es.equipe_id
+            FROM equipe_saison_joueur esj
+            JOIN joueur_snapshots js ON js.id = esj.snapshot_id
+            JOIN equipe_saison es ON es.id = esj.equipe_saison_id
+            WHERE es.saison_id = ?
+        ");
+        $stmtMembers->execute([$saisonId]);
+        $memberships = $stmtMembers->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Grouper les équipes par joueur
+        $playerTeams = [];
+        foreach ($memberships as $m) {
+            $playerTeams[(int)$m['id_joueur']][] = (int)$m['equipe_id'];
+        }
+
+        // 4. Récupérer les identifiants de tous les joueurs pour cette saison
+        $stmtSnaps = $db->prepare("SELECT id_joueur FROM joueur_snapshots WHERE saison_id = ?");
+        $stmtSnaps->execute([$saisonId]);
+        $playerIds = $stmtSnaps->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+
+        // Requête de contrôle des préférences existantes
+        $stmtCheck = $db->prepare("SELECT 1 FROM member_email_preferences WHERE id_joueur = ? AND saison_id = ? LIMIT 1");
+        
+        foreach ($playerIds as $playerId) {
+            $playerId = (int)$playerId;
+
+            // Préserver l'existant : si des préférences sont déjà stockées, on ne fait rien
+            $stmtCheck->execute([$playerId, $saisonId]);
+            if ($stmtCheck->fetch()) {
+                continue;
+            }
+
+            // Déterminer les types d'entraînements associés à ses équipes
+            $matchedTrainings = [];
+            $teamsOfPlayer = $playerTeams[$playerId] ?? [];
+
+            foreach ($teamsOfPlayer as $teamId) {
+                foreach ($equipesConfig as $ec) {
+                    if ((int)$ec['id'] === $teamId) {
+                        $associated = json_decode($ec['training_filter'] ?? '[]', true) ?: [];
+                        foreach ($associated as $at) {
+                            $matchedTrainings[$at] = true;
+                        }
+                    }
+                }
+            }
+
+            // Pré-cocher Match, Rappel hebdomadaire & Vie du club à 1 (true)
+            MemberEmailPreference::setPreference($playerId, $saisonId, 'match', true);
+            MemberEmailPreference::setPreference($playerId, $saisonId, 'weekly_presence', true);
+            MemberEmailPreference::setPreference($playerId, $saisonId, 'club_life', true);
+
+            // Pré-cocher les entraînements correspondants (1 si match, 0 sinon)
+            foreach ($trainingTypes as $tt) {
+                $isSubscribed = isset($matchedTrainings[$tt]);
+                MemberEmailPreference::setPreference($playerId, $saisonId, $tt, $isSubscribed);
+            }
+        }
     }
 
     public static function findBySaison(int $saisonId): array

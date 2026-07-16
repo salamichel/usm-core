@@ -811,6 +811,8 @@ Pour optimiser les temps de chargement du site public, un système de générati
 | `BREVO_API_KEY` | — | Clé API Brevo pour envoyer les emails |
 | `BREVO_FROM_EMAIL` | `noreply@usm-volley.fr` | Email "De" pour les notifications |
 | `BREVO_FROM_NAME` | `USM Volley` | Nom "De" pour les notifications |
+| `CRON_SECURITY_TOKEN` | `usm_cron_token_fallback_2026` | Token de sécurité pour le déclenchement des tâches automatisées (cron/GitLab) |
+
 
 ---
 
@@ -855,4 +857,6 @@ schema.sql → seed.sql → add_photos.sql
 - `022_saison_datedebut_datefin.sql` — ajout de date_debut et date_fin aux saisons
 - `023_add_captain_to_equipe_saison_joueur.sql` — ajout du flag is_captain pour désigner le capitaine d'équipe
 - `024_add_ffvb_link_to_equipes_config.sql` — ajout du lien FFVB aux équipes
+- `031_member_email_preferences.sql` — préférences individuelles d'abonnements d'emails
+- `032_equipe_config_training_filter.sql` — filtre / association des entraînements par équipe
 

@@ -2,12 +2,21 @@
 {% block title %}Saisons{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
   <h1 class="text-3xl font-black">Saisons</h1>
-  <a href="{{ url('admin/saisons/create') }}"
-     class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    + Nouvelle saison
-  </a>
+  <div class="flex items-center gap-3">
+    <form method="POST" action="{{ url('admin/saisons/send-weekly-reminder') }}" data-confirm="Envoyer maintenant le rappel hebdomadaire de présence par e-mail à tous les joueurs abonnés ?">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+      <button type="submit"
+              class="border-4 border-black bg-white text-black font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all flex items-center gap-2">
+        🔔 Rappel hebdomadaire manuel
+      </button>
+    </form>
+    <a href="{{ url('admin/saisons/create') }}"
+       class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+      + Nouvelle saison
+    </a>
+  </div>
 </div>
 
 {% if saisons|length %}
@@ -37,6 +46,10 @@
          class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Modifier</a>
       <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
          class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Joueurs</a>
+      <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/purge') }}" data-confirm="Purger tous les joueurs, adhésions et abonnements e-mails de la saison « {{ s.libelle }} » pour recommencer à zéro ? Cette action est irréversible.">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="border-2 border-amber-600 text-amber-600 px-2 py-1 text-xs font-bold hover:bg-amber-600 hover:text-white transition">Purger</button>
+      </form>
       {% if not s.is_active %}
       <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/delete') }}" data-confirm="Supprimer la saison « {{ s.libelle }} » et tous ses snapshots ?">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
@@ -85,6 +98,10 @@
                class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Modifier</a>
             <a href="{{ url('admin/saisons/' ~ s.id ~ '/snapshots') }}"
                class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Joueurs</a>
+            <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/purge') }}" data-confirm="Purger tous les joueurs, adhésions et abonnements e-mails de la saison « {{ s.libelle }} » pour recommencer à zéro ? Cette action est irréversible.">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="border-2 border-amber-600 text-amber-600 px-2 py-1 text-xs font-bold hover:bg-amber-600 hover:text-white transition">Purger</button>
+            </form>
             {% if not s.is_active %}
             <form method="POST" action="{{ url('admin/saisons/' ~ s.id ~ '/delete') }}" data-confirm="Supprimer la saison « {{ s.libelle }} » et tous ses snapshots ?">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">

@@ -200,7 +200,7 @@ class CaptainController
         $manifestationType = "Disponibilités - Match - " . $filter;
 
         try {
-            EventRepository::createMatch([
+            $id = EventRepository::createMatch([
                 'manifestation_type' => $manifestationType,
                 'date' => $dateStr,
                 'duration' => $data['duration'],
@@ -208,6 +208,11 @@ class CaptainController
                 'commentaire' => $data['commentaire'] ?: null,
                 'statut' => $data['statut']
             ]);
+
+            $event = EventRepository::findEventRaw($id);
+            if ($event) {
+                \App\Services\Agenda\EventNotificationService::sendCreationNotifications($event);
+            }
 
             View::flash('success', 'Match créé avec succès et publié dans l\'agenda.');
             header('Location: /member/captain');

@@ -186,4 +186,48 @@ class SaisonController extends AdminCrudController
             'categories' => $categories,
         ]);
     }
+
+    public function sendWeeklyReminder(): void
+    {
+        try {
+            $sentCount = \App\Services\Agenda\EventNotificationService::sendWeeklyNotifications();
+            View::flash('success', "Le rappel hebdomadaire de présence a été envoyé avec succès à {$sentCount} joueur(s).");
+        } catch (\Throwable $e) {
+            View::flash('error', "Une erreur est survenue lors de l'envoi des rappels : " . $e->getMessage());
+        }
+        $this->redirect('/admin/saisons');
+    }
+
+    public function purge(array $params): void
+    {
+        $id = (int)$params['id'];
+        $s  = $this->findOr404(Saison::class, $id);
+        
+        $db = \App\Core\Database::get();
+        $db->beginTransaction();
+        try {
+            // 1. Supprimer les adhésions aux équipes
+            $db->prepare("
+                DELETE FROM equipe_saison_joueur 
+                WHERE equipe_saison_id IN (
+                    SELECT id FROM equipe_saison WHERE saison_id = ?
+                )
+            ")->execute([$id]);
+
+            // 2. Supprimer les snapshots des joueurs
+            $db->prepare("DELETE FROM joueur_snapshots WHERE saison_id = ?")->execute([$id]);
+
+            // 3. Supprimer les préférences d'emails
+            $db->prepare("DELETE FROM member_email_preferences WHERE saison_id = ?")->execute([$id]);
+
+            $db->commit();
+            View::flash('success', "Les joueurs et abonnements de la saison « {$s['libelle']} » ont été purgés avec succès.");
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            View::flash('error', "Erreur lors de la purge : " . $e->getMessage());
+        }
+        
+        $this->redirect('/admin/saisons');
+    }
 }
+

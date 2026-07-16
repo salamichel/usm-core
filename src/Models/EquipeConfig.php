@@ -82,8 +82,8 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, description, description_courte, type, hauteur_filet, ffvb_link, min_players)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link, :min_players)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, training_filter, description, description_courte, type, hauteur_filet, ffvb_link, min_players)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :training_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link, :min_players)"
         );
         $stmt->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -94,6 +94,7 @@ class EquipeConfig
             ':slug'                 => $data['slug'] ?? '',
             ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
+            ':training_filter'      => $data['training_filter'] ?? null,
             ':description'          => $data['description'] ?? null,
             ':description_courte'   => $data['description_courte'] ?? null,
             ':type'                 => $data['type'] ?? null,
@@ -116,6 +117,7 @@ class EquipeConfig
                  slug                 = :slug,
                  team_filter          = :team_filter,
                  manifestation_filter = :manifestation_filter,
+                 training_filter      = :training_filter,
                  description          = :description,
                  description_courte   = :description_courte,
                  type                 = :type,
@@ -132,6 +134,7 @@ class EquipeConfig
             ':slug'                 => $data['slug'] ?? '',
             ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
+            ':training_filter'      => $data['training_filter'] ?? null,
             ':description'          => $data['description'] ?? null,
             ':description_courte'   => $data['description_courte'] ?? null,
             ':type'                 => $data['type'] ?? null,
