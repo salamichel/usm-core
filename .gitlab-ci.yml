@@ -120,5 +120,5 @@ notify_weekly_presence:
     - apk update && apk add curl
   script:
       - echo "Déclenchement du rappel hebdomadaire de présence..."
-      # Added -k to bypass SSL verification
-      - curl -k -s -f "${PRODUCTION_URL}/api/cron/weekly-presence?token=${CRON_SECURITY_TOKEN}"    
+      - 'echo "PRODUCTION_URL $PRODUCTION_URL"'
+      - curl -k -v -f -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "${PRODUCTION_URL}/api/cron/weekly-presence?token=${CRON_SECURITY_TOKEN}"      
