@@ -185,7 +185,7 @@ class MotsClef
             $stmt = $db->prepare("
                 SELECT Mot FROM Mots_clef 
                 WHERE Catégorie = 'ManifestationTypée' 
-                  AND (Mot LIKE '%Entrainement%' OR Mot LIKE '%Entraînement%')
+                  AND (Mot LIKE '%Entrainement%' OR Mot LIKE '%BEACH%')
                 ORDER BY Mot
             ");
             $stmt->execute();
@@ -195,5 +195,3 @@ class MotsClef
         }
     }
 }
-
-
