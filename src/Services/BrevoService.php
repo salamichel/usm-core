@@ -516,6 +516,31 @@ class BrevoService
         );
     }
 
+    public function sendPasswordRecovery(array $player): bool
+    {
+        $subject = 'Vos identifiants de connexion - USM Volley';
+        
+        try {
+            $twig = \App\Core\View::getInstance();
+            $htmlContent = $twig->render('emails/password_recovery.twig', [
+                'PLAYER_NAME' => $player['Prénom'] . ' ' . $player['Nom'],
+                'EMAIL'       => $player['Mel'],
+                'PASSWORD'    => $player['mdp'],
+                'LOGIN_URL'   => BASE_URL . '/member/login',
+            ]);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to render password recovery email template via Twig', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        return $this->sendEmail(
+            $player['Mel'],
+            $player['Prénom'] . ' ' . $player['Nom'],
+            $subject,
+            $htmlContent
+        );
+    }
+
     private function escapeHtml(string $text): string
     {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');

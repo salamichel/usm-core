@@ -86,6 +86,20 @@ class Joueur
     }
 
     /**
+     * Récupère un joueur par son email exact.
+     *
+     * @param string $email L'email du joueur
+     * @return array|null Les données du joueur ou null si non trouvé
+     */
+    public static function findByEmail(string $email): ?array
+    {
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare("SELECT * FROM Joueurs WHERE Mel = ? LIMIT 1");
+        $stmt->execute([trim($email)]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /**
      * Met à jour un joueur.
      *
      * @param int $id L'ID du joueur

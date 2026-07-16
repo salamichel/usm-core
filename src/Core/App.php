@@ -107,6 +107,8 @@ class App
         $r->get('/member/login', [joueurAuthController::class, 'loginForm']);
         $r->post('/member/login', [joueurAuthController::class, 'login']);
         $r->post('/member/logout', [joueurAuthController::class, 'logout']);
+        $r->get('/member/forgot-password', [joueurAuthController::class, 'forgotPasswordForm']);
+        $r->post('/member/forgot-password', [joueurAuthController::class, 'sendPassword']);
 
         $r->get('/member/dashboard', [joueurDashboardController::class, 'index']);        
         $r->get('/member/profile', [ProfileController::class, 'show']);
