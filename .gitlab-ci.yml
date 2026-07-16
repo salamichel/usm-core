@@ -117,8 +117,8 @@ notify_weekly_presence:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_WEEKLY_PRESENCE == "true"
   before_script:
-    - apk update && apk add --no-cache curl ca-certificates
+    - apk update && apk add curl
   script:
-    - echo "Déclenchement du rappel hebdomadaire de présence..."
-    - curl -s -f "${PRODUCTION_URL}/api/cron/weekly-presence?token=${CRON_SECURITY_TOKEN}"
-    - echo "Rappel hebdomadaire envoyé !"
+      - echo "Déclenchement du rappel hebdomadaire de présence..."
+      # Added -k to bypass SSL verification
+      - curl -k -s -f "${PRODUCTION_URL}/api/cron/weekly-presence?token=${CRON_SECURITY_TOKEN}"    
