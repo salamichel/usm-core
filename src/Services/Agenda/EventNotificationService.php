@@ -136,12 +136,14 @@ class EventNotificationService
                     }
                 }
             } else {
-                // Autres événements
+                // Autres événements (Vie du club & Tournois)
                 foreach ($allPlayers as $playerSnap) {
                     $playerId = (int)$playerSnap['id_joueur'];
-                    $playerDb = \App\Models\Joueur::findById($playerId);
-                    if ($playerDb && !empty($playerDb['Mel'])) {
-                        $brevo->sendEventCreationNotification($playerDb, $event, 'Tous les adhérents');
+                    if (\App\Models\MemberEmailPreference::isSubscribed($playerId, $saisonId, 'club_life')) {
+                        $playerDb = \App\Models\Joueur::findById($playerId);
+                        if ($playerDb && !empty($playerDb['Mel'])) {
+                            $brevo->sendEventCreationNotification($playerDb, $event, 'Tous les adhérents');
+                        }
                     }
                 }
             }

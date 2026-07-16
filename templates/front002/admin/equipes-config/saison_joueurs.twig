@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     addPrefCheckbox('match', 'Avis de création de match', 'Recevoir un e-mail à la création d\'un match de son équipe.', prefs['match'] === 1);
                     addPrefCheckbox('weekly_presence', 'Rappel hebdomadaire de présence', 'Recevoir le récapitulatif hebdomadaire.', prefs['weekly_presence'] === 1);
+                    addPrefCheckbox('club_life', 'Vie du club & Tournois', 'Recevoir les invitations aux tournois généraux et événements du club.', prefs['club_life'] === 1);
                     
                     if (data.training_types && data.training_types.length > 0) {
                         const trainingHeader = document.createElement('h4');

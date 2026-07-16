@@ -42,7 +42,7 @@ class ProfileController
             $equipes = EquipeSaisonJoueur::findEquipesByJoueur($userId, $saisonActive['id']);
             $trainingTypes = \App\Models\MotsClef::getTrainingTypes();
             $dbPrefs = \App\Models\MemberEmailPreference::getPreferences($userId, $saisonActive['id']);
-            $knownKeys = array_merge(['match', 'weekly_presence'], $trainingTypes);
+            $knownKeys = array_merge(['match', 'weekly_presence', 'club_life'], $trainingTypes);
             foreach ($knownKeys as $key) {
                 $preferences[$key] = $dbPrefs[$key] ?? 1;
             }
@@ -126,6 +126,10 @@ class ProfileController
                 // 2. Préférence rappel hebdomadaire
                 $prefWeekly = isset($_POST['pref_weekly_presence']) && $_POST['pref_weekly_presence'] === '1';
                 \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, 'weekly_presence', $prefWeekly);
+
+                // 2b. Préférence vie du club & tournois
+                $prefClubLife = isset($_POST['pref_club_life']) && $_POST['pref_club_life'] === '1';
+                \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, 'club_life', $prefClubLife);
 
                 // 3. Préférences entraînements
                 $prefTrainings = $_POST['pref_trainings'] ?? [];

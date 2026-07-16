@@ -161,6 +161,16 @@
                                 </div>
                             </label>
 
+                            {# Vie du Club & Tournois #}
+                            <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-150 hover:bg-slate-50 transition cursor-pointer">
+                                <input type="checkbox" name="pref_club_life" value="1" {% if preferences['club_life'] == 1 %}checked{% endif %}
+                                       class="mt-1 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/20 focus:ring-2">
+                                <div>
+                                    <span class="block font-bold text-slate-900 text-sm">Vie du club & Tournois</span>
+                                    <span class="block text-slate-500 text-xs mt-0.5">Recevoir les invitations aux événements de la vie du club (assemblées, fêtes) et tournois généraux.</span>
+                                </div>
+                            </label>
+
                             {# Entraînements #}
                             {% if training_types|length > 0 %}
                                 <div class="mt-6">

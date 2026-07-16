@@ -50,6 +50,7 @@ class EmailPreferenceApiController
         $preferences = [
             'match' => $dbPrefs['match'] ?? 1,
             'weekly_presence' => $dbPrefs['weekly_presence'] ?? 1,
+            'club_life' => $dbPrefs['club_life'] ?? 1,
         ];
 
         foreach ($trainingTypes as $type) {
