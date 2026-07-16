@@ -35,14 +35,25 @@ class ProfileController
         // Récupérer la saison active et les équipes du joueur
         $saisonActive = Saison::getActive();
         $equipes = [];
-        
+        $trainingTypes = [];
+        $preferences = [];
+
         if ($saisonActive) {
             $equipes = EquipeSaisonJoueur::findEquipesByJoueur($userId, $saisonActive['id']);
+            $trainingTypes = \App\Models\MotsClef::getTrainingTypes();
+            $dbPrefs = \App\Models\MemberEmailPreference::getPreferences($userId, $saisonActive['id']);
+            $knownKeys = array_merge(['match', 'weekly_presence'], $trainingTypes);
+            foreach ($knownKeys as $key) {
+                $preferences[$key] = $dbPrefs[$key] ?? 1;
+            }
         }
 
         View::render('member/profile.twig', [
-            'joueur' => $joueur,            
+            'joueur' => $joueur,
             'equipes' => $equipes,
+            'saison' => $saisonActive,
+            'training_types' => $trainingTypes,
+            'preferences' => $preferences,
         ]);
     }
 
@@ -101,6 +112,28 @@ class ProfileController
             // Mise à jour de la session avec le nouvel email/nom
             $_SESSION['user_name'] = trim($data['Prenom'] . ' ' . $data['Nom']);
             $_SESSION['user_email'] = $data['Mel'];
+
+            // Sauvegarde des préférences d'emails
+            $saisonActive = Saison::getActive();
+            if ($saisonActive) {
+                $saisonId = (int)$saisonActive['id'];
+                $trainingTypes = \App\Models\MotsClef::getTrainingTypes();
+
+                // 1. Préférence matchs
+                $prefMatch = isset($_POST['pref_match']) && $_POST['pref_match'] === '1';
+                \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, 'match', $prefMatch);
+
+                // 2. Préférence rappel hebdomadaire
+                $prefWeekly = isset($_POST['pref_weekly_presence']) && $_POST['pref_weekly_presence'] === '1';
+                \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, 'weekly_presence', $prefWeekly);
+
+                // 3. Préférences entraînements
+                $prefTrainings = $_POST['pref_trainings'] ?? [];
+                foreach ($trainingTypes as $type) {
+                    $isSubscribed = isset($prefTrainings[$type]) && $prefTrainings[$type] === '1';
+                    \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, $type, $isSubscribed);
+                }
+            }
 
             View::flash('success', 'Votre profil a été mis à jour avec succès.');
         } catch (\Exception $e) {

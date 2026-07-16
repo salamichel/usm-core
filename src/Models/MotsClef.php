@@ -172,5 +172,28 @@ class MotsClef
             return [];
         }
     }
+
+    /**
+     * Récupère les mots de la catégorie ManifestationTypée correspondants à des entraînements.
+     *
+     * @return array
+     */
+    public static function getTrainingTypes(): array
+    {
+        try {
+            $db = ExternalDatabase::get();
+            $stmt = $db->prepare("
+                SELECT Mot FROM Mots_clef 
+                WHERE Catégorie = 'ManifestationTypée' 
+                  AND (Mot LIKE '%Entrainement%' OR Mot LIKE '%Entraînement%')
+                ORDER BY Mot
+            ");
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
 }
+
 

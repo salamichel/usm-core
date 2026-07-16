@@ -116,15 +116,24 @@ class ParticipationController
             exit;
         }
 
-        // Valider le statut
-        $allowedStatuses = ['Disponible', 'Disponible si nécessaire', 'Indisponible', 'Présent', 'Absent'];
-        if (!in_array($status, $allowedStatuses, true)) {
+        // Valider et normaliser le statut
+        $allowedStatuses = [
+            'Disponible' => 'Disponible',
+            'Disponible si nécessaire' => 'Disponible si nécessaire',
+            'Indisponible' => 'Indisponible',
+            'Présent(e)' => 'Présent(e)',
+            'Absent(e)' => 'Absent(e)',
+            'Présent' => 'Présent(e)',
+            'Absent' => 'Absent(e)'
+        ];
+        if (!isset($allowedStatuses[$status])) {
             View::render('agenda/participation_confirmed.twig', [
                 'success' => false,
                 'message' => 'Statut de participation inconnu.'
             ]);
             exit;
         }
+        $status = $allowedStatuses[$status];
 
         try {
             $event = \App\Services\AgendaService::getEventById($eventId);

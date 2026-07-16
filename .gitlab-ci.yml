@@ -2,6 +2,7 @@ stages:
   - deploy
   - backup
   - local_extract
+  - notify
 
 # =========================================================
 # JOB 1 : DÉPLOIEMENT VERS LE FTP (Automatique sur main)
@@ -106,3 +107,18 @@ pull_from_ftp:
 #     # Connexion à distance pour décompresser l'archive puis nettoyer le fichier zip transféré
 #     - 'ssh root@192.168.0.105 "cd ~/usm/usm-core-backup && unzip -o backup_*.zip && rm backup_*.zip"'
 #     - 'echo "Extraction locale terminée avec succès !"'
+
+# =========================================================
+# JOB 4 : NOTIFICATION HEBDOMADAIRE (Planifié)
+# =========================================================
+notify_weekly_presence:
+  stage: notify
+  image: alpine:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_WEEKLY_PRESENCE == "true"
+  before_script:
+    - apk update && apk add curl
+  script:
+    - echo "Déclenchement du rappel hebdomadaire de présence..."
+    - curl -s -f "${PRODUCTION_URL}/api/cron/weekly-presence?token=${CRON_SECURITY_TOKEN}"
+    - echo "Rappel hebdomadaire envoyé !"
