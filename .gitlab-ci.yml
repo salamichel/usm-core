@@ -11,7 +11,7 @@ deploy_ftp:
   stage: deploy
   image: alpine:latest
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE != "schedule"
   before_script:
     - apk update
     - apk add lftp
@@ -31,7 +31,7 @@ pull_from_ftp:
   image: alpine:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "web"
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_BACKUP == "true"
   before_script:
     - 'apk update'
     - 'apk add lftp zip'
