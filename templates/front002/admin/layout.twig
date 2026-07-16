@@ -93,14 +93,17 @@
       <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Support</div>
       <div class="space-y-0.5">
         {% set support_links = [
-          [url('admin/contacts'), '💬 Messages Brevo', '/admin/contacts', 'contact_stats'],          
+          [url('admin/contacts'), '💬 Messages Brevo', '/admin/contacts', 'contact_stats'],
+          [url('admin/email-logs'), '✉️ Suivi des e-mails', '/admin/email-logs', null],
         ] %}
         {% for link in support_links %}
           <a href="{{ link[0] }}"
              class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
                     {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
             <span>{{ link[1] }}</span>
-            <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>            
+            {% if link[3] == 'contact_stats' and contact_stats.new > 0 %}
+              <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>            
+            {% endif %}
           </a>
         {% endfor %}
       </div>
@@ -173,7 +176,13 @@
     <div>
       <div class="text-xs font-black text-amber-400 uppercase mb-2 tracking-wider">Support</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/contacts') }}" class="block py-1 hover:text-amber-400">💬 Messages de contact</a>
+        <a href="{{ url('admin/contacts') }}" class="block py-1 hover:text-amber-400 flex items-center justify-between">
+          <span>💬 Messages de contact</span>
+          {% if contact_stats.new > 0 %}
+            <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mr-2">{{ contact_stats.new }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url('admin/email-logs') }}" class="block py-1 hover:text-amber-400">✉️ Suivi des e-mails</a>
       </div>
     </div>
 

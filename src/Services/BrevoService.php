@@ -23,7 +23,8 @@ class BrevoService
         string $subject,
         string $htmlContent,
         string $textContent = null,
-        array $cc = null
+        array $cc = null,
+        string $emailType = 'unknown'
     ): bool {
         if (defined('BREVO_REDIRECT_EMAIL') && BREVO_REDIRECT_EMAIL !== '') {
             $subject = '[DEV-REDIRECT to ' . $toEmail . '] ' . $subject;
@@ -63,7 +64,7 @@ class BrevoService
             $payload['cc'] = $cc;
         }
 
-        return $this->makeRequest($payload);
+        return $this->makeRequest($payload, $emailType);
     }
 
     public function sendContactNotification(array $contact): bool
@@ -90,7 +91,10 @@ class BrevoService
             $adminEmail,
             'Admin',
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'contact_notification'
         );
     }
 
@@ -135,7 +139,10 @@ class BrevoService
             $visitorEmail,
             $visitorName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'visitor_reply'
         );
     }
 
@@ -169,7 +176,10 @@ class BrevoService
             $captainEmail,
             $captainName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'captain_message'
         );
     }
 
@@ -217,7 +227,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'player_selection'
         );
     }
 
@@ -285,7 +298,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'match_cancellation'
         );
     }
 
@@ -361,7 +377,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'match_reminder'
         );
     }
 
@@ -402,7 +421,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'player_deselection'
         );
     }
 
@@ -460,7 +482,8 @@ class BrevoService
             $subject,
             $htmlContent,
             null,
-            $cc
+            $cc,
+            'training_overlap'
         );
     }
 
@@ -512,7 +535,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'match_modification'
         );
     }
 
@@ -537,7 +563,10 @@ class BrevoService
             $player['Mel'],
             $player['Prénom'] . ' ' . $player['Nom'],
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'password_recovery'
         );
     }
 
@@ -551,8 +580,12 @@ class BrevoService
         return nl2br($this->escapeHtml($text));
     }
 
-    private function makeRequest(array $payload): bool
+    private function makeRequest(array $payload, string $emailType): bool
     {
+        $recipientEmail = $payload['to'][0]['email'] ?? 'unknown@example.com';
+        $recipientName = $payload['to'][0]['name'] ?? null;
+        $subject = $payload['subject'] ?? '';
+
         $json = json_encode($payload);
 
         $context = stream_context_create([
@@ -583,29 +616,35 @@ class BrevoService
 
             if ($response === false) {
                 Logger::errors()->error('Brevo API network request failed (connection error)', ['payload' => $payload]);
+                \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', 'Network connection error', null);
                 return false;
             }
 
             $data = json_decode($response, true);
 
             if ($statusCode < 200 || $statusCode >= 300) {
+                $err = 'HTTP status ' . $statusCode . ': ' . json_encode($data ?: $response);
                 Logger::errors()->error('Brevo API returned error status ' . $statusCode, [
                     'status_code' => $statusCode,
                     'response'    => $data ?: $response,
                     'payload'     => $payload
                 ]);
+                \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', $err, null);
                 return false;
             }
 
             if (!isset($data['messageId'])) {
                 Logger::errors()->error('Brevo API invalid response (missing messageId)', ['response' => $response]);
+                \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', 'Missing messageId in response', null);
                 return false;
             }
 
             Logger::app()->info('Email sent via Brevo', ['message_id' => $data['messageId']]);
+            \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'success', null, $data['messageId']);
             return true;
         } catch (\Exception $e) {
             Logger::errors()->error('Brevo API exception', ['error' => $e->getMessage()]);
+            \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', $e->getMessage(), null);
             return false;
         }
     }
@@ -679,7 +718,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'event_creation'
         );
     }
 
@@ -765,7 +807,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'weekly_presence'
         );
     }
 

@@ -39,6 +39,7 @@ use App\Controllers\Admin\PhotoAdminController;
 use App\Controllers\Admin\MotsClefController;
 use App\Controllers\Admin\ManifestationGeneratorController;
 use App\Controllers\Admin\ManifestationController;
+use App\Controllers\Admin\EmailLogController;
 
 class App
 {
@@ -224,6 +225,9 @@ class App
 
         // ── Admin stats ───────────────────────────────────────────────────────
         $r->get('/admin/stats',        [StatsController::class, 'index']);
+
+        // ── Admin email logs ──────────────────────────────────────────────────
+        $r->get('/admin/email-logs',   [EmailLogController::class, 'index']);
 
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);

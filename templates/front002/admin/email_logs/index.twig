@@ -1,0 +1,339 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Suivi des e-mails{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  {# ── En-tête & Titre ── #}
+  <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 p-6 md:p-8 rounded-3xl text-white shadow-sm">
+    <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-12 -translate-y-6">
+      <span class="text-9xl">✉️</span>
+    </div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div>
+        <h1 class="text-3xl font-black tracking-tight mb-1.5">Suivi des e-mails</h1>
+        <p class="text-slate-300 text-sm font-medium">Historique de tous les e-mails envoyés via l'intégration Brevo</p>
+      </div>
+    </div>
+  </div>
+
+  {# ── KPIs ── #}
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {# Total e-mails #}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition duration-200">
+      <div class="flex justify-between items-start">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Envoyés</span>
+        <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm">✉️</span>
+      </div>
+      <div class="text-2xl font-black text-slate-800 mt-2">{{ stats.total|number_format(0, ',', ' ') }}</div>
+      <p class="text-[9px] font-bold text-blue-600 mt-1">Tentatives totales</p>
+    </div>
+
+    {# Succès #}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition duration-200">
+      <div class="flex justify-between items-start">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Délivrés</span>
+        <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-sm">✅</span>
+      </div>
+      <div class="text-2xl font-black text-slate-800 mt-2">{{ stats.success|number_format(0, ',', ' ') }}</div>
+      <p class="text-[9px] font-bold text-emerald-600 mt-1">Envois réussis</p>
+    </div>
+
+    {# Échecs #}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition duration-200">
+      <div class="flex justify-between items-start">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Échecs</span>
+        <span class="p-1.5 bg-rose-50 text-rose-600 rounded-lg text-sm">❌</span>
+      </div>
+      <div class="text-2xl font-black text-slate-800 mt-2 text-rose-600">{{ stats.failed|number_format(0, ',', ' ') }}</div>
+      <p class="text-[9px] font-bold text-rose-600 mt-1">Erreurs réseau / API</p>
+    </div>
+
+    {# Taux de succès #}
+    {% set success_rate = stats.total > 0 ? (stats.success / stats.total * 100) : 100 %}
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition duration-200">
+      <div class="flex justify-between items-start">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Taux de succès</span>
+        <span class="p-1.5 bg-purple-50 text-purple-600 rounded-lg text-sm">📊</span>
+      </div>
+      <div class="text-2xl font-black text-slate-800 mt-2">{{ success_rate|number_format(1, ',', ' ') }} %</div>
+      <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div class="bg-emerald-500 h-full rounded-full" style="width: {{ success_rate }}%"></div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Formulaire de filtrage ── #}
+  <div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+    <form method="GET" action="{{ url('admin/email-logs') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      
+      {# Recherche libre #}
+      <div>
+        <label for="search" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Recherche</label>
+        <input type="text" id="search" name="search" value="{{ filters.search ?? '' }}" placeholder="Email, nom, objet..." 
+               class="w-full bg-slate-50/50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition">
+      </div>
+
+      {# Statut #}
+      <div>
+        <label for="status" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Statut</label>
+        <select id="status" name="status" 
+                class="w-full bg-slate-50/50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition">
+          <option value="">Tous les statuts</option>
+          <option value="success" {% if filters.status == 'success' %}selected{% endif %}>Succès</option>
+          <option value="failed" {% if filters.status == 'failed' %}selected{% endif %}>Échec</option>
+        </select>
+      </div>
+
+      {# Type d'e-mail #}
+      <div>
+        <label for="email_type" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Type de mail</label>
+        <select id="email_type" name="email_type" 
+                class="w-full bg-slate-50/50 border border-slate-200/80 rounded-xl px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition">
+          <option value="">Tous les types</option>
+          {% for value, label in email_types %}
+            <option value="{{ value }}" {% if filters.email_type == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# Boutons d'action #}
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 bg-slate-950 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          🔎 Filtrer
+        </button>
+        {% if filters %}
+          <a href="{{ url('admin/email-logs') }}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-3 rounded-xl transition text-xs flex items-center justify-center shadow-sm">
+            ❌
+          </a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  {# ── Tableau des logs ── #}
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+      <h2 class="text-sm font-black text-slate-800 uppercase tracking-wider">Détails des envois</h2>
+      <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full">{{ total_items }} e-mails trouvés</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs font-medium">
+        <thead>
+          <tr class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
+            <th class="py-3.5 px-6">Date d'envoi</th>
+            <th class="py-3.5 px-6">Destinataire</th>
+            <th class="py-3.5 px-6">Sujet</th>
+            <th class="py-3.5 px-6">Type de mail</th>
+            <th class="py-3.5 px-6 text-center">Statut</th>
+            <th class="py-3.5 px-6 text-right">Identifiant / Erreur</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-slate-700">
+          {% for log in logs %}
+            <tr class="hover:bg-slate-50/50 transition">
+              <td class="py-3.5 px-6 font-semibold whitespace-nowrap text-slate-500">
+                {{ log.sent_at|date('d/m/Y H:i:s') }}
+              </td>
+              <td class="py-3.5 px-6">
+                <div class="font-bold text-slate-900">{{ log.recipient_name|default('—') }}</div>
+                <div class="text-[10px] text-slate-400 font-mono">{{ log.recipient_email }}</div>
+              </td>
+              <td class="py-3.5 px-6 max-w-xs truncate" title="{{ log.subject }}">
+                {{ log.subject }}
+              </td>
+              <td class="py-3.5 px-6">
+                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold">
+                  {{ log.type_label }}
+                </span>
+              </td>
+              <td class="py-3.5 px-6 text-center whitespace-nowrap">
+                {% if log.status == 'success' %}
+                  <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[9px]">
+                    ● Succès
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1 bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider text-[9px]">
+                    ● Échec
+                  </span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-6 text-right font-mono text-[10px] max-w-xs">
+                {% if log.status == 'success' %}
+                  <span class="text-slate-400 text-xs" title="Message ID">{{ log.message_id }}</span>
+                {% else %}
+                  <span class="text-rose-600 font-semibold cursor-pointer hover:underline" 
+                        onclick="showErrorDialog('{{ log.error_message|escape('js') }}')"
+                        title="Voir l'erreur">
+                    ⚠️ Cliquer pour voir l'erreur
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="6" class="py-8 text-center text-slate-400 font-bold">
+                Aucun log d'e-mail ne correspond à vos critères.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── Pagination ── #}
+    {% if total_pages > 1 %}
+      <div class="p-6 border-t border-slate-50 flex items-center justify-between flex-wrap gap-4">
+        <span class="text-xs text-slate-400 font-bold">Page {{ page }} sur {{ total_pages }}</span>
+        
+        <div class="flex items-center gap-1 text-xs">
+          {# Précédent #}
+          {% if page > 1 %}
+            <a href="{{ url('admin/email-logs', filters|merge({ page: page - 1 })) }}" 
+               class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 px-3 py-1.5 rounded-xl font-bold shadow-sm transition">
+              ← Précédent
+            </a>
+          {% else %}
+            <span class="opacity-50 text-slate-400 border border-slate-100 px-3 py-1.5 rounded-xl font-bold cursor-not-allowed">
+              ← Précédent
+            </span>
+          {% endif %}
+
+          {# Numéros de page #}
+          {% for p in 1..total_pages %}
+            {% if p == page %}
+              <span class="bg-slate-950 text-white px-3 py-1.5 rounded-xl font-bold">
+                {{ p }}
+              </span>
+            {% elseif p <= 3 or p >= total_pages - 2 or (p >= page - 1 and p <= page + 1) %}
+              <a href="{{ url('admin/email-logs', filters|merge({ page: p })) }}" 
+                 class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 px-3 py-1.5 rounded-xl font-bold shadow-sm transition">
+                {{ p }}
+              </a>
+            {% elseif p == 4 or p == total_pages - 3 %}
+              <span class="text-slate-400 px-1">...</span>
+            {% endif %}
+          {% endfor %}
+
+          {# Suivant #}
+          {% if page < total_pages %}
+            <a href="{{ url('admin/email-logs', filters|merge({ page: page + 1 })) }}" 
+               class="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 px-3 py-1.5 rounded-xl font-bold shadow-sm transition">
+              Suivant →
+            </a>
+          {% else %}
+            <span class="opacity-50 text-slate-400 border border-slate-100 px-3 py-1.5 rounded-xl font-bold cursor-not-allowed">
+              Suivant →
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ── Répartition par type de mail ── #}
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 space-y-4">
+    <div>
+      <h2 class="text-sm font-black text-slate-800 uppercase tracking-wider">Répartition par type de campagne</h2>
+      <p class="text-[10px] text-slate-400 font-bold">Volume et taux de délivrabilité par catégorie de mail</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs font-semibold">
+          <thead>
+            <tr class="text-slate-400 font-bold border-b border-slate-100">
+              <th class="py-2.5">Type de mail</th>
+              <th class="py-2.5 text-center">Volume</th>
+              <th class="py-2.5 text-center">Succès</th>
+              <th class="py-2.5 text-center">Échecs</th>
+              <th class="py-2.5 text-right">Délivrabilité</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-slate-700">
+            {% for item in stats.by_type %}
+              {% set item_rate = item.count > 0 ? (item.success_count / item.count * 100) : 100 %}
+              <tr>
+                <td class="py-3">{{ item.label }}</td>
+                <td class="py-3 text-center font-bold text-slate-900">{{ item.count }}</td>
+                <td class="py-3 text-center text-emerald-600">{{ item.success_count }}</td>
+                <td class="py-3 text-center text-rose-600">{{ item.failed_count }}</td>
+                <td class="py-3 text-right font-bold text-slate-900">
+                  <span class="{% if item_rate >= 95 %}text-emerald-600{% elseif item_rate >= 80 %}text-amber-500{% else %}text-rose-600{% endif %}">
+                    {{ item_rate|number_format(1, ',', ' ') }} %
+                  </span>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="py-4 text-center text-slate-400">Aucune donnée disponible.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      {# Zone explicative / Guide d'optimisation #}
+      <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex flex-col justify-between">
+        <div class="space-y-3">
+          <h3 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">💡 Bonnes pratiques & Conseils</h3>
+          <p class="text-[11px] text-slate-500 leading-relaxed font-medium">
+            Ce rapport présente en temps réel tous les e-mails expédiés via Brevo (ex-Sendinblue). 
+            Un taux de délivrabilité optimal doit avoisiner les <strong>98%</strong>.
+          </p>
+          <ul class="text-[10px] text-slate-400 space-y-1.5 list-disc list-inside font-medium">
+            <li>Les échecs réguliers sur une adresse indiquent souvent une faute de frappe ou une adresse obsolète.</li>
+            <li>En cas d'échec généralisé ("Network connection error"), vérifiez la validité de la clé API Brevo dans la configuration du serveur.</li>
+            <li>Vous pouvez copier l'identifiant du message en cas de litige pour le retrouver directement dans la console Brevo.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{# Modal d'erreur #}
+<div id="error-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+        <span class="text-rose-600">⚠️</span> Détails de l'erreur d'envoi
+      </h3>
+      <button onclick="closeErrorDialog()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+    </div>
+    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+      <pre id="error-message-content" class="text-[10px] font-mono text-rose-700 whitespace-pre-wrap break-all"></pre>
+    </div>
+    <div class="flex justify-end pt-2">
+      <button onclick="closeErrorDialog()" class="bg-slate-950 hover:bg-slate-900 text-white font-bold py-2 px-5 rounded-xl transition text-xs shadow-sm">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function showErrorDialog(message) {
+    document.getElementById('error-message-content').textContent = message;
+    document.getElementById('error-modal').classList.remove('hidden');
+  }
+
+  function closeErrorDialog() {
+    document.getElementById('error-modal').classList.add('hidden');
+  }
+
+  // Close modal when clicking outside content
+  window.addEventListener('click', function(e) {
+    var modal = document.getElementById('error-modal');
+    if (e.target === modal) {
+      closeErrorDialog();
+    }
+  });
+</script>
+{% endblock %}
