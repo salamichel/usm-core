@@ -95,4 +95,62 @@ class AuthController
         header('Location: /member/login');
         exit;
     }
+
+    /**
+     * Affiche le formulaire de mot de passe oublié.
+     * Route: GET /member/forgot-password
+     */
+    public function forgotPasswordForm(): void
+    {
+        // Redirection si l'adhérent est déjà connecté
+        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+            header('Location: /member/dashboard');
+            exit;
+        }
+
+        View::render('auth/forgot_password.twig');
+    }
+
+    /**
+     * Traite la demande d'envoi du mot de passe.
+     * Route: POST /member/forgot-password
+     */
+    public function sendPassword(): void
+    {
+        $v = Validator::make($_POST)
+            ->required('email', 'L\'adresse email est requise.')
+            ->email('email', 'L\'adresse email n\'est pas valide.');
+
+        if ($v->fails()) {
+            View::flash('error', $v->firstError());
+            header('Location: /member/forgot-password');
+            exit;
+        }
+
+        $data = $v->getCleanData(['email']);
+        $email = $data['email'];
+
+        $user = Joueur::findByEmail($email);
+
+        if ($user) {
+            try {
+                $brevo = new \App\Services\BrevoService();
+                $success = $brevo->sendPasswordRecovery($user);
+                
+                if (!$success) {
+                    \App\Services\Logger::errors()->error('Failed to send password recovery email to ' . $email);
+                }
+            } catch (\Throwable $e) {
+                \App\Services\Logger::errors()->error('Exception during password recovery email sending', [
+                    'email' => $email,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        // Par sécurité anti-énumération, on affiche toujours le même message
+        View::flash('success', 'Si l\'adresse email est enregistrée, vos identifiants vous ont été envoyés.');
+        header('Location: /member/login');
+        exit;
+    }
 }

@@ -105,7 +105,11 @@ class ManifestationController extends BaseAdminController
 
         $formData['date'] = $dateStr;
 
-        EventRepository::createEvent($formData);
+        $id = EventRepository::createEvent($formData);
+        $event = EventRepository::findEventRaw($id);
+        if ($event) {
+            \App\Services\Agenda\EventNotificationService::sendCreationNotifications($event);
+        }
         View::flash('success', 'Manifestation créée avec succès.');
         $this->redirect('/admin/manifestations');
     }

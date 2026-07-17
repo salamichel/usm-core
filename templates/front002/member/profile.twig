@@ -110,7 +110,7 @@
                 {# Équipes et Saison #}
                 {% if saison_active %}
                     <div class="mt-8 pt-8 border-t border-slate-100">
-                        <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4">Saison {{ saison_active.libelle }}</h3>
+                        <h3 class="text-lg leading-6 font-bold text-slate-900 mb-4">Saison {{ saison_active }}</h3>
                         
                         {% if equipes|length > 0 %}
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,6 +131,63 @@
                                 <p class="text-sm text-amber-850">Vous n'êtes affecté à aucune équipe pour cette saison.</p>
                             </div>
                         {% endif %}
+                    </div>
+                {% endif %}
+
+                {# Préférences de notification par e-mail #}
+                {% if preferences is defined and preferences is not empty %}
+                    <div class="mt-8 pt-8 border-t border-slate-100">
+                        <h3 class="text-lg leading-6 font-bold text-slate-900 mb-2">🔔 Préférences de notifications</h3>
+                        <p class="text-slate-500 text-sm mb-6">Choisissez les e-mails que vous souhaitez recevoir pour la saison {{ saison_active }}.</p>
+
+                        <div class="space-y-4">
+                            {# Matchs #}
+                            <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-150 hover:bg-slate-50 transition cursor-pointer">
+                                <input type="checkbox" name="pref_match" value="1" {% if preferences['match'] == 1 %}checked{% endif %}
+                                       class="mt-1 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/20 focus:ring-2">
+                                <div>
+                                    <span class="block font-bold text-slate-900 text-sm">Avis de création de match</span>
+                                    <span class="block text-slate-500 text-xs mt-0.5">Recevoir un e-mail dès qu'un match concernant votre équipe est créé.</span>
+                                </div>
+                            </label>
+
+                            {# Rappel Hebdomadaire #}
+                            <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-150 hover:bg-slate-50 transition cursor-pointer">
+                                <input type="checkbox" name="pref_weekly_presence" value="1" {% if preferences['weekly_presence'] == 1 %}checked{% endif %}
+                                       class="mt-1 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/20 focus:ring-2">
+                                <div>
+                                    <span class="block font-bold text-slate-900 text-sm">Rappel hebdomadaire de présence</span>
+                                    <span class="block text-slate-500 text-xs mt-0.5">Recevoir chaque semaine le récapitulatif des présences à saisir pour la semaine à venir.</span>
+                                </div>
+                            </label>
+
+                            {# Vie du Club & Tournois #}
+                            <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-150 hover:bg-slate-50 transition cursor-pointer">
+                                <input type="checkbox" name="pref_club_life" value="1" {% if preferences['club_life'] == 1 %}checked{% endif %}
+                                       class="mt-1 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/20 focus:ring-2">
+                                <div>
+                                    <span class="block font-bold text-slate-900 text-sm">Vie du club & Tournois</span>
+                                    <span class="block text-slate-500 text-xs mt-0.5">Recevoir les invitations aux événements de la vie du club (assemblées, fêtes) et tournois généraux.</span>
+                                </div>
+                            </label>
+
+                            {# Entraînements #}
+                            {% if training_types|length > 0 %}
+                                <div class="mt-6">
+                                    <h4 class="font-bold text-slate-700 text-sm mb-3">Abonnements par type d'entraînement</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {% for type in training_types %}
+                                            {% set clean_type = type|replace({'Présences - ': '', 'Disponibilités - ': ''}) %}
+                                            <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-150 hover:bg-slate-50 transition cursor-pointer">
+                                                <input type="checkbox" name="pref_trainings[{{ type }}]" value="1" {% if preferences[type] == 1 %}checked{% endif %}
+                                                       class="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/20 focus:ring-2">
+                                                <span class="text-slate-800 text-sm font-medium">{{ clean_type }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 {% endif %}
 

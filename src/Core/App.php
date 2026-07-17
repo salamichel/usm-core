@@ -17,6 +17,8 @@ use App\Controllers\Member\ParticipationController;
 use App\Controllers\Member\ProfileController;
 use App\Controllers\Member\CaptainController;
 use App\Controllers\Api\ArticleApiController;
+use App\Controllers\Api\EmailPreferenceApiController;
+use App\Controllers\Api\CronController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\CategorieEquipeController;
 use App\Controllers\Admin\TagController;
@@ -37,6 +39,7 @@ use App\Controllers\Admin\PhotoAdminController;
 use App\Controllers\Admin\MotsClefController;
 use App\Controllers\Admin\ManifestationGeneratorController;
 use App\Controllers\Admin\ManifestationController;
+use App\Controllers\Admin\EmailLogController;
 
 class App
 {
@@ -107,6 +110,8 @@ class App
         $r->get('/member/login', [joueurAuthController::class, 'loginForm']);
         $r->post('/member/login', [joueurAuthController::class, 'login']);
         $r->post('/member/logout', [joueurAuthController::class, 'logout']);
+        $r->get('/member/forgot-password', [joueurAuthController::class, 'forgotPasswordForm']);
+        $r->post('/member/forgot-password', [joueurAuthController::class, 'sendPassword']);
 
         $r->get('/member/dashboard', [joueurDashboardController::class, 'index']);        
         $r->get('/member/profile', [ProfileController::class, 'show']);
@@ -129,6 +134,9 @@ class App
         $r->post('/api/captain/participation/update', [CaptainController::class, 'apiUpdatePlayerParticipation']);
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
         $r->post('/api/articles',   [ArticleApiController::class, 'create']);
+        $r->get('/api/member-email-preferences/get', [EmailPreferenceApiController::class, 'get']);
+        $r->post('/api/member-email-preferences/update', [EmailPreferenceApiController::class, 'update']);
+        $r->get('/api/cron/weekly-presence', [CronController::class, 'weeklyPresence']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
         $r->get('/admin/login',   [AuthController::class, 'showLogin']);
@@ -183,6 +191,8 @@ class App
         $r->post('/admin/saisons/{id}/delete',   [SaisonController::class, 'delete']);
         $r->post('/admin/saisons/{id}/flash',    [SaisonController::class, 'flash']);
         $r->get('/admin/saisons/{id}/snapshots', [SaisonController::class, 'snapshots']);
+        $r->post('/admin/saisons/{id}/purge',    [SaisonController::class, 'purge']);
+        $r->post('/admin/saisons/send-weekly-reminder', [SaisonController::class, 'sendWeeklyReminder']);
 
         // ── Admin équipes config ──────────────────────────────────────────────
         $r->get('/admin/equipes-config',        [EquipeConfigController::class, 'index']);
@@ -216,6 +226,9 @@ class App
 
         // ── Admin stats ───────────────────────────────────────────────────────
         $r->get('/admin/stats',        [StatsController::class, 'index']);
+
+        // ── Admin email logs ──────────────────────────────────────────────────
+        $r->get('/admin/email-logs',   [EmailLogController::class, 'index']);
 
         // ── Admin site config (footer, contact, réseaux) ──────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);

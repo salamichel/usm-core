@@ -158,11 +158,11 @@ class ParticipationStatus
         }
 
         return match ($cat) {
-            "present" => "Présent",
+            "present" => "Présent(e)",
             "available" => "Disponible",
             "available_if_needed" => "Disponible si nécessaire",
             "unavailable" => "Indisponible",
-            "absent" => "Absent",
+            "absent" => "Absent(e)",
             "unknown" => "Ne sait pas",
             "no_response" => "Sans réponse",
             default => "-",

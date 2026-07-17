@@ -32,11 +32,25 @@ class EventRepository
     }
 
     /**
-     * Prochains entraînements (ManifestationTypée LIKE '% - Entra%').
+     * Prochains entraînements (ManifestationTypée LIKE '% - Entra%' ou '%BEACH%').
      */
     public static function getUpcomingTrainings(int $limit = 5): array
     {
-        return self::queryByPattern('% - Entra%', $limit);
+        try {
+            $db = ExternalDatabase::get();
+            $stmt = $db->prepare(
+                "SELECT * FROM Manifestation
+                 WHERE (`ManifestationTypée` LIKE '% - Entra%' OR `ManifestationTypée` LIKE '%BEACH%')
+                   AND `Date` >= CURDATE()
+                 ORDER BY `Date` ASC
+                 LIMIT :limit"
+            );
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**
@@ -600,9 +614,9 @@ class EventRepository
                      WHERE m.id_manifestation > 0
                        AND m.Date >= CURDATE()
                        AND (
-                         (m.ManifestationTypée LIKE '% - Match - %' AND m.ManifestationTypée LIKE :match_filter)
-                         OR
-                         ((m.ManifestationTypée LIKE '%Entr%' OR m.ManifestationTypée LIKE '%Entrainement%') AND (m.ManifestationTypée LIKE :team_code_filter $trainingExtraSql))
+                          (m.ManifestationTypée LIKE '% - Match - %' AND m.ManifestationTypée LIKE :match_filter)
+                          OR
+                          ((m.ManifestationTypée LIKE '%Entrainement%' OR m.ManifestationTypée LIKE '%Beach%') AND (m.ManifestationTypée LIKE :team_code_filter $trainingExtraSql))
                        )
                        $extraFiltersSql
                      ORDER BY m.Date ASC
@@ -640,7 +654,7 @@ class EventRepository
                 $event['min_players'] = ParticipationStatsService::getMinPlayersRequired($row['ManifestationTypée'] ?? '');
 
                 $event['is_match'] = (stripos($row['ManifestationTypée'], 'match') !== false);
-                $event['is_training'] = (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false);
+                $event['is_training'] = (stripos($row['ManifestationTypée'], 'entra') !== false || stripos($row['ManifestationTypée'], 'entr') !== false || stripos($row['ManifestationTypée'], 'beach') !== false);
 
                 // Harmonisation type entraînement
                 if ($event['is_training']) {

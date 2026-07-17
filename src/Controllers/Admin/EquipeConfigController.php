@@ -34,6 +34,7 @@ class EquipeConfigController extends BaseAdminController
             'equipe'      => null,
             'saisons'     => [],
             'categories'  => CategorieEquipe::all(),
+            'training_types' => \App\Models\MotsClef::getTrainingTypes(),
             'action'      => BASE_URL . '/admin/equipes-config/create',
         ]);
     }
@@ -46,10 +47,13 @@ class EquipeConfigController extends BaseAdminController
             ->required('libelle', 'Le libellé est obligatoire.');
 
         if ($v->fails()) {
+            $associatedTrainings = json_decode($data['training_filter'] ?? '[]', true) ?: [];
+            $data['associated_trainings'] = $associatedTrainings;
             View::render('admin/equipes-config/form.twig', [
                 'equipe'      => $data,
                 'saisons'     => [],
                 'categories'  => CategorieEquipe::all(),
+                'training_types' => \App\Models\MotsClef::getTrainingTypes(),
                 'action'      => BASE_URL . '/admin/equipes-config/create',
                 'error'       => $v->firstError(),
             ]);
@@ -64,6 +68,9 @@ class EquipeConfigController extends BaseAdminController
     {
         $equipe = $this->findOr404(EquipeConfig::class, (int)$params['id']);
 
+        $associatedTrainings = json_decode($equipe['training_filter'] ?? '[]', true) ?: [];
+        $equipe['associated_trainings'] = $associatedTrainings;
+
         $saisons = Saison::all();
         foreach ($saisons as &$s) {
             $es = EquipeSaison::findBySaisonAndEquipe($s['id'], $equipe['id']);
@@ -75,6 +82,7 @@ class EquipeConfigController extends BaseAdminController
             'equipe'      => $equipe,
             'saisons'     => $saisons,
             'categories'  => CategorieEquipe::all(),
+            'training_types' => \App\Models\MotsClef::getTrainingTypes(),
             'action'      => BASE_URL . '/admin/equipes-config/' . $equipe['id'] . '/edit',
         ]);
     }
@@ -90,10 +98,13 @@ class EquipeConfigController extends BaseAdminController
 
         if ($v->fails()) {
             $saisons = Saison::all();
+            $associatedTrainings = json_decode($data['training_filter'] ?? '[]', true) ?: [];
+            $data['associated_trainings'] = $associatedTrainings;
             View::render('admin/equipes-config/form.twig', [
                 'equipe'      => array_merge($equipe, $data),
                 'saisons'     => $saisons,
                 'categories'  => CategorieEquipe::all(),
+                'training_types' => \App\Models\MotsClef::getTrainingTypes(),
                 'action'      => BASE_URL . '/admin/equipes-config/' . $id . '/edit',
                 'error'       => $v->firstError(),
             ]);
@@ -264,6 +275,7 @@ class EquipeConfigController extends BaseAdminController
             'slug'                 => trim($_POST['slug'] ?? ''),
             'team_filter'          => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
             'manifestation_filter' => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,
+            'training_filter'      => isset($_POST['associated_trainings']) && is_array($_POST['associated_trainings']) ? json_encode($_POST['associated_trainings']) : null,
             'description'          => HtmlHelper::nullIfEmptyHtml($_POST['description'] ?? null),
             'description_courte'   => trim($_POST['description_courte'] ?? '') ?: null,
             'type'                 => trim($_POST['type'] ?? '') ?: null,

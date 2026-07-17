@@ -82,7 +82,12 @@
           {% endif %}
         </td>
         <td class="px-4 py-3 text-right">
-          <div class="flex justify-end items-center gap-2">
+            <button type="button"
+                    class="border-2 border-slate-700 text-slate-700 hover:bg-slate-700 hover:text-white px-2 py-1 text-xs font-bold transition edit-preferences-btn"
+                    data-player-id="{{ j.id_joueur }}"
+                    data-player-name="{{ j.prenom }} {{ j.nom }}">
+              ✉️ Abonnements
+            </button>
             <form method="POST"
                   action="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ saison.id ~ '/joueurs/' ~ j.id ~ '/toggle-captain') }}">
               <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
@@ -106,4 +111,201 @@
 {% else %}
   <p class="text-gray-500 italic">Aucun joueur dans cette équipe pour cette saison.</p>
 {% endif %}
+
+<!-- Modale de Gestion des Abonnements E-mail -->
+<div id="email-preferences-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Overlay -->
+    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity modal-close"></div>
+
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+    <!-- Modal Content -->
+    <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100">
+      <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+        <h3 class="text-lg font-bold leading-6 flex items-center gap-2" id="modal-title">
+          ✉️ Abonnements de <span id="pref-modal-player-name" class="font-extrabold text-[var(--primary)] text-amber-400"></span>
+        </h3>
+        <button type="button" class="text-slate-400 hover:text-white transition modal-close">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-6">
+        <div id="pref-modal-loading" class="flex flex-col items-center justify-center py-8 gap-3">
+          <div class="w-8 h-8 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin"></div>
+          <span class="text-sm font-semibold text-slate-500">Chargement des abonnements...</span>
+        </div>
+
+        <div id="pref-modal-error" class="hidden text-center py-8 text-rose-600 font-semibold">
+          Impossible de charger les préférences de ce joueur.
+        </div>
+
+        <div id="pref-modal-content" class="hidden space-y-4">
+          <p class="text-xs text-slate-500 mb-4">Les modifications sont enregistrées automatiquement en temps réel.</p>
+          <div class="space-y-3" id="pref-modal-list">
+            <!-- Checkboxes dynamiques -->
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 px-6 py-4 flex justify-end">
+        <button type="button" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-100 transition modal-close">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('email-preferences-modal');
+    const modalTitleName = document.getElementById('pref-modal-player-name');
+    const loading = document.getElementById('pref-modal-loading');
+    const errorEl = document.getElementById('pref-modal-error');
+    const content = document.getElementById('pref-modal-content');
+    const list = document.getElementById('pref-modal-list');
+    
+    let currentPlayerId = null;
+
+    document.querySelectorAll('.edit-preferences-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const playerId = this.getAttribute('data-player-id');
+            const playerName = this.getAttribute('data-player-name');
+            currentPlayerId = playerId;
+            
+            modalTitleName.textContent = playerName;
+            modal.classList.remove('hidden');
+            
+            loading.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+            content.classList.add('hidden');
+            list.innerHTML = '';
+            
+            fetch('/api/member-email-preferences/get?player_id=' + playerId)
+                .then(response => {
+                    if (!response.ok) throw new Error();
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.ok) throw new Error();
+                    
+                    loading.classList.add('hidden');
+                    content.classList.remove('hidden');
+                    
+                    const prefs = data.preferences;
+                    
+                    addPrefCheckbox('match', 'Avis de création de match', 'Recevoir un e-mail à la création d\'un match de son équipe.', prefs['match'] === 1);
+                    addPrefCheckbox('weekly_presence', 'Rappel hebdomadaire de présence', 'Recevoir le récapitulatif hebdomadaire.', prefs['weekly_presence'] === 1);
+                    addPrefCheckbox('club_life', 'Vie du club & Tournois', 'Recevoir les invitations aux tournois généraux et événements du club.', prefs['club_life'] === 1);
+                    
+                    if (data.training_types && data.training_types.length > 0) {
+                        const trainingHeader = document.createElement('h4');
+                        trainingHeader.className = 'font-bold text-slate-700 text-xs uppercase tracking-wider mt-4 mb-2 text-left';
+                        trainingHeader.textContent = 'Types d\'entraînements :';
+                        list.appendChild(trainingHeader);
+                        
+                        data.training_types.forEach(type => {
+                            const label = type.replace('Présences - ', '').replace('Disponibilités - ', '');
+                            addPrefCheckbox(type, label, null, prefs[type] === 1);
+                        });
+                    }
+                })
+                .catch(() => {
+                    loading.classList.add('hidden');
+                    errorEl.classList.remove('hidden');
+                });
+        });
+    });
+
+    function addPrefCheckbox(key, label, description, isChecked) {
+        const item = document.createElement('label');
+        item.className = 'flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer text-left';
+        
+        let descHtml = '';
+        if (description) {
+            descHtml = `<span class="block text-slate-500 text-xs mt-0.5">${description}</span>`;
+        }
+        
+        item.innerHTML = `
+            <input type="checkbox" data-key="${key}" value="1" ${isChecked ? 'checked' : ''}
+                   class="mt-1 rounded border-slate-300 text-amber-500 focus:ring-amber-500/20 focus:ring-2">
+            <div>
+                <span class="block font-bold text-slate-900 text-sm">${label}</span>
+                ${descHtml}
+            </div>
+        `;
+        
+        const checkbox = item.querySelector('input');
+        checkbox.addEventListener('change', function() {
+            const isSubscribed = this.checked ? 1 : 0;
+            
+            fetch('/api/member-email-preferences/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    player_id: currentPlayerId,
+                    pref_key: key,
+                    is_subscribed: isSubscribed
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.ok) {
+                    showToast('Erreur lors de la sauvegarde : ' + data.message, 'error');
+                    this.checked = !this.checked;
+                } else {
+                    showAutosaveFeedback(checkbox);
+                }
+            })
+            .catch(() => {
+                showToast('Erreur réseau lors de la sauvegarde.', 'error');
+                this.checked = !this.checked;
+            });
+        });
+        
+        list.appendChild(item);
+    }
+
+    function showAutosaveFeedback(el) {
+        const parent = el.closest('label');
+        const originalBg = parent.style.backgroundColor;
+        parent.style.backgroundColor = '#ecfdf5';
+        setTimeout(() => {
+            parent.style.backgroundColor = originalBg;
+        }, 550);
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed top-4 right-4 z-[9999] px-6 py-3 rounded-xl border font-bold shadow-lg transition-all transform translate-y-2 opacity-0 text-sm ${
+            type === 'error' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        }`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('opacity-0', 'translate-y-2');
+        }, 10);
+        
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    document.querySelectorAll('.modal-close').forEach(el => {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.classList.add('hidden');
+        });
+    });
+});
+</script>
 {% endblock %}

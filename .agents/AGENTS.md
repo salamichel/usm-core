@@ -115,3 +115,9 @@ Pour conserver l'uniformité visuelle du site, chaque page principale doit utili
 - Utiliser `{{ m.form_error(error ?? null) }}` à la place des blocs `{% if error %}...{% endif %}` manuels.
 - Utiliser `{{ m.btn_submit('Enregistrer') }}` à la place du `<button type="submit" class="border-4 border-black ...">` copié-collé.
 
+### 10. Gestion des Statuts & Abonnements
+- **Helper de statuts** : Toujours passer par `App\Helpers\ParticipationStatus` pour labelliser (`Présent(e)`, `Absent(e)`, etc.) et catégoriser les présences des joueurs. Ne jamais afficher ou comparer des chaînes brutes en dur.
+- **Préférence d'envoi** : Avant tout envoi d'e-mail lié à un événement (création de match, d'entraînement, relance hebdomadaire), vérifier impérativement l'autorisation via `App\Models\MemberEmailPreference::isSubscribed($playerId, $saisonId, $prefKey)`.
+- **Persistance** : Ne jamais écraser les abonnements personnalisés des joueurs lors d'un « Flash » de saison. Utiliser `initializePreferencesForSaison()` uniquement si le joueur n'a aucune préférence définie.
+
+

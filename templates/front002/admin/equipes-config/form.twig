@@ -127,23 +127,45 @@
 
     {# Section 4 : Filtres agenda #}
     <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Filtres agenda <span class="font-normal opacity-60">— optionnel</span></div>
-      <div class="p-5 grid grid-cols-2 gap-4">
-        <div>
-          <label class="block font-black mb-1 text-sm" for="team_filter">Code équipe</label>
-          <input id="team_filter" name="team_filter" type="text"
-                 value="{{ equipe.team_filter ?? equipe.slug_colonne ?? '' }}"
-                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                 placeholder="Ex: L2">
-          <p class="text-xs text-gray-400 mt-1">Filtre agenda par équipe</p>
+      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Filtres agenda & abonnements <span class="font-normal opacity-60">— optionnel</span></div>
+      <div class="p-5 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-black mb-1 text-sm" for="team_filter">Code équipe</label>
+            <input id="team_filter" name="team_filter" type="text"
+                   value="{{ equipe.team_filter ?? equipe.slug_colonne ?? '' }}"
+                   class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                   placeholder="Ex: L2">
+            <p class="text-xs text-gray-400 mt-1">Filtre agenda par équipe</p>
+          </div>
+          <div>
+            <label class="block font-black mb-1 text-sm" for="manifestation_filter">Filtre manifestation (Match)</label>
+            <input id="manifestation_filter" name="manifestation_filter" type="text"
+                   value="{{ equipe.manifestation_filter ?? '' }}"
+                   class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
+                   placeholder="Ex: Match L2">
+            <p class="text-xs text-gray-400 mt-1">Filtre agenda par manifestation</p>
+          </div>
         </div>
+        
         <div>
-          <label class="block font-black mb-1 text-sm" for="manifestation_filter">Filtre manifestation</label>
-          <input id="manifestation_filter" name="manifestation_filter" type="text"
-                 value="{{ equipe.manifestation_filter ?? '' }}"
-                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                 placeholder="Ex: Match L2">
-          <p class="text-xs text-gray-400 mt-1">Filtre agenda par manifestation</p>
+          <label class="block font-black mb-2 text-sm">Entraînements associés pour les abonnements de présence</label>
+          {% if training_types|length > 0 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border-2 border-dashed border-gray-200 bg-gray-50/50">
+              {% for type in training_types %}
+                {% set clean_type = type|replace({'Présences - ': '', 'Disponibilités - ': ''}) %}
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" name="associated_trainings[]" value="{{ type }}"
+                         {% if equipe and type in equipe.associated_trainings %}checked{% endif %}
+                         class="w-4 h-4 text-usm-brown border-2 border-black focus:ring-0">
+                  <span class="text-sm font-semibold text-gray-800">{{ clean_type }}</span>
+                </label>
+              {% endfor %}
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Cochez les types d'entraînements de cette équipe. Ils seront pré-cochés par défaut pour les joueurs de cette équipe lors du flash de saison.</p>
+          {% else %}
+            <p class="text-xs text-gray-500 italic">Aucun type d'entraînement trouvé dans la base externe.</p>
+          {% endif %}
         </div>
       </div>
     </div>

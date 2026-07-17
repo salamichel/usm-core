@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
+        .container { max-width: 600px; margin: 20px auto; }
+        .header { background: #0f172a; color: white; padding: 20px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
+        .content { background: white; padding: 24px; border: 4px solid #000; box-shadow: 6px 6px 0 #000; margin-bottom: 20px; }
+        .event-info { background: #f1f5f9; padding: 16px; border-left: 4px solid #3b82f6; margin: 16px 0; }
+        .field-label { font-weight: 900; text-transform: uppercase; font-size: 11px; color: #64748b; margin-top: 12px; margin-bottom: 2px; }
+        .field-value { font-size: 15px; color: #0f172a; }
+        .cta-button { display: inline-block; color: white; padding: 12px 24px; border: 3px solid #000; font-weight: 900; text-decoration: none; box-shadow: 4px 4px 0 #000; margin-top: 20px; background: #0f172a; }
+        .footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{% if IS_MATCH %}🏆 NOUVEAU MATCH PUBLIÉ{% else %}📅 NOUVEL ÉVÉNEMENT PUBLIÉ{% endif %}</h1>
+        </div>
+
+        <div class="content">
+            <p>Bonjour <strong>{{ PLAYER_NAME }}</strong>,</p>
+            <p style="margin-top: 8px;">
+                {% if IS_MATCH %}
+                    Un nouveau match concernant l'équipe <strong>{{ TEAM_NAME }}</strong> vient d'être publié :
+                {% else %}
+                    Un nouvel entraînement ou événement vient d'être publié :
+                {% endif %}
+            </p>
+
+            <div class="event-info">
+                <div class="field-label">🏆 Intitulé</div>
+                <div class="field-value" style="font-size: 16px; font-weight: 950; color: #0f172a;">{{ EVENT_TITLE }}</div>
+
+                <div class="field-label">📅 Date et Heure</div>
+                <div class="field-value"><strong>{{ EVENT_DATE }}</strong></div>
+
+                <div class="field-label">📍 Lieu</div>
+                <div class="field-value">{{ EVENT_LOCATION }}</div>
+
+                {{ COMMENT_HTML|raw }}
+            </div>
+
+            <p style="margin-top: 16px;">Veuillez indiquer dès à présent votre disponibilité en cliquant sur l'un des boutons ci-dessous :</p>
+            
+            {{ BUTTONS_HTML|raw }}
+            
+            <p style="margin-top: 24px; font-size: 13px; color: #64748b; text-align: center;">
+                Vous pouvez également retrouver cet événement dans votre espace adhérent :
+            </p>
+            <div style="text-align: center;">
+                <a href="{{ DASHBOARD_URL }}" class="cta-button">👉 Accéder à mon espace</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p style="margin-bottom: 6px;">Cet e-mail vous est envoyé automatiquement car vous êtes abonné(e) aux notifications de création d'événements.</p>
+            <p style="margin-bottom: 12px;">Vous pouvez gérer vos abonnements à tout moment depuis votre <a href="{{ PROFILE_URL }}" style="color: #3b82f6; text-decoration: underline; font-weight: bold;">profil adhérent</a>.</p>
+            © USM Volley — Ne pas répondre directement à cet email.
+        </div>
+    </div>
+</body>
+</html>

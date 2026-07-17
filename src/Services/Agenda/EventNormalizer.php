@@ -144,7 +144,7 @@ class EventNormalizer
             'unknown'                     => [],
             'no_response'                 => [],
             'is_match'                    => str_contains($type, 'Match'),
-            'is_training'                 => str_contains($type, 'Entra'),
+            'is_training'                 => str_contains($type, 'Entra') || str_contains($type, 'BEACH'),
             'type_simple'                 => $type,
             'type_libelle'                => $type,
             'google_calendar_url'         => self::buildGoogleCalendarUrl($row),
@@ -282,12 +282,12 @@ class EventNormalizer
         try {
             $tzLocal = new \DateTimeZone('Europe/Paris');
             $tzUtc   = new \DateTimeZone('UTC');
-            
+
             $startDt = new \DateTime($dateStr, $tzLocal);
-            
+
             // Si l'heure est 00:00:00, c'est un événement sur toute la journée
             $isAllDay = $startDt->format('H:i:s') === '00:00:00';
-            
+
             if ($isAllDay) {
                 $startDateStr = $startDt->format('Ymd');
                 $endDt = clone $startDt;
@@ -308,14 +308,14 @@ class EventNormalizer
                         $minutes = (int)str_replace('m', '', $durationStr);
                     }
                 }
-                
+
                 $endDt = clone $startDt;
                 $endDt->modify("+{$hours} hour +{$minutes} minute");
-                
+
                 // Google Agenda attend des dates UTC pour les événements avec heure
                 $startDt->setTimezone($tzUtc);
                 $endDt->setTimezone($tzUtc);
-                
+
                 $startDateStr = $startDt->format('Ymd\THis\Z');
                 $endDateStr = $endDt->format('Ymd\THis\Z');
                 $dates = "$startDateStr/$endDateStr";
@@ -325,12 +325,12 @@ class EventNormalizer
         }
 
         $location = $row['Lieu'] ?? '';
-        
+
         $details = '';
         if (!empty($row['Commentaire'])) {
             $details = $row['Commentaire'];
         }
-        
+
         $eventUrl = (defined('BASE_URL') ? BASE_URL : 'http://localhost') . '/agenda/' . ($row['id_manifestation'] ?? 0);
         $details .= ($details ? "\n\n" : "") . "Plus de détails et participation : " . $eventUrl;
 

@@ -23,7 +23,8 @@ class BrevoService
         string $subject,
         string $htmlContent,
         string $textContent = null,
-        array $cc = null
+        array $cc = null,
+        string $emailType = 'unknown'
     ): bool {
         if (defined('BREVO_REDIRECT_EMAIL') && BREVO_REDIRECT_EMAIL !== '') {
             $subject = '[DEV-REDIRECT to ' . $toEmail . '] ' . $subject;
@@ -63,7 +64,7 @@ class BrevoService
             $payload['cc'] = $cc;
         }
 
-        return $this->makeRequest($payload);
+        return $this->makeRequest($payload, $emailType);
     }
 
     public function sendContactNotification(array $contact): bool
@@ -90,7 +91,10 @@ class BrevoService
             $adminEmail,
             'Admin',
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'contact_notification'
         );
     }
 
@@ -135,7 +139,10 @@ class BrevoService
             $visitorEmail,
             $visitorName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'visitor_reply'
         );
     }
 
@@ -169,7 +176,10 @@ class BrevoService
             $captainEmail,
             $captainName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'captain_message'
         );
     }
 
@@ -217,7 +227,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'player_selection'
         );
     }
 
@@ -285,7 +298,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'match_cancellation'
         );
     }
 
@@ -322,8 +338,8 @@ class BrevoService
                 ];
             } else {
                 $options = [
-                    'Présent' => ['label' => 'Présent', 'color' => '#10b981'],
-                    'Absent' => ['label' => 'Absent', 'color' => '#ef4444']
+                    'Présent(e)' => ['label' => 'Présent(e)', 'color' => '#10b981'],
+                    'Absent(e)' => ['label' => 'Absent(e)', 'color' => '#ef4444']
                 ];
             }
 
@@ -361,7 +377,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'match_reminder'
         );
     }
 
@@ -402,7 +421,10 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'player_deselection'
         );
     }
 
@@ -460,7 +482,8 @@ class BrevoService
             $subject,
             $htmlContent,
             null,
-            $cc
+            $cc,
+            'training_overlap'
         );
     }
 
@@ -512,7 +535,38 @@ class BrevoService
             $playerEmail,
             $playerName,
             $subject,
-            $htmlContent
+            $htmlContent,
+            null,
+            null,
+            'match_modification'
+        );
+    }
+
+    public function sendPasswordRecovery(array $player): bool
+    {
+        $subject = 'Vos identifiants de connexion - USM Volley';
+
+        try {
+            $twig = \App\Core\View::getInstance();
+            $htmlContent = $twig->render('emails/password_recovery.twig', [
+                'PLAYER_NAME' => $player['Prénom'] . ' ' . $player['Nom'],
+                'EMAIL'       => $player['Mel'],
+                'PASSWORD'    => $player['mdp'],
+                'LOGIN_URL'   => BASE_URL . '/member/login',
+            ]);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to render password recovery email template via Twig', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        return $this->sendEmail(
+            $player['Mel'],
+            $player['Prénom'] . ' ' . $player['Nom'],
+            $subject,
+            $htmlContent,
+            null,
+            null,
+            'password_recovery'
         );
     }
 
@@ -526,8 +580,12 @@ class BrevoService
         return nl2br($this->escapeHtml($text));
     }
 
-    private function makeRequest(array $payload): bool
+    private function makeRequest(array $payload, string $emailType): bool
     {
+        $recipientEmail = $payload['to'][0]['email'] ?? 'unknown@example.com';
+        $recipientName = $payload['to'][0]['name'] ?? null;
+        $subject = $payload['subject'] ?? '';
+
         $json = json_encode($payload);
 
         $context = stream_context_create([
@@ -558,30 +616,231 @@ class BrevoService
 
             if ($response === false) {
                 Logger::errors()->error('Brevo API network request failed (connection error)', ['payload' => $payload]);
+                \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', 'Network connection error', null);
                 return false;
             }
 
             $data = json_decode($response, true);
 
             if ($statusCode < 200 || $statusCode >= 300) {
+                $err = 'HTTP status ' . $statusCode . ': ' . json_encode($data ?: $response);
                 Logger::errors()->error('Brevo API returned error status ' . $statusCode, [
                     'status_code' => $statusCode,
                     'response'    => $data ?: $response,
                     'payload'     => $payload
                 ]);
+                \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', $err, null);
                 return false;
             }
 
             if (!isset($data['messageId'])) {
                 Logger::errors()->error('Brevo API invalid response (missing messageId)', ['response' => $response]);
+                \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', 'Missing messageId in response', null);
                 return false;
             }
 
             Logger::app()->info('Email sent via Brevo', ['message_id' => $data['messageId']]);
+            \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'success', null, $data['messageId']);
             return true;
         } catch (\Exception $e) {
             Logger::errors()->error('Brevo API exception', ['error' => $e->getMessage()]);
+            \App\Models\EmailLog::log($recipientEmail, $recipientName, $subject, $emailType, 'failed', $e->getMessage(), null);
             return false;
         }
+    }
+
+    public function sendEventCreationNotification(array $player, array $event, string $teamName): bool
+    {
+        $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
+        if (!$playerEmail) {
+            Logger::errors()->error('Cannot send creation email to player: no email address found', ['player' => $player]);
+            return false;
+        }
+
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+
+        $rawType = $event['ManifestationTypée'] ?? $event['manifestation_type'] ?? '';
+        $parts = explode(' - ', $rawType, 3);
+        $type = $parts[1] ?? '';
+        $eventTitle = $parts[2] ?? $rawType;
+
+        $isMatch = (mb_strtolower($type) === 'match');
+        $subject = ($isMatch ? '🏐 Nouveau match créé' : '🏐 Nouvel entraînement/événement créé') . ' : ' . $eventTitle;
+
+        $eventDate = $event['Date'] ?? $event['date'] ?? '';
+        if ($eventDate) {
+            try {
+                $dt = new \DateTime($eventDate);
+                $eventDateFormatted = \App\Services\Agenda\EventNormalizer::formatDateDisplay(\DateTimeImmutable::createFromMutable($dt));
+                if ($dt->format('H:i') !== '00:00') {
+                    $eventDateFormatted .= ' à ' . $dt->format('H:i');
+                }
+                $eventDate = $eventDateFormatted;
+            } catch (\Throwable) {
+            }
+        }
+
+        $eventLocation = $event['Lieu'] ?? $event['location'] ?? '';
+        $eventComment = $event['Commentaire'] ?? $event['commentaire'] ?? '';
+        $eventId = (int)($event['id'] ?? $event['id_manifestation'] ?? 0);
+        $playerId = (int)($player['id_joueur'] ?? 0);
+
+        $commentHtml = '';
+        if ($eventComment) {
+            $commentHtml = '<div class="field-label">💬 Commentaire</div><div class="field-value">' . $this->nl2brHtml($eventComment) . '</div>';
+        }
+
+        $buttonsHtml = '';
+        if ($playerId && $eventId) {
+            $buttonsHtml = $this->getEventButtonsHtml($playerId, $eventId, $isMatch);
+        }
+
+        try {
+            $twig = \App\Core\View::getInstance();
+            $htmlContent = $twig->render('emails/event_creation.twig', [
+                'PLAYER_NAME' => $this->escapeHtml($playerName),
+                'TEAM_NAME' => $this->escapeHtml($teamName),
+                'EVENT_TITLE' => $this->escapeHtml($eventTitle),
+                'EVENT_DATE' => $this->escapeHtml($eventDate),
+                'EVENT_LOCATION' => $this->escapeHtml($eventLocation),
+                'COMMENT_HTML' => $commentHtml,
+                'BUTTONS_HTML' => $buttonsHtml,
+                'DASHBOARD_URL' => BASE_URL . '/member/dashboard?event_id=' . $eventId,
+                'PROFILE_URL' => BASE_URL . '/member/profile',
+                'IS_MATCH' => $isMatch,
+            ]);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to render event creation email template via Twig', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        return $this->sendEmail(
+            $playerEmail,
+            $playerName,
+            $subject,
+            $htmlContent,
+            null,
+            null,
+            'event_creation'
+        );
+    }
+
+    public function sendWeeklyPresenceNotification(array $player, array $events, array $saison): bool
+    {
+        $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
+        if (!$playerEmail) {
+            Logger::errors()->error('Cannot send weekly presence email to player: no email address found', ['player' => $player]);
+            return false;
+        }
+
+        $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
+        $subject = '⏰ USM Volley : Votre planning et présences de la semaine';
+
+        $formattedEvents = [];
+        foreach ($events as $ev) {
+            $rawType = $ev['ManifestationTypée'] ?? '';
+            $parts = explode(' - ', $rawType, 3);
+            $type = $parts[1] ?? '';
+            $title = $parts[2] ?? $rawType;
+            $isMatch = (mb_strtolower($type) === 'match');
+
+            $dateDisplay = $ev['Date'] ?? '';
+            if ($dateDisplay) {
+                try {
+                    $dt = new \DateTime($dateDisplay);
+                    $dateFormatted = \App\Services\Agenda\EventNormalizer::formatDateDisplay(\DateTimeImmutable::createFromMutable($dt));
+                    if ($dt->format('H:i') !== '00:00') {
+                        $dateFormatted .= ' à ' . $dt->format('H:i');
+                    }
+                    $dateDisplay = $dateFormatted;
+                } catch (\Throwable) {
+                }
+            }
+
+            $participationStatus = new \App\Helpers\ParticipationStatus((string)$ev['current_status']);
+            $hasResponded = !$participationStatus->isEmpty() && $ev['current_status'] !== '.';
+            $statusLabel = $hasResponded ? $participationStatus->getLabel() : 'Sans réponse';
+
+            $statusColor = '#64748b'; // default grey
+            if ($hasResponded) {
+                $statusColor = match ($participationStatus->getCategory()) {
+                    "present", "selected" => "#10b981", // green
+                    "available"           => "#f59e0b", // yellow-orange
+                    "available_if_needed" => "#06b6d4", // cyan
+                    "unavailable", "absent" => "#ef4444", // red
+                    default               => "#64748b",
+                };
+            }
+
+            $buttonsHtml = '';
+            if (!$hasResponded) {
+                $buttonsHtml = $this->getEventButtonsHtml((int)$player['id_joueur'], (int)$ev['id_manifestation'], $isMatch);
+            }
+
+            $formattedEvents[] = [
+                'title'          => $title,
+                'date_display'   => $dateDisplay,
+                'location'       => $ev['Lieu'] ?? '',
+                'comment'        => $ev['Commentaire'] ?? '',
+                'status_label'   => $statusLabel,
+                'status_color'   => $statusColor,
+                'buttons_html'   => $buttonsHtml,
+                'has_responded'  => $hasResponded,
+            ];
+        }
+
+        try {
+            $twig = \App\Core\View::getInstance();
+            $htmlContent = $twig->render('emails/weekly_presence.twig', [
+                'PLAYER_NAME'    => $this->escapeHtml($playerName),
+                'SAISON_LIBELLE' => $saison['libelle'],
+                'EVENTS'         => $formattedEvents,
+                'DASHBOARD_URL'  => BASE_URL . '/member/dashboard',
+                'PROFILE_URL'    => BASE_URL . '/member/profile',
+            ]);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to render weekly presence email template via Twig', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        return $this->sendEmail(
+            $playerEmail,
+            $playerName,
+            $subject,
+            $htmlContent,
+            null,
+            null,
+            'weekly_presence'
+        );
+    }
+
+    private function getEventButtonsHtml(int $playerId, int $eventId, bool $isMatch): string
+    {
+        if ($isMatch) {
+            $options = [
+                'Disponible' => ['label' => 'Disponible', 'color' => '#10b981'],
+                'Disponible si nécessaire' => ['label' => 'Si besoin', 'color' => '#f59e0b'],
+                'Indisponible' => ['label' => 'Indisponible', 'color' => '#ef4444']
+            ];
+        } else {
+            $options = [
+                'Présent(e)' => ['label' => 'Présent(e)', 'color' => '#10b981'],
+                'Absent(e)' => ['label' => 'Absent(e)', 'color' => '#ef4444']
+            ];
+        }
+
+        $buttonsHtml = '<div style="margin-top: 10px; margin-bottom: 10px;">';
+        foreach ($options as $status => $opt) {
+            $token = \App\Models\Participation::generateEmailToken($playerId, $eventId, $status);
+            $url = BASE_URL . '/public/participation/update?' . http_build_query([
+                'player_id' => $playerId,
+                'event_id'  => $eventId,
+                'status'    => $status,
+                'token'     => $token
+            ]);
+            $buttonsHtml .= '<a href="' . htmlspecialchars($url) . '" style="display: inline-block; background-color: ' . $opt['color'] . '; color: #ffffff; padding: 8px 14px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 13px; margin: 4px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 1px 2px rgba(0,0,0,0.05);">' . htmlspecialchars($opt['label']) . '</a>';
+        }
+        $buttonsHtml .= '</div>';
+        return $buttonsHtml;
     }
 }
