@@ -168,4 +168,53 @@ class PostController extends AdminCrudController
         Tag::setPostTags($postId, $tagIds);
     }
 
+    public function shareFacebook(array $params): void
+    {
+        $id = (int)$params['id'];
+        $post = Post::find($id);
+        
+        if (!$post) {
+            \App\Core\View::flash('error', 'Article introuvable.');
+            $this->redirect('/admin/posts');
+            return;
+        }
+
+        if (!$post['is_published']) {
+            \App\Core\View::flash('error', 'L\'article doit être publié avant d\'être partagé sur Facebook.');
+            $this->redirect('/admin/posts');
+            return;
+        }
+
+        if (!empty($post['fb_post_id'])) {
+            \App\Core\View::flash('error', 'Cet article a déjà été partagé sur Facebook.');
+            $this->redirect('/admin/posts');
+            return;
+        }
+
+        $link = BASE_URL . '/blog/' . $post['slug'];
+        
+        // Nettoyer l'extrait pour retirer les balises HTML éventuelles
+        $excerpt = strip_tags($post['excerpt'] ?? '');
+        if (empty($excerpt)) {
+            // Si pas d'extrait, on prend un bout du contenu
+            $excerpt = mb_substr(strip_tags($post['content'] ?? ''), 0, 150) . '...';
+        }
+        
+        $message = "Nouvel article : " . $post['title'] . "\n\n" . $excerpt;
+
+        try {
+            $fbPostId = \App\Services\FacebookService::publishPost($message, $link);
+            if ($fbPostId) {
+                Post::setFacebookPostId($id, $fbPostId);
+                \App\Core\View::flash('success', 'L\'article a été partagé avec succès sur Facebook.');
+            } else {
+                \App\Core\View::flash('error', 'Erreur inconnue lors du partage sur Facebook.');
+            }
+        } catch (\Exception $e) {
+            \App\Core\View::flash('error', 'Erreur Facebook : ' . $e->getMessage());
+        }
+
+        $this->redirect('/admin/posts');
+    }
+
 }

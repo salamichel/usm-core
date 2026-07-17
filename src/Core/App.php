@@ -162,6 +162,7 @@ class App
         $r->post('/admin/posts/{id}/edit',  [PostController::class, 'update']);
         $r->post('/admin/posts/{id}/delete',         [PostController::class, 'delete']);
         $r->post('/admin/posts/{id}/toggle-slider', [PostController::class, 'toggleSlider']);
+        $r->post('/admin/posts/{id}/share-facebook', [PostController::class, 'shareFacebook']);
 
         // ── Admin pages ───────────────────────────────────────────────────────
         $r->get('/admin/pages',             [PageAdminController::class, 'index']);

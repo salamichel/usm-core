@@ -72,13 +72,27 @@
         <span class="text-gray-500">{{ post.published_at|date_fr }}</span>
       {% endif %}
     </div>
-    {{ m.action_buttons(
-      url('admin/posts/' ~ post.id ~ '/edit'),
-      url('admin/posts/' ~ post.id ~ '/delete'),
-      'Supprimer cet article ?',
-      csrf_token,
-      url('blog/' ~ post.slug)
-    ) }}
+    <div class="flex items-center gap-2 mt-3">
+      {% if not post.fb_post_id and post.is_published %}
+        <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/share-facebook') }}" class="inline" onsubmit="return confirm('Partager cet article sur Facebook ?');">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+          <button type="submit" title="Partager sur Facebook" class="text-blue-600 hover:text-blue-800 transition">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path></svg>
+          </button>
+        </form>
+      {% elseif post.fb_post_id %}
+        <span title="Déjà partagé sur Facebook" class="text-blue-300">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path></svg>
+        </span>
+      {% endif %}
+      {{ m.action_buttons(
+        url('admin/posts/' ~ post.id ~ '/edit'),
+        url('admin/posts/' ~ post.id ~ '/delete'),
+        'Supprimer cet article ?',
+        csrf_token,
+        url('blog/' ~ post.slug)
+      ) }}
+    </div>
   </div>
   {% endfor %}
 </div>
@@ -127,13 +141,27 @@
         </td>
         <td class="px-4 py-3 text-gray-500 text-xs">{{ post.published_at|date_fr }}</td>
         <td class="px-4 py-3">
-          {{ m.action_buttons(
-            url('admin/posts/' ~ post.id ~ '/edit'),
-            url('admin/posts/' ~ post.id ~ '/delete'),
-            'Supprimer cet article ?',
-            csrf_token,
-            url('blog/' ~ post.slug)
-          ) }}
+          <div class="flex items-center gap-2 justify-end">
+            {% if not post.fb_post_id and post.is_published %}
+              <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/share-facebook') }}" class="inline" onsubmit="return confirm('Partager cet article sur Facebook ?');">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                <button type="submit" title="Partager sur Facebook" class="text-blue-600 hover:text-blue-800 transition pt-1">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path></svg>
+                </button>
+              </form>
+            {% elseif post.fb_post_id %}
+              <span title="Déjà partagé sur Facebook" class="text-blue-300 pt-1">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"></path></svg>
+              </span>
+            {% endif %}
+            {{ m.action_buttons(
+              url('admin/posts/' ~ post.id ~ '/edit'),
+              url('admin/posts/' ~ post.id ~ '/delete'),
+              'Supprimer cet article ?',
+              csrf_token,
+              url('blog/' ~ post.slug)
+            ) }}
+          </div>
         </td>
       </tr>
       {% endfor %}

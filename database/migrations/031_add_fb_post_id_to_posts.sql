@@ -1,0 +1,1 @@
+ALTER TABLE `posts` ADD COLUMN `fb_post_id` VARCHAR(255) DEFAULT NULL;

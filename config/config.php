@@ -45,3 +45,7 @@ define('BREVO_REDIRECT_EMAIL', getenv('BREVO_REDIRECT_EMAIL') ?: '');
 define('UPLOAD_DIR',      ROOT . '/public/assets/uploads');
 define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024); // 10 MB
 define('UPLOAD_ALLOWED_TYPES', ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
+
+// ── Facebook API ─────────────────────────────────────────────────────────────
+define('FB_PAGE_ID', getenv('FB_PAGE_ID') ?: '');
+define('FB_ACCESS_TOKEN', getenv('FB_ACCESS_TOKEN') ?: '');
