@@ -448,51 +448,82 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ── GESTION DE LA SUPPRESSION ──
+    async function proceedDelete(playerId) {
+        showStatus('Suppression...');
+
+        const formData = new FormData();
+        formData.append('_csrf_token', csrfToken);
+
+        try {
+            const response = await fetch(`/admin/joueurs/${playerId}/delete`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                showStatus('Joueur supprimé avec succès.', 'success');
+                
+                // Retirer la ligne de la table avec une animation
+                const row = document.querySelector(`tr[data-player-row="${playerId}"]`);
+                if (row) {
+                    row.style.transition = 'all 0.5s ease';
+                    row.style.opacity = '0';
+                    row.style.backgroundColor = '#fee2e2';
+                    setTimeout(() => {
+                        row.remove();
+                        // Recharger si la table est vide pour rafraîchir la pagination et métriques
+                        if (document.querySelectorAll('tr[data-player-row]').length === 0) {
+                            window.location.reload();
+                        } else {
+                            // On recharge aussi pour mettre à jour les métriques d'effectif en haut de page !
+                            window.location.reload();
+                        }
+                    }, 500);
+                }
+            } else {
+                showStatus(data.error || 'Impossible de supprimer ce joueur.', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            showStatus('Erreur réseau lors de la suppression.', 'error');
+        }
+    }
+
     document.querySelectorAll('button[data-delete-id]').forEach(btn => {
-        btn.addEventListener('click', async function() {
+        btn.addEventListener('click', function() {
             const playerId = this.dataset.deleteId;
             const playerName = this.dataset.playerName;
 
-            if (!confirm(`Voulez-vous vraiment supprimer définitivement le joueur "${playerName}" ? Cette action est irréversible.`)) {
-                return;
-            }
+            const dialog = document.getElementById('confirm-dialog');
+            if (dialog) {
+                const msgEl = document.getElementById('confirm-dialog-message');
+                const btnOk = document.getElementById('confirm-dialog-ok');
+                const btnCancel = document.getElementById('confirm-dialog-cancel');
 
-            showStatus('Suppression...');
+                msgEl.textContent = `Voulez-vous vraiment supprimer définitivement le joueur "${playerName}" ? Cette action est irréversible.`;
+                dialog.showModal();
+                btnCancel.focus();
 
-            const formData = new FormData();
-            formData.append('_csrf_token', csrfToken);
+                const handleOk = () => {
+                    btnOk.removeEventListener('click', handleOk);
+                    btnCancel.removeEventListener('click', handleCancel);
+                    proceedDelete(playerId);
+                };
 
-            try {
-                const response = await fetch(`/admin/joueurs/${playerId}/delete`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const handleCancel = () => {
+                    btnOk.removeEventListener('click', handleOk);
+                    btnCancel.removeEventListener('click', handleCancel);
+                };
 
-                const data = await response.json();
-
-                if (response.ok && data.ok) {
-                    showStatus('Joueur supprimé avec succès.', 'success');
-                    
-                    // Retirer la ligne de la table avec une animation
-                    const row = document.querySelector(`tr[data-player-row="${playerId}"]`);
-                    if (row) {
-                        row.style.transition = 'all 0.5s ease';
-                        row.style.opacity = '0';
-                        row.style.backgroundColor = '#fee2e2';
-                        setTimeout(() => {
-                            row.remove();
-                            // Optionnel : Recharger si la table est vide pour rafraîchir la pagination
-                            if (document.querySelectorAll('tr[data-player-row]').length === 0) {
-                                window.location.reload();
-                            }
-                        }, 500);
-                    }
-                } else {
-                    showStatus(data.error || 'Impossible de supprimer ce joueur.', 'error');
+                btnOk.addEventListener('click', handleOk);
+                btnCancel.addEventListener('click', handleCancel);
+            } else {
+                // Fallback si le dialogue néo-brutaliste n'est pas présent
+                if (confirm(`Voulez-vous vraiment supprimer définitivement le joueur "${playerName}" ? Cette action est irréversible.`)) {
+                    proceedDelete(playerId);
                 }
-            } catch (error) {
-                console.error(error);
-                showStatus('Erreur réseau lors de la suppression.', 'error');
             }
         });
     });
