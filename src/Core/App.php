@@ -40,6 +40,7 @@ use App\Controllers\Admin\MotsClefController;
 use App\Controllers\Admin\ManifestationGeneratorController;
 use App\Controllers\Admin\ManifestationController;
 use App\Controllers\Admin\EmailLogController;
+use App\Controllers\Admin\JoueurController as AdminJoueurController;
 
 class App
 {
@@ -183,7 +184,7 @@ class App
         $r->get('/admin/saisons',                [SaisonController::class, 'index']);
         $r->get('/admin/saisons/create',         [SaisonController::class, 'create']);
         $r->post('/admin/saisons/create',        [SaisonController::class, 'store']);
-        $r->get('/admin/saisons/joueurs',        [SaisonController::class, 'joueurs']);
+        $r->get('/admin/saisons/joueurs',        [AdminJoueurController::class, 'index']);
         $r->post('/admin/saisons/flash-select',   [SaisonController::class, 'flashSelect']);
         $r->get('/admin/saisons/{id}/edit',      [SaisonController::class, 'edit']);
         $r->post('/admin/saisons/{id}/edit',     [SaisonController::class, 'update']);
@@ -192,6 +193,12 @@ class App
         $r->get('/admin/saisons/{id}/snapshots', [SaisonController::class, 'snapshots']);
         $r->post('/admin/saisons/{id}/purge',    [SaisonController::class, 'purge']);
         $r->post('/admin/saisons/send-weekly-reminder', [SaisonController::class, 'sendWeeklyReminder']);
+
+        // ── Admin joueurs (Tableur AJAX) ──────────────────────────────────────
+        $r->get('/admin/joueurs',                   [AdminJoueurController::class, 'index']);
+        $r->post('/admin/joueurs/create',            [AdminJoueurController::class, 'create']);
+        $r->post('/admin/joueurs/{id}/update-field', [AdminJoueurController::class, 'updateField']);
+        $r->post('/admin/joueurs/{id}/delete',       [AdminJoueurController::class, 'delete']);
 
         // ── Admin équipes config ──────────────────────────────────────────────
         $r->get('/admin/equipes-config',        [EquipeConfigController::class, 'index']);

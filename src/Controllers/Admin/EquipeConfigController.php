@@ -22,9 +22,24 @@ class EquipeConfigController extends BaseAdminController
     public function index(array $params): void
     {
         $saison = \App\Models\Saison::getActive();
+        $saisonId = $saison ? (int)$saison['id'] : null;
+        $equipes = EquipeConfig::all();
+        
+        // Calculer dynamiquement le nombre de joueurs affectés à chaque équipe pour la saison active
+        foreach ($equipes as &$eq) {
+            $eq['player_count'] = 0;
+            if ($saisonId) {
+                $es = \App\Models\EquipeSaison::findBySaisonAndEquipe($saisonId, (int)$eq['id']);
+                if ($es) {
+                    $eq['player_count'] = \App\Models\EquipeSaisonJoueur::countByEquipeSaison((int)$es['id']);
+                }
+            }
+        }
+        unset($eq);
+
         View::render('admin/equipes-config/list.twig', [
-            'equipes' => EquipeConfig::all(),
-            'saison_active_id' => $saison ? $saison['id'] : null,
+            'equipes' => $equipes,
+            'saison_active_id' => $saisonId,
         ]);
     }
 
@@ -35,6 +50,7 @@ class EquipeConfigController extends BaseAdminController
             'saisons'     => [],
             'categories'  => CategorieEquipe::all(),
             'training_types' => \App\Models\MotsClef::getTrainingTypes(),
+            'db_columns'  => \App\Models\MotsClef::getByCategory('EquipeParEquipe'),
             'action'      => BASE_URL . '/admin/equipes-config/create',
         ]);
     }
@@ -54,6 +70,7 @@ class EquipeConfigController extends BaseAdminController
                 'saisons'     => [],
                 'categories'  => CategorieEquipe::all(),
                 'training_types' => \App\Models\MotsClef::getTrainingTypes(),
+                'db_columns'  => \App\Models\MotsClef::getByCategory('EquipeParEquipe'),
                 'action'      => BASE_URL . '/admin/equipes-config/create',
                 'error'       => $v->firstError(),
             ]);
@@ -83,6 +100,7 @@ class EquipeConfigController extends BaseAdminController
             'saisons'     => $saisons,
             'categories'  => CategorieEquipe::all(),
             'training_types' => \App\Models\MotsClef::getTrainingTypes(),
+            'db_columns'  => \App\Models\MotsClef::getByCategory('EquipeParEquipe'),
             'action'      => BASE_URL . '/admin/equipes-config/' . $equipe['id'] . '/edit',
         ]);
     }
@@ -105,6 +123,7 @@ class EquipeConfigController extends BaseAdminController
                 'saisons'     => $saisons,
                 'categories'  => CategorieEquipe::all(),
                 'training_types' => \App\Models\MotsClef::getTrainingTypes(),
+                'db_columns'  => \App\Models\MotsClef::getByCategory('EquipeParEquipe'),
                 'action'      => BASE_URL . '/admin/equipes-config/' . $id . '/edit',
                 'error'       => $v->firstError(),
             ]);

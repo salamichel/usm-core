@@ -30,7 +30,11 @@ class MotsClefController extends AdminCrudController
 
     protected function getEntity(int $id): ?array
     {
-        return MotsClef::find($id);
+        $entity = MotsClef::find($id);
+        if ($entity) {
+            $entity['id'] = $entity['id_mot_clef'];
+        }
+        return $entity;
     }
 
     protected function getAllEntities(): array

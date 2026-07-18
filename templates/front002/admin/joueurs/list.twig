@@ -1,0 +1,540 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}Gestion des Joueurs{% endblock %}
+
+{% block content %}
+<style>
+  /* Permettre à la page de s'étendre en pleine largeur pour le mode tableur sans scroll horizontal */
+  main {
+    max-width: 98% !important;
+    width: 98% !important;
+  }
+  
+  /* Ajustements pour le scroll vertical de la table avec entête fixe */
+  .table-container {
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* Rendre l'entête collante (sticky) */
+  .table-container thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: #000000;
+  }
+
+  /* Style compact pour le mode tableur */
+  .table-compact input[type="text"], 
+  .table-compact input[type="email"] {
+    font-size: 11px;
+    padding: 2px 4px;
+    height: 24px;
+  }
+  .table-compact select {
+    font-size: 11px;
+    padding: 2px 4px;
+    height: 24px;
+  }
+  .table-compact th, 
+  .table-compact td {
+    padding: 2px 4px;
+  }
+</style>
+
+{# Indicateur de statut AJAX flottant #}
+<div id="ajax-status" class="fixed top-4 right-4 z-50 hidden flex items-center gap-2 border-4 border-black bg-white px-4 py-2 font-black text-sm shadow-[4px_4px_0_#000] transition-all duration-300">
+  <span id="ajax-status-icon">🔄</span>
+  <span id="ajax-status-text">Sauvegarde...</span>
+</div>
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+  <div>
+    <h1 class="text-2xl font-black">Joueurs (Base Externe)</h1>
+    <p class="text-xs text-gray-600">Édition de type tableur en temps réel sans scroll horizontal sur grand écran.</p>
+  </div>
+</div>
+
+{# ── METRIQUES ET REPARTITION PAR EQUIPE ── #}
+<div class="flex gap-3 overflow-x-auto pb-3 mb-4 scrollbar-thin select-none">
+  <!-- Total Card -->
+  <a href="{{ url('admin/joueurs') }}" class="flex-shrink-0 border-4 border-black bg-black text-white p-3 w-32 shadow-[4px_4px_0_#000] hover:bg-gray-900 transition-all">
+    <div class="text-[9px] uppercase font-black tracking-wider opacity-75">Effectif Total</div>
+    <div class="text-2xl font-black mt-0.5">{{ totalPlayers }}</div>
+  </a>
+
+  <!-- Team Cards -->
+  {% for team, count in teamStats %}
+    {% if count > 0 %}
+      <a href="?equipe={{ team }}" class="flex-shrink-0 border-4 border-black p-3 w-28 hover:bg-amber-50 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#000] transition-all shadow-[4px_4px_0_#000] {{ selectedEquipe == team ? 'bg-amber-100' : 'bg-white' }}">
+        <div class="text-[9px] uppercase font-black tracking-wider text-gray-500 truncate" title="{{ team }}">{{ team|replace({'_': ' '}) }}</div>
+        <div class="text-xl font-black mt-0.5 text-black">{{ count }}</div>
+      </a>
+    {% endif %}
+  {% endfor %}
+</div>
+
+{# ── SECTION 1 : FORMULAIRE D'IMPORTATION / FLASHAGE ── #}
+{% if seasons|length %}
+<div class="border-4 border-black bg-white p-3 shadow-[4px_4px_0_#000] mb-4">
+  <details class="group">
+    <summary class="text-sm font-black flex items-center justify-between cursor-pointer list-none select-none">
+      <span class="flex items-center gap-2">
+        <span>⚡</span> Importer / Flasher les joueurs pour une saison
+      </span>
+      <span class="transition-transform group-open:rotate-180">▼</span>
+    </summary>
+    <div class="mt-3 pt-3 border-t-2 border-gray-200">
+      <p class="text-[10px] text-gray-500 mb-3">
+        Cette action récupère les joueurs de la base externe ci-dessous et les enregistre (snapshot) pour la saison de votre choix. 
+        Les liaisons d'équipes seront automatiquement créées. <strong class="text-red-650 font-bold">Attention : cela réinitialise les ajustements manuels de composition d'équipe (les capitaines locaux seront conservés, aucun nouveau capitaine externe ne sera importé).</strong>
+      </p>
+      
+      <form method="POST" action="{{ url('admin/saisons/flash-select') }}" class="flex flex-col sm:flex-row gap-3 items-end sm:items-center" data-confirm="Voulez-vous vraiment flasher les joueurs pour la saison sélectionnée ? Les ajustements manuels de composition d'équipe seront écrasés (les capitaines locaux seront conservés et aucun nouveau capitaine externe ne sera importé).">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        <div class="flex-1 w-full">
+          <label class="block text-[10px] font-bold uppercase mb-1 text-gray-600" for="saison_id">Sélectionner la saison concernée :</label>
+          <select id="saison_id" name="saison_id" class="w-full border-4 border-black p-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white">
+            {% for s in seasons %}
+              <option value="{{ s.id }}" {% if saison_active and s.id == saison_active.id %}selected{% endif %}>
+                {{ s.libelle }} {% if s.is_active %}(Active){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="w-full sm:w-auto border-4 border-black bg-usm-brown text-white font-black px-4 py-2 text-xs shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all whitespace-nowrap">
+          Flasher les joueurs
+        </button>
+      </form>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+{# ── SECTION 2 : AJOUTER UN JOUEUR ── #}
+<div class="border-4 border-black bg-white p-3 shadow-[4px_4px_0_#000] mb-4">
+  <details class="group" id="details-add-player">
+    <summary class="text-sm font-black flex items-center justify-between cursor-pointer list-none select-none">
+      <span class="flex items-center gap-2">
+        <span>👤</span> Ajouter un nouveau joueur
+      </span>
+      <span class="transition-transform group-open:rotate-180">▼</span>
+    </summary>
+    <div class="mt-3 pt-3 border-t-2 border-gray-200">
+      <form id="add-player-form" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 items-end">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        
+        <div>
+          <label for="new_nom" class="block text-[10px] font-bold uppercase mb-1 text-gray-600">Nom *</label>
+          <input type="text" id="new_nom" name="Nom" required class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+        </div>
+        
+        <div>
+          <label for="new_prenom" class="block text-[10px] font-bold uppercase mb-1 text-gray-600">Prénom *</label>
+          <input type="text" id="new_prenom" name="Prenom" required class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+        </div>
+
+        <div>
+          <label for="new_sexe" class="block text-[10px] font-bold uppercase mb-1 text-gray-600">Sexe</label>
+          <select id="new_sexe" name="Sexe" class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+            <option value="M">Masculin (M)</option>
+            <option value="F">Féminin (F)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="new_licence" class="block text-[10px] font-bold uppercase mb-1 text-gray-600">N° Licence</label>
+          <input type="text" id="new_licence" name="NLicence" class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+        </div>
+
+        <div>
+          <label for="new_mel" class="block text-[10px] font-bold uppercase mb-1 text-gray-600">Email</label>
+          <input type="email" id="new_mel" name="Mel" class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+        </div>
+
+        <div>
+          <label for="new_phone" class="block text-[10px] font-bold uppercase mb-1 text-gray-600">Téléphone</label>
+          <input type="text" id="new_phone" name="Téléphone" class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+        </div>
+
+        <div class="md:col-span-6 flex justify-end mt-1">
+          <button type="submit" class="border-4 border-black bg-black text-white font-black px-4 py-1.5 text-xs shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+            Créer le joueur
+          </button>
+        </div>
+      </form>
+    </div>
+  </details>
+</div>
+
+{# ── SECTION 3 : FILTRES & RECHERCHE ── #}
+<div class="border-4 border-black bg-amber-50 p-3 mb-4 shadow-[4px_4px_0_#000]">
+  <form method="GET" class="flex flex-col md:flex-row items-end gap-3">
+    <div class="flex-1 w-full">
+      <label for="search-input" class="block text-[10px] font-black uppercase mb-1">Recherche (Nom, Prénom, Email)</label>
+      <input type="text" id="search-input" name="search" value="{{ search }}" placeholder="Ex: Martin, sophie..." class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+    </div>
+
+    <div class="w-full md:w-48">
+      <label for="equipe-filter" class="block text-[10px] font-black uppercase mb-1">Filtrer par équipe / flag</label>
+      <select id="equipe-filter" name="equipe" class="w-full border-2 border-black p-1.5 text-xs font-semibold bg-white focus:outline-none">
+        <option value="">-- Tous les joueurs --</option>
+        {% for eq in filterTeams %}
+          <option value="{{ eq }}" {{ selectedEquipe == eq ? 'selected' : '' }}>{{ eq }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="flex gap-2 w-full md:w-auto">
+      <button type="submit" class="w-full md:w-auto border-2 border-black bg-black text-white px-4 py-1.5 text-xs font-bold hover:bg-gray-800 transition">
+        Filtrer
+      </button>
+      {% if search or selectedEquipe %}
+        <a href="{{ url('admin/joueurs') }}" class="w-full md:w-auto border-2 border-black bg-white px-3 py-1.5 text-xs font-bold text-center hover:bg-gray-100 transition whitespace-nowrap">
+          Réinitialiser
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{# ── SECTION 4 : TABLE DE TYPE TABLEUR ── #}
+{% if joueurs|length %}
+<div class="flex justify-between items-center mb-2">
+  <p class="text-xs font-bold text-gray-600">Nombre de lignes : {{ total }} joueurs</p>
+</div>
+
+<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] table-container">
+  <table class="w-full text-xs text-left border-collapse table-compact">
+    <thead class="bg-black text-white">
+      <tr>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-24">Nom</th>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-24">Prénom</th>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-20">NLicence</th>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-16">Mdp</th>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-20">Carac.</th>
+        
+        {# En-têtes des categories #}
+        {% for col, label in categoryColumns %}
+          <th class="px-1 py-1.5 font-black text-center border-r border-gray-700 select-none text-[10px] w-8" title="{{ label }}">{{ label }}</th>
+        {% endfor %}
+        
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 text-center w-12">Sexe</th>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-40">Mel</th>
+        <th class="px-2 py-1.5 font-black border-r border-gray-700 w-28">Tél</th>
+        <th class="px-2 py-1.5 font-black text-center w-20">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      {% for j in joueurs %}
+      <tr class="hover:bg-amber-50/50 transition-colors border-t border-gray-200" data-player-row="{{ j.id_joueur }}">
+        
+        {# Nom #}
+        <td class="border-r border-gray-200 font-bold">
+          <input type="text" data-field="Nom" data-player-id="{{ j.id_joueur }}" value="{{ j.Nom }}" class="w-full bg-transparent px-1 font-bold border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all uppercase">
+        </td>
+
+        {# Prénom #}
+        <td class="border-r border-gray-200">
+          <input type="text" data-field="Prénom" data-player-id="{{ j.id_joueur }}" value="{{ j['Prénom'] }}" class="w-full bg-transparent px-1 border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all font-semibold">
+        </td>
+
+        {# NLicence #}
+        <td class="border-r border-gray-200">
+          <input type="text" data-field="NLicence" data-player-id="{{ j.id_joueur }}" value="{{ j.NLicence ?: '' }}" class="w-full bg-transparent px-1 border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all font-mono">
+        </td>
+
+        {# mdp #}
+        <td class="border-r border-gray-200">
+          <input type="text" data-field="mdp" data-player-id="{{ j.id_joueur }}" value="{{ j.mdp }}" class="w-full bg-transparent px-1 border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all font-mono">
+        </td>
+
+        {# Caracteristique #}
+        <td class="border-r border-gray-200">
+          <input type="text" data-field="Caracteristique" data-player-id="{{ j.id_joueur }}" value="{{ j.Caracteristique ?: '' }}" class="w-full bg-transparent px-1 border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all text-gray-700">
+        </td>
+
+        {# Catégories Checkboxes #}
+        {% for col, label in categoryColumns %}
+          <td class="border-r border-gray-200 text-center">
+            <input type="checkbox" data-checkbox-field="{{ col }}" data-player-id="{{ j.id_joueur }}" {% if attribute(j, col) == 1 %}checked{% endif %} class="h-3.5 w-3.5 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
+          </td>
+        {% endfor %}
+
+        {# Sexe #}
+        <td class="border-r border-gray-200 text-center">
+          <select data-select-field="Sexe" data-player-id="{{ j.id_joueur }}" class="w-full bg-transparent border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none font-bold text-center py-0.5 cursor-pointer">
+            <option value="M" {% if j.Sexe == 'M' %}selected{% endif %}>M</option>
+            <option value="F" {% if j.Sexe == 'F' %}selected{% endif %}>F</option>
+          </select>
+        </td>
+
+        {# Mel #}
+        <td class="border-r border-gray-200">
+          <input type="email" data-field="Mel" data-player-id="{{ j.id_joueur }}" value="{{ j.Mel ?: '' }}" class="w-full bg-transparent px-1 border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all text-[11px] text-gray-700">
+        </td>
+
+        {# Téléphone #}
+        <td class="border-r border-gray-200">
+          <input type="text" data-field="Téléphone" data-player-id="{{ j.id_joueur }}" value="{{ j['Téléphone'] ?: '' }}" class="w-full bg-transparent px-1 border border-transparent hover:border-gray-200 focus:border-black focus:bg-white focus:outline-none transition-all text-[11px] text-gray-700 font-mono">
+        </td>
+
+        {# Actions #}
+        <td class="text-center">
+          <button type="button" data-delete-id="{{ j.id_joueur }}" data-player-name="{{ j['Prénom'] }} {{ j.Nom }}" class="border border-red-650 text-red-650 hover:bg-red-600 hover:text-white px-1.5 py-0.5 font-bold transition rounded text-[10px]">
+            Supprimer
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if pagesCount > 1 %}
+<div class="flex items-center justify-center gap-4 mt-6">
+  {% if currentPage > 1 %}
+    <a href="?page={{ currentPage - 1 }}{{ search ? '&search=' ~ search : '' }}{{ selectedEquipe ? '&equipe=' ~ selectedEquipe : '' }}" class="border-2 border-black bg-white px-3 py-1 text-xs font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
+      &larr; Précédent
+    </a>
+  {% else %}
+    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 text-xs font-bold cursor-not-allowed select-none">
+      &larr; Précédent
+    </span>
+  {% endif %}
+
+  <span class="font-black text-xs select-none">Page {{ currentPage }} sur {{ pagesCount }} ({{ total }} joueurs)</span>
+
+  {% if currentPage < pagesCount %}
+    <a href="?page={{ currentPage + 1 }}{{ search ? '&search=' ~ search : '' }}{{ selectedEquipe ? '&equipe=' ~ selectedEquipe : '' }}" class="border-2 border-black bg-white px-3 py-1 text-xs font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
+      Suivant &rarr;
+    </a>
+  {% else %}
+    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 text-xs font-bold cursor-not-allowed select-none">
+      Suivant &rarr;
+    </span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">
+  <p class="text-gray-500 italic mb-4">Aucun joueur trouvé.</p>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = '{{ csrf_token }}';
+    const ajaxStatus = document.getElementById('ajax-status');
+    const ajaxStatusText = document.getElementById('ajax-status-text');
+    const ajaxStatusIcon = document.getElementById('ajax-status-icon');
+
+    // Helper pour afficher le statut AJAX
+    function showStatus(text, type = 'loading') {
+        ajaxStatus.classList.remove('hidden');
+        ajaxStatusText.textContent = text;
+        
+        // Retirer les anciennes classes de bordure
+        ajaxStatus.classList.remove('border-green-600', 'border-red-600', 'border-black');
+
+        if (type === 'loading') {
+            ajaxStatusIcon.textContent = '🔄';
+            ajaxStatus.classList.add('border-black', 'text-black');
+        } else if (type === 'success') {
+            ajaxStatusIcon.textContent = '✅';
+            ajaxStatus.classList.add('border-green-600', 'text-green-700');
+            // Cacher après 2 secondes
+            setTimeout(() => {
+                ajaxStatus.classList.add('hidden');
+            }, 2000);
+        } else if (type === 'error') {
+            ajaxStatusIcon.textContent = '❌';
+            ajaxStatus.classList.add('border-red-600', 'text-red-700');
+            // Cacher après 5 secondes ou au clic
+            setTimeout(() => {
+                ajaxStatus.classList.add('hidden');
+            }, 5000);
+        }
+    }
+
+    // Fonction de sauvegarde d'un champ
+    async function saveField(playerId, fieldName, fieldValue, inputElement = null) {
+        showStatus('Enregistrement...');
+
+        const formData = new FormData();
+        formData.append('field', fieldName);
+        formData.append('value', fieldValue);
+        formData.append('_csrf_token', csrfToken);
+
+        try {
+            const response = await fetch(`/admin/joueurs/${playerId}/update-field`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.ok) {
+                showStatus('Modification enregistrée !', 'success');
+                
+                // Si c'est un input, animer sa cellule en vert
+                if (inputElement) {
+                    const originalBorder = inputElement.style.borderColor;
+                    inputElement.style.borderColor = '#16a34a'; // vert
+                    setTimeout(() => {
+                        inputElement.style.borderColor = originalBorder;
+                        if (fieldName === 'Nom') {
+                            inputElement.value = data.value; // Remplace avec l'uppercase renvoyé par le serveur
+                        }
+                    }, 800);
+                }
+            } else {
+                showStatus(data.error || 'Erreur lors de la sauvegarde.', 'error');
+                if (inputElement) {
+                    inputElement.style.borderColor = '#dc2626'; // rouge
+                    // Remettre l'ancienne valeur si présente
+                    if (inputElement.dataset.originalValue !== undefined) {
+                        inputElement.value = inputElement.dataset.originalValue;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            showStatus('Erreur réseau / serveur.', 'error');
+            if (inputElement && inputElement.dataset.originalValue !== undefined) {
+                inputElement.value = inputElement.dataset.originalValue;
+            }
+        }
+    }
+
+    // ── GESTION DES INPUTS TEXTES (Nom, Prénom, Licence, Email, Tél) ──
+    document.querySelectorAll('input[data-field]').forEach(input => {
+        // Enregistrer la valeur d'origine pour pouvoir la restaurer en cas d'erreur
+        input.dataset.originalValue = input.value;
+
+        // Sauvegarde sur le Blur
+        input.addEventListener('blur', function() {
+            if (this.value !== this.dataset.originalValue) {
+                saveField(this.dataset.playerId, this.dataset.field, this.value, this)
+                    .then(() => {
+                        this.dataset.originalValue = this.value;
+                    });
+            }
+        });
+
+        // Sauvegarde sur Entrée
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.blur();
+            }
+        });
+    });
+
+    // ── GESTION DES CHECKBOXES (Equipes / Flags) ──
+    document.querySelectorAll('input[data-checkbox-field]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const isChecked = this.checked ? '1' : '0';
+            saveField(this.dataset.playerId, this.dataset.checkboxField, isChecked);
+        });
+    });
+
+    // ── GESTION DES SELECTS (Sexe) ──
+    document.querySelectorAll('select[data-select-field]').forEach(select => {
+        select.addEventListener('change', function() {
+            saveField(this.dataset.playerId, this.dataset.selectField, this.value);
+        });
+    });
+
+    // ── GESTION DE LA SUPPRESSION ──
+    document.querySelectorAll('button[data-delete-id]').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const playerId = this.dataset.deleteId;
+            const playerName = this.dataset.playerName;
+
+            if (!confirm(`Voulez-vous vraiment supprimer définitivement le joueur "${playerName}" ? Cette action est irréversible.`)) {
+                return;
+            }
+
+            showStatus('Suppression...');
+
+            const formData = new FormData();
+            formData.append('_csrf_token', csrfToken);
+
+            try {
+                const response = await fetch(`/admin/joueurs/${playerId}/delete`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.ok) {
+                    showStatus('Joueur supprimé avec succès.', 'success');
+                    
+                    // Retirer la ligne de la table avec une animation
+                    const row = document.querySelector(`tr[data-player-row="${playerId}"]`);
+                    if (row) {
+                        row.style.transition = 'all 0.5s ease';
+                        row.style.opacity = '0';
+                        row.style.backgroundColor = '#fee2e2';
+                        setTimeout(() => {
+                            row.remove();
+                            // Optionnel : Recharger si la table est vide pour rafraîchir la pagination
+                            if (document.querySelectorAll('tr[data-player-row]').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 500);
+                    }
+                } else {
+                    showStatus(data.error || 'Impossible de supprimer ce joueur.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showStatus('Erreur réseau lors de la suppression.', 'error');
+            }
+        });
+    });
+
+    // ── GESTION DE LA CRÉATION VIA AJAX ──
+    const addPlayerForm = document.getElementById('add-player-form');
+    if (addPlayerForm) {
+        addPlayerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showStatus('Création du joueur...');
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/admin/joueurs/create', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.ok) {
+                    showStatus('Joueur créé avec succès !', 'success');
+                    this.reset();
+                    
+                    // Fermer le volet
+                    const details = document.getElementById('details-add-player');
+                    if (details) details.removeAttribute('open');
+
+                    // Recharger la page pour voir le nouveau joueur dans le tableau trié et paginé
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showStatus(data.error || 'Erreur lors de la création.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showStatus('Erreur réseau lors de la création.', 'error');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

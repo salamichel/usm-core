@@ -38,10 +38,11 @@
             <span class="shrink-0 bg-gray-100 text-gray-500 border-2 border-gray-400 px-2 py-0.5 text-xs font-black">Inactive</span>
           {% endif %}
         </div>
-        <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mb-3">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-3">
           {% if eq.type %}<span>{{ eq.type }}</span>{% endif %}
           {% if eq.hauteur_filet %}<span>🏐 {{ eq.hauteur_filet }}</span>{% endif %}
           <span class="font-mono">{{ eq.slug_colonne }}</span>
+          <span class="font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 border border-amber-200 rounded">👥 {{ eq.player_count ?: 0 }} joueurs</span>
         </div>
         <div class="flex flex-wrap gap-2">
           {% if saison_active_id %}
@@ -94,6 +95,7 @@
         <th class="text-left px-4 py-3 font-black hidden md:table-cell">Type</th>
         <th class="text-left px-4 py-3 font-black hidden md:table-cell">Filet</th>
         <th class="text-left px-4 py-3 font-black hidden lg:table-cell">Colonne DB</th>
+        <th class="text-left px-4 py-3 font-black">Joueurs</th>
         <th class="text-left px-4 py-3 font-black">Statut</th>
         <th class="px-4 py-3"></th>
       </tr>
@@ -102,7 +104,7 @@
       {% for cat, eqs in grouped %}
       {# Ligne de catégorie #}
       <tr class="bg-amber-50 border-t-4 border-black">
-        <td colspan="6" class="px-4 py-2 font-black text-xs uppercase tracking-widest text-gray-600">
+        <td colspan="7" class="px-4 py-2 font-black text-xs uppercase tracking-widest text-gray-600">
           {{ cat }} <span class="font-normal text-gray-400">({{ eqs|length }})</span>
         </td>
       </tr>
@@ -117,6 +119,11 @@
         <td class="px-4 py-3 text-gray-600 text-xs hidden md:table-cell">{{ eq.type ?: '—' }}</td>
         <td class="px-4 py-3 text-gray-600 text-xs font-semibold hidden md:table-cell">{{ eq.hauteur_filet ?: '—' }}</td>
         <td class="px-4 py-3 font-mono text-xs text-gray-400 hidden lg:table-cell">{{ eq.slug_colonne }}</td>
+        <td class="px-4 py-3">
+          <span class="inline-block bg-amber-100 text-amber-950 px-2 py-0.5 border-2 border-black text-xs font-black shadow-[2px_2px_0_#000]">
+            👥 {{ eq.player_count ?: 0 }}
+          </span>
+        </td>
         <td class="px-4 py-3">
           {% if eq.is_active %}
             <span class="bg-green-100 text-green-800 border-2 border-green-600 px-2 py-0.5 text-xs font-black">Active</span>

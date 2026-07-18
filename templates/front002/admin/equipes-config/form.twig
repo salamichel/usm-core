@@ -53,10 +53,13 @@
         </div>
         <div>
           <label class="block font-black mb-1 text-sm" for="slug_colonne">Colonne DB *</label>
-          <input id="slug_colonne" name="slug_colonne" type="text" required
-                 value="{{ equipe.slug_colonne ?? '' }}"
-                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                 placeholder="L1">
+          <select id="slug_colonne" name="slug_colonne" required
+                  class="w-full border-4 border-black px-3 py-2 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white">
+            <option value="">-- Choisir une colonne --</option>
+            {% for col in db_columns %}
+              <option value="{{ col }}" {% if equipe and equipe.slug_colonne == col %}selected{% endif %}>{{ col }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div>
           <label class="block font-black mb-1 text-sm" for="slug">Slug SEO</label>
