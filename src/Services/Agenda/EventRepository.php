@@ -47,10 +47,11 @@ class EventRepository
             );
             $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetchAll() ?: [];
+            $rows = $stmt->fetchAll();
         } catch (\Throwable) {
             return [];
         }
+        return array_map([EventNormalizer::class, 'buildEvent'], $rows ?: []);
     }
 
     /**
