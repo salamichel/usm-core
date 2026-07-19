@@ -65,13 +65,14 @@ class ManifestationController extends BaseAdminController
     public function store(array $params): void
     {
         $formData = [
-            'manifestation_type' => trim($_POST['manifestation_type'] ?? ''),
-            'date'               => trim($_POST['date'] ?? ''),
-            'duration'           => trim($_POST['duration'] ?? ''),
-            'location'           => trim($_POST['location'] ?? ''),
-            'nombre_terrain'     => $_POST['nombre_terrain'] !== '' ? (int)$_POST['nombre_terrain'] : null,
-            'statut'             => trim($_POST['statut'] ?? ''),
-            'commentaire'        => trim($_POST['commentaire'] ?? ''),
+            'manifestation_type'      => trim($_POST['manifestation_type'] ?? ''),
+            'date'                    => trim($_POST['date'] ?? ''),
+            'duration'                => trim($_POST['duration'] ?? ''),
+            'location'                => trim($_POST['location'] ?? ''),
+            'nombre_terrain'          => $_POST['nombre_terrain'] !== '' ? (int)$_POST['nombre_terrain'] : null,
+            'statut'                  => trim($_POST['statut'] ?? ''),
+            'commentaire'             => trim($_POST['commentaire'] ?? ''),
+            'send_notification_email' => isset($_POST['send_notification_email']),
         ];
 
         $statuses = MotsClef::getByCategory('Statut');
@@ -107,7 +108,7 @@ class ManifestationController extends BaseAdminController
 
         $id = EventRepository::createEvent($formData);
         $event = EventRepository::findEventRaw($id);
-        if ($event) {
+        if ($event && $formData['send_notification_email']) {
             \App\Services\Agenda\EventNotificationService::sendCreationNotifications($event);
         }
         View::flash('success', 'Manifestation créée avec succès.');

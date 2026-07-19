@@ -91,6 +91,23 @@
                   class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ manifestation.commentaire ?? '' }}</textarea>
         <div class="text-xs text-gray-500 mt-1">Commentaire ou informations complémentaires visibles par les adhérents.</div>
       </div>
+
+      {# Envoi e-mail de notification #}
+      {% if not manifestation or not manifestation.id %}
+      <div class="sm:col-span-2 flex items-start gap-3 bg-slate-50 border-2 border-black p-4">
+        <input type="checkbox" id="send_notification_email" name="send_notification_email" value="1"
+               {% if manifestation is null or manifestation.send_notification_email %}checked{% endif %}
+               class="mt-1 h-5 w-5 border-2 border-black text-usm-brown focus:ring-usm-brown focus:ring-2">
+        <div>
+          <label class="block font-black cursor-pointer select-none" for="send_notification_email">
+            Envoyer une notification par e-mail
+          </label>
+          <div class="text-xs text-gray-500">
+            Si coché, les adhérents abonnés recevront immédiatement un e-mail les informant de la création de cet événement.
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 
