@@ -157,36 +157,31 @@ class MemberDashboardService
         }
 
         // 1. Calcul du taux de présence aux Matchs et Entraînements sur la saison courante (passée ou future)
-        // Types d'événements spécifiques à toujours inclure, basés sur des motifs génériques
-        $genericEventPatterns = Participation::getGenericEventPatterns();
-
-        $conditions = [];
-        $bindings = [$userId]; // Pour le LEFT JOIN p.id_joueur = ?
-
-        // Conditions basées sur les catégories du joueur
-        foreach ($categories as $cat) {
-            $conditions[] = "m.ManifestationTypée LIKE ?";
-            $bindings[] = '%' . $cat;
-        }
-
-        // Conditions pour les types d'événements génériques
-        foreach ($genericEventPatterns as $pattern) {
-            $conditions[] = "m.ManifestationTypée LIKE ?";
-            $bindings[] = $pattern;
+        $queryData = Participation::getMemberEventConditions($userId, $categories, 'm');
+        if (empty($queryData['conditions'])) {
+            return [
+                'presence_match' => 0,
+                'presence_training' => 0,
+                'presence_tournament' => 0,
+                'events_by_type' => [],
+                'top_lieux' => []
+            ];
         }
 
         $sql = "
             SELECT m.ManifestationTypée, p.Participation
             FROM Manifestation m
             LEFT JOIN Participation p ON m.id_manifestation = p.id_manifestation AND p.id_joueur = ?
-            WHERE (" . implode(' OR ', $conditions) . ")
+            WHERE (" . implode(' OR ', $queryData['conditions']) . ")
               AND m.Date >= ? 
               AND m.Date <= ?
               AND m.Statut in ('Confirmé', 'Provisoire')
         ";
 
-        $bindings[] = $saison['date_debut'];
-        $bindings[] = $saison['date_fin'] ?: '9999-12-31';
+        $bindings = array_merge([$userId], $queryData['bindings'], [
+            $saison['date_debut'],
+            $saison['date_fin'] ?: '9999-12-31'
+        ]);
 
         $stmt = $db->prepare($sql);
         $stmt->execute($bindings);

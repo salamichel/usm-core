@@ -89,7 +89,8 @@ class Participation
     }
 
     /**
-     * Retourne les motifs génériques d'événements à toujours inclure.
+     * Retourne les motifs génériques d'événements à toujours inclure pour tous les membres.
+     * (Exclut les entraînements qui sont filtrés par équipe/catégorie).
      *
      * @return array
      */
@@ -98,14 +99,129 @@ class Participation
         return [
             '%Tournoi%',
             '%Club%',
-            '%Beach%',
-            '%Entra%',
         ];
     }
 
     /**
-     * Récupère les événements à venir filtrés par catégories du joueur.
-     * N'affiche que les créneaux pertinents (où ManifestationTypée contient le segment 3 du nom de la catégorie).
+     * Construit les clauses SQL WHERE et les bindings associés pour les événements
+     * éligibles d'un membre (matchs, événements génériques et entraînements de ses équipes).
+     *
+     * @param int $userId ID du joueur
+     * @param array $categories Liste des catégories du joueur (ex: ['DEP', 'L1'])
+     * @param string $tableAlias Alias de la table Manifestation (ex: 'm' ou '')
+     * @return array ['conditions' => array, 'bindings' => array]
+     */
+    public static function getMemberEventConditions(int $userId, array $categories, string $tableAlias = ''): array
+    {
+        if (empty($categories)) {
+            return ['conditions' => [], 'bindings' => []];
+        }
+
+        $prefix = $tableAlias !== '' ? $tableAlias . '.' : '';
+
+        $genericEventPatterns = self::getGenericEventPatterns();
+
+        $conditions = [];
+        $bindings = [];
+
+        // 1. Événements génériques (tournois, vie du club, beach...)
+        foreach ($genericEventPatterns as $pattern) {
+            $conditions[] = "{$prefix}`ManifestationTypée` LIKE ?";
+            $bindings[] = $pattern;
+        }
+
+        // 2. Conditions basées sur les catégories du joueur (ex: Match L1)
+        foreach ($categories as $cat) {
+            $conditions[] = "{$prefix}`ManifestationTypée` LIKE ?";
+            $bindings[] = '%' . $cat;
+        }
+
+        // 3. Récupération des équipes du joueur dans equipes_config pour filtrer ses entraînements
+        $equipes = [];
+
+        try {
+            $inClause = implode(',', array_fill(0, count($categories), '?'));
+            $stmtEq = \App\Core\Database::get()->prepare(
+                "SELECT * FROM equipes_config WHERE is_active = 1 AND slug_colonne IN ($inClause)"
+            );
+            $stmtEq->execute($categories);
+            $equipes = $stmtEq->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable) {
+            $equipes = [];
+        }
+
+        $saison = \App\Models\Saison::getActive();
+        if ($saison) {
+            try {
+                $stmtPlayerTeams = \App\Core\Database::get()->prepare(
+                    "SELECT ec.* FROM equipe_saison_joueur esj
+                     JOIN joueur_snapshots js ON js.id = esj.snapshot_id
+                     JOIN equipe_saison es ON es.id = esj.equipe_saison_id
+                     JOIN equipes_config ec ON ec.id = es.equipe_id
+                     WHERE js.id_joueur = ? AND es.saison_id = ? AND ec.is_active = 1"
+                );
+                $stmtPlayerTeams->execute([$userId, (int)$saison['id']]);
+                $seasonEquipes = $stmtPlayerTeams->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+                $existingIds = array_column($equipes, 'id');
+                foreach ($seasonEquipes as $seq) {
+                    if (!in_array($seq['id'], $existingIds, true)) {
+                        $equipes[] = $seq;
+                    }
+                }
+            } catch (\Throwable) {
+                // Ignore fallback issues
+            }
+        }
+
+        $configuredTrainings = [];
+        $categoriesWithConfiguredTrainings = [];
+
+        foreach ($equipes as $eq) {
+            if (!empty($eq['manifestation_filter'])) {
+                $conditions[] = "{$prefix}`ManifestationTypée` LIKE ?";
+                $bindings[] = '%' . $eq['manifestation_filter'] . '%';
+            }
+
+            if (!empty($eq['training_filter'])) {
+                $associated = json_decode($eq['training_filter'], true) ?: [];
+                if (!empty($associated)) {
+                    $categoriesWithConfiguredTrainings[] = $eq['slug_colonne'];
+                    foreach ($associated as $trainType) {
+                        $configuredTrainings[] = $trainType;
+                    }
+                }
+            }
+        }
+
+        // Entraînements configurés explicitement
+        $configuredTrainings = array_unique($configuredTrainings);
+        foreach ($configuredTrainings as $trainType) {
+            $conditions[] = "{$prefix}`ManifestationTypée` = ?";
+            $bindings[] = $trainType;
+
+            $cleanType = str_replace(['Disponibilités - ', 'Présences - '], '', $trainType);
+            $conditions[] = "{$prefix}`ManifestationTypée` LIKE ?";
+            $bindings[] = '%' . $cleanType . '%';
+        }
+
+        // Fallback pour catégories n'ayant pas de training_filter spécifique
+        foreach ($categories as $cat) {
+            if (!in_array($cat, $categoriesWithConfiguredTrainings, true)) {
+                $conditions[] = "({$prefix}`ManifestationTypée` LIKE '%Entra%' AND {$prefix}`ManifestationTypée` LIKE ?)";
+                $bindings[] = '%' . $cat . '%';
+            }
+        }
+
+        return [
+            'conditions' => $conditions,
+            'bindings'   => $bindings,
+        ];
+    }
+
+    /**
+     * Récupère les événements à venir filtrés par catégories et équipes du joueur.
+     * N'affiche que les créneaux et entraînements pertinents et éligibles.
      *
      * @param int $userId ID du joueur
      * @param array $categories Liste des catégories du joueur (ex: ['DEP', 'L1', 'Adulte'])
@@ -119,26 +235,9 @@ class Participation
 
         $db = ExternalDatabase::get();
 
-        // Types d'événements spécifiques à toujours inclure, basés sur des motifs génériques.
-        $genericEventPatterns = self::getGenericEventPatterns();
+        $queryData = self::getMemberEventConditions($userId, $categories, 'm');
 
-        $conditions = [];
-        $bindings = [$userId];
-
-        // Conditions basées sur les catégories du joueur
-        foreach ($categories as $cat) {
-            $conditions[] = "`ManifestationTypée` LIKE ?";
-            $bindings[] = '%' . $cat;
-        }
-
-        // Conditions pour les types d'événements génériques
-        foreach ($genericEventPatterns as $pattern) {
-            $conditions[] = "`ManifestationTypée` LIKE ?";
-            $bindings[] = $pattern;
-        }
-
-        // Si aucune condition n'est présente (pas de catégories et pas de motifs génériques), retourner vide.
-        if (empty($conditions)) {
+        if (empty($queryData['conditions'])) {
             return [];
         }
 
@@ -154,9 +253,11 @@ class Participation
                     p.Participation as user_status
                 FROM Manifestation m
                 LEFT JOIN Participation p ON m.id_manifestation = p.id_manifestation AND p.id_joueur = ?
-                WHERE (" . implode(' OR ', $conditions) . ")
+                WHERE (" . implode(' OR ', $queryData['conditions']) . ")
                   AND m.Date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
                 ORDER BY m.Date ASC";
+
+        $bindings = array_merge([$userId], $queryData['bindings']);
 
         $stmt = $db->prepare($sql);
         $stmt->execute($bindings);
