@@ -32,26 +32,11 @@ class EventRepository
     }
 
     /**
-     * Prochains entraînements (ManifestationTypée LIKE '% - Entra%' ou '%BEACH%').
+     * Prochains entraînements (ManifestationTypée LIKE '% - Entra%').
      */
     public static function getUpcomingTrainings(int $limit = 5): array
     {
-        try {
-            $db = ExternalDatabase::get();
-            $stmt = $db->prepare(
-                "SELECT * FROM Manifestation
-                 WHERE (`ManifestationTypée` LIKE '% - Entra%' OR `ManifestationTypée` LIKE '%BEACH%')
-                   AND `Date` >= CURDATE()
-                 ORDER BY `Date` ASC
-                 LIMIT :limit"
-            );
-            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
-            $stmt->execute();
-            $rows = $stmt->fetchAll();
-        } catch (\Throwable) {
-            return [];
-        }
-        return array_map([EventNormalizer::class, 'buildEvent'], $rows ?: []);
+        return self::queryByPattern('% - Entra%', $limit);
     }
 
     /**
