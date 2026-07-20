@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\CsrfToken;
 use App\Core\NotFoundHandler;
 use App\Core\View;
 use App\Models\CategorieEquipe;
@@ -365,7 +366,7 @@ class EquipesController
         }
 
         $csrfToken = $_POST['_csrf_token'] ?? '';
-        if (!\App\Core\CsrfToken::verify($csrfToken)) {
+        if (!CsrfToken::validate($csrfToken)) {
             $errorMsg = 'Jeton de sécurité invalide. Veuillez réessayer.';
             $this->renderDetailWithError($categorie, $equipe, $saison, $es, $capitaines, $errorMsg);
             return;
