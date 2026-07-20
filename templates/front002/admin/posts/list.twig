@@ -50,96 +50,181 @@
 
 {% if posts|length %}
 
-{# ── Mobile : cartes ── #}
-<div class="sm:hidden space-y-3">
-  {% for post in posts %}
-  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
-    {% if post_covers[post.id] %}
-    <div class="mb-3 -mx-4 -mt-4">
-      <img src="{{ image_variant(post_covers[post.id], 'medium') }}" alt=""
-           loading="lazy" class="w-full h-32 object-cover border-b-4 border-black">
-    </div>
-    {% endif %}
-    <div class="font-black text-base mb-1 break-words flex items-center gap-2">
-      <span>{{ post.title }}</span>
-      {% if post.canalblog_id %}
-        <span class="bg-blue-100 text-blue-800 border border-blue-400 px-2 py-0.5 text-xs font-bold rounded">API</span>
-      {% endif %}
-    </div>
-    <div class="flex items-center gap-2 flex-wrap text-xs mb-3">
-      {{ m.status_badge(post.is_published, 'Publié', 'Brouillon') }}
-      {% if post.published_at %}
-        <span class="text-gray-500">{{ post.published_at|date_fr }}</span>
-      {% endif %}
-    </div>
-    {{ m.action_buttons(
-      url('admin/posts/' ~ post.id ~ '/edit'),
-      url('admin/posts/' ~ post.id ~ '/delete'),
-      'Supprimer cet article ?',
-      csrf_token,
-      url('blog/' ~ post.slug)
-    ) }}
-  </div>
-  {% endfor %}
-</div>
+<form id="bulk-delete-form" method="POST" action="{{ url('admin/posts/delete-bulk') }}">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-{# ── Desktop : tableau ── #}
-<div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-black text-white">
-      <tr>
-        <th class="px-4 py-3 font-black w-20" aria-label="Couverture"></th>
-        <th class="text-left px-4 py-3 font-black">Titre</th>
-        <th class="text-left px-4 py-3 font-black">Statut</th>
-        <th class="text-left px-4 py-3 font-black">Slider</th>
-        <th class="text-left px-4 py-3 font-black">Date</th>
-        <th class="px-4 py-3" aria-label="Actions"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for post in posts %}
-      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-        <td class="px-4 py-3">
-          {% if post_covers[post.id] %}
-            <img src="{{ image_variant(post_covers[post.id], 'thumb') }}" alt=""
-                 loading="lazy" class="w-16 h-12 object-cover border-2 border-black">
-          {% else %}
-            <div class="w-16 h-12 bg-gray-100 border-2 border-gray-300 flex items-center justify-center text-xs text-gray-400">Pas d'image</div>
-          {% endif %}
-        </td>
-        <td class="px-4 py-3">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="font-semibold">{{ post.title }}</span>
-            {% if post.canalblog_id %}
-              <span class="bg-blue-100 text-blue-800 border border-blue-400 px-2 py-0.5 text-xs font-bold rounded">API</span>
+  <div class="border-4 border-black bg-white p-3 mb-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <label class="flex items-center gap-2 font-black text-sm cursor-pointer select-none">
+        <input type="checkbox" id="select-all-posts" class="w-5 h-5 cursor-pointer accent-black" />
+        <span>Tout sélectionner</span>
+      </label>
+      <span id="selected-count-badge" class="hidden text-xs font-bold bg-amber-200 border border-black px-2 py-0.5 rounded-full">
+        0 sélectionné(s)
+      </span>
+    </div>
+    <div>
+      <button type="submit" id="btn-bulk-delete" disabled class="border-2 border-red-600 bg-red-50 text-red-600 px-4 py-1.5 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 hover:text-white transition cursor-pointer">
+        🗑️ Supprimer la sélection (<span id="bulk-delete-count">0</span>)
+      </button>
+    </div>
+  </div>
+
+  {# ── Mobile : cartes ── #}
+  <div class="sm:hidden space-y-3">
+    {% for post in posts %}
+    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+      {% if post_covers[post.id] %}
+      <div class="mb-3 -mx-4 -mt-4">
+        <img src="{{ image_variant(post_covers[post.id], 'medium') }}" alt=""
+             loading="lazy" class="w-full h-32 object-cover border-b-4 border-black">
+      </div>
+      {% endif %}
+      <div class="font-black text-base mb-1 break-words flex items-center gap-2">
+        <input type="checkbox" name="ids[]" value="{{ post.id }}" class="item-checkbox w-5 h-5 cursor-pointer accent-black" />
+        <span>{{ post.title }}</span>
+        {% if post.canalblog_id %}
+          <span class="bg-blue-100 text-blue-800 border border-blue-400 px-2 py-0.5 text-xs font-bold rounded">API</span>
+        {% endif %}
+      </div>
+      <div class="flex items-center gap-2 flex-wrap text-xs mb-3">
+        {{ m.status_badge(post.is_published, 'Publié', 'Brouillon') }}
+        {% if post.published_at %}
+          <span class="text-gray-500">{{ post.published_at|date_fr }}</span>
+        {% endif %}
+      </div>
+      {{ m.action_buttons(
+        url('admin/posts/' ~ post.id ~ '/edit'),
+        url('admin/posts/' ~ post.id ~ '/delete'),
+        'Supprimer cet article ?',
+        csrf_token,
+        url('blog/' ~ post.slug)
+      ) }}
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── Desktop : tableau ── #}
+  <div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-black text-white">
+        <tr>
+          <th class="w-10 px-4 py-3 text-center">
+            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 cursor-pointer accent-white" />
+          </th>
+          <th class="px-4 py-3 font-black w-20" aria-label="Couverture"></th>
+          <th class="text-left px-4 py-3 font-black">Titre</th>
+          <th class="text-left px-4 py-3 font-black">Statut</th>
+          <th class="text-left px-4 py-3 font-black">Slider</th>
+          <th class="text-left px-4 py-3 font-black">Date</th>
+          <th class="px-4 py-3" aria-label="Actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in posts %}
+        <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+          <td class="px-4 py-3 text-center">
+            <input type="checkbox" name="ids[]" value="{{ post.id }}" class="item-checkbox w-4 h-4 cursor-pointer accent-black" />
+          </td>
+          <td class="px-4 py-3">
+            {% if post_covers[post.id] %}
+              <img src="{{ image_variant(post_covers[post.id], 'thumb') }}" alt=""
+                   loading="lazy" class="w-16 h-12 object-cover border-2 border-black">
+            {% else %}
+              <div class="w-16 h-12 bg-gray-100 border-2 border-gray-300 flex items-center justify-center text-xs text-gray-400">Pas d'image</div>
             {% endif %}
-          </div>
-        </td>
-        <td class="px-4 py-3">{{ m.status_badge(post.is_published, 'Publié', 'Brouillon') }}</td>
-        <td class="px-4 py-3">
-          <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/toggle-slider') }}">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-            <button type="submit" title="{{ post.is_slider ? 'Retirer du slider' : 'Épingler dans le slider' }}"
-                    class="border-2 px-2 py-1 text-xs font-bold transition {{ post.is_slider ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white' : 'border-gray-300 text-gray-400 hover:border-amber-400 hover:text-amber-600' }}">
-              📌 {{ post.is_slider ? 'Épinglé' : 'Épingler' }}
-            </button>
-          </form>
-        </td>
-        <td class="px-4 py-3 text-gray-500 text-xs">{{ post.published_at|date_fr }}</td>
-        <td class="px-4 py-3">
-          {{ m.action_buttons(
-            url('admin/posts/' ~ post.id ~ '/edit'),
-            url('admin/posts/' ~ post.id ~ '/delete'),
-            'Supprimer cet article ?',
-            csrf_token,
-            url('blog/' ~ post.slug)
-          ) }}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-semibold">{{ post.title }}</span>
+              {% if post.canalblog_id %}
+                <span class="bg-blue-100 text-blue-800 border border-blue-400 px-2 py-0.5 text-xs font-bold rounded">API</span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="px-4 py-3">{{ m.status_badge(post.is_published, 'Publié', 'Brouillon') }}</td>
+          <td class="px-4 py-3">
+            <form method="POST" action="{{ url('admin/posts/' ~ post.id ~ '/toggle-slider') }}">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit" title="{{ post.is_slider ? 'Retirer du slider' : 'Épingler dans le slider' }}"
+                      class="border-2 px-2 py-1 text-xs font-bold transition {{ post.is_slider ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white' : 'border-gray-300 text-gray-400 hover:border-amber-400 hover:text-amber-600' }}">
+                📌 {{ post.is_slider ? 'Épinglé' : 'Épingler' }}
+              </button>
+            </form>
+          </td>
+          <td class="px-4 py-3 text-gray-500 text-xs">{{ post.published_at|date_fr }}</td>
+          <td class="px-4 py-3">
+            {{ m.action_buttons(
+              url('admin/posts/' ~ post.id ~ '/edit'),
+              url('admin/posts/' ~ post.id ~ '/delete'),
+              'Supprimer cet article ?',
+              csrf_token,
+              url('blog/' ~ post.slug)
+            ) }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAllGlobal = document.getElementById('select-all-posts');
+  const selectAllDesktop = document.getElementById('select-all-desktop');
+  const checkboxes = document.querySelectorAll('.item-checkbox');
+  const btnBulkDelete = document.getElementById('btn-bulk-delete');
+  const bulkDeleteCount = document.getElementById('bulk-delete-count');
+  const selectedBadge = document.getElementById('selected-count-badge');
+  const form = document.getElementById('bulk-delete-form');
+
+  function updateState() {
+    const checked = document.querySelectorAll('.item-checkbox:checked');
+    const count = checked.length;
+    const total = checkboxes.length;
+
+    if (bulkDeleteCount) bulkDeleteCount.textContent = count;
+    if (selectedBadge) {
+      if (count > 0) {
+        selectedBadge.textContent = count + ' sélectionné(s)';
+        selectedBadge.classList.remove('hidden');
+      } else {
+        selectedBadge.classList.add('hidden');
+      }
+    }
+    if (btnBulkDelete) btnBulkDelete.disabled = (count === 0);
+
+    const allChecked = total > 0 && count === total;
+    if (selectAllGlobal) selectAllGlobal.checked = allChecked;
+    if (selectAllDesktop) selectAllDesktop.checked = allChecked;
+  }
+
+  function toggleAll(checked) {
+    checkboxes.forEach(cb => { cb.checked = checked; });
+    updateState();
+  }
+
+  if (selectAllGlobal) selectAllGlobal.addEventListener('change', function() { toggleAll(this.checked); });
+  if (selectAllDesktop) selectAllDesktop.addEventListener('change', function() { toggleAll(this.checked); });
+
+  checkboxes.forEach(cb => cb.addEventListener('change', updateState));
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const count = document.querySelectorAll('.item-checkbox:checked').length;
+      if (count === 0) {
+        e.preventDefault();
+        return;
+      }
+      if (!confirm('Voulez-vous vraiment supprimer les ' + count + ' article(s) sélectionné(s) ?')) {
+        e.preventDefault();
+      }
+    });
+  }
+  updateState();
+});
+</script>
 
 {% else %}
   {{ m.empty_state('Aucun article.') }}

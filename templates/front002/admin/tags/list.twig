@@ -11,53 +11,140 @@
 
 {% if tags|length %}
 
-{# Mobile #}
-<div class="sm:hidden space-y-3">
-  {% for tag in tags %}
-  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
-    <div class="font-black text-base mb-2">{{ tag.name }}</div>
-    <div class="text-xs text-gray-500 font-mono mb-3">{{ tag.slug }}</div>
-    <div class="text-sm text-gray-600 mb-3">{{ tag.post_count }} article(s)</div>
-    <div class="flex flex-wrap gap-2">
-      <a href="{{ url('admin/tags/' ~ tag.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-      <form method="POST" action="{{ url('admin/tags/' ~ tag.id ~ '/delete') }}" data-confirm="Supprimer ce tag ?">
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-      </form>
+<form id="bulk-delete-form" method="POST" action="{{ url('admin/tags/delete-bulk') }}">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+  <div class="border-4 border-black bg-white p-3 mb-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <label class="flex items-center gap-2 font-black text-sm cursor-pointer select-none">
+        <input type="checkbox" id="select-all-tags" class="w-5 h-5 cursor-pointer accent-black" />
+        <span>Tout sélectionner</span>
+      </label>
+      <span id="selected-count-badge" class="hidden text-xs font-bold bg-amber-200 border border-black px-2 py-0.5 rounded-full">
+        0 sélectionné(s)
+      </span>
+    </div>
+    <div>
+      <button type="submit" id="btn-bulk-delete" disabled class="border-2 border-red-600 bg-red-50 text-red-600 px-4 py-1.5 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 hover:text-white transition cursor-pointer">
+        🗑️ Supprimer la sélection (<span id="bulk-delete-count">0</span>)
+      </button>
     </div>
   </div>
-  {% endfor %}
-</div>
 
-{# Desktop #}
-<div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-black text-white">
-      <tr>
-        <th class="text-left px-4 py-3 font-black">Nom</th>
-        <th class="text-left px-4 py-3 font-black">Slug</th>
-        <th class="text-left px-4 py-3 font-black">Articles</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for tag in tags %}
-      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-        <td class="px-4 py-3 font-semibold">{{ tag.name }}</td>
-        <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ tag.slug }}</td>
-        <td class="px-4 py-3 text-gray-600">{{ tag.post_count }}</td>
-        <td class="px-4 py-3 flex gap-2 justify-end">
-          <a href="{{ url('admin/tags/' ~ tag.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-          <form method="POST" action="{{ url('admin/tags/' ~ tag.id ~ '/delete') }}" data-confirm="Supprimer ce tag ?">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  {# Mobile #}
+  <div class="sm:hidden space-y-3">
+    {% for tag in tags %}
+    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+      <div class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="ids[]" value="{{ tag.id }}" class="item-checkbox w-5 h-5 cursor-pointer accent-black" />
+        <div class="font-black text-base">{{ tag.name }}</div>
+      </div>
+      <div class="text-xs text-gray-500 font-mono mb-3">{{ tag.slug }}</div>
+      <div class="text-sm text-gray-600 mb-3">{{ tag.post_count }} article(s)</div>
+      <div class="flex flex-wrap gap-2">
+        <a href="{{ url('admin/tags/' ~ tag.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+        <form method="POST" action="{{ url('admin/tags/' ~ tag.id ~ '/delete') }}" data-confirm="Supprimer ce tag ?">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# Desktop #}
+  <div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-black text-white">
+        <tr>
+          <th class="w-10 px-4 py-3 text-center">
+            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 cursor-pointer accent-white" />
+          </th>
+          <th class="text-left px-4 py-3 font-black">Nom</th>
+          <th class="text-left px-4 py-3 font-black">Slug</th>
+          <th class="text-left px-4 py-3 font-black">Articles</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tag in tags %}
+        <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+          <td class="px-4 py-3 text-center">
+            <input type="checkbox" name="ids[]" value="{{ tag.id }}" class="item-checkbox w-4 h-4 cursor-pointer accent-black" />
+          </td>
+          <td class="px-4 py-3 font-semibold">{{ tag.name }}</td>
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ tag.slug }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ tag.post_count }}</td>
+          <td class="px-4 py-3 flex gap-2 justify-end">
+            <a href="{{ url('admin/tags/' ~ tag.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+            <form method="POST" action="{{ url('admin/tags/' ~ tag.id ~ '/delete') }}" data-confirm="Supprimer ce tag ?">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAllGlobal = document.getElementById('select-all-tags');
+  const selectAllDesktop = document.getElementById('select-all-desktop');
+  const checkboxes = document.querySelectorAll('.item-checkbox');
+  const btnBulkDelete = document.getElementById('btn-bulk-delete');
+  const bulkDeleteCount = document.getElementById('bulk-delete-count');
+  const selectedBadge = document.getElementById('selected-count-badge');
+  const form = document.getElementById('bulk-delete-form');
+
+  function updateState() {
+    const checked = document.querySelectorAll('.item-checkbox:checked');
+    const count = checked.length;
+    const total = checkboxes.length;
+
+    if (bulkDeleteCount) bulkDeleteCount.textContent = count;
+    if (selectedBadge) {
+      if (count > 0) {
+        selectedBadge.textContent = count + ' sélectionné(s)';
+        selectedBadge.classList.remove('hidden');
+      } else {
+        selectedBadge.classList.add('hidden');
+      }
+    }
+    if (btnBulkDelete) btnBulkDelete.disabled = (count === 0);
+
+    const allChecked = total > 0 && count === total;
+    if (selectAllGlobal) selectAllGlobal.checked = allChecked;
+    if (selectAllDesktop) selectAllDesktop.checked = allChecked;
+  }
+
+  function toggleAll(checked) {
+    checkboxes.forEach(cb => { cb.checked = checked; });
+    updateState();
+  }
+
+  if (selectAllGlobal) selectAllGlobal.addEventListener('change', function() { toggleAll(this.checked); });
+  if (selectAllDesktop) selectAllDesktop.addEventListener('change', function() { toggleAll(this.checked); });
+
+  checkboxes.forEach(cb => cb.addEventListener('change', updateState));
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const count = document.querySelectorAll('.item-checkbox:checked').length;
+      if (count === 0) {
+        e.preventDefault();
+        return;
+      }
+      if (!confirm('Voulez-vous vraiment supprimer les ' + count + ' élément(s) sélectionné(s) ?')) {
+        e.preventDefault();
+      }
+    });
+  }
+  updateState();
+});
+</script>
 
 {% else %}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">

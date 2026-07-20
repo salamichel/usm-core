@@ -159,6 +159,19 @@ class MotsClef
         $stmt->execute([$id]);
     }
 
+    public static function deleteBulk(array $ids): int
+    {
+        $cleanIds = array_values(array_filter(array_map('intval', $ids), fn(int $id) => $id > 0));
+        if (empty($cleanIds)) {
+            return 0;
+        }
+        $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare("DELETE FROM Mots_clef WHERE id_mot_clef IN ($placeholders)");
+        $stmt->execute($cleanIds);
+        return $stmt->rowCount();
+    }
+
     /**
      * Récupère toutes les catégories uniques.
      */

@@ -242,6 +242,32 @@ class ManifestationController extends BaseAdminController
     }
 
     /**
+     * Suppression en masse de manifestations.
+     */
+    public function deleteBulk(array $params): void
+    {
+        $this->requirePost('/admin/manifestations');
+
+        $rawIds = $_POST['ids'] ?? [];
+        if (!is_array($rawIds) || empty($rawIds)) {
+            View::flash('error', 'Aucune manifestation sélectionnée pour la suppression.');
+            $this->redirect('/admin/manifestations');
+            return;
+        }
+
+        $ids = array_map('intval', $rawIds);
+        $deletedCount = EventRepository::deleteEventsBulk($ids);
+
+        if ($deletedCount > 0) {
+            View::flash('success', sprintf('%d manifestation(s) supprimée(s) avec succès.', $deletedCount));
+        } else {
+            View::flash('error', 'Aucune manifestation n\'a pu être supprimée.');
+        }
+
+        $this->redirect('/admin/manifestations');
+    }
+
+    /**
      * Retourne les options de formulaires récupérées depuis MotsClef.
      */
     private function getFormOptions(): array

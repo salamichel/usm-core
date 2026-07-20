@@ -95,6 +95,7 @@
         {% set support_links = [
           [url('admin/contacts'), '💬 Messages Brevo', '/admin/contacts', 'contact_stats'],
           [url('admin/email-logs'), '✉️ Suivi des e-mails', '/admin/email-logs', null],
+          [url('admin/scheduled-jobs'), '⏱️ Tâches planifiées', '/admin/scheduled-jobs', null],
         ] %}
         {% for link in support_links %}
           <a href="{{ link[0] }}"
@@ -183,6 +184,7 @@
           {% endif %}
         </a>
         <a href="{{ url('admin/email-logs') }}" class="block py-1 hover:text-amber-400">✉️ Suivi des e-mails</a>
+        <a href="{{ url('admin/scheduled-jobs') }}" class="block py-1 hover:text-amber-400">⏱️ Tâches planifiées</a>
       </div>
     </div>
 

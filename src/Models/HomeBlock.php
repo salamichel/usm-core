@@ -169,4 +169,19 @@ class HomeBlock
             "UPDATE photos SET entity_type = 'home_block', entity_id = ? WHERE id = ?"
         )->execute([$homeBlockId, $photoId]);
     }
+
+    public static function deleteBulk(array $ids): int
+    {
+        $cleanIds = array_values(array_filter(array_map('intval', $ids), fn(int $id) => $id > 0));
+        if (empty($cleanIds)) {
+            return 0;
+        }
+        foreach ($cleanIds as $id) {
+            Photo::deleteAllForEntity('home_block', $id);
+        }
+        $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+        $stmt = Database::get()->prepare("DELETE FROM home_blocks WHERE id IN ($placeholders)");
+        $stmt->execute($cleanIds);
+        return $stmt->rowCount();
+    }
 }

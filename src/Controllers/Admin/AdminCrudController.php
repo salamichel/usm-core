@@ -158,12 +158,61 @@ abstract class AdminCrudController extends BaseAdminController
 
     public function delete(array $params): void
     {
+        $this->requirePost('/admin/' . $this->itemsName);
         $id = (int)$params['id'];
         Photo::deleteAllForEntity($this->entityType, $id);
         $this->deleteEntity($id);
         View::flash('success', ucfirst($this->itemName) . ' supprimé(e).');
         header('Location: ' . BASE_URL . '/admin/' . $this->itemsName);
         exit;
+    }
+
+    public function deleteBulk(array $params): void
+    {
+        $this->requirePost('/admin/' . $this->itemsName);
+
+        $rawIds = $_POST['ids'] ?? [];
+        if (!is_array($rawIds) || empty($rawIds)) {
+            View::flash('error', 'Aucun élément sélectionné pour la suppression.');
+            header('Location: ' . BASE_URL . '/admin/' . $this->itemsName);
+            exit;
+        }
+
+        $deleted = $this->deleteBulkEntities($rawIds);
+        if ($deleted > 0) {
+            View::flash('success', sprintf('%d %s supprimé(e)(s) avec succès.', $deleted, $this->itemName));
+        } else {
+            View::flash('error', 'Aucun élément n\'a pu être supprimé.');
+        }
+
+        header('Location: ' . BASE_URL . '/admin/' . $this->itemsName);
+        exit;
+    }
+
+    protected function deleteBulkEntities(array $ids): int
+    {
+        $cleanIds = array_values(array_filter(array_map('intval', $ids), fn(int $id) => $id > 0));
+        if (empty($cleanIds)) {
+            return 0;
+        }
+
+        if (method_exists($this, 'getModel')) {
+            $modelClass = $this->getModel();
+            if (class_exists($modelClass) && method_exists($modelClass, 'deleteBulk')) {
+                foreach ($cleanIds as $id) {
+                    Photo::deleteAllForEntity($this->entityType, $id);
+                }
+                return $modelClass::deleteBulk($cleanIds);
+            }
+        }
+
+        $count = 0;
+        foreach ($cleanIds as $id) {
+            Photo::deleteAllForEntity($this->entityType, $id);
+            $this->deleteEntity($id);
+            $count++;
+        }
+        return $count;
     }
 
     public function uploadPhoto(array $params): void

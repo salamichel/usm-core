@@ -41,6 +41,7 @@ use App\Controllers\Admin\ManifestationGeneratorController;
 use App\Controllers\Admin\ManifestationController;
 use App\Controllers\Admin\EmailLogController;
 use App\Controllers\Admin\JoueurController as AdminJoueurController;
+use App\Controllers\Admin\ScheduledJobController;
 
 class App
 {
@@ -138,6 +139,7 @@ class App
         $r->get('/api/member-email-preferences/get', [EmailPreferenceApiController::class, 'get']);
         $r->post('/api/member-email-preferences/update', [EmailPreferenceApiController::class, 'update']);
         $r->get('/api/cron/weekly-presence', [CronController::class, 'weeklyPresence']);
+        $r->post('/api/cron/lazy-trigger', [CronController::class, 'lazyTrigger']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
         $r->get('/admin/login',   [AuthController::class, 'showLogin']);
@@ -151,6 +153,7 @@ class App
         $r->get('/admin/tags',             [TagController::class, 'index']);
         $r->get('/admin/tags/create',      [TagController::class, 'create']);
         $r->post('/admin/tags/create',     [TagController::class, 'store']);
+        $r->post('/admin/tags/delete-bulk', [TagController::class, 'deleteBulk']);
         $r->get('/admin/tags/{id}/edit',   [TagController::class, 'edit']);
         $r->post('/admin/tags/{id}/edit',  [TagController::class, 'update']);
         $r->post('/admin/tags/{id}/delete',[TagController::class, 'delete']);
@@ -159,6 +162,7 @@ class App
         $r->get('/admin/posts',             [PostController::class, 'index']);
         $r->get('/admin/posts/create',      [PostController::class, 'create']);
         $r->post('/admin/posts/create',     [PostController::class, 'store']);
+        $r->post('/admin/posts/delete-bulk', [PostController::class, 'deleteBulk']);
         $r->get('/admin/posts/{id}/edit',   [PostController::class, 'edit']);
         $r->post('/admin/posts/{id}/edit',  [PostController::class, 'update']);
         $r->post('/admin/posts/{id}/delete',         [PostController::class, 'delete']);
@@ -168,6 +172,7 @@ class App
         $r->get('/admin/pages',             [PageAdminController::class, 'index']);
         $r->get('/admin/pages/create',      [PageAdminController::class, 'create']);
         $r->post('/admin/pages/create',     [PageAdminController::class, 'store']);
+        $r->post('/admin/pages/delete-bulk', [PageAdminController::class, 'deleteBulk']);
         $r->get('/admin/pages/{id}/edit',   [PageAdminController::class, 'edit']);
         $r->post('/admin/pages/{id}/edit',  [PageAdminController::class, 'update']);
         $r->post('/admin/pages/{id}/delete',[PageAdminController::class, 'delete']);
@@ -184,6 +189,7 @@ class App
         $r->get('/admin/saisons',                [SaisonController::class, 'index']);
         $r->get('/admin/saisons/create',         [SaisonController::class, 'create']);
         $r->post('/admin/saisons/create',        [SaisonController::class, 'store']);
+        $r->post('/admin/saisons/delete-bulk',   [SaisonController::class, 'deleteBulk']);
         $r->get('/admin/saisons/joueurs',        [AdminJoueurController::class, 'index']);
         $r->post('/admin/saisons/flash-select',   [SaisonController::class, 'flashSelect']);
         $r->get('/admin/saisons/{id}/edit',      [SaisonController::class, 'edit']);
@@ -226,6 +232,7 @@ class App
         $r->get('/admin/categories-equipes',              [CategorieEquipeController::class, 'index']);
         $r->get('/admin/categories-equipes/create',       [CategorieEquipeController::class, 'create']);
         $r->post('/admin/categories-equipes/create',      [CategorieEquipeController::class, 'store']);
+        $r->post('/admin/categories-equipes/delete-bulk', [CategorieEquipeController::class, 'deleteBulk']);
         $r->get('/admin/categories-equipes/{id}/edit',    [CategorieEquipeController::class, 'edit']);
         $r->post('/admin/categories-equipes/{id}/edit',   [CategorieEquipeController::class, 'update']);
         $r->post('/admin/categories-equipes/{id}/delete', [CategorieEquipeController::class, 'delete']);
@@ -233,10 +240,16 @@ class App
         // ── Admin stats ───────────────────────────────────────────────────────
         $r->get('/admin/stats',        [StatsController::class, 'index']);
 
-        // ── Admin email logs ──────────────────────────────────────────────────
-        $r->get('/admin/email-logs',   [EmailLogController::class, 'index']);
+        // ── Admin Email Logs ──────────────────────────────────────────────────
+        $r->get('/admin/email-logs', [EmailLogController::class, 'index']);
 
-        // ── Admin site config (footer, contact, réseaux) ──────────────────────
+        // ── Admin Scheduled Jobs (Lazy Cron) ──────────────────────────────────
+        $r->get('/admin/scheduled-jobs', [ScheduledJobController::class, 'index']);
+        $r->post('/admin/scheduled-jobs', [ScheduledJobController::class, 'store']);
+        $r->post('/admin/scheduled-jobs/run-now', [ScheduledJobController::class, 'forceRun']);
+        $r->post('/admin/scheduled-jobs/{id}/delete', [ScheduledJobController::class, 'delete']);
+
+        // ── Admin Generator Manifestations ────────────────────────────────────
         $r->get('/admin/site-config',  [SiteConfigController::class, 'edit']);
         $r->post('/admin/site-config', [SiteConfigController::class, 'update']);
 
@@ -252,6 +265,7 @@ class App
         $r->get('/admin/locations',             [LocationController::class, 'index']);
         $r->get('/admin/locations/create',      [LocationController::class, 'create']);
         $r->post('/admin/locations/create',     [LocationController::class, 'store']);
+        $r->post('/admin/locations/delete-bulk', [LocationController::class, 'deleteBulk']);
         $r->get('/admin/locations/{id}/edit',   [LocationController::class, 'edit']);
         $r->post('/admin/locations/{id}/edit',  [LocationController::class, 'update']);
         $r->post('/admin/locations/{id}/delete',[LocationController::class, 'delete']);
@@ -260,6 +274,7 @@ class App
         $r->get('/admin/mots-cles',             [MotsClefController::class, 'index']);
         $r->get('/admin/mots-cles/create',      [MotsClefController::class, 'create']);
         $r->post('/admin/mots-cles/create',     [MotsClefController::class, 'store']);
+        $r->post('/admin/mots-cles/delete-bulk', [MotsClefController::class, 'deleteBulk']);
         $r->get('/admin/mots-cles/{id}/edit',   [MotsClefController::class, 'edit']);
         $r->post('/admin/mots-cles/{id}/edit',  [MotsClefController::class, 'update']);
         $r->post('/admin/mots-cles/{id}/delete',[MotsClefController::class, 'delete']);
@@ -272,6 +287,7 @@ class App
         $r->get('/admin/manifestations',             [ManifestationController::class, 'index']);
         $r->get('/admin/manifestations/create',      [ManifestationController::class, 'create']);
         $r->post('/admin/manifestations/create',     [ManifestationController::class, 'store']);
+        $r->post('/admin/manifestations/delete-bulk', [ManifestationController::class, 'deleteBulk']);
         $r->get('/admin/manifestations/{id}/edit',   [ManifestationController::class, 'edit']);
         $r->post('/admin/manifestations/{id}/edit',  [ManifestationController::class, 'update']);
         $r->post('/admin/manifestations/{id}/delete',[ManifestationController::class, 'delete']);
@@ -288,6 +304,7 @@ class App
         $r->get('/admin/home-blocks',                 [HomeBlockController::class, 'index']);
         $r->get('/admin/home-blocks/create',          [HomeBlockController::class, 'create']);
         $r->post('/admin/home-blocks/create',         [HomeBlockController::class, 'store']);
+        $r->post('/admin/home-blocks/delete-bulk',    [HomeBlockController::class, 'deleteBulk']);
         $r->post('/admin/home-blocks/upload',         [HomeBlockController::class, 'uploadImage']);
         $r->get('/admin/home-blocks/{id}/edit',       [HomeBlockController::class, 'edit']);
         $r->post('/admin/home-blocks/{id}/edit',      [HomeBlockController::class, 'update']);

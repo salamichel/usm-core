@@ -99,4 +99,16 @@ class CategorieEquipe
             "DELETE FROM categories_equipes WHERE id = ?"
         )->execute([$id]);
     }
+
+    public static function deleteBulk(array $ids): int
+    {
+        $cleanIds = array_values(array_filter(array_map('intval', $ids), fn(int $id) => $id > 0));
+        if (empty($cleanIds)) {
+            return 0;
+        }
+        $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+        $stmt = Database::get()->prepare("DELETE FROM categories_equipes WHERE id IN ($placeholders)");
+        $stmt->execute($cleanIds);
+        return $stmt->rowCount();
+    }
 }

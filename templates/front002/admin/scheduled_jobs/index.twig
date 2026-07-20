@@ -1,0 +1,261 @@
+{% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
+
+{% block title %}Tâches planifiées & Traces (Lazy Cron){% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  {# En-tête #}
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-black pb-4">
+    <div>
+      <h1 class="text-3xl font-black">⏱️ Tâches planifiées & Traces (Lazy Cron)</h1>
+      <p class="text-sm text-gray-600 mt-1">Programmation d'actions et journal détaillé des exécutions (logs) pour InfinityFree.</p>
+    </div>
+    
+    <form method="POST" action="{{ url('admin/scheduled-jobs/run-now') }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+      <button type="submit" 
+              class="border-4 border-black bg-amber-500 hover:bg-amber-600 text-black font-black px-4 py-2.5 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-sm flex items-center gap-2">
+        ⚡ Forcer l'exécution maintenant
+      </button>
+    </form>
+  </div>
+
+  {# Statuts et Résumé #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
+      <div class="text-xs font-black text-gray-500 uppercase">Dernière exécution</div>
+      <div class="text-lg font-black text-gray-900 mt-1">{{ last_execution }}</div>
+    </div>
+    <div class="border-4 border-black bg-yellow-50 p-4 shadow-[4px_4px_0_#000]">
+      <div class="text-xs font-black text-yellow-700 uppercase">En attente (`pending`)</div>
+      <div class="text-3xl font-black text-yellow-800 mt-1">{{ counts.pending }}</div>
+    </div>
+    <div class="border-4 border-black bg-green-50 p-4 shadow-[4px_4px_0_#000]">
+      <div class="text-xs font-black text-green-700 uppercase">Terminées (`completed`)</div>
+      <div class="text-3xl font-black text-green-800 mt-1">{{ counts.completed }}</div>
+    </div>
+    <div class="border-4 border-black bg-red-50 p-4 shadow-[4px_4px_0_#000]">
+      <div class="text-xs font-black text-red-700 uppercase">Échouées (`failed`)</div>
+      <div class="text-3xl font-black text-red-800 mt-1">{{ counts.failed }}</div>
+    </div>
+  </div>
+
+  {# Formulaire de programmation d'une nouvelle tâche #}
+  <div class="border-4 border-black bg-white p-6 shadow-[4px_4px_0_#000]">
+    <h2 class="text-xl font-black mb-4 flex items-center gap-2">
+      ➕ Programmer une nouvelle tâche
+    </h2>
+
+    <form method="POST" action="{{ url('admin/scheduled-jobs') }}" class="space-y-4">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label for="action" class="block font-black text-sm mb-1">Type d'action *</label>
+          <select id="action" name="action" required class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+            {% for key, label in actions_map %}
+              <option value="{{ key }}">{{ label }} ({{ key }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="frequency" class="block font-black text-sm mb-1">Fréquence d'exécution *</label>
+          <select id="frequency" name="frequency" required class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+            {% for key, label in frequencies_map %}
+              <option value="{{ key }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="execute_at" class="block font-black text-sm mb-1">Date & Heure de début *</label>
+          <input type="datetime-local" id="execute_at" name="execute_at" value="{{ default_execute_at }}" required class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="end_at" class="block font-black text-sm mb-1">Date & Heure de fin (optionnel pour la récurrence)</label>
+          <input type="datetime-local" id="end_at" name="end_at" class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <p class="text-xs text-gray-500 mt-1">Laissez vide pour une récurrence indéfinie.</p>
+        </div>
+
+        <div>
+          <label for="payload" class="block font-black text-sm mb-1">Paramètres JSON (optionnel)</label>
+          <textarea id="payload" name="payload" rows="2" placeholder='{"event_id": 42, "team_id": 3}' class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"></textarea>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        {{ m.btn_submit('Planifier l\'action') }}
+      </div>
+    </form>
+  </div>
+
+  {# Tableau 1 : File d'attente & Tâches planifiées #}
+  <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+    <div class="p-4 border-b-4 border-black bg-gray-50 flex items-center justify-between">
+      <h2 class="text-xl font-black">📋 Tâches programmées</h2>
+      <span class="text-xs font-bold text-gray-500">{{ jobs|length }} dernière(s) tâche(s)</span>
+    </div>
+
+    {% if jobs is empty %}
+      <div class="p-6">
+        {{ m.empty_state('Aucune tâche planifiée en base de données.') }}
+      </div>
+    {% else %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-black text-white font-black uppercase text-xs">
+            <tr>
+              <th class="p-3">ID</th>
+              <th class="p-3">Action & Fréquence</th>
+              <th class="p-3">Prochain passage</th>
+              <th class="p-3">Date de fin</th>
+              <th class="p-3">Statut & Dernier passage</th>
+              <th class="p-3">Détails / Erreur</th>
+              <th class="p-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y-2 divide-gray-200 font-semibold">
+            {% for job in jobs %}
+              <tr class="hover:bg-gray-50">
+                <td class="p-3 font-mono font-bold">#{{ job.id }}</td>
+                <td class="p-3">
+                  <div class="font-bold text-gray-900">{{ actions_map[job.action] | default(job.action) }}</div>
+                  <div class="mt-1 flex items-center gap-2">
+                    <span class="bg-gray-100 border border-gray-400 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded">
+                      🔄 {{ frequencies_map[job.frequency] | default(job.frequency) }}
+                    </span>
+                  </div>
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <div class="font-bold text-gray-900">{{ job.execute_at | date('d/m/Y à H:i') }}</div>
+                  <div class="text-xs text-gray-400">Créé le {{ job.created_at | date('d/m/Y H:i') }}</div>
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  {% if job.end_at %}
+                    <div class="text-gray-800">{{ job.end_at | date('d/m/Y à H:i') }}</div>
+                  {% else %}
+                    <span class="text-gray-400 text-xs italic">Aucune (Illimitée)</span>
+                  {% endif %}
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <div>
+                    {% if job.status == 'pending' %}
+                      <span class="bg-yellow-100 text-yellow-800 border border-yellow-400 px-2 py-0.5 text-xs font-bold rounded">
+                        En attente
+                      </span>
+                    {% elseif job.status == 'running' %}
+                      <span class="bg-blue-100 text-blue-800 border border-blue-400 px-2 py-0.5 text-xs font-bold rounded animate-pulse">
+                        En cours...
+                      </span>
+                    {% elseif job.status == 'completed' %}
+                      <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">
+                        Terminée
+                      </span>
+                    {% else %}
+                      <span class="bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 text-xs font-bold rounded">
+                        Échouée
+                      </span>
+                    {% endif %}
+                  </div>
+                  {% if job.last_run_at %}
+                    <div class="text-xs text-gray-500 mt-1">Dernier : {{ job.last_run_at | date('d/m/Y H:i') }}</div>
+                  {% endif %}
+                </td>
+                <td class="p-3 max-w-xs">
+                  {% if job.payload and job.payload != '{}' %}
+                    <div class="text-xs font-mono bg-gray-100 p-1.5 rounded truncate" title="{{ job.payload }}">
+                      {{ job.payload }}
+                    </div>
+                  {% endif %}
+                  {% if job.error_message %}
+                    <div class="text-xs font-mono text-red-600 bg-red-50 p-1.5 rounded mt-1 border border-red-200">
+                      {{ job.error_message }}
+                    </div>
+                  {% endif %}
+                </td>
+                <td class="p-3 text-right whitespace-nowrap">
+                  <form method="POST" action="{{ url('admin/scheduled-jobs/' ~ job.id ~ '/delete') }}" data-confirm="Supprimer cette tâche planifiée ?">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="border-2 border-red-600 text-red-600 px-2.5 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">
+                      Supprimer
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+
+  {# Tableau 2 : Journal & Traces d'exécution #}
+  <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
+    <div class="p-4 border-b-4 border-black bg-gray-900 text-white flex items-center justify-between">
+      <h2 class="text-xl font-black flex items-center gap-2">📜 Journal des exécutions (Traces)</h2>
+      <span class="text-xs font-bold text-gray-300">{{ logs|length }} dernière(s) exécution(s)</span>
+    </div>
+
+    {% if logs is empty %}
+      <div class="p-6">
+        {{ m.empty_state('Aucune trace d\'exécution enregistrée pour le moment.') }}
+      </div>
+    {% else %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-100 text-gray-800 font-black uppercase text-xs border-b-2 border-black">
+            <tr>
+              <th class="p-3">Horodatage</th>
+              <th class="p-3">Action & Tâche</th>
+              <th class="p-3">Résultat</th>
+              <th class="p-3">Durée</th>
+              <th class="p-3">Compte-rendu / Message</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 font-semibold">
+            {% for log in logs %}
+              <tr class="hover:bg-gray-50">
+                <td class="p-3 whitespace-nowrap font-mono text-xs">
+                  {{ log.executed_at | date('d/m/Y à H:i:s') }}
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span class="font-bold text-gray-900">{{ actions_map[log.action] | default(log.action) }}</span>
+                  {% if log.job_id %}
+                    <span class="text-xs font-mono text-gray-500 ml-1">(Job #{{ log.job_id }})</span>
+                  {% else %}
+                    <span class="text-xs italic text-gray-400 ml-1">(Direct)</span>
+                  {% endif %}
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  {% if log.status == 'success' %}
+                    <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">
+                      ✓ Succès
+                    </span>
+                  {% else %}
+                    <span class="bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 text-xs font-bold rounded">
+                      ✕ Échec
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="p-3 whitespace-nowrap font-mono text-xs text-gray-600">
+                  ⚡ {{ log.duration_ms }} ms
+                </td>
+                <td class="p-3">
+                  <div class="text-xs font-mono text-gray-800">
+                    {{ log.details | default('—') }}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

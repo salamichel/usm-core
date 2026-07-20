@@ -962,4 +962,32 @@ class EventRepository
         $stmtManif = $db->prepare("DELETE FROM Manifestation WHERE id_manifestation = ?");
         $stmtManif->execute([$id]);
     }
+
+    /**
+     * Supprime plusieurs manifestations et leurs participations associées.
+     *
+     * @param array $ids Liste des identifiants de manifestation à supprimer
+     * @return int Nombre de manifestations supprimées
+     */
+    public static function deleteEventsBulk(array $ids): int
+    {
+        $cleanIds = array_values(array_filter(array_map('intval', $ids), fn(int $id) => $id > 0));
+
+        if (empty($cleanIds)) {
+            return 0;
+        }
+
+        $db = ExternalDatabase::get();
+        $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+
+        // Supprimer d'abord les participations
+        $stmtPart = $db->prepare("DELETE FROM Participation WHERE id_manifestation IN ($placeholders)");
+        $stmtPart->execute($cleanIds);
+
+        // Supprimer les manifestations
+        $stmtManif = $db->prepare("DELETE FROM Manifestation WHERE id_manifestation IN ($placeholders)");
+        $stmtManif->execute($cleanIds);
+
+        return $stmtManif->rowCount();
+    }
 }

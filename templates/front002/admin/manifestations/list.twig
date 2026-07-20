@@ -66,83 +66,115 @@
 
 {% if manifestations|length %}
 
-{# Mobile #}
-<div class="sm:hidden space-y-3">
-  {% for m in manifestations %}
-  <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] space-y-2">
-    <div class="flex justify-between items-start">
-      <span class="text-xs font-black uppercase px-2 py-0.5 bg-gray-100 border border-gray-300 font-mono">{{ m.ManifestationTypée }}</span>
-      {% if m.Statut == 'Confirmé' %}
-        <span class="text-xs font-black text-green-700 bg-green-100 border border-green-400 px-2 py-0.5 rounded">Confirmé</span>
-      {% elseif m.Statut == 'Annulé' %}
-        <span class="text-xs font-black text-red-700 bg-red-100 border border-red-400 px-2 py-0.5 rounded">Annulé</span>
-      {% else %}
-        <span class="text-xs font-black text-amber-700 bg-amber-100 border border-amber-400 px-2 py-0.5 rounded">{{ m.Statut }}</span>
-      {% endif %}
-    </div>
-    
-    <div class="font-black text-base">{{ m.Date|date('d/m/Y H:i') }} ({{ m.Durée_créneau }})</div>
-    <div class="text-sm text-gray-700">📍 {{ m.Lieu }}</div>
-    <div class="text-xs text-gray-500">Terrains: {{ m.Nombre_terrain }}</div>
-    {% if m.Commentaire %}
-      <div class="text-xs bg-gray-50 border-l-2 border-usm-brown p-2 italic text-gray-600">{{ m.Commentaire }}</div>
-    {% endif %}
+<form id="bulk-delete-form" method="POST" action="{{ url('admin/manifestations/delete-bulk') }}">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-    <div class="flex gap-2 pt-2">
-      <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-      <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-        <button type="submit" class="border-2 border-red-600 text-red-600 px-3 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-      </form>
+  {# Barre d'action groupée #}
+  <div class="border-4 border-black bg-white p-3 mb-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <label class="flex items-center gap-2 font-black text-sm cursor-pointer select-none">
+        <input type="checkbox" id="select-all-manifestations" class="w-5 h-5 cursor-pointer accent-black" />
+        <span>Tout sélectionner</span>
+      </label>
+      <span id="selected-count-badge" class="hidden text-xs font-bold bg-amber-200 border border-black px-2 py-0.5 rounded-full">
+        0 sélectionnée(s)
+      </span>
+    </div>
+    <div>
+      <button type="submit" id="btn-bulk-delete" disabled class="border-2 border-red-600 bg-red-50 text-red-600 px-4 py-1.5 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 hover:text-white transition cursor-pointer">
+        🗑️ Supprimer la sélection (<span id="bulk-delete-count">0</span>)
+      </button>
     </div>
   </div>
-  {% endfor %}
-</div>
 
-{# Desktop #}
-<div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-black text-white">
-      <tr>
-        <th class="text-left px-4 py-3 font-black">Type</th>
-        <th class="text-left px-4 py-3 font-black">Date</th>
-        <th class="text-left px-4 py-3 font-black">Lieu</th>
-        <th class="text-left px-4 py-3 font-black">Terrains</th>
-        <th class="text-left px-4 py-3 font-black">Statut</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for m in manifestations %}
-      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-        <td class="px-4 py-3 font-bold text-gray-800 text-xs">{{ m.ManifestationTypée }}</td>
-        <td class="px-4 py-3">
-          <div class="font-bold">{{ m.Date|date('d/m/Y H:i') }}</div>
-          <div class="text-xs text-gray-500 font-semibold font-mono">{{ m.Durée_créneau }}</div>
-        </td>
-        <td class="px-4 py-3 font-semibold text-gray-700 text-xs">{{ m.Lieu }}</td>
-        <td class="px-4 py-3 font-bold text-gray-600">{{ m.Nombre_terrain }}</td>
-        <td class="px-4 py-3">
-          {% if m.Statut == 'Confirmé' %}
-            <span class="inline-block text-xs font-bold bg-green-100 border border-green-400 text-green-700 px-2 py-0.5 rounded">Confirmé</span>
-          {% elseif m.Statut == 'Annulé' %}
-            <span class="inline-block text-xs font-bold bg-red-100 border border-red-400 text-red-700 px-2 py-0.5 rounded">Annulé</span>
-          {% else %}
-            <span class="inline-block text-xs font-bold bg-amber-100 border border-amber-400 text-amber-700 px-2 py-0.5 rounded">{{ m.Statut }}</span>
-          {% endif %}
-        </td>
-        <td class="px-4 py-3 flex gap-2 justify-end">
-          <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-          <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  {# Mobile #}
+  <div class="sm:hidden space-y-3">
+    {% for m in manifestations %}
+    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] space-y-2">
+      <div class="flex justify-between items-start gap-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="ids[]" value="{{ m.id_manifestation }}" class="manifestation-checkbox w-5 h-5 cursor-pointer accent-black" />
+          <span class="text-xs font-black uppercase px-2 py-0.5 bg-gray-100 border border-gray-300 font-mono">{{ m.ManifestationTypée }}</span>
+        </label>
+        {% if m.Statut == 'Confirmé' %}
+          <span class="text-xs font-black text-green-700 bg-green-100 border border-green-400 px-2 py-0.5 rounded">Confirmé</span>
+        {% elseif m.Statut == 'Annulé' %}
+          <span class="text-xs font-black text-red-700 bg-red-100 border border-red-400 px-2 py-0.5 rounded">Annulé</span>
+        {% else %}
+          <span class="text-xs font-black text-amber-700 bg-amber-100 border border-amber-400 px-2 py-0.5 rounded">{{ m.Statut }}</span>
+        {% endif %}
+      </div>
+      
+      <div class="font-black text-base">{{ m.Date|date('d/m/Y H:i') }} ({{ m.Durée_créneau }})</div>
+      <div class="text-sm text-gray-700">📍 {{ m.Lieu }}</div>
+      <div class="text-xs text-gray-500">Terrains: {{ m.Nombre_terrain }}</div>
+      {% if m.Commentaire %}
+        <div class="text-xs bg-gray-50 border-l-2 border-usm-brown p-2 italic text-gray-600">{{ m.Commentaire }}</div>
+      {% endif %}
+
+      <div class="flex gap-2 pt-2">
+        <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+        <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="border-2 border-red-600 text-red-600 px-3 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# Desktop #}
+  <div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-black text-white">
+        <tr>
+          <th class="w-10 px-4 py-3 text-center">
+            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 cursor-pointer accent-white" />
+          </th>
+          <th class="text-left px-4 py-3 font-black">Type</th>
+          <th class="text-left px-4 py-3 font-black">Date</th>
+          <th class="text-left px-4 py-3 font-black">Lieu</th>
+          <th class="text-left px-4 py-3 font-black">Terrains</th>
+          <th class="text-left px-4 py-3 font-black">Statut</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in manifestations %}
+        <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
+          <td class="px-4 py-3 text-center">
+            <input type="checkbox" name="ids[]" value="{{ m.id_manifestation }}" class="manifestation-checkbox w-4 h-4 cursor-pointer accent-black" />
+          </td>
+          <td class="px-4 py-3 font-bold text-gray-800 text-xs">{{ m.ManifestationTypée }}</td>
+          <td class="px-4 py-3">
+            <div class="font-bold">{{ m.Date|date('d/m/Y H:i') }}</div>
+            <div class="text-xs text-gray-500 font-semibold font-mono">{{ m.Durée_créneau }}</div>
+          </td>
+          <td class="px-4 py-3 font-semibold text-gray-700 text-xs">{{ m.Lieu }}</td>
+          <td class="px-4 py-3 font-bold text-gray-600">{{ m.Nombre_terrain }}</td>
+          <td class="px-4 py-3">
+            {% if m.Statut == 'Confirmé' %}
+              <span class="inline-block text-xs font-bold bg-green-100 border border-green-400 text-green-700 px-2 py-0.5 rounded">Confirmé</span>
+            {% elseif m.Statut == 'Annulé' %}
+              <span class="inline-block text-xs font-bold bg-red-100 border border-red-400 text-red-700 px-2 py-0.5 rounded">Annulé</span>
+            {% else %}
+              <span class="inline-block text-xs font-bold bg-amber-100 border border-amber-400 text-amber-700 px-2 py-0.5 rounded">{{ m.Statut }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 flex gap-2 justify-end">
+            <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
+            <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</form>
 
 {# Pagination #}
 {% if pagesCount > 1 %}
@@ -170,6 +202,76 @@
   {% endif %}
 </div>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAllGlobal = document.getElementById('select-all-manifestations');
+  const selectAllDesktop = document.getElementById('select-all-desktop');
+  const checkboxes = document.querySelectorAll('.manifestation-checkbox');
+  const btnBulkDelete = document.getElementById('btn-bulk-delete');
+  const bulkDeleteCount = document.getElementById('bulk-delete-count');
+  const selectedBadge = document.getElementById('selected-count-badge');
+  const form = document.getElementById('bulk-delete-form');
+
+  function updateState() {
+    const checked = document.querySelectorAll('.manifestation-checkbox:checked');
+    const count = checked.length;
+    const total = checkboxes.length;
+
+    if (bulkDeleteCount) bulkDeleteCount.textContent = count;
+
+    if (selectedBadge) {
+      if (count > 0) {
+        selectedBadge.textContent = count + ' sélectionnée(s)';
+        selectedBadge.classList.remove('hidden');
+      } else {
+        selectedBadge.classList.add('hidden');
+      }
+    }
+
+    if (btnBulkDelete) {
+      btnBulkDelete.disabled = (count === 0);
+    }
+
+    const allChecked = total > 0 && count === total;
+    if (selectAllGlobal) selectAllGlobal.checked = allChecked;
+    if (selectAllDesktop) selectAllDesktop.checked = allChecked;
+  }
+
+  function toggleAll(checked) {
+    checkboxes.forEach(cb => { cb.checked = checked; });
+    updateState();
+  }
+
+  if (selectAllGlobal) {
+    selectAllGlobal.addEventListener('change', function() { toggleAll(this.checked); });
+  }
+  if (selectAllDesktop) {
+    selectAllDesktop.addEventListener('change', function() { toggleAll(this.checked); });
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateState);
+  });
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      const count = document.querySelectorAll('.manifestation-checkbox:checked').length;
+      if (count === 0) {
+        e.preventDefault();
+        alert('Veuillez sélectionner au moins une manifestation à supprimer.');
+        return;
+      }
+      const confirmed = confirm('Êtes-vous sûr de vouloir supprimer définitivement les ' + count + ' manifestation(s) sélectionnée(s) ainsi que toutes leurs participations associées ?');
+      if (!confirmed) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  updateState();
+});
+</script>
 
 {% else %}
   <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">

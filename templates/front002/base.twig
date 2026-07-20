@@ -198,5 +198,23 @@
 
   {% block pwa_scripts %}{% endblock %}
   {% block scripts %}{% endblock %}
+
+  {# ── Lazy Cron Asynchrone ── #}
+  <script>
+    (function() {
+      function triggerLazyCron() {
+        try {
+          fetch('/api/cron/lazy-trigger', { method: 'POST', credentials: 'same-origin' }).catch(function(){});
+        } catch(e) {}
+      }
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(triggerLazyCron);
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(triggerLazyCron, 1500);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
