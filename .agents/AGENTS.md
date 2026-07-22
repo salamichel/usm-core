@@ -107,13 +107,20 @@ Pour conserver l'uniformité visuelle du site, chaque page principale doit utili
   $entity = $this->findOr404(Model::class, $id);
   ```
 
-### 9. Macros Twig Admin — `admin/_macros.twig`
-- Importer systématiquement les macros dans tout template de formulaire admin :
+### 9. Templates & UI Administration — `admin/_macros.twig` (Style Modern Slate)
+- **Interdiction du style Neobrutaliste en dur** : Ne JAMAIS écrire de classes Tailwind brutes de type `border-4 border-black shadow-[4px_4px_0_#000]` ou des boutons HTML sur-mesure dans les templates admin.
+- **Import obligatoire** : Importer systématiquement les macros en haut de chaque template admin :
   ```twig
   {% import 'admin/_macros.twig' as m %}
   ```
-- Utiliser `{{ m.form_error(error ?? null) }}` à la place des blocs `{% if error %}...{% endif %}` manuels.
-- Utiliser `{{ m.btn_submit('Enregistrer') }}` à la place du `<button type="submit" class="border-4 border-black ...">` copié-collé.
+- **Utiliser exclusivement les macros centralisées** :
+  - En-tête de page : `{{ m.page_header('Titre', url('admin/.../create'), '+ Ajouter') }}`
+  - Champs de formulaire : `{{ m.field_input(...) }}`, `{{ m.field_textarea(...) }}`, `{{ m.field_checkbox(...) }}`
+  - Messages d'erreur : `{{ m.form_error(error) }}`
+  - Boutons de validation : `{{ m.btn_submit('Enregistrer') }}`
+  - Boutons d'action (tableau/carte) : `{{ m.action_buttons(edit_url, delete_url, confirm_msg, csrf_token) }}`
+  - Statuts/Badges : `{{ m.status_badge(condition, 'Texte Vrai', 'Texte Faux') }}`
+  - État vide : `{{ m.empty_state('Aucun élément.', create_url, '+ Créer') }}`
 
 ### 10. Gestion des Statuts & Abonnements
 - **Helper de statuts** : Toujours passer par `App\Helpers\ParticipationStatus` pour labelliser (`Présent(e)`, `Absent(e)`, etc.) et catégoriser les présences des joueurs. Ne jamais afficher ou comparer des chaînes brutes en dur.
