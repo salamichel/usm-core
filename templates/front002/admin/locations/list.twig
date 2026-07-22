@@ -1,15 +1,13 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}Emplacements{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-3xl font-black">Emplacements du club</h1>
-  <a href="{{ url('admin/locations/create') }}" class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    + Ajouter un lieu
-  </a>
-</div>
 
-<p class="text-sm text-gray-600 mb-6">
+{# ── En-tête de page ── #}
+{{ m.page_header('Emplacements du club', url('admin/locations/create'), '+ Ajouter un lieu') }}
+
+<p class="text-sm text-slate-500 font-medium -mt-2 mb-6">
   Gérez les gymnases et lieux d'entraînement du club. Chaque emplacement sera affiché sur la page contact avec une carte interactive.
 </p>
 
@@ -18,44 +16,49 @@
 <form id="bulk-delete-form" method="POST" action="{{ url('admin/locations/delete-bulk') }}">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-  <div class="border-4 border-black bg-white p-3 mb-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <label class="flex items-center gap-2 font-black text-sm cursor-pointer select-none">
-        <input type="checkbox" id="select-all-locations" class="w-5 h-5 cursor-pointer accent-black" />
-        <span>Tout sélectionner</span>
-      </label>
-      <span id="selected-count-badge" class="hidden text-xs font-bold bg-amber-200 border border-black px-2 py-0.5 rounded-full">
-        0 sélectionné(s)
-      </span>
-    </div>
-    <div>
-      <button type="submit" id="btn-bulk-delete" disabled class="border-2 border-red-600 bg-red-50 text-red-600 px-4 py-1.5 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 hover:text-white transition cursor-pointer">
-        🗑️ Supprimer la sélection (<span id="bulk-delete-count">0</span>)
-      </button>
-    </div>
+  {# ── Barre de suppression en masse ── #}
+  <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+      <input type="checkbox" id="select-all-locations" class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
+      <span class="text-sm font-semibold text-slate-700">Tout sélectionner</span>
+      <span id="selected-count-badge" class="hidden text-xs font-bold bg-[#94674d]/10 text-[#94674d] px-2.5 py-0.5 rounded-full">0 sélectionné(s)</span>
+    </label>
+    <button type="submit" id="btn-bulk-delete" disabled
+            class="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 px-3 py-1.5 text-xs font-bold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      Supprimer la sélection (<span id="bulk-delete-count">0</span>)
+    </button>
   </div>
 
-  <div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] divide-y-4 divide-black">
+  <div class="space-y-3">
     {% for location in locations %}
-    <div class="p-6 flex items-start justify-between hover:bg-amber-50 transition gap-4">
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition duration-150 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
       <div class="flex items-start gap-3 flex-1">
-        <input type="checkbox" name="ids[]" value="{{ location.id }}" class="item-checkbox w-5 h-5 cursor-pointer accent-black mt-1" />
+        <input type="checkbox" name="ids[]" value="{{ location.id }}" class="item-checkbox w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30 mt-1" />
         <div>
-          <h3 class="font-black text-lg">{{ location.name }}</h3>
-          <address class="not-italic text-sm text-gray-600 whitespace-pre-line leading-relaxed mt-1 mb-2">{{ location.address }}</address>
-          {% if location.latitude and location.longitude %}
-            <span class="inline-block text-xs bg-green-100 border border-green-400 text-green-700 px-2 py-0.5 rounded font-semibold">✓ Sur la carte interactive</span>
-          {% else %}
-            <span class="inline-block text-xs bg-blue-100 border border-blue-400 text-blue-700 px-2 py-0.5 rounded font-semibold">🔗 Lien Google Maps</span>
-          {% endif %}
+          <h3 class="font-bold text-base text-slate-900 mb-1 flex items-center gap-2 flex-wrap">
+            <span>{{ location.name }}</span>
+            {% if location.latitude and location.longitude %}
+              <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-xs font-bold rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Carte interactive
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-xs font-bold rounded-full">
+                Google Maps
+              </span>
+            {% endif %}
+          </h3>
+          <address class="not-italic text-xs text-slate-500 whitespace-pre-line leading-relaxed font-medium mb-1">{{ location.address }}</address>
         </div>
       </div>
-      <div class="flex gap-2 ml-4">
-        <a href="{{ url('admin/locations/' ~ location.id ~ '/edit') }}" class="border-2 border-black px-3 py-1 text-sm font-bold hover:bg-black hover:text-white transition">Éditer</a>
-        <form method="POST" action="{{ url('admin/locations/' ~ location.id ~ '/delete') }}" data-confirm="Supprimer cet emplacement ?">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="border-2 border-red-600 text-red-600 px-3 py-1 text-sm font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-        </form>
+
+      <div class="flex gap-2 justify-end self-end sm:self-start">
+        {{ m.action_buttons(
+          url('admin/locations/' ~ location.id ~ '/edit'),
+          url('admin/locations/' ~ location.id ~ '/delete'),
+          'Supprimer cet emplacement ?',
+          csrf_token
+        ) }}
       </div>
     </div>
     {% endfor %}
@@ -75,40 +78,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const checked = document.querySelectorAll('.item-checkbox:checked');
     const count = checked.length;
     const total = checkboxes.length;
-
     if (bulkDeleteCount) bulkDeleteCount.textContent = count;
     if (selectedBadge) {
-      if (count > 0) {
-        selectedBadge.textContent = count + ' sélectionné(s)';
-        selectedBadge.classList.remove('hidden');
-      } else {
-        selectedBadge.classList.add('hidden');
-      }
+      selectedBadge.textContent = count + ' sélectionné(s)';
+      selectedBadge.classList.toggle('hidden', count === 0);
     }
     if (btnBulkDelete) btnBulkDelete.disabled = (count === 0);
-
-    if (selectAllGlobal) selectAllGlobal.checked = (total > 0 && count === total);
+    if (selectAllGlobal) selectAllGlobal.checked = total > 0 && count === total;
   }
 
-  if (selectAllGlobal) {
-    selectAllGlobal.addEventListener('change', function() {
-      checkboxes.forEach(cb => { cb.checked = selectAllGlobal.checked; });
-      updateState();
-    });
-  }
-
+  if (selectAllGlobal) selectAllGlobal.addEventListener('change', function() {
+    checkboxes.forEach(cb => { cb.checked = this.checked; });
+    updateState();
+  });
   checkboxes.forEach(cb => cb.addEventListener('change', updateState));
 
   if (form) {
     form.addEventListener('submit', function(e) {
       const count = document.querySelectorAll('.item-checkbox:checked').length;
-      if (count === 0) {
-        e.preventDefault();
-        return;
-      }
-      if (!confirm('Voulez-vous vraiment supprimer les ' + count + ' emplacement(s) sélectionné(s) ?')) {
-        e.preventDefault();
-      }
+      if (count === 0) { e.preventDefault(); return; }
+      if (!confirm('Supprimer les ' + count + ' emplacement(s) sélectionné(s) ?')) { e.preventDefault(); }
     });
   }
   updateState();
@@ -116,8 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {% else %}
-  <div class="border-4 border-black bg-amber-100 p-6 shadow-[4px_4px_0_#000] text-center">
-    <p class="text-gray-700 font-semibold">Aucun emplacement défini pour le moment.</p>
-  </div>
+  {{ m.empty_state('Aucun emplacement enregistré.', url('admin/locations/create'), '+ Ajouter un lieu') }}
 {% endif %}
+
 {% endblock %}

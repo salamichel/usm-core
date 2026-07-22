@@ -1,28 +1,31 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}Joueurs (base externe){% endblock %}
 
 {% block content %}
-<div class="mb-6">
-  <a href="{{ url('admin/saisons') }}" class="text-sm text-gray-500 hover:underline">← Saisons</a>
-  <h1 class="text-3xl font-black mt-1">Joueurs — base externe</h1>
-  <p class="text-gray-400 text-sm mt-1">Données en temps réel depuis la base USM. Lecture seule.</p>
-</div>
+
+{# ── En-tête de page ── #}
+{{ m.page_header('Joueurs (Base Externe)', null, null) }}
+
+<p class="text-xs text-slate-400 font-medium -mt-2 mb-6">Données en temps réel depuis la base USM. Lecture seule.</p>
 
 {% if seasons|length %}
-<div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] mb-6">
-  <h2 class="text-lg font-black mb-2 flex items-center gap-2">
-    <span>⚡</span> Importer / Flasher les joueurs
-  </h2>
-  <p class="text-xs text-gray-500 mb-4">
+<div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-6 space-y-4">
+  <div class="flex items-center gap-2 text-slate-900 font-bold text-base">
+    <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+    Importer / Flasher les joueurs
+  </div>
+  <p class="text-xs text-slate-500 leading-relaxed font-medium">
     Cette action récupère les joueurs de la base externe ci-dessous et les enregistre (snapshot) pour la saison de votre choix. 
-    Les liaisons d'équipes seront automatiquement créées. <strong class="text-red-600">Attention : cela réinitialise les ajustements manuels de composition d'équipe (les capitaines locaux seront conservés, aucun nouveau capitaine externe ne sera importé).</strong>
+    Les liaisons d'équipes seront automatiquement créées. <strong class="text-rose-600">Attention : cela réinitialise les ajustements manuels de composition d'équipe (les capitaines locaux seront conservés).</strong>
   </p>
-  
-  <form method="POST" action="{{ url('admin/saisons/flash-select') }}" class="flex flex-col sm:flex-row gap-3 items-end sm:items-center" data-confirm="Voulez-vous vraiment flasher les joueurs pour la saison sélectionnée ? Les ajustements manuels de composition d'équipe seront écrasés (les capitaines locaux seront conservés et aucun nouveau capitaine externe ne sera importé).">
+
+  <form method="POST" action="{{ url('admin/saisons/flash-select') }}" class="flex flex-col sm:flex-row gap-3 items-end sm:items-center pt-2" data-confirm="Voulez-vous vraiment flasher les joueurs pour la saison sélectionnée ?">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
     <div class="flex-1 w-full">
-      <label class="block text-xs font-bold uppercase mb-1 text-gray-600" for="saison_id">Sélectionner la saison concernée :</label>
-      <select id="saison_id" name="saison_id" class="w-full border-4 border-black p-2 font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white">
+      <label class="block text-xs font-bold uppercase tracking-wider mb-1 text-slate-500" for="saison_id">Sélectionner la saison :</label>
+      <select id="saison_id" name="saison_id"
+              class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
         {% for s in seasons %}
           <option value="{{ s.id }}" {% if saison_active and s.id == saison_active.id %}selected{% endif %}>
             {{ s.libelle }} {% if s.is_active %}(Active){% endif %}
@@ -30,36 +33,33 @@
         {% endfor %}
       </select>
     </div>
-    <button type="submit" class="w-full sm:w-auto border-4 border-black bg-usm-brown text-white font-black px-6 py-2.5 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all whitespace-nowrap">
-      Flasher les joueurs
+    <button type="submit" class="w-full sm:w-auto bg-[#94674d] hover:bg-[#7a5540] text-white font-bold px-6 py-2.5 rounded-xl transition text-xs shadow-sm whitespace-nowrap">
+      ⚡ Flasher les joueurs
     </button>
   </form>
 </div>
 {% else %}
-<div class="border-4 border-black bg-yellow-50 p-4 shadow-[4px_4px_0_#000] mb-6">
-  <p class="font-bold text-sm text-yellow-800">
-    ⚠️ Aucune saison n'est disponible. Veuillez <a href="{{ url('admin/saisons/create') }}" class="underline font-black">créer une saison</a> avant de pouvoir flasher les joueurs.
+<div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+  <p class="font-bold text-xs text-amber-800">
+    ⚠️ Aucune saison n'est disponible. Veuillez <a href="{{ url('admin/saisons/create') }}" class="underline">créer une saison</a> avant de pouvoir flasher les joueurs.
   </p>
 </div>
 {% endif %}
 
-{% if error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-4 mb-4 font-semibold">
-    {{ error }}
-  </div>
-{% elseif joueurs|length %}
-<p class="mb-4 text-gray-600 font-semibold">{{ joueurs|length }} joueur(s)</p>
-<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-x-auto">
+{{ m.form_error(error) }}
+
+{% if joueurs|length %}
+<div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
   <table class="w-full text-sm">
-    <thead class="bg-black text-white">
+    <thead class="bg-slate-800 text-white">
       <tr>
-        <th class="text-left px-4 py-3 font-black">Nom</th>
-        <th class="text-left px-4 py-3 font-black">Prénom</th>
-        <th class="text-left px-4 py-3 font-black">Email</th>
-        <th class="text-left px-4 py-3 font-black">Équipes actives</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Nom</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Prénom</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Email</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Équipes actives</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-slate-50">
       {% for j in joueurs %}
       {% set flags = [] %}
       {% for col in categories %}
@@ -67,17 +67,17 @@
           {% set flags = flags|merge([col]) %}
         {% endif %}
       {% endfor %}
-      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-        <td class="px-4 py-3 font-semibold">{{ j.Nom }}</td>
-        <td class="px-4 py-3">{{ j['Prénom'] }}</td>
-        <td class="px-4 py-3 text-gray-500 text-xs">{{ j.Mel ?: '—' }}</td>
-        <td class="px-4 py-3 text-xs text-gray-600">{{ flags|length ? flags|join(', ') : '—' }}</td>
+      <tr class="hover:bg-slate-50/70 transition duration-100">
+        <td class="px-5 py-3.5 font-semibold text-slate-900">{{ j.Nom }}</td>
+        <td class="px-5 py-3.5 font-medium text-slate-800">{{ j['Prénom'] }}</td>
+        <td class="px-5 py-3.5 text-slate-400 text-xs font-mono">{{ j.Mel ?: '—' }}</td>
+        <td class="px-5 py-3.5 text-xs text-slate-600 font-medium">{{ flags|length ? flags|join(', ') : '—' }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% else %}
-  <p class="text-gray-500 italic">Aucun joueur trouvé dans la base externe.</p>
+  {{ m.empty_state('Aucun joueur trouvé dans la base externe.') }}
 {% endif %}
 {% endblock %}

@@ -1,66 +1,75 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}{{ motCle ? 'Éditer' : 'Créer' }} un mot-clé{% endblock %}
 
 {% block content %}
-<div class="flex items-center gap-4 mb-6">
-  <a href="{{ url('admin/mots-cles') }}" class="font-bold hover:underline text-sm">&larr; Retour</a>
-  <h1 class="text-3xl font-black">{{ motCle ? 'Éditer le mot-clé' : 'Nouveau mot-clé' }}</h1>
+
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="relative">
+    <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+      <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <a href="{{ url('admin/mots-cles') }}" class="hover:text-white transition">Mots-clés</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <span class="text-slate-200">{{ motCle ? 'Éditer' : 'Nouveau mot-clé' }}</span>
+    </nav>
+    <h1 class="text-2xl font-black tracking-tight">
+      {{ motCle ? 'Éditer le mot-clé' : 'Nouveau mot-clé' }}
+    </h1>
+  </div>
 </div>
 
-{% if error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-6 font-semibold text-sm rounded">{{ error }}</div>
-{% endif %}
+{{ m.form_error(error) }}
 
 <form method="POST" action="{{ action }}" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-6">
-    <h2 class="font-black text-lg">Détails du mot-clé</h2>
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+    <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Détails du mot-clé</h2>
 
     {# Sélection de la catégorie #}
     <div class="space-y-4">
       <div>
-        <label class="block font-black mb-1" for="categorie">Catégorie existante</label>
-        <select id="categorie" name="categorie" class="w-full border-2 border-black px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-usm-brown font-semibold">
+        <label class="block text-sm font-bold text-slate-700 mb-1.5" for="categorie">Catégorie existante</label>
+        <select id="categorie" name="categorie"
+                class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
           <option value="">-- Sélectionner une catégorie existante --</option>
           {% for cat in categories %}
             <option value="{{ cat }}" {{ motCle.Catégorie == cat ? 'selected' : '' }}>{{ cat }}</option>
           {% endfor %}
         </select>
-        <div class="text-xs text-gray-500 mt-1">Choisissez une catégorie parmi celles déjà enregistrées.</div>
+        <div class="text-xs text-slate-400 font-medium mt-1">Choisissez une catégorie parmi celles déjà enregistrées.</div>
       </div>
 
       <div class="relative flex py-2 items-center">
-        <div class="flex-grow border-t border-gray-300"></div>
-        <span class="flex-shrink mx-4 text-gray-400 text-xs font-black uppercase">OU</span>
-        <div class="flex-grow border-t border-gray-300"></div>
+        <div class="flex-grow border-t border-slate-100"></div>
+        <span class="flex-shrink mx-4 text-slate-400 text-xs font-black uppercase tracking-wider">OU</span>
+        <div class="flex-grow border-t border-slate-100"></div>
       </div>
 
       <div>
-        <label class="block font-black mb-1" for="nouvelle_categorie">Créer une nouvelle catégorie</label>
+        <label class="block text-sm font-bold text-slate-700 mb-1.5" for="nouvelle_categorie">Créer une nouvelle catégorie</label>
         <input type="text" id="nouvelle_categorie" name="nouvelle_categorie"
                placeholder="Ex: MonNouveauType"
-               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <div class="text-xs text-gray-500 mt-1">Saisissez le nom d'une nouvelle catégorie si elle n'est pas dans la liste ci-dessus.</div>
+               class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
+        <div class="text-xs text-slate-400 font-medium mt-1">Saisissez le nom d'une nouvelle catégorie si elle n'est pas dans la liste ci-dessus.</div>
       </div>
     </div>
 
-    <hr class="border-t-2 border-black">
+    <hr class="border-t border-slate-100">
 
     {# Saisie du mot #}
-    <div>
-      <label class="block font-black mb-1" for="mot">Mot-clé *</label>
-      <input type="text" id="mot" name="mot" required
-             value="{{ motCle.Mot ?? '' }}"
-             placeholder="Ex: Gymnase Mios"
-             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-      <div class="text-xs text-gray-500 mt-1">La valeur textuelle du mot-clé à ajouter.</div>
-    </div>
+    {{ m.field_input('mot', 'mot', 'Mot-clé', motCle.Mot ?? '', 'text', true, 'Ex: Gymnase Mios') }}
   </div>
 
-  <button type="submit"
-          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    {{ motCle ? 'Mettre à jour' : 'Créer' }}
-  </button>
+  <div class="flex items-center gap-3 pt-2">
+    {{ m.btn_submit(motCle ? 'Mettre à jour' : 'Enregistrer') }}
+    <a href="{{ url('admin/mots-cles') }}"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      Annuler
+    </a>
+  </div>
 </form>
 {% endblock %}

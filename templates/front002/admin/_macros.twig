@@ -1,121 +1,171 @@
 {# ============================================================
    Macros réutilisables pour les pages admin (CRUD)
+   Style : Modern Slate — cohérent avec le dashboard
    ============================================================ #}
 
-{# Badge statut publié / brouillon #}
+{# ── Badge statut publié / brouillon ── #}
 {% macro status_badge(is_published, pub_label, draft_label) %}
   {% if is_published %}
-    <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">
+    <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold rounded-full">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
       {{ pub_label|default('Publié') }}
     </span>
   {% else %}
-    <span class="bg-gray-100 text-gray-600 border border-gray-400 px-2 py-0.5 text-xs font-bold rounded">
+    <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-0.5 text-xs font-bold rounded-full">
+      <span class="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0"></span>
       {{ draft_label|default('Brouillon') }}
     </span>
   {% endif %}
 {% endmacro %}
 
-{# Boutons d'action : Voir (optionnel) + Éditer + Supprimer #}
+{# ── Boutons d'action : Voir (optionnel) + Éditer + Supprimer ── #}
 {% macro action_buttons(edit_url, delete_url, delete_message, csrf_token, view_url) %}
-  <div class="flex gap-2 items-center flex-wrap">
+  <div class="flex gap-1.5 items-center flex-wrap">
     {% if view_url %}
       <a href="{{ view_url }}" target="_blank" rel="noopener"
-         class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition focus:outline-none focus:ring-1 focus:ring-black">
+         class="inline-flex items-center gap-1 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-slate-300">
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
         Voir
       </a>
     {% endif %}
     <a href="{{ edit_url }}"
-       class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition focus:outline-none focus:ring-1 focus:ring-black">
+       class="inline-flex items-center gap-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-slate-300">
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
       Éditer
     </a>
     <form method="POST" action="{{ delete_url }}" data-confirm="{{ delete_message }}">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
       <button type="submit"
-              class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition focus:outline-none focus:ring-1 focus:ring-red-600">
+              class="inline-flex items-center gap-1 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 hover:text-rose-700 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-rose-300">
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
         Supprimer
       </button>
     </form>
   </div>
 {% endmacro %}
 
-{# Bouton Nouveau / Créer standardisé #}
+{# ── Bouton Nouveau / Créer standardisé ── #}
 {% macro btn_create(url, label) %}
   <a href="{{ url }}"
-     class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-usm-brown">
-    {{ label|default('+ Nouveau') }}
+     class="inline-flex items-center gap-2 bg-[#94674d] hover:bg-[#7a5540] text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94674d]/30 focus:ring-offset-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+    {{ label|default('Nouveau') }}
   </a>
 {% endmacro %}
 
-{# En-tête de page liste (titre + bouton créer) #}
-{% macro page_header(title, create_url, create_label) %}
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-3xl font-black">{{ title }}</h1>
-    {% if create_url %}
-      <a href="{{ create_url }}"
-         class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-usm-brown">
-        {{ create_label|default('+ Nouveau') }}
-      </a>
-    {% endif %}
+{# ── En-tête de page liste (titre + bouton créer) ── #}
+{% macro page_header(title, create_url, create_label, breadcrumb_items) %}
+  <div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+    <div class="absolute right-0 top-0 w-48 h-48 opacity-5 pointer-events-none">
+      <svg viewBox="0 0 100 100" fill="currentColor" class="w-full h-full"><circle cx="80" cy="20" r="60"/></svg>
+    </div>
+    <div class="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        {% if breadcrumb_items %}
+          <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+            <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+            {% for item in breadcrumb_items %}
+              <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+              {% if item.url %}
+                <a href="{{ item.url }}" class="hover:text-white transition">{{ item.label }}</a>
+              {% else %}
+                <span class="text-slate-200">{{ item.label }}</span>
+              {% endif %}
+            {% endfor %}
+          </nav>
+        {% endif %}
+        <h1 class="text-2xl font-black tracking-tight">{{ title }}</h1>
+      </div>
+      {% if create_url %}
+        <a href="{{ create_url }}"
+           class="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-slate-900 font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-sm flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-white/30">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+          {{ create_label|default('Nouveau') }}
+        </a>
+      {% endif %}
+    </div>
   </div>
 {% endmacro %}
 
-{# Champ input texte/date/etc. #}
+{# ── Champ input texte/date/etc. ── #}
 {% macro field_input(id, name, label, value, type, required, placeholder, extra_class) %}
   <div>
-    <label class="block font-black mb-1" for="{{ id }}">{{ label }}{% if required %} *{% endif %}</label>
+    <label class="block text-sm font-bold text-slate-700 mb-1.5" for="{{ id }}">
+      {{ label }}{% if required %} <span class="text-rose-500">*</span>{% endif %}
+    </label>
     <input type="{{ type|default('text') }}"
            id="{{ id }}"
            name="{{ name }}"
            {% if required %}required{% endif %}
            value="{{ value ?? '' }}"
            {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
-           class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown {{ extra_class ?? '' }}">
+           class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition {{ extra_class ?? '' }}">
   </div>
 {% endmacro %}
 
-{# Champ textarea #}
+{# ── Champ textarea ── #}
 {% macro field_textarea(id, name, label, value, rows, required) %}
   <div>
-    <label class="block font-black mb-1" for="{{ id }}">{{ label }}{% if required %} *{% endif %}</label>
+    <label class="block text-sm font-bold text-slate-700 mb-1.5" for="{{ id }}">
+      {{ label }}{% if required %} <span class="text-rose-500">*</span>{% endif %}
+    </label>
     <textarea id="{{ id }}"
               name="{{ name }}"
               rows="{{ rows|default(3) }}"
               {% if required %}required{% endif %}
-              class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">{{ value ?? '' }}</textarea>
+              class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition resize-y">{{ value ?? '' }}</textarea>
   </div>
 {% endmacro %}
 
-{# Champ checkbox #}
+{# ── Champ checkbox ── #}
 {% macro field_checkbox(id, name, label, checked, value) %}
-  <div class="flex items-center gap-3">
+  <label class="inline-flex items-center gap-3 cursor-pointer" for="{{ id }}">
     <input type="checkbox"
            id="{{ id }}"
            name="{{ name }}"
            value="{{ value|default('1') }}"
            {% if checked %}checked{% endif %}
-           class="w-5 h-5 border-2 border-black">
-    <label class="font-black" for="{{ id }}">{{ label }}</label>
-  </div>
+           class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30 transition">
+    <span class="text-sm font-semibold text-slate-700">{{ label }}</span>
+  </label>
 {% endmacro %}
 
-{# Message d'erreur de formulaire #}
+{# ── Message d'erreur de formulaire ── #}
 {% macro form_error(message) %}
   {% if message %}
-    <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold text-sm" role="alert">
-      {{ message }}
+    <div class="flex items-start gap-3 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl mb-5" role="alert">
+      <svg class="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span class="text-sm font-semibold">{{ message }}</span>
     </div>
   {% endif %}
 {% endmacro %}
 
-{# Bouton submit de formulaire #}
+{# ── Bouton submit de formulaire ── #}
 {% macro btn_submit(label) %}
   <button type="submit"
-          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-usm-brown">
+          class="inline-flex items-center gap-2 bg-[#94674d] hover:bg-[#7a5540] text-white font-bold px-6 py-3 rounded-xl text-sm transition shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94674d]/30 focus:ring-offset-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
     {{ label|default('Enregistrer') }}
   </button>
 {% endmacro %}
 
-{# État vide (empty state) pour les listes #}
-{% macro empty_state(message) %}
-  <p class="text-gray-500 italic">{{ message|default('Aucun élément.') }}</p>
+{# ── État vide (empty state) pour les listes ── #}
+{% macro empty_state(message, create_url, create_label) %}
+  <div class="text-center py-16 px-8 bg-white rounded-2xl border border-slate-100 shadow-sm">
+    <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+      </svg>
+    </div>
+    <p class="text-slate-500 font-semibold text-sm mb-4">{{ message|default('Aucun élément.') }}</p>
+    {% if create_url %}
+      <a href="{{ create_url }}"
+         class="inline-flex items-center gap-2 bg-[#94674d] hover:bg-[#7a5540] text-white font-bold px-4 py-2.5 rounded-xl text-sm transition shadow-sm">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+        {{ create_label|default('Créer le premier') }}
+      </a>
+    {% endif %}
+  </div>
 {% endmacro %}

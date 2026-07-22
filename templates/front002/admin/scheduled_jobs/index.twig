@@ -4,56 +4,62 @@
 {% block title %}Tâches planifiées & Traces (Lazy Cron){% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-  {# En-tête #}
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-black pb-4">
+
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-black">⏱️ Tâches planifiées & Traces (Lazy Cron)</h1>
-      <p class="text-sm text-gray-600 mt-1">Programmation d'actions et journal détaillé des exécutions (logs) pour InfinityFree.</p>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+        <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+        <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        <span class="text-slate-200">Lazy Cron</span>
+      </nav>
+      <h1 class="text-2xl font-black tracking-tight">⏱️ Tâches planifiées & Traces</h1>
+      <p class="text-xs text-slate-400 font-medium mt-1">Programmation d'actions et journal détaillé des exécutions (logs) pour InfinityFree.</p>
     </div>
-    
+
     <form method="POST" action="{{ url('admin/scheduled-jobs/run-now') }}">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-      <button type="submit" 
-              class="border-4 border-black bg-amber-500 hover:bg-amber-600 text-black font-black px-4 py-2.5 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-sm flex items-center gap-2">
+      <button type="submit"
+              class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl transition text-xs shadow-sm whitespace-nowrap">
         ⚡ Forcer l'exécution maintenant
       </button>
     </form>
   </div>
+</div>
 
+<div class="space-y-8">
   {# Statuts et Résumé #}
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
-      <div class="text-xs font-black text-gray-500 uppercase">Dernière exécution</div>
-      <div class="text-lg font-black text-gray-900 mt-1">{{ last_execution }}</div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dernière exécution</div>
+      <div class="text-base font-bold text-slate-900 mt-2 font-mono">{{ last_execution }}</div>
     </div>
-    <div class="border-4 border-black bg-yellow-50 p-4 shadow-[4px_4px_0_#000]">
-      <div class="text-xs font-black text-yellow-700 uppercase">En attente (`pending`)</div>
-      <div class="text-3xl font-black text-yellow-800 mt-1">{{ counts.pending }}</div>
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div class="text-[10px] font-bold text-amber-600 uppercase tracking-wider">En attente (pending)</div>
+      <div class="text-2xl font-black text-amber-700 mt-1">{{ counts.pending }}</div>
     </div>
-    <div class="border-4 border-black bg-green-50 p-4 shadow-[4px_4px_0_#000]">
-      <div class="text-xs font-black text-green-700 uppercase">Terminées (`completed`)</div>
-      <div class="text-3xl font-black text-green-800 mt-1">{{ counts.completed }}</div>
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Terminées (completed)</div>
+      <div class="text-2xl font-black text-emerald-700 mt-1">{{ counts.completed }}</div>
     </div>
-    <div class="border-4 border-black bg-red-50 p-4 shadow-[4px_4px_0_#000]">
-      <div class="text-xs font-black text-red-700 uppercase">Échouées (`failed`)</div>
-      <div class="text-3xl font-black text-red-800 mt-1">{{ counts.failed }}</div>
+    <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div class="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Échouées (failed)</div>
+      <div class="text-2xl font-black text-rose-700 mt-1">{{ counts.failed }}</div>
     </div>
   </div>
 
   {# Formulaire de programmation d'une nouvelle tâche #}
-  <div class="border-4 border-black bg-white p-6 shadow-[4px_4px_0_#000]">
-    <h2 class="text-xl font-black mb-4 flex items-center gap-2">
-      ➕ Programmer une nouvelle tâche
-    </h2>
+  <div class="bg-white border border-slate-100 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+    <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">➕ Programmer une nouvelle tâche</h2>
 
-    <form method="POST" action="{{ url('admin/scheduled-jobs') }}" class="space-y-4">
+    <form method="POST" action="{{ url('admin/scheduled-jobs') }}" class="space-y-6">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label for="action" class="block font-black text-sm mb-1">Type d'action *</label>
-          <select id="action" name="action" required class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <label for="action" class="block text-sm font-bold text-slate-700 mb-1.5">Type d'action *</label>
+          <select id="action" name="action" required class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
             {% for key, label in actions_map %}
               <option value="{{ key }}">{{ label }} ({{ key }})</option>
             {% endfor %}
@@ -61,8 +67,8 @@
         </div>
 
         <div>
-          <label for="frequency" class="block font-black text-sm mb-1">Fréquence d'exécution *</label>
-          <select id="frequency" name="frequency" required class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <label for="frequency" class="block text-sm font-bold text-slate-700 mb-1.5">Fréquence d'exécution *</label>
+          <select id="frequency" name="frequency" required class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
             {% for key, label in frequencies_map %}
               <option value="{{ key }}">{{ label }}</option>
             {% endfor %}
@@ -70,21 +76,21 @@
         </div>
 
         <div>
-          <label for="execute_at" class="block font-black text-sm mb-1">Date & Heure de début *</label>
-          <input type="datetime-local" id="execute_at" name="execute_at" value="{{ default_execute_at }}" required class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
+          <label for="execute_at" class="block text-sm font-bold text-slate-700 mb-1.5">Date & Heure de début *</label>
+          <input type="datetime-local" id="execute_at" name="execute_at" value="{{ default_execute_at }}" required class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label for="end_at" class="block font-black text-sm mb-1">Date & Heure de fin (optionnel pour la récurrence)</label>
-          <input type="datetime-local" id="end_at" name="end_at" class="w-full border-2 border-black px-3 py-2 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-usm-brown">
-          <p class="text-xs text-gray-500 mt-1">Laissez vide pour une récurrence indéfinie.</p>
+          <label for="end_at" class="block text-sm font-bold text-slate-700 mb-1.5">Date & Heure de fin (optionnel)</label>
+          <input type="datetime-local" id="end_at" name="end_at" class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
+          <p class="text-xs text-slate-400 font-medium mt-1">Laissez vide pour une récurrence indéfinie.</p>
         </div>
 
         <div>
-          <label for="payload" class="block font-black text-sm mb-1">Paramètres JSON (optionnel)</label>
-          <textarea id="payload" name="payload" rows="2" placeholder='{"event_id": 42, "team_id": 3}' class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"></textarea>
+          <label for="payload" class="block text-sm font-bold text-slate-700 mb-1.5">Paramètres JSON (optionnel)</label>
+          <textarea id="payload" name="payload" rows="2" placeholder='{"event_id": 42, "team_id": 3}' class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition"></textarea>
         </div>
       </div>
 
@@ -95,10 +101,10 @@
   </div>
 
   {# Tableau 1 : File d'attente & Tâches planifiées #}
-  <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-    <div class="p-4 border-b-4 border-black bg-gray-50 flex items-center justify-between">
-      <h2 class="text-xl font-black">📋 Tâches programmées</h2>
-      <span class="text-xs font-bold text-gray-500">{{ jobs|length }} dernière(s) tâche(s)</span>
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+      <h2 class="text-base font-bold text-slate-900">📋 Tâches programmées</h2>
+      <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full">{{ jobs|length }} tâche(s)</span>
     </div>
 
     {% if jobs is empty %}
@@ -108,80 +114,72 @@
     {% else %}
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
-          <thead class="bg-black text-white font-black uppercase text-xs">
+          <thead class="bg-slate-800 text-white font-bold uppercase text-xs">
             <tr>
-              <th class="p-3">ID</th>
-              <th class="p-3">Action & Fréquence</th>
-              <th class="p-3">Prochain passage</th>
-              <th class="p-3">Date de fin</th>
-              <th class="p-3">Statut & Dernier passage</th>
-              <th class="p-3">Détails / Erreur</th>
-              <th class="p-3 text-right">Actions</th>
+              <th class="px-5 py-3.5">ID</th>
+              <th class="px-5 py-3.5">Action & Fréquence</th>
+              <th class="px-5 py-3.5">Prochain passage</th>
+              <th class="px-5 py-3.5">Date de fin</th>
+              <th class="px-5 py-3.5">Statut & Dernier passage</th>
+              <th class="px-5 py-3.5">Détails / Erreur</th>
+              <th class="px-5 py-3.5 text-right"></th>
             </tr>
           </thead>
-          <tbody class="divide-y-2 divide-gray-200 font-semibold">
+          <tbody class="divide-y divide-slate-50">
             {% for job in jobs %}
-              <tr class="hover:bg-gray-50">
-                <td class="p-3 font-mono font-bold">#{{ job.id }}</td>
-                <td class="p-3">
-                  <div class="font-bold text-gray-900">{{ actions_map[job.action] | default(job.action) }}</div>
+              <tr class="hover:bg-slate-50/70 transition duration-100">
+                <td class="px-5 py-3.5 font-mono text-xs text-slate-400">#{{ job.id }}</td>
+                <td class="px-5 py-3.5">
+                  <div class="font-semibold text-slate-900">{{ actions_map[job.action] | default(job.action) }}</div>
                   <div class="mt-1 flex items-center gap-2">
-                    <span class="bg-gray-100 border border-gray-400 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded">
+                    <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200">
                       🔄 {{ frequencies_map[job.frequency] | default(job.frequency) }}
                     </span>
                   </div>
                 </td>
-                <td class="p-3 whitespace-nowrap">
-                  <div class="font-bold text-gray-900">{{ job.execute_at | date('d/m/Y à H:i') }}</div>
-                  <div class="text-xs text-gray-400">Créé le {{ job.created_at | date('d/m/Y H:i') }}</div>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <div class="font-semibold text-slate-900 text-xs">{{ job.execute_at | date('d/m/Y à H:i') }}</div>
+                  <div class="text-[10px] text-slate-400">Créé le {{ job.created_at | date('d/m/Y H:i') }}</div>
                 </td>
-                <td class="p-3 whitespace-nowrap">
+                <td class="px-5 py-3.5 whitespace-nowrap text-xs text-slate-500">
                   {% if job.end_at %}
-                    <div class="text-gray-800">{{ job.end_at | date('d/m/Y à H:i') }}</div>
+                    <div>{{ job.end_at | date('d/m/Y à H:i') }}</div>
                   {% else %}
-                    <span class="text-gray-400 text-xs italic">Aucune (Illimitée)</span>
+                    <span class="text-slate-300 italic">Illimitée</span>
                   {% endif %}
                 </td>
-                <td class="p-3 whitespace-nowrap">
+                <td class="px-5 py-3.5 whitespace-nowrap">
                   <div>
                     {% if job.status == 'pending' %}
-                      <span class="bg-yellow-100 text-yellow-800 border border-yellow-400 px-2 py-0.5 text-xs font-bold rounded">
-                        En attente
-                      </span>
+                      <span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 text-[10px] font-bold rounded-full">En attente</span>
                     {% elseif job.status == 'running' %}
-                      <span class="bg-blue-100 text-blue-800 border border-blue-400 px-2 py-0.5 text-xs font-bold rounded animate-pulse">
-                        En cours...
-                      </span>
+                      <span class="bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-[10px] font-bold rounded-full animate-pulse">En cours...</span>
                     {% elseif job.status == 'completed' %}
-                      <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">
-                        Terminée
-                      </span>
+                      <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold rounded-full">Terminée</span>
                     {% else %}
-                      <span class="bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 text-xs font-bold rounded">
-                        Échouée
-                      </span>
+                      <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 text-[10px] font-bold rounded-full">Échouée</span>
                     {% endif %}
                   </div>
                   {% if job.last_run_at %}
-                    <div class="text-xs text-gray-500 mt-1">Dernier : {{ job.last_run_at | date('d/m/Y H:i') }}</div>
+                    <div class="text-[10px] text-slate-400 font-mono mt-1">Dernier : {{ job.last_run_at | date('d/m/Y H:i') }}</div>
                   {% endif %}
                 </td>
-                <td class="p-3 max-w-xs">
+                <td class="px-5 py-3.5 max-w-xs">
                   {% if job.payload and job.payload != '{}' %}
-                    <div class="text-xs font-mono bg-gray-100 p-1.5 rounded truncate" title="{{ job.payload }}">
+                    <div class="text-[10px] font-mono bg-slate-50 border border-slate-100 p-1.5 rounded-lg truncate" title="{{ job.payload }}">
                       {{ job.payload }}
                     </div>
                   {% endif %}
                   {% if job.error_message %}
-                    <div class="text-xs font-mono text-red-600 bg-red-50 p-1.5 rounded mt-1 border border-red-200">
+                    <div class="text-[10px] font-mono text-rose-600 bg-rose-50 p-1.5 rounded-lg mt-1 border border-rose-200">
                       {{ job.error_message }}
                     </div>
                   {% endif %}
                 </td>
-                <td class="p-3 text-right whitespace-nowrap">
+                <td class="px-5 py-3.5 text-right whitespace-nowrap">
                   <form method="POST" action="{{ url('admin/scheduled-jobs/' ~ job.id ~ '/delete') }}" data-confirm="Supprimer cette tâche planifiée ?">
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-                    <button type="submit" class="border-2 border-red-600 text-red-600 px-2.5 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">
+                    <button type="submit" class="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 px-2.5 py-1 text-xs font-bold rounded-lg transition">
                       Supprimer
                     </button>
                   </form>
@@ -195,10 +193,10 @@
   </div>
 
   {# Tableau 2 : Journal & Traces d'exécution #}
-  <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-    <div class="p-4 border-b-4 border-black bg-gray-900 text-white flex items-center justify-between">
-      <h2 class="text-xl font-black flex items-center gap-2">📜 Journal des exécutions (Traces)</h2>
-      <span class="text-xs font-bold text-gray-300">{{ logs|length }} dernière(s) exécution(s)</span>
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+    <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+      <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">📜 Journal des exécutions (Traces)</h2>
+      <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full">{{ logs|length }} trace(s)</span>
     </div>
 
     {% if logs is empty %}
@@ -208,45 +206,45 @@
     {% else %}
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
-          <thead class="bg-gray-100 text-gray-800 font-black uppercase text-xs border-b-2 border-black">
+          <thead class="bg-slate-800 text-white font-bold uppercase text-xs">
             <tr>
-              <th class="p-3">Horodatage</th>
-              <th class="p-3">Action & Tâche</th>
-              <th class="p-3">Résultat</th>
-              <th class="p-3">Durée</th>
-              <th class="p-3">Compte-rendu / Message</th>
+              <th class="px-5 py-3.5">Horodatage</th>
+              <th class="px-5 py-3.5">Action & Tâche</th>
+              <th class="px-5 py-3.5">Résultat</th>
+              <th class="px-5 py-3.5">Durée</th>
+              <th class="px-5 py-3.5">Compte-rendu / Message</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 font-semibold">
+          <tbody class="divide-y divide-slate-50">
             {% for log in logs %}
-              <tr class="hover:bg-gray-50">
-                <td class="p-3 whitespace-nowrap font-mono text-xs">
+              <tr class="hover:bg-slate-50/70 transition duration-100">
+                <td class="px-5 py-3.5 whitespace-nowrap font-mono text-xs text-slate-400">
                   {{ log.executed_at | date('d/m/Y à H:i:s') }}
                 </td>
-                <td class="p-3 whitespace-nowrap">
-                  <span class="font-bold text-gray-900">{{ actions_map[log.action] | default(log.action) }}</span>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="font-semibold text-slate-900 text-xs">{{ actions_map[log.action] | default(log.action) }}</span>
                   {% if log.job_id %}
-                    <span class="text-xs font-mono text-gray-500 ml-1">(Job #{{ log.job_id }})</span>
+                    <span class="text-[10px] font-mono text-slate-400 ml-1">(Job #{{ log.job_id }})</span>
                   {% else %}
-                    <span class="text-xs italic text-gray-400 ml-1">(Direct)</span>
+                    <span class="text-[10px] italic text-slate-400 ml-1">(Direct)</span>
                   {% endif %}
                 </td>
-                <td class="p-3 whitespace-nowrap">
+                <td class="px-5 py-3.5 whitespace-nowrap">
                   {% if log.status == 'success' %}
-                    <span class="bg-green-100 text-green-800 border border-green-400 px-2 py-0.5 text-xs font-bold rounded">
+                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold rounded-full">
                       ✓ Succès
                     </span>
                   {% else %}
-                    <span class="bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 text-xs font-bold rounded">
+                    <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 text-[10px] font-bold rounded-full">
                       ✕ Échec
                     </span>
                   {% endif %}
                 </td>
-                <td class="p-3 whitespace-nowrap font-mono text-xs text-gray-600">
+                <td class="px-5 py-3.5 whitespace-nowrap font-mono text-xs text-slate-500">
                   ⚡ {{ log.duration_ms }} ms
                 </td>
-                <td class="p-3">
-                  <div class="text-xs font-mono text-gray-800">
+                <td class="px-5 py-3.5">
+                  <div class="text-xs font-mono text-slate-600 leading-relaxed">
                     {{ log.details | default('—') }}
                   </div>
                 </td>

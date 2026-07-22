@@ -1,38 +1,52 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}Joueurs — {{ saison.libelle }}{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-  <a href="{{ url('admin/saisons') }}" class="text-sm text-gray-500 hover:underline">← Saisons</a>
-  <h1 class="text-3xl font-black mt-1">Joueurs — {{ saison.libelle }}</h1>
-  <p class="text-gray-500 mt-1">{{ snapshots|length }} joueur(s) dans ce snapshot</p>
-</div>
 
-<div class="mb-4 flex gap-3">
-  <form method="POST" action="{{ url('admin/saisons/' ~ saison.id ~ '/flash') }}"
-        data-confirm="Re-flasher la saison ? Les ajustements manuels des équipes seront réinitialisés (les capitaines locaux seront conservés et aucun nouveau capitaine externe ne sera importé).">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-    <button type="submit"
-            class="border-4 border-usm-brown bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-      ↺ Re-flasher
-    </button>
-  </form>
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+        <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+        <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        <a href="{{ url('admin/saisons') }}" class="hover:text-white transition">Saisons</a>
+        <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        <span class="text-slate-200">Snapshots</span>
+      </nav>
+      <h1 class="text-2xl font-black tracking-tight">Joueurs de la saison « {{ saison.libelle }} »</h1>
+      <p class="text-xs text-slate-400 font-medium mt-1">{{ snapshots|length }} joueur(s) enregistrés dans ce snapshot</p>
+    </div>
+
+    <div>
+      <form method="POST" action="{{ url('admin/saisons/' ~ saison.id ~ '/flash') }}"
+            data-confirm="Re-flasher la saison ? Les ajustements manuels des équipes seront réinitialisés (les capitaines locaux seront conservés).">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+        <button type="submit"
+                class="inline-flex items-center gap-2 bg-[#94674d] hover:bg-[#7a5540] text-white font-bold px-4 py-2.5 rounded-xl transition text-xs shadow-sm">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+          Re-flasher la saison
+        </button>
+      </form>
+    </div>
+  </div>
 </div>
 
 {% if snapshots|length %}
-<div class="border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-x-auto">
+<div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
   <table class="w-full text-sm">
-    <thead class="bg-black text-white">
+    <thead class="bg-slate-800 text-white">
       <tr>
-        <th class="text-left px-4 py-3 font-black">Nom</th>
-        <th class="text-left px-4 py-3 font-black">Prénom</th>
-        <th class="text-left px-4 py-3 font-black">Email</th>
-        <th class="text-left px-4 py-3 font-black">Équipes</th>
-        <th class="text-left px-4 py-3 font-black text-xs">Mis à jour</th>
-        <th class="text-left px-4 py-3 font-black">Abonnements</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Nom</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Prénom</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Email</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Équipes</th>
+        <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Mis à jour</th>
+        <th class="px-5 py-3.5 text-right">Abonnements</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-slate-50">
       {% for snap in snapshots %}
       {% set equipes = [] %}
       {% for col in categories %}
@@ -40,27 +54,25 @@
           {% set equipes = equipes|merge([col]) %}
         {% endif %}
       {% endfor %}
-      <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-        <td class="px-4 py-3 font-semibold">{{ snap.nom }}</td>
-        <td class="px-4 py-3">{{ snap.prenom }}</td>
-        <td class="px-4 py-3 text-gray-500 text-xs">{{ snap.data.Mel ?? '—' }}</td>
-        <td class="px-4 py-3 text-xs text-gray-600">
+      <tr class="hover:bg-slate-50/70 transition duration-100">
+        <td class="px-5 py-3.5 font-semibold text-slate-900">{{ snap.nom }}</td>
+        <td class="px-5 py-3.5 font-medium text-slate-800">{{ snap.prenom }}</td>
+        <td class="px-5 py-3.5 text-slate-400 text-xs">{{ snap.data.Mel ?? '—' }}</td>
+        <td class="px-5 py-3.5 text-xs text-slate-600 font-medium">
           {% if equipes|length %}
             {{ equipes|join(', ') }}
           {% else %}
-            <span class="text-gray-400">—</span>
+            <span class="text-slate-300">—</span>
           {% endif %}
         </td>
-        <td class="px-4 py-3 text-xs text-gray-400">{{ snap.snapped_at|date('d/m/Y H:i') }}</td>
-        <td class="px-4 py-3 text-xs">
-          <button type="button" 
-                  class="text-gray-500 hover:text-usm-brown transition edit-preferences-btn"
+        <td class="px-5 py-3.5 text-xs text-slate-400 font-mono">{{ snap.snapped_at|date('d/m/Y H:i') }}</td>
+        <td class="px-5 py-3.5 text-right">
+          <button type="button"
+                  class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition edit-preferences-btn"
                   data-player-id="{{ snap.id_joueur }}"
                   data-player-name="{{ snap.prenom }} {{ snap.nom }}"
                   title="Gérer les abonnements e-mail">
-            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L22 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+            ✉️ Abonnements
           </button>
         </td>
       </tr>
@@ -69,192 +81,144 @@
   </table>
 </div>
 {% else %}
-  <p class="text-gray-500 italic">Aucun joueur. Utilisez le bouton « Re-flasher » pour importer depuis la base externe.</p>
+  {{ m.empty_state('Aucun joueur enregistré pour cette saison.') }}
 {% endif %}
-{% endblock %}
 
-{% block scripts %}
 <!-- Modale de Gestion des Abonnements E-mail -->
 <div id="email-preferences-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-    <!-- Overlay -->
-    <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity modal-close"></div>
-
+    <div class="fixed inset-0 bg-slate-900/75 transition-opacity modal-close backdrop-blur-sm"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-    <!-- Modal Content -->
     <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-100">
       <div class="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
-        <h3 class="text-lg font-bold leading-6 flex items-center gap-2" id="modal-title">
-          ✉️ Abonnements de <span id="pref-modal-player-name" class="font-extrabold text-usm-brown"></span>
+        <h3 class="text-base font-bold leading-6 flex items-center gap-2" id="modal-title">
+          ✉️ Abonnements de <span id="pref-modal-player-name" class="font-extrabold text-amber-400"></span>
         </h3>
         <button type="button" class="text-slate-400 hover:text-white transition modal-close">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-
       <div class="p-6">
         <div id="pref-modal-loading" class="flex flex-col items-center justify-center py-8 gap-3">
-          <div class="w-8 h-8 border-4 border-slate-200 border-t-usm-brown rounded-full animate-spin"></div>
-          <span class="text-sm font-semibold text-slate-500">Chargement des abonnements...</span>
+          <div class="w-8 h-8 border-4 border-slate-200 border-t-[#94674d] rounded-full animate-spin"></div>
+          <span class="text-sm font-semibold text-slate-500">Chargement...</span>
         </div>
-
-        <div id="pref-modal-error" class="hidden text-center py-8 text-rose-600 font-semibold">
-          Impossible de charger les préférences de ce joueur.
+        <div id="pref-modal-error" class="hidden text-center py-8 text-rose-600 font-semibold text-sm">
+          Erreur lors du chargement des préférences.
         </div>
-
-        <div id="pref-modal-content" class="hidden space-y-4">
-          <p class="text-xs text-slate-500 mb-4">Les modifications sont enregistrées automatiquement en temps réel.</p>
-          <div class="space-y-3" id="pref-modal-list">
-            <!-- Checkboxes dynamiques -->
+        <form id="pref-modal-form" class="hidden space-y-4">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" id="pref-player-id" name="player_id" value="">
+          <input type="hidden" name="saison_id" value="{{ saison.id }}">
+          <div id="pref-modal-checkboxes" class="space-y-2.5 max-h-60 overflow-y-auto pr-2"></div>
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+            <button type="button" id="pref-modal-select-all" class="text-xs font-bold text-[#94674d] hover:underline">
+              Tout cocher / Décocher
+            </button>
+            <div class="flex gap-2">
+              <button type="button" class="px-4 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 transition modal-close">
+                Annuler
+              </button>
+              <button type="submit" id="pref-modal-submit" class="px-4 py-2 bg-[#94674d] hover:bg-[#7a5540] text-white text-xs font-bold rounded-xl transition shadow-sm">
+                Enregistrer
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 px-6 py-4 flex justify-end">
-        <button type="button" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 hover:bg-slate-100 transition modal-close">
-          Fermer
-        </button>
+        </form>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('email-preferences-modal');
-    const modalTitleName = document.getElementById('pref-modal-player-name');
-    const loading = document.getElementById('pref-modal-loading');
-    const errorEl = document.getElementById('pref-modal-error');
-    const content = document.getElementById('pref-modal-content');
-    const list = document.getElementById('pref-modal-list');
-    
-    let currentPlayerId = null;
+  const modal = document.getElementById('email-preferences-modal');
+  const loading = document.getElementById('pref-modal-loading');
+  const errorBox = document.getElementById('pref-modal-error');
+  const form = document.getElementById('pref-modal-form');
+  const checkboxesContainer = document.getElementById('pref-modal-checkboxes');
+  const playerNameSpan = document.getElementById('pref-modal-player-name');
+  const playerIdInput = document.getElementById('pref-player-id');
+  const selectAllBtn = document.getElementById('pref-modal-select-all');
 
-    // Ouvrir la modale
-    document.querySelectorAll('.edit-preferences-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const playerId = this.getAttribute('data-player-id');
-            const playerName = this.getAttribute('data-player-name');
-            currentPlayerId = playerId;
-            
-            modalTitleName.textContent = playerName;
-            modal.classList.remove('hidden');
-            
-            loading.classList.remove('hidden');
-            errorEl.classList.add('hidden');
-            content.classList.add('hidden');
-            list.innerHTML = '';
-            
-            // Appel AJAX
-            fetch('/api/member-email-preferences/get?player_id=' + playerId)
-                .then(response => {
-                    if (!response.ok) throw new Error();
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.ok) throw new Error();
-                    
-                    loading.classList.add('hidden');
-                    content.classList.remove('hidden');
-                    
-                    const prefs = data.preferences;
-                    
-                    // 1. Checkbox Match
-                    addPrefCheckbox('match', 'Avis de création de match', 'Recevoir un e-mail à la création d\'un match de son équipe.', prefs['match'] === 1);
-                    
-                    // 2. Checkbox Rappel Hebdo
-                    addPrefCheckbox('weekly_presence', 'Rappel hebdomadaire de présence', 'Recevoir le récapitulatif hebdomadaire.', prefs['weekly_presence'] === 1);
-                    
-                    // 2b. Checkbox Vie du club
-                    addPrefCheckbox('club_life', 'Vie du club & Tournois', 'Recevoir les invitations aux tournois généraux et événements du club.', prefs['club_life'] === 1);
-                    
-                    // 3. Checkbox Entraînements
-                    if (data.training_types && data.training_types.length > 0) {
-                        const trainingHeader = document.createElement('h4');
-                        trainingHeader.className = 'font-bold text-slate-700 text-xs uppercase tracking-wider mt-4 mb-2';
-                        trainingHeader.textContent = 'Types d\'entraînements :';
-                        list.appendChild(trainingHeader);
-                        
-                        data.training_types.forEach(type => {
-                            const label = type.replace('Présences - ', '').replace('Disponibilités - ', '');
-                            addPrefCheckbox(type, label, null, prefs[type] === 1);
-                        });
-                    }
-                })
-                .catch(() => {
-                    loading.classList.add('hidden');
-                    errorEl.classList.remove('hidden');
-                });
+  function closeModal() { modal.classList.add('hidden'); }
+  document.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', closeModal));
+
+  document.querySelectorAll('.edit-preferences-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const playerId = this.getAttribute('data-player-id');
+      const playerName = this.getAttribute('data-player-name');
+
+      playerNameSpan.textContent = playerName;
+      playerIdInput.value = playerId;
+
+      modal.classList.remove('hidden');
+      loading.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+      form.classList.add('hidden');
+
+      fetch(`{{ url('admin/saisons/' ~ saison.id ~ '/joueurs/') }}${playerId}/email-preferences`)
+        .then(res => res.json())
+        .then(data => {
+          loading.classList.add('hidden');
+          if (!data.success) { errorBox.classList.remove('hidden'); return; }
+
+          checkboxesContainer.innerHTML = '';
+          data.preferences.forEach(pref => {
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 border border-slate-100 cursor-pointer text-xs font-semibold text-slate-800 transition';
+            label.innerHTML = `
+              <input type="checkbox" name="preferences[${pref.key}]" value="1" ${pref.is_subscribed ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30">
+              <span>${pref.label}</span>
+            `;
+            checkboxesContainer.appendChild(label);
+          });
+          form.classList.remove('hidden');
+        })
+        .catch(err => {
+          loading.classList.add('hidden');
+          errorBox.classList.remove('hidden');
         });
     });
+  });
 
-    function addPrefCheckbox(key, label, description, isChecked) {
-        const item = document.createElement('label');
-        item.className = 'flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer';
-        
-        let descHtml = '';
-        if (description) {
-            descHtml = `<span class="block text-slate-500 text-xs mt-0.5">${description}</span>`;
-        }
-        
-        item.innerHTML = `
-            <input type="checkbox" data-key="${key}" value="1" ${isChecked ? 'checked' : ''}
-                   class="mt-1 rounded border-slate-300 text-usm-brown focus:ring-usm-brown/20 focus:ring-2">
-            <div>
-                <span class="block font-bold text-slate-900 text-sm">${label}</span>
-                ${descHtml}
-            </div>
-        `;
-        
-        const checkbox = item.querySelector('input');
-        checkbox.addEventListener('change', function() {
-            const isSubscribed = this.checked ? 1 : 0;
-            
-            fetch('/api/member-email-preferences/update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    player_id: currentPlayerId,
-                    pref_key: key,
-                    is_subscribed: isSubscribed
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.ok) {
-                    alert('Erreur lors de la sauvegarde : ' + data.message);
-                    this.checked = !this.checked;
-                } else {
-                    showAutosaveFeedback(checkbox);
-                }
-            })
-            .catch(() => {
-                alert('Erreur réseau lors de la sauvegarde.');
-                this.checked = !this.checked;
-            });
-        });
-        
-        list.appendChild(item);
-    }
-
-    function showAutosaveFeedback(el) {
-        const parent = el.closest('label');
-        const originalBg = parent.style.backgroundColor;
-        parent.style.backgroundColor = '#ecfdf5'; // flash vert
-        setTimeout(() => {
-            parent.style.backgroundColor = originalBg;
-        }, 550);
-    }
-
-    // Fermer la modale
-    document.querySelectorAll('.modal-close').forEach(el => {
-        el.addEventListener('click', function() {
-            modal.classList.add('hidden');
-        });
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener('click', function() {
+      const cbs = checkboxesContainer.querySelectorAll('input[type="checkbox"]');
+      const allChecked = Array.from(cbs).every(cb => cb.checked);
+      cbs.forEach(cb => cb.checked = !allChecked);
     });
+  }
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const playerId = playerIdInput.value;
+      const formData = new FormData(form);
+
+      const submitBtn = document.getElementById('pref-modal-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enregistrement...';
+
+      fetch(`{{ url('admin/saisons/' ~ saison.id ~ '/joueurs/') }}${playerId}/email-preferences`, {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enregistrer';
+        if (data.success) { closeModal(); } else { alert(data.error || 'Erreur lors de la sauvegarde'); }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enregistrer';
+        alert('Erreur de connexion');
+      });
+    });
+  }
 });
 </script>
 {% endblock %}

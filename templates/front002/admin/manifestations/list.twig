@@ -1,28 +1,36 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}Manifestations{% endblock %}
 
 {% block content %}
+
+{# ── En-tête de page ── #}
 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
   <div>
-    <h1 class="text-3xl font-black">Manifestations (Agenda Externe)</h1>
-    <p class="text-sm text-gray-600 mt-1">Gérez l'ensemble des événements (matchs, entraînements, tournois, vie du club) enregistrés dans l'agenda.</p>
+    <h1 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900">Manifestations</h1>
+    <p class="text-xs text-slate-500 font-medium mt-1">Agenda externe : matchs, entraînements, tournois et événements du club.</p>
   </div>
-  <div class="flex flex-col sm:flex-row gap-3">
-    <a href="{{ url('admin/manifestations/generator') }}" class="inline-block border-4 border-black bg-amber-100 text-black font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all text-center">
-      📅 Planifier en série
+  <div class="flex flex-wrap gap-2.5">
+    <a href="{{ url('admin/manifestations/generator') }}"
+       class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2.5 rounded-xl transition text-xs shadow-sm">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+      Planifier en série
     </a>
-    <a href="{{ url('admin/manifestations/create') }}" class="inline-block border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all text-center">
-      + Ajouter une manifestation
+    <a href="{{ url('admin/manifestations/create') }}"
+       class="inline-flex items-center gap-2 bg-[#94674d] hover:bg-[#7a5540] text-white font-bold px-4 py-2.5 rounded-xl transition text-xs shadow-sm">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+      Ajouter une manifestation
     </a>
   </div>
 </div>
 
-{# Barre de filtrage #}
-<div class="border-4 border-black bg-amber-50 p-4 mb-6 shadow-[4px_4px_0_#000]">
+{# ── Barre de filtrage ── #}
+<div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-4 mb-6">
   <form method="GET" class="grid sm:grid-cols-3 gap-4 items-end">
     <div>
-      <label for="type" class="block text-xs font-black uppercase mb-1">Filtrer par type</label>
-      <select id="type" name="type" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+      <label for="type" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Type</label>
+      <select id="type" name="type" onchange="this.form.submit()"
+              class="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
         <option value="">-- Tous les types --</option>
         {% for type in types %}
           <option value="{{ type }}" {{ filters.type == type ? 'selected' : '' }}>{{ type }}</option>
@@ -31,8 +39,9 @@
     </div>
 
     <div>
-      <label for="lieu" class="block text-xs font-black uppercase mb-1">Filtrer par lieu</label>
-      <select id="lieu" name="lieu" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+      <label for="lieu" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Lieu</label>
+      <select id="lieu" name="lieu" onchange="this.form.submit()"
+              class="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
         <option value="">-- Tous les lieux --</option>
         {% for loc in locations %}
           <option value="{{ loc }}" {{ filters.lieu == loc ? 'selected' : '' }}>{{ loc }}</option>
@@ -40,26 +49,22 @@
       </select>
     </div>
 
-    <div class="flex gap-2">
+    <div class="flex gap-2 items-end">
       <div class="flex-1">
-        <label for="statut" class="block text-xs font-black uppercase mb-1">Filtrer par statut</label>
-        <select id="statut" name="statut" class="w-full border-2 border-black p-2 font-semibold bg-white focus:outline-none">
+        <label for="statut" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Statut</label>
+        <select id="statut" name="statut" onchange="this.form.submit()"
+                class="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
           <option value="">-- Tous les statuts --</option>
           {% for status in statuses %}
             <option value="{{ status }}" {{ filters.statut == status ? 'selected' : '' }}>{{ status }}</option>
           {% endfor %}
         </select>
       </div>
-      <div class="flex gap-1">
-        <button type="submit" class="border-2 border-black bg-black text-white px-4 py-2 font-bold hover:bg-gray-800 transition">
-          Filtrer
-        </button>
-        {% if filters.type or filters.lieu or filters.statut %}
-          <a href="{{ url('admin/manifestations') }}" class="border-2 border-black bg-white px-4 py-2 font-bold text-center hover:bg-gray-100 transition">
-            &times;
-          </a>
-        {% endif %}
-      </div>
+      {% if filters.type or filters.lieu or filters.statut %}
+        <a href="{{ url('admin/manifestations') }}" class="flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-700 transition pb-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </a>
+      {% endif %}
     </div>
   </form>
 </div>
@@ -69,135 +74,133 @@
 <form id="bulk-delete-form" method="POST" action="{{ url('admin/manifestations/delete-bulk') }}">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-  {# Barre d'action groupée #}
-  <div class="border-4 border-black bg-white p-3 mb-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <label class="flex items-center gap-2 font-black text-sm cursor-pointer select-none">
-        <input type="checkbox" id="select-all-manifestations" class="w-5 h-5 cursor-pointer accent-black" />
-        <span>Tout sélectionner</span>
-      </label>
-      <span id="selected-count-badge" class="hidden text-xs font-bold bg-amber-200 border border-black px-2 py-0.5 rounded-full">
-        0 sélectionnée(s)
-      </span>
-    </div>
-    <div>
-      <button type="submit" id="btn-bulk-delete" disabled class="border-2 border-red-600 bg-red-50 text-red-600 px-4 py-1.5 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 hover:text-white transition cursor-pointer">
-        🗑️ Supprimer la sélection (<span id="bulk-delete-count">0</span>)
-      </button>
-    </div>
+  {# ── Barre d'action groupée ── #}
+  <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+      <input type="checkbox" id="select-all-manifestations" class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
+      <span class="text-sm font-semibold text-slate-700">Tout sélectionner</span>
+      <span id="selected-count-badge" class="hidden text-xs font-bold bg-[#94674d]/10 text-[#94674d] px-2.5 py-0.5 rounded-full">0 sélectionnée(s)</span>
+    </label>
+    <button type="submit" id="btn-bulk-delete" disabled
+            class="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 px-3 py-1.5 text-xs font-bold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      Supprimer la sélection (<span id="bulk-delete-count">0</span>)
+    </button>
   </div>
 
-  {# Mobile #}
+  {# ── Mobile : cartes ── #}
   <div class="sm:hidden space-y-3">
-    {% for m in manifestations %}
-    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000] space-y-2">
+    {% for m_item in manifestations %}
+    <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-4 space-y-2">
       <div class="flex justify-between items-start gap-2">
         <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" name="ids[]" value="{{ m.id_manifestation }}" class="manifestation-checkbox w-5 h-5 cursor-pointer accent-black" />
-          <span class="text-xs font-black uppercase px-2 py-0.5 bg-gray-100 border border-gray-300 font-mono">{{ m.ManifestationTypée }}</span>
+          <input type="checkbox" name="ids[]" value="{{ m_item.id_manifestation }}" class="manifestation-checkbox w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
+          <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{{ m_item.ManifestationTypée }}</span>
         </label>
-        {% if m.Statut == 'Confirmé' %}
-          <span class="text-xs font-black text-green-700 bg-green-100 border border-green-400 px-2 py-0.5 rounded">Confirmé</span>
-        {% elseif m.Statut == 'Annulé' %}
-          <span class="text-xs font-black text-red-700 bg-red-100 border border-red-400 px-2 py-0.5 rounded">Annulé</span>
+        {% if m_item.Statut == 'Confirmé' %}
+          <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Confirmé</span>
+        {% elseif m_item.Statut == 'Annulé' %}
+          <span class="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">Annulé</span>
         {% else %}
-          <span class="text-xs font-black text-amber-700 bg-amber-100 border border-amber-400 px-2 py-0.5 rounded">{{ m.Statut }}</span>
+          <span class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">{{ m_item.Statut }}</span>
         {% endif %}
       </div>
-      
-      <div class="font-black text-base">{{ m.Date|date('d/m/Y H:i') }} ({{ m.Durée_créneau }})</div>
-      <div class="text-sm text-gray-700">📍 {{ m.Lieu }}</div>
-      <div class="text-xs text-gray-500">Terrains: {{ m.Nombre_terrain }}</div>
-      {% if m.Commentaire %}
-        <div class="text-xs bg-gray-50 border-l-2 border-usm-brown p-2 italic text-gray-600">{{ m.Commentaire }}</div>
+
+      <div class="font-bold text-base text-slate-900 ml-6">{{ m_item.Date|date('d/m/Y H:i') }} <span class="text-xs text-slate-400 font-mono">({{ m_item.Durée_créneau }})</span></div>
+      <div class="text-xs text-slate-500 font-medium ml-6">📍 {{ m_item.Lieu }} · Terrains : {{ m_item.Nombre_terrain }}</div>
+      {% if m_item.Commentaire %}
+        <div class="text-xs bg-slate-50 border-l-2 border-[#94674d] p-2 rounded-r-xl italic text-slate-600 ml-6">{{ m_item.Commentaire }}</div>
       {% endif %}
 
-      <div class="flex gap-2 pt-2">
-        <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-        <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="border-2 border-red-600 text-red-600 px-3 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-        </form>
+      <div class="flex gap-2 pt-2 justify-end">
+        {{ m.action_buttons(
+          url('admin/manifestations/' ~ m_item.id_manifestation ~ '/edit'),
+          url('admin/manifestations/' ~ m_item.id_manifestation ~ '/delete'),
+          'Supprimer cette manifestation ?',
+          csrf_token
+        ) }}
       </div>
     </div>
     {% endfor %}
   </div>
 
-  {# Desktop #}
-  <div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  {# ── Desktop : tableau ── #}
+  <div class="hidden sm:block bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
     <table class="w-full text-sm">
-      <thead class="bg-black text-white">
+      <thead class="bg-slate-800 text-white">
         <tr>
-          <th class="w-10 px-4 py-3 text-center">
-            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 cursor-pointer accent-white" />
+          <th class="w-10 px-5 py-3.5 text-center">
+            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 rounded border-slate-600 bg-slate-700" />
           </th>
-          <th class="text-left px-4 py-3 font-black">Type</th>
-          <th class="text-left px-4 py-3 font-black">Date</th>
-          <th class="text-left px-4 py-3 font-black">Lieu</th>
-          <th class="text-left px-4 py-3 font-black">Terrains</th>
-          <th class="text-left px-4 py-3 font-black">Statut</th>
-          <th class="px-4 py-3"></th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Type</th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Date</th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Lieu</th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Terrains</th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Statut</th>
+          <th class="px-5 py-3.5 text-right"></th>
         </tr>
       </thead>
-      <tbody>
-        {% for m in manifestations %}
-        <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-          <td class="px-4 py-3 text-center">
-            <input type="checkbox" name="ids[]" value="{{ m.id_manifestation }}" class="manifestation-checkbox w-4 h-4 cursor-pointer accent-black" />
+      <tbody class="divide-y divide-slate-50">
+        {% for m_item in manifestations %}
+        <tr class="hover:bg-slate-50/70 transition duration-100">
+          <td class="px-5 py-3.5 text-center">
+            <input type="checkbox" name="ids[]" value="{{ m_item.id_manifestation }}" class="manifestation-checkbox w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
           </td>
-          <td class="px-4 py-3 font-bold text-gray-800 text-xs">{{ m.ManifestationTypée }}</td>
-          <td class="px-4 py-3">
-            <div class="font-bold">{{ m.Date|date('d/m/Y H:i') }}</div>
-            <div class="text-xs text-gray-500 font-semibold font-mono">{{ m.Durée_créneau }}</div>
+          <td class="px-5 py-3.5 font-bold text-slate-700 text-xs">
+            <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-mono">{{ m_item.ManifestationTypée }}</span>
           </td>
-          <td class="px-4 py-3 font-semibold text-gray-700 text-xs">{{ m.Lieu }}</td>
-          <td class="px-4 py-3 font-bold text-gray-600">{{ m.Nombre_terrain }}</td>
-          <td class="px-4 py-3">
-            {% if m.Statut == 'Confirmé' %}
-              <span class="inline-block text-xs font-bold bg-green-100 border border-green-400 text-green-700 px-2 py-0.5 rounded">Confirmé</span>
-            {% elseif m.Statut == 'Annulé' %}
-              <span class="inline-block text-xs font-bold bg-red-100 border border-red-400 text-red-700 px-2 py-0.5 rounded">Annulé</span>
+          <td class="px-5 py-3.5">
+            <div class="font-semibold text-slate-900">{{ m_item.Date|date('d/m/Y H:i') }}</div>
+            <div class="text-[10px] text-slate-400 font-mono font-medium">{{ m_item.Durée_créneau }}</div>
+          </td>
+          <td class="px-5 py-3.5 font-medium text-slate-600 text-xs">{{ m_item.Lieu }}</td>
+          <td class="px-5 py-3.5 font-semibold text-slate-700 text-xs">{{ m_item.Nombre_terrain }}</td>
+          <td class="px-5 py-3.5">
+            {% if m_item.Statut == 'Confirmé' %}
+              <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold rounded-full">Confirmé</span>
+            {% elseif m_item.Statut == 'Annulé' %}
+              <span class="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 text-xs font-bold rounded-full">Annulé</span>
             {% else %}
-              <span class="inline-block text-xs font-bold bg-amber-100 border border-amber-400 text-amber-700 px-2 py-0.5 rounded">{{ m.Statut }}</span>
+              <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 text-xs font-bold rounded-full">{{ m_item.Statut }}</span>
             {% endif %}
           </td>
-          <td class="px-4 py-3 flex gap-2 justify-end">
-            <a href="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-            <form method="POST" action="{{ url('admin/manifestations/' ~ m.id_manifestation ~ '/delete') }}" data-confirm="Supprimer cette manifestation ainsi que toutes les participations associées ?">
-              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-            </form>
+          <td class="px-5 py-3.5 text-right">
+            {{ m.action_buttons(
+              url('admin/manifestations/' ~ m_item.id_manifestation ~ '/edit'),
+              url('admin/manifestations/' ~ m_item.id_manifestation ~ '/delete'),
+              'Supprimer cette manifestation ?',
+              csrf_token
+            ) }}
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
 </form>
 
 {# Pagination #}
 {% if pagesCount > 1 %}
-<div class="flex items-center justify-center gap-4 mt-8">
+<div class="flex items-center justify-center gap-3 mt-6 text-sm font-semibold">
   {% if currentPage > 1 %}
-    <a href="?page={{ currentPage - 1 }}{{ filters.type ? '&type=' ~ filters.type : '' }}{{ filters.lieu ? '&lieu=' ~ filters.lieu : '' }}{{ filters.statut ? '&statut=' ~ filters.statut : '' }}" class="border-2 border-black bg-white px-3 py-1 font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
-      &larr; Précédent
+    <a href="?page={{ currentPage - 1 }}{{ filters.type ? '&type=' ~ filters.type : '' }}{{ filters.lieu ? '&lieu=' ~ filters.lieu : '' }}{{ filters.statut ? '&statut=' ~ filters.statut : '' }}" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-1.5 rounded-xl transition shadow-sm">
+      ← Précédent
     </a>
   {% else %}
-    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 font-bold cursor-not-allowed">
-      &larr; Précédent
+    <span class="bg-slate-50 border border-slate-100 text-slate-300 px-3.5 py-1.5 rounded-xl cursor-not-allowed">
+      ← Précédent
     </span>
   {% endif %}
 
-  <span class="font-black text-sm">Page {{ currentPage }} sur {{ pagesCount }} ({{ total }} manifestations)</span>
+  <span class="text-xs text-slate-500 font-bold px-2">Page {{ currentPage }} sur {{ pagesCount }} ({{ total }} manifestations)</span>
 
   {% if currentPage < pagesCount %}
-    <a href="?page={{ currentPage + 1 }}{{ filters.type ? '&type=' ~ filters.type : '' }}{{ filters.lieu ? '&lieu=' ~ filters.lieu : '' }}{{ filters.statut ? '&statut=' ~ filters.statut : '' }}" class="border-2 border-black bg-white px-3 py-1 font-bold shadow-[2px_2px_0_#000] hover:bg-amber-100 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[1px_1px_0_#000] transition-all">
-      Suivant &rarr;
+    <a href="?page={{ currentPage + 1 }}{{ filters.type ? '&type=' ~ filters.type : '' }}{{ filters.lieu ? '&lieu=' ~ filters.lieu : '' }}{{ filters.statut ? '&statut=' ~ filters.statut : '' }}" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3.5 py-1.5 rounded-xl transition shadow-sm">
+      Suivant →
     </a>
   {% else %}
-    <span class="border-2 border-gray-200 bg-gray-50 text-gray-400 px-3 py-1 font-bold cursor-not-allowed">
-      Suivant &rarr;
+    <span class="bg-slate-50 border border-slate-100 text-slate-300 px-3.5 py-1.5 rounded-xl cursor-not-allowed">
+      Suivant →
     </span>
   {% endif %}
 </div>
@@ -217,66 +220,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const checked = document.querySelectorAll('.manifestation-checkbox:checked');
     const count = checked.length;
     const total = checkboxes.length;
-
     if (bulkDeleteCount) bulkDeleteCount.textContent = count;
-
     if (selectedBadge) {
-      if (count > 0) {
-        selectedBadge.textContent = count + ' sélectionnée(s)';
-        selectedBadge.classList.remove('hidden');
-      } else {
-        selectedBadge.classList.add('hidden');
-      }
+      selectedBadge.textContent = count + ' sélectionnée(s)';
+      selectedBadge.classList.toggle('hidden', count === 0);
     }
-
-    if (btnBulkDelete) {
-      btnBulkDelete.disabled = (count === 0);
-    }
-
+    if (btnBulkDelete) btnBulkDelete.disabled = (count === 0);
     const allChecked = total > 0 && count === total;
     if (selectAllGlobal) selectAllGlobal.checked = allChecked;
     if (selectAllDesktop) selectAllDesktop.checked = allChecked;
   }
 
-  function toggleAll(checked) {
-    checkboxes.forEach(cb => { cb.checked = checked; });
-    updateState();
-  }
+  function toggleAll(checked) { checkboxes.forEach(cb => { cb.checked = checked; }); updateState(); }
 
-  if (selectAllGlobal) {
-    selectAllGlobal.addEventListener('change', function() { toggleAll(this.checked); });
-  }
-  if (selectAllDesktop) {
-    selectAllDesktop.addEventListener('change', function() { toggleAll(this.checked); });
-  }
-
-  checkboxes.forEach(cb => {
-    cb.addEventListener('change', updateState);
-  });
+  if (selectAllGlobal) selectAllGlobal.addEventListener('change', function() { toggleAll(this.checked); });
+  if (selectAllDesktop) selectAllDesktop.addEventListener('change', function() { toggleAll(this.checked); });
+  checkboxes.forEach(cb => cb.addEventListener('change', updateState));
 
   if (form) {
     form.addEventListener('submit', function(e) {
       const count = document.querySelectorAll('.manifestation-checkbox:checked').length;
-      if (count === 0) {
-        e.preventDefault();
-        alert('Veuillez sélectionner au moins une manifestation à supprimer.');
-        return;
-      }
-      const confirmed = confirm('Êtes-vous sûr de vouloir supprimer définitivement les ' + count + ' manifestation(s) sélectionnée(s) ainsi que toutes leurs participations associées ?');
-      if (!confirmed) {
-        e.preventDefault();
-      }
+      if (count === 0) { e.preventDefault(); return; }
+      if (!confirm('Supprimer les ' + count + ' manifestation(s) sélectionnée(s) ?')) { e.preventDefault(); }
     });
   }
-
   updateState();
 });
 </script>
 
 {% else %}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">
-    <p class="text-gray-500 italic mb-4">Aucune manifestation trouvée.</p>
-  </div>
+  {{ m.empty_state('Aucune manifestation trouvée.') }}
 {% endif %}
 
 {% endblock %}

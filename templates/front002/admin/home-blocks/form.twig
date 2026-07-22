@@ -1,100 +1,94 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}{{ block ? 'Éditer' : 'Nouveau' }} bloc{% endblock %}
 
 {% block content %}
-<div class="flex items-center gap-4 mb-6">
-  <a href="{{ url('admin/home-blocks') }}" class="font-bold hover:underline text-sm">← Retour</a>
-  <h1 class="text-3xl font-black">{{ block ? 'Éditer le bloc' : 'Nouveau bloc' }}</h1>
+
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="relative">
+    <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+      <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <a href="{{ url('admin/home-blocks') }}" class="hover:text-white transition">Blocs d'accueil</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <span class="text-slate-200">{{ block ? 'Éditer' : 'Nouveau bloc' }}</span>
+    </nav>
+    <h1 class="text-2xl font-black tracking-tight">
+      {{ block ? 'Éditer le bloc' : 'Nouveau bloc d\'accueil' }}
+    </h1>
+  </div>
 </div>
 
-{% if error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold text-sm">{{ error }}</div>
-{% endif %}
+{{ m.form_error(error) }}
 
 <form method="POST" action="{{ action }}" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
+
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+    <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Contenu du bloc</h2>
+
+    {{ m.field_input('titre', 'titre', 'Titre', block.titre ?? '', 'text', true, 'Mon titre de bloc...') }}
 
     <div>
-      <label class="block font-black mb-1" for="titre">Titre *</label>
-      <input type="text" id="titre" name="titre" required
-             value="{{ block.titre ?? '' }}"
-             class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-    </div>
-
-    <div>
-      <label class="block font-black mb-1" for="contenu">Contenu</label>
+      <label class="block text-sm font-bold text-slate-700 mb-1.5" for="contenu">Contenu</label>
       <textarea id="contenu" name="contenu">{{ block.contenu ?? '' }}</textarea>
     </div>
 
-    <div class="grid sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-black mb-1" for="cta_label">Libellé du bouton</label>
-        <input type="text" id="cta_label" name="cta_label"
-               value="{{ block.cta_label ?? '' }}"
-               placeholder="ex: Découvrir"
-               class="w-full border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-      </div>
-      <div>
-        <label class="block font-black mb-1" for="cta_url">Lien du bouton</label>
-        <input type="text" id="cta_url" name="cta_url"
-               value="{{ block.cta_url ?? '' }}"
-               placeholder="ex: /equipes ou https://..."
-               class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown">
-      </div>
+    <div class="grid sm:grid-cols-2 gap-6">
+      {{ m.field_input('cta_label', 'cta_label', 'Libellé du bouton (CTA)', block.cta_label ?? '', 'text', false, 'ex: Découvrir') }}
+      {{ m.field_input('cta_url', 'cta_url', 'Lien du bouton', block.cta_url ?? '', 'text', false, 'ex: /equipes') }}
     </div>
 
-    <div class="flex flex-wrap gap-6 items-start">
+    <div class="flex flex-wrap gap-6 items-end pt-2 border-t border-slate-50">
       <div>
-        <label class="block font-black mb-1" for="position">Position</label>
-        <input type="number" id="position" name="position" step="1"
-               value="{{ block.position ?? 0 }}"
-               class="w-32 border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
-        <div class="text-xs text-gray-500 mt-1">Plus petit = affiché en premier</div>
+        {{ m.field_input('position', 'position', 'Position', block.position ?? 0, 'number') }}
+        <p class="text-xs text-slate-400 font-medium mt-1">Plus petit = affiché en premier</p>
       </div>
-      <div class="flex items-center gap-3 pt-7">
-        <input type="checkbox" id="is_active" name="is_active" value="1"
-               {% if block is null or block.is_active %}checked{% endif %}
-               class="w-5 h-5 border-2 border-black">
-        <label class="font-black" for="is_active">Actif</label>
+      <div class="pb-1">
+        {{ m.field_checkbox('is_active', 'is_active', 'Actif sur l\'accueil', block is null or block.is_active, '1') }}
       </div>
     </div>
   </div>
 
   {# ── Image (Dropzone, single) ── #}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000]">
-    <h2 class="font-black text-lg mb-4">Image d'illustration</h2>
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8">
+    <h2 class="font-bold text-base text-slate-800 mb-4">Image d'illustration</h2>
 
     <input type="hidden" id="photo_id" name="photo_id" value="{{ block.cover_photo.id ?? '' }}">
 
     <div id="image-preview" class="mb-4 {% if not block or not block.cover_photo %}hidden{% endif %}">
-      <div class="relative inline-block border-2 border-black">
+      <div class="relative inline-block rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
         <img id="image-thumb"
              src="{% if block and block.cover_photo %}{{ asset('uploads/' ~ block.cover_photo.filename) }}{% endif %}"
              alt="" class="block max-w-xs h-40 object-cover">
         <button type="button" id="image-clear"
-                class="absolute top-1 right-1 bg-black/80 text-white text-xs font-black px-2 py-1 hover:bg-red-600">
+                class="absolute top-2 right-2 bg-slate-900/80 hover:bg-rose-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg transition backdrop-blur-sm">
           ✕ Retirer
         </button>
       </div>
     </div>
 
     <div id="image-dropzone"
-         class="dropzone border-4 border-dashed border-black bg-amber-50 cursor-pointer
-                min-h-[120px] flex items-center justify-center
-                hover:bg-amber-100 transition-colors">
-      <div class="dz-message text-center text-gray-600 font-semibold pointer-events-none">
-        <div class="text-3xl mb-1">🖼️</div>
-        <div class="font-black">Glissez une image ici</div>
-        <div class="text-xs text-gray-400 mt-1">JPG · PNG · WebP — max 10 Mo</div>
+         class="dropzone border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-2xl cursor-pointer
+                min-h-[130px] flex items-center justify-center
+                hover:bg-slate-100/50 hover:border-[#94674d]/40 transition duration-150">
+      <div class="dz-message text-center text-slate-500 font-semibold pointer-events-none p-4">
+        <svg class="w-8 h-8 mx-auto mb-2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        <div class="text-sm font-bold text-slate-700">Glissez une image ici ou cliquez pour choisir</div>
+        <div class="text-xs text-slate-400 font-normal mt-1">JPG · PNG · WebP — max 10 Mo</div>
       </div>
     </div>
   </div>
 
-  <button type="submit"
-          class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    Enregistrer
-  </button>
+  <div class="flex items-center gap-3 pt-2">
+    {{ m.btn_submit('Enregistrer') }}
+    <a href="{{ url('admin/home-blocks') }}"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      Annuler
+    </a>
+  </div>
 </form>
 {% endblock %}
 
@@ -106,7 +100,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
 <script>
-  // ── Summernote ──────────────────────────────────────────────────────────────
   $('#contenu').summernote({
     height: 220,
     lang: 'fr-FR',
@@ -123,7 +116,6 @@
     document.getElementById('contenu').value = $('#contenu').summernote('code');
   });
 
-  // ── Dropzone image unique ───────────────────────────────────────────────────
   Dropzone.autoDiscover = false;
   const imgInput   = document.getElementById('photo_id');
   const previewBox = document.getElementById('image-preview');
