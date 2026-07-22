@@ -3,9 +3,21 @@
 {% block title %}{{ categorie ? 'Éditer : ' ~ categorie.nom : 'Nouvelle catégorie' }}{% endblock %}
 
 {% block content %}
-<div class="flex items-center gap-4 mb-6">
-  <a href="{{ url('admin/categories-equipes') }}" class="font-bold hover:underline text-sm">← Catégories</a>
-  <h1 class="text-3xl font-black">{{ categorie ? 'Éditer la catégorie' : 'Nouvelle catégorie' }}</h1>
+
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="relative">
+    <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+      <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <a href="{{ url('admin/categories-equipes') }}" class="hover:text-white transition">Catégories d'équipes</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <span class="text-slate-200">{{ categorie ? 'Éditer' : 'Nouvelle catégorie' }}</span>
+    </nav>
+    <h1 class="text-2xl font-black tracking-tight">
+      {{ categorie ? 'Éditer la catégorie' : 'Nouvelle catégorie' }}
+    </h1>
+  </div>
 </div>
 
 {{ m.form_error(error ?? null) }}
@@ -13,37 +25,28 @@
 <form method="POST" action="{{ action }}" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
-
-    <div class="grid grid-cols-2 gap-4 mb-4">
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div>
-        <label class="block font-black mb-1 text-sm" for="nom">Nom *</label>
-        <input id="nom" name="nom" type="text" required
-               value="{{ categorie.nom ?? '' }}"
-               class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-               placeholder="Compétition">
-        <p class="text-xs text-gray-500 mt-1">Doit correspondre exactement au champ Catégorie des équipes.</p>
+        {{ m.field_input('nom', 'nom', 'Nom de la catégorie', categorie.nom ?? '', 'text', true, 'Compétition') }}
+        <p class="text-xs text-slate-400 font-medium mt-1">Doit correspondre exactement au champ Catégorie des équipes.</p>
       </div>
       <div>
-        <label class="block font-black mb-1 text-sm" for="ordre">Ordre d'affichage</label>
-        <input id="ordre" name="ordre" type="number" min="0"
-               value="{{ categorie.ordre ?? 0 }}"
-               class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+        {{ m.field_input('ordre', 'ordre', 'Ordre d\'affichage', categorie.ordre ?? 0, 'number') }}
       </div>
     </div>
-
 
     <div>
-      <label class="block font-black mb-1 text-sm" for="description">Description</label>
+      <label class="block text-sm font-bold text-slate-700 mb-1.5" for="description">Description</label>
       <textarea id="description" name="description">{{ categorie.description ?? '' }}</textarea>
     </div>
-
   </div>
 
-  <div class="flex gap-3">
-    {{ m.btn_submit(categorie ? 'Mettre à jour' : 'Créer') }}
+  <div class="flex items-center gap-3 pt-2">
+    {{ m.btn_submit(categorie ? 'Mettre à jour' : 'Enregistrer') }}
     <a href="{{ url('admin/categories-equipes') }}"
-       class="border-4 border-black bg-white text-black font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
       Annuler
     </a>
   </div>

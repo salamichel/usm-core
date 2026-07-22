@@ -1,86 +1,83 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}Tags{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-  <h1 class="text-3xl font-black">Tags</h1>
-  <a href="{{ url('admin/tags/create') }}" class="border-4 border-black bg-usm-brown text-white font-black px-4 py-2 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-    + Nouveau Tag
-  </a>
-</div>
+
+{# ── En-tête de page ── #}
+{{ m.page_header('Tags', url('admin/tags/create'), '+ Nouveau tag') }}
 
 {% if tags|length %}
 
 <form id="bulk-delete-form" method="POST" action="{{ url('admin/tags/delete-bulk') }}">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-  <div class="border-4 border-black bg-white p-3 mb-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <label class="flex items-center gap-2 font-black text-sm cursor-pointer select-none">
-        <input type="checkbox" id="select-all-tags" class="w-5 h-5 cursor-pointer accent-black" />
-        <span>Tout sélectionner</span>
-      </label>
-      <span id="selected-count-badge" class="hidden text-xs font-bold bg-amber-200 border border-black px-2 py-0.5 rounded-full">
-        0 sélectionné(s)
-      </span>
-    </div>
-    <div>
-      <button type="submit" id="btn-bulk-delete" disabled class="border-2 border-red-600 bg-red-50 text-red-600 px-4 py-1.5 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 hover:text-white transition cursor-pointer">
-        🗑️ Supprimer la sélection (<span id="bulk-delete-count">0</span>)
-      </button>
-    </div>
+  {# ── Barre de suppression en masse ── #}
+  <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+    <label class="flex items-center gap-2.5 cursor-pointer select-none">
+      <input type="checkbox" id="select-all-tags" class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
+      <span class="text-sm font-semibold text-slate-700">Tout sélectionner</span>
+      <span id="selected-count-badge" class="hidden text-xs font-bold bg-[#94674d]/10 text-[#94674d] px-2.5 py-0.5 rounded-full">0 sélectionné(s)</span>
+    </label>
+    <button type="submit" id="btn-bulk-delete" disabled
+            class="inline-flex items-center gap-1.5 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 px-3 py-1.5 text-xs font-bold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+      Supprimer la sélection (<span id="bulk-delete-count">0</span>)
+    </button>
   </div>
 
-  {# Mobile #}
+  {# ── Mobile : cartes ── #}
   <div class="sm:hidden space-y-3">
     {% for tag in tags %}
-    <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0_#000]">
-      <div class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="ids[]" value="{{ tag.id }}" class="item-checkbox w-5 h-5 cursor-pointer accent-black" />
-        <div class="font-black text-base">{{ tag.name }}</div>
+    <div class="bg-white border border-slate-100 rounded-2xl shadow-sm p-4">
+      <div class="flex items-center gap-2.5 mb-1.5">
+        <input type="checkbox" name="ids[]" value="{{ tag.id }}" class="item-checkbox w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
+        <span class="font-bold text-base text-slate-900">{{ tag.name }}</span>
       </div>
-      <div class="text-xs text-gray-500 font-mono mb-3">{{ tag.slug }}</div>
-      <div class="text-sm text-gray-600 mb-3">{{ tag.post_count }} article(s)</div>
+      <div class="text-xs text-slate-400 font-mono mb-2 ml-6 font-medium">{{ tag.slug }}</div>
+      <div class="text-xs font-semibold text-slate-500 mb-3 ml-6">{{ tag.post_count }} article(s)</div>
       <div class="flex flex-wrap gap-2">
-        <a href="{{ url('admin/tags/' ~ tag.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-        <form method="POST" action="{{ url('admin/tags/' ~ tag.id ~ '/delete') }}" data-confirm="Supprimer ce tag ?">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-        </form>
+        {{ m.action_buttons(
+          url('admin/tags/' ~ tag.id ~ '/edit'),
+          url('admin/tags/' ~ tag.id ~ '/delete'),
+          'Supprimer ce tag ?',
+          csrf_token
+        ) }}
       </div>
     </div>
     {% endfor %}
   </div>
 
-  {# Desktop #}
-  <div class="hidden sm:block border-4 border-black bg-white shadow-[6px_6px_0_#000] overflow-hidden">
+  {# ── Desktop : tableau ── #}
+  <div class="hidden sm:block bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
     <table class="w-full text-sm">
-      <thead class="bg-black text-white">
+      <thead class="bg-slate-800 text-white">
         <tr>
-          <th class="w-10 px-4 py-3 text-center">
-            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 cursor-pointer accent-white" />
+          <th class="w-10 px-5 py-3.5 text-center">
+            <input type="checkbox" id="select-all-desktop" class="w-4 h-4 rounded border-slate-600 bg-slate-700" />
           </th>
-          <th class="text-left px-4 py-3 font-black">Nom</th>
-          <th class="text-left px-4 py-3 font-black">Slug</th>
-          <th class="text-left px-4 py-3 font-black">Articles</th>
-          <th class="px-4 py-3"></th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Nom</th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Slug</th>
+          <th class="text-left px-5 py-3.5 font-bold text-xs uppercase tracking-wider">Articles</th>
+          <th class="px-5 py-3.5 text-right"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-slate-50">
         {% for tag in tags %}
-        <tr class="border-t-2 border-gray-200 hover:bg-amber-50">
-          <td class="px-4 py-3 text-center">
-            <input type="checkbox" name="ids[]" value="{{ tag.id }}" class="item-checkbox w-4 h-4 cursor-pointer accent-black" />
+        <tr class="hover:bg-slate-50/70 transition duration-100">
+          <td class="px-5 py-3.5 text-center">
+            <input type="checkbox" name="ids[]" value="{{ tag.id }}" class="item-checkbox w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
           </td>
-          <td class="px-4 py-3 font-semibold">{{ tag.name }}</td>
-          <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ tag.slug }}</td>
-          <td class="px-4 py-3 text-gray-600">{{ tag.post_count }}</td>
-          <td class="px-4 py-3 flex gap-2 justify-end">
-            <a href="{{ url('admin/tags/' ~ tag.id ~ '/edit') }}" class="border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">Éditer</a>
-            <form method="POST" action="{{ url('admin/tags/' ~ tag.id ~ '/delete') }}" data-confirm="Supprimer ce tag ?">
-              <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-              <button type="submit" class="border-2 border-red-600 text-red-600 px-2 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition">Supprimer</button>
-            </form>
+          <td class="px-5 py-3.5 font-semibold text-slate-900">{{ tag.name }}</td>
+          <td class="px-5 py-3.5 text-slate-400 font-mono text-xs">{{ tag.slug }}</td>
+          <td class="px-5 py-3.5 text-slate-500 font-semibold text-xs">{{ tag.post_count }}</td>
+          <td class="px-5 py-3.5 text-right">
+            {{ m.action_buttons(
+              url('admin/tags/' ~ tag.id ~ '/edit'),
+              url('admin/tags/' ~ tag.id ~ '/delete'),
+              'Supprimer ce tag ?',
+              csrf_token
+            ) }}
           </td>
         </tr>
         {% endfor %}
@@ -103,43 +100,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const checked = document.querySelectorAll('.item-checkbox:checked');
     const count = checked.length;
     const total = checkboxes.length;
-
     if (bulkDeleteCount) bulkDeleteCount.textContent = count;
     if (selectedBadge) {
-      if (count > 0) {
-        selectedBadge.textContent = count + ' sélectionné(s)';
-        selectedBadge.classList.remove('hidden');
-      } else {
-        selectedBadge.classList.add('hidden');
-      }
+      selectedBadge.textContent = count + ' sélectionné(s)';
+      selectedBadge.classList.toggle('hidden', count === 0);
     }
     if (btnBulkDelete) btnBulkDelete.disabled = (count === 0);
-
     const allChecked = total > 0 && count === total;
     if (selectAllGlobal) selectAllGlobal.checked = allChecked;
     if (selectAllDesktop) selectAllDesktop.checked = allChecked;
   }
 
-  function toggleAll(checked) {
-    checkboxes.forEach(cb => { cb.checked = checked; });
-    updateState();
-  }
+  function toggleAll(checked) { checkboxes.forEach(cb => { cb.checked = checked; }); updateState(); }
 
   if (selectAllGlobal) selectAllGlobal.addEventListener('change', function() { toggleAll(this.checked); });
   if (selectAllDesktop) selectAllDesktop.addEventListener('change', function() { toggleAll(this.checked); });
-
   checkboxes.forEach(cb => cb.addEventListener('change', updateState));
 
   if (form) {
     form.addEventListener('submit', function(e) {
       const count = document.querySelectorAll('.item-checkbox:checked').length;
-      if (count === 0) {
-        e.preventDefault();
-        return;
-      }
-      if (!confirm('Voulez-vous vraiment supprimer les ' + count + ' élément(s) sélectionné(s) ?')) {
-        e.preventDefault();
-      }
+      if (count === 0) { e.preventDefault(); return; }
+      if (!confirm('Supprimer les ' + count + ' tag(s) sélectionné(s) ?')) { e.preventDefault(); }
     });
   }
   updateState();
@@ -147,10 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {% else %}
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] text-center">
-    <p class="text-gray-500 italic mb-4">Aucun tag créé pour le moment.</p>
-    <p class="text-sm text-gray-600">Les tags seront créés automatiquement lors de l'import d'articles CanalBlog.</p>
-  </div>
+  {{ m.empty_state('Aucun tag créé pour le moment.', url('admin/tags/create'), '+ Nouveau tag') }}
 {% endif %}
 
 {% endblock %}

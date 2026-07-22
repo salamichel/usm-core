@@ -1,50 +1,50 @@
 {% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
 {% block title %}{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}{% endblock %}
 
 {% block content %}
 
-{# ── En-tête ── #}
-<div class="flex items-center justify-between mb-6">
-  <div class="flex items-center gap-3">
-    <a href="{{ url('admin/equipes-config') }}"
-       class="border-2 border-black px-3 py-1.5 text-sm font-bold hover:bg-black hover:text-white transition">← Équipes</a>
-    <h1 class="text-3xl font-black">{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}</h1>
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+        <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+        <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        <a href="{{ url('admin/equipes-config') }}" class="hover:text-white transition">Équipes</a>
+        <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+        <span class="text-slate-200">{{ equipe ? 'Éditer' : 'Nouvelle équipe' }}</span>
+      </nav>
+      <h1 class="text-2xl font-black tracking-tight">{{ equipe ? equipe.libelle : 'Nouvelle équipe' }}</h1>
+    </div>
     {% if equipe %}
-      {% if equipe.is_active %}
-        <span class="bg-green-100 text-green-800 border-2 border-green-600 px-2 py-0.5 text-xs font-black">Active</span>
-      {% else %}
-        <span class="bg-gray-100 text-gray-500 border-2 border-gray-400 px-2 py-0.5 text-xs font-black">Inactive</span>
-      {% endif %}
+      <div>
+        {{ m.status_badge(equipe.is_active, 'Active', 'Inactive') }}
+      </div>
     {% endif %}
   </div>
 </div>
 
-{% if error is defined and error %}
-  <div class="border-2 border-red-600 bg-red-50 text-red-700 p-3 mb-5 font-semibold">{{ error }}</div>
-{% endif %}
+{{ m.form_error(error ?? null) }}
 
 {# ── Layout desktop : 2 colonnes si saisons ── #}
 <div class="{% if equipe and saisons|length %}lg:grid lg:grid-cols-[1fr_320px] lg:gap-6{% endif %}">
 
-  {# ── Formulaire ── #}
-  <form method="POST" action="{{ action }}" class="space-y-5">
+  {# ── Formulaire principal ── #}
+  <form method="POST" action="{{ action }}" class="space-y-6">
     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
     {# Section 1 : Identité #}
-    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Identité</div>
-      <div class="p-5 grid grid-cols-2 gap-4">
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+      <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Identité de l'équipe</h2>
+      <div class="grid sm:grid-cols-2 gap-6">
         <div>
-          <label class="block font-black mb-1 text-sm" for="libelle">Libellé *</label>
-          <input id="libelle" name="libelle" type="text" required
-                 value="{{ equipe.libelle ?? '' }}"
-                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                 placeholder="Loisir 1">
+          {{ m.field_input('libelle', 'libelle', 'Libellé', equipe.libelle ?? '', 'text', true, 'Loisir 1') }}
         </div>
         <div>
-          <label class="block font-black mb-1 text-sm" for="categorie">Catégorie *</label>
+          <label class="block text-sm font-bold text-slate-700 mb-1.5" for="categorie">Catégorie *</label>
           <select id="categorie" name="categorie" required
-                  class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+                  class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
             <option value="">-- Sélectionner --</option>
             {% for cat in categories %}
               <option value="{{ cat.nom }}" {% if equipe and equipe.categorie == cat.nom %}selected{% endif %}>{{ cat.nom }}</option>
@@ -52,9 +52,9 @@
           </select>
         </div>
         <div>
-          <label class="block font-black mb-1 text-sm" for="slug_colonne">Colonne DB *</label>
+          <label class="block text-sm font-bold text-slate-700 mb-1.5" for="slug_colonne">Colonne DB *</label>
           <select id="slug_colonne" name="slug_colonne" required
-                  class="w-full border-4 border-black px-3 py-2 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white">
+                  class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
             <option value="">-- Choisir une colonne --</option>
             {% for col in db_columns %}
               <option value="{{ col }}" {% if equipe and equipe.slug_colonne == col %}selected{% endif %}>{{ col }}</option>
@@ -62,165 +62,128 @@
           </select>
         </div>
         <div>
-          <label class="block font-black mb-1 text-sm" for="slug">Slug SEO</label>
+          <label class="block text-sm font-bold text-slate-700 mb-1.5" for="slug">Slug SEO</label>
           <input id="slug" name="slug" type="text"
                  value="{{ equipe.slug ?? '' }}"
-                 class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                 class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition"
                  placeholder="loisir-1">
         </div>
         <div>
-          <label class="block font-black mb-1 text-sm" for="ordre">Ordre</label>
-          <input id="ordre" name="ordre" type="number" min="0"
-                 value="{{ equipe.ordre ?? 0 }}"
-                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+          {{ m.field_input('ordre', 'ordre', 'Ordre d\'affichage', equipe.ordre ?? 0, 'number') }}
         </div>
         <div>
-          <label class="block font-black mb-1 text-sm" for="min_players">Effectif minimum (Équipe complète) *</label>
-          <input id="min_players" name="min_players" type="number" min="1" required
-                 value="{{ equipe.min_players ?? 6 }}"
-                 class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400">
+          {{ m.field_input('min_players', 'min_players', 'Effectif minimum (Équipe complète)', equipe.min_players ?? 6, 'number', true) }}
         </div>
-        <div class="flex items-end pb-2">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" name="is_active" value="1"
-                   {% if equipe is null or equipe.is_active %}checked{% endif %}
-                   class="w-5 h-5 border-2 border-black">
-            <span class="font-black text-sm">Équipe active</span>
-          </label>
+        <div class="sm:col-span-2 pt-2 border-t border-slate-50">
+          {{ m.field_checkbox('is_active', 'is_active', 'Équipe active', equipe is null or equipe.is_active, '1') }}
         </div>
       </div>
     </div>
 
     {# Section 2 : Fiche équipe (carte) #}
-    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Fiche équipe <span class="font-normal opacity-60">— affichée sur les cartes</span></div>
-      <div class="p-5 space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block font-black mb-1 text-sm" for="type">Type</label>
-            <input id="type" name="type" type="text"
-                   value="{{ equipe.type ?? '' }}"
-                   class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                   placeholder="Ex: Filles - 6×6">
-          </div>
-          <div>
-            <label class="block font-black mb-1 text-sm" for="hauteur_filet">Hauteur du filet</label>
-            <input id="hauteur_filet" name="hauteur_filet" type="text"
-                   value="{{ equipe.hauteur_filet ?? '' }}"
-                   class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                   placeholder="Ex: 2m43">
-          </div>
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+      <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Fiche équipe <span class="font-normal text-slate-400 text-xs">— affichée sur les cartes</span></h2>
+      <div class="grid sm:grid-cols-2 gap-6">
+        <div>
+          {{ m.field_input('type', 'type', 'Type', equipe.type ?? '', 'text', false, 'Ex: Filles - 6×6') }}
         </div>
         <div>
-          <label class="block font-black mb-1 text-sm" for="description_courte">Description courte</label>
-          <textarea id="description_courte" name="description_courte" rows="3"
-                    class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    placeholder="Quelques mots affichés sous le titre sur la carte">{{ equipe.description_courte ?? '' }}</textarea>
+          {{ m.field_input('hauteur_filet', 'hauteur_filet', 'Hauteur du filet', equipe.hauteur_filet ?? '', 'text', false, 'Ex: 2m43') }}
+        </div>
+        <div class="sm:col-span-2">
+          {{ m.field_textarea('description_courte', 'description_courte', 'Description courte', equipe.description_courte ?? '', 2, false, 'Quelques mots affichés sous le titre sur la carte') }}
         </div>
       </div>
     </div>
 
     {# Section 3 : Description longue (WYSIWYG) #}
-    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Description <span class="font-normal opacity-60">— page détail</span></div>
-      <div class="p-5">
-        <textarea id="description" name="description">{{ equipe.description ?? '' }}</textarea>
-      </div>
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-4">
+      <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Description complète <span class="font-normal text-slate-400 text-xs">— affichée sur la page détail</span></h2>
+      <textarea id="description" name="description">{{ equipe.description ?? '' }}</textarea>
     </div>
 
-    {# Section 4 : Filtres agenda #}
-    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Filtres agenda & abonnements <span class="font-normal opacity-60">— optionnel</span></div>
-      <div class="p-5 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-black mb-1 text-sm" for="team_filter">Code équipe</label>
-            <input id="team_filter" name="team_filter" type="text"
-                   value="{{ equipe.team_filter ?? equipe.slug_colonne ?? '' }}"
-                   class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                   placeholder="Ex: L2">
-            <p class="text-xs text-gray-400 mt-1">Filtre agenda par équipe</p>
-          </div>
-          <div>
-            <label class="block font-black mb-1 text-sm" for="manifestation_filter">Filtre manifestation (Match)</label>
-            <input id="manifestation_filter" name="manifestation_filter" type="text"
-                   value="{{ equipe.manifestation_filter ?? '' }}"
-                   class="w-full border-4 border-black px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                   placeholder="Ex: Match L2">
-            <p class="text-xs text-gray-400 mt-1">Filtre agenda par manifestation</p>
-          </div>
-        </div>
-        
+    {# Section 4 : Filtres agenda & abonnements #}
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+      <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Filtres agenda & abonnements</h2>
+      <div class="grid sm:grid-cols-2 gap-6">
         <div>
-          <label class="block font-black mb-2 text-sm">Entraînements associés pour les abonnements de présence</label>
-          {% if training_types|length > 0 %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border-2 border-dashed border-gray-200 bg-gray-50/50">
-              {% for type in training_types %}
-                {% set clean_type = type|replace({'Présences - ': '', 'Disponibilités - ': ''}) %}
-                <label class="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" name="associated_trainings[]" value="{{ type }}"
-                         {% if equipe and type in equipe.associated_trainings %}checked{% endif %}
-                         class="w-4 h-4 text-usm-brown border-2 border-black focus:ring-0">
-                  <span class="text-sm font-semibold text-gray-800">{{ clean_type }}</span>
-                </label>
-              {% endfor %}
-            </div>
-            <p class="text-xs text-gray-400 mt-2">Cochez les types d'entraînements de cette équipe. Ils seront pré-cochés par défaut pour les joueurs de cette équipe lors du flash de saison.</p>
-          {% else %}
-            <p class="text-xs text-gray-500 italic">Aucun type d'entraînement trouvé dans la base externe.</p>
-          {% endif %}
+          <label class="block text-sm font-bold text-slate-700 mb-1.5" for="team_filter">Code équipe (Agenda)</label>
+          <input id="team_filter" name="team_filter" type="text"
+                 value="{{ equipe.team_filter ?? equipe.slug_colonne ?? '' }}"
+                 class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition"
+                 placeholder="Ex: L2">
         </div>
+        <div>
+          {{ m.field_input('manifestation_filter', 'manifestation_filter', 'Filtre manifestation (Match)', equipe.manifestation_filter ?? '', 'text', false, 'Ex: Match L2') }}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Entraînements associés pour les abonnements de présence</label>
+        {% if training_types|length > 0 %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border border-slate-200 bg-slate-50/50 rounded-2xl">
+            {% for type in training_types %}
+              {% set clean_type = type|replace({'Présences - ': '', 'Disponibilités - ': ''}) %}
+              <label class="flex items-center gap-2.5 cursor-pointer text-sm font-semibold text-slate-700">
+                <input type="checkbox" name="associated_trainings[]" value="{{ type }}"
+                       {% if equipe and type in equipe.associated_trainings %}checked{% endif %}
+                       class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30">
+                <span>{{ clean_type }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-xs text-slate-400 italic">Aucun type d'entraînement trouvé dans la base externe.</p>
+        {% endif %}
       </div>
     </div>
 
     {# Section 5 : Lien FFVB #}
-    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000]">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Lien FFVB <span class="font-normal opacity-60">— optionnel</span></div>
-      <div class="p-5">
-        <div>
-          <label class="block font-black mb-1 text-sm" for="ffvb_link">Lien(s) résultats FFVB de la saison</label>
-          <textarea id="ffvb_link" name="ffvb_link" rows="3"
-                    class="w-full border-4 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    placeholder="Exemple pour plusieurs phases :&#10;Phase 1 | https://...&#10;Phase 2 | https://...">{{ equipe.ffvb_link ?? '' }}</textarea>
-          <p class="text-xs text-gray-400 mt-1">Lien vers les résultats/classement officiel. Pour plusieurs phases, mettez un lien par ligne sous la forme : <strong>Nom de la phase | Lien</strong></p>
-        </div>
-      </div>
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-4">
+      <h2 class="font-bold text-base text-slate-800 border-b border-slate-100 pb-3">Lien FFVB <span class="font-normal text-slate-400 text-xs">— optionnel</span></h2>
+      {{ m.field_textarea('ffvb_link', 'ffvb_link', 'Lien(s) résultats FFVB de la saison', equipe.ffvb_link ?? '', 3, false, 'Phase 1 | https://...') }}
     </div>
 
-    {# Bouton #}
-    <div>
-      <button type="submit"
-              class="border-4 border-black bg-usm-brown text-white font-black px-8 py-3 shadow-[4px_4px_0_#000] hover:shadow-[2px_2px_0_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-        {{ equipe ? 'Mettre à jour' : 'Créer l\'équipe' }}
-      </button>
+    <div class="flex items-center gap-3 pt-2">
+      {{ m.btn_submit(equipe ? 'Mettre à jour' : 'Créer l\'équipe') }}
+      <a href="{{ url('admin/equipes-config') }}"
+         class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        Annuler
+      </a>
     </div>
-
   </form>
 
   {# ── Panneau latéral : Saisons ── #}
   {% if equipe and saisons|length %}
-  <div class="mt-5 lg:mt-0">
-    <div class="border-4 border-black bg-white shadow-[4px_4px_0_#000] sticky top-4">
-      <div class="bg-black text-white px-4 py-2 font-black text-xs uppercase tracking-widest">Saisons</div>
-      <div class="divide-y-2 divide-gray-100">
+  <div class="mt-6 lg:mt-0">
+    <div class="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden sticky top-4">
+      <div class="bg-slate-800 text-white px-5 py-4 font-bold text-xs uppercase tracking-wider">
+        Saisons de l'équipe
+      </div>
+      <div class="divide-y divide-slate-100">
         {% for s in saisons %}
-        <div class="p-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-black text-sm">{{ s.libelle }}</span>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-sm text-slate-900">{{ s.libelle }}</span>
             {% if s.is_active %}
-              <span class="bg-green-100 text-green-800 border border-green-400 px-1.5 py-0.5 text-xs font-bold">Active</span>
+              <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold rounded-full">Active</span>
             {% endif %}
           </div>
-          <div class="flex gap-2 text-xs text-gray-500 mb-3">
+          <div class="flex items-center gap-3 text-xs text-slate-500 font-medium">
             <span>📷 {{ s.photo_count }} photo{{ s.photo_count != 1 ? 's' }}</span>
             <span>·</span>
             <span>👥 {{ s.joueur_count }} joueur{{ s.joueur_count != 1 ? 's' }}</span>
           </div>
           <div class="flex gap-2">
             <a href="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ s.id ~ '/photos') }}"
-               class="flex-1 text-center border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">📷 Photos</a>
+               class="flex-1 text-center bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1.5 text-xs font-semibold rounded-xl transition">
+              📷 Photos
+            </a>
             <a href="{{ url('admin/equipes-config/' ~ equipe.id ~ '/saisons/' ~ s.id ~ '/joueurs') }}"
-               class="flex-1 text-center border-2 border-black px-2 py-1 text-xs font-bold hover:bg-black hover:text-white transition">👥 Joueurs</a>
+               class="flex-1 text-center bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1.5 text-xs font-semibold rounded-xl transition">
+              👥 Joueurs
+            </a>
           </div>
         </div>
         {% endfor %}
