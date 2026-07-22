@@ -3,73 +3,108 @@
 {% block title %}{{ post ? 'Éditer' : 'Nouvel' }} article{% endblock %}
 
 {% block content %}
-<div class="flex items-center gap-4 mb-6">
-  <a href="{{ url('admin/posts') }}" class="font-bold hover:underline text-sm">← Retour</a>
-  <h1 class="text-3xl font-black">{{ post ? 'Éditer l\'article' : 'Nouvel article' }}</h1>
+
+{# ── En-tête avec breadcrumb ── #}
+<div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-sm mb-8">
+  <div class="absolute right-0 top-0 w-48 h-48 opacity-5 pointer-events-none">
+    <svg viewBox="0 0 100 100" fill="currentColor" class="w-full h-full"><circle cx="80" cy="20" r="60"/></svg>
+  </div>
+  <div class="relative">
+    <nav class="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+      <a href="{{ url('admin') }}" class="hover:text-white transition">Admin</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <a href="{{ url('admin/posts') }}" class="hover:text-white transition">Articles</a>
+      <svg class="w-3 h-3 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+      <span class="text-slate-200">{{ post ? 'Éditer' : 'Nouvel article' }}</span>
+    </nav>
+    <h1 class="text-2xl font-black tracking-tight">
+      {{ post ? 'Éditer l\'article' : 'Nouvel article' }}
+    </h1>
+    {% if post %}
+      <p class="text-xs text-slate-400 font-medium mt-1">{{ post.title }}</p>
+    {% endif %}
+  </div>
 </div>
 
+{# ── Message d'erreur ── #}
 {{ m.form_error(error) }}
 
+{# ── Formulaire ── #}
 <form method="POST" action="{{ action }}" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-  <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0_#000] space-y-4">
 
+  {# Card principale #}
+  <div class="bg-white border border-slate-100 rounded-3xl shadow-sm p-6 md:p-8 space-y-6">
+
+    {# Badge CanalBlog si applicable #}
     {% if post and post.canalblog_id %}
-    <div class="bg-blue-50 border-2 border-blue-300 p-3 rounded">
-      <div class="text-xs text-blue-600 font-bold mb-1">Importé via API CanalBlog</div>
-      <div class="font-mono text-sm text-blue-900">ID: {{ post.canalblog_id }}</div>
+    <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-200 px-4 py-3 rounded-xl">
+      <div class="p-1.5 bg-indigo-100 rounded-lg flex-shrink-0">
+        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-indigo-700">Importé via API CanalBlog</div>
+        <div class="font-mono text-sm text-indigo-900">ID : {{ post.canalblog_id }}</div>
+      </div>
     </div>
     {% endif %}
 
-    {{ m.field_input('title', 'title', 'Titre', post.title ?? '', 'text', true) }}
+    {# Titre #}
+    {{ m.field_input('title', 'title', 'Titre de l\'article', post.title ?? '', 'text', true, 'Mon article...') }}
 
+    {# Slug #}
     <div>
-      <label class="block font-black mb-1" for="slug">Slug</label>
+      <label class="block text-sm font-bold text-slate-700 mb-1.5" for="slug">Slug URL</label>
       <input type="text" id="slug" name="slug"
              value="{{ post.slug ?? '' }}"
-             class="w-full border-2 border-black px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-usm-brown"
+             class="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition"
              placeholder="généré automatiquement depuis le titre">
-      <div class="text-xs text-gray-600 mt-1" id="slug-preview"></div>
+      <div id="slug-preview" class="mt-1.5 text-xs text-slate-400 font-medium"></div>
     </div>
 
-    {{ m.field_textarea('excerpt', 'excerpt', 'Extrait', post.excerpt ?? '', 3) }}
+    {# Extrait #}
+    {{ m.field_textarea('excerpt', 'excerpt', 'Extrait / Résumé', post.excerpt ?? '', 3) }}
 
+    {# Contenu #}
     <div>
-      <label class="block font-black mb-1" for="content">Contenu</label>
+      <label class="block text-sm font-bold text-slate-700 mb-1.5" for="content">Contenu</label>
       <textarea id="content" name="content">{{ post.content ?? '' }}</textarea>
     </div>
 
-    <div class="flex flex-wrap gap-6 items-start">
+    {# Date, Publié, Slider #}
+    <div class="flex flex-wrap gap-6 items-end pt-2 border-t border-slate-50">
       <div>
-        <label class="block font-black mb-1" for="published_at">Date de publication</label>
+        <label class="block text-sm font-bold text-slate-700 mb-1.5" for="published_at">Date de publication</label>
         <input type="datetime-local" id="published_at" name="published_at"
                value="{{ post.published_at ?? default_date ?? '' }}"
-               class="border-2 border-black px-3 py-2 focus:outline-none focus:ring-2 focus:ring-usm-brown">
+               class="border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#94674d]/20 focus:border-[#94674d] transition">
       </div>
-      <div class="pt-7">
+      <div class="flex flex-wrap gap-5">
         {{ m.field_checkbox('is_published', 'is_published', 'Publié', post is null or post.is_published, '1') }}
-      </div>
-      <div class="pt-7">
         {{ m.field_checkbox('is_slider', 'is_slider', '📌 Épingler dans le slider', post and post.is_slider, '1') }}
       </div>
     </div>
 
-    <div>
-      <label class="block font-black mb-3">Tags</label>
+    {# Tags #}
+    <div class="pt-2 border-t border-slate-50">
+      <label class="block text-sm font-bold text-slate-700 mb-3">Tags</label>
       {% if all_tags|length %}
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {% for tag in all_tags %}
-        <label class="flex items-center gap-2 cursor-pointer">
+        <label class="flex items-center gap-2.5 cursor-pointer p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition has-[:checked]:bg-[#94674d]/5 has-[:checked]:border-[#94674d]/30">
           <input type="checkbox" name="tags[]" value="{{ tag.id }}"
                  {% if tag.id in tag_ids %}checked{% endif %}
-                 class="w-4 h-4 border-2 border-black">
-          <span class="text-sm">{{ tag.name }}</span>
+                 class="w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30 transition">
+          <span class="text-sm font-medium text-slate-700">{{ tag.name }}</span>
         </label>
         {% endfor %}
       </div>
       {% else %}
-      <div class="bg-amber-50 border-2 border-amber-300 p-3 rounded text-sm text-amber-800">
-        <strong>Aucun tag disponible.</strong> Les tags seront créés automatiquement lors de l'import d'articles CanalBlog.
+      <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl text-sm">
+        <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span class="text-amber-800 font-semibold">Aucun tag disponible. Les tags seront créés automatiquement lors de l'import CanalBlog.</span>
       </div>
       {% endif %}
     </div>
@@ -83,7 +118,15 @@
     photos:      photos
   } %}
 
-  {{ m.btn_submit('Enregistrer') }}
+  {# ── Actions ── #}
+  <div class="flex items-center gap-3 pt-2">
+    {{ m.btn_submit('Enregistrer l\'article') }}
+    <a href="{{ url('admin/posts') }}"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      Annuler
+    </a>
+  </div>
 </form>
 {% endblock %}
 
@@ -150,10 +193,10 @@
       }
     });
 
-    var titleInput     = document.getElementById('title');
+    var titleInput       = document.getElementById('title');
     var publishedAtInput = document.getElementById('published_at');
-    var slugInput      = document.getElementById('slug');
-    var slugPreview    = document.getElementById('slug-preview');
+    var slugInput        = document.getElementById('slug');
+    var slugPreview      = document.getElementById('slug-preview');
 
     function normalizeSlugText(text) {
       text = text.toLowerCase();
@@ -174,7 +217,7 @@
     }
 
     function updateSlugPreview() {
-      if (slugInput.value) { slugPreview.textContent = 'Slug personnalisé'; return; }
+      if (slugInput.value) { slugPreview.textContent = '🔒 Slug personnalisé'; return; }
       var title = titleInput.value.trim();
       if (!title) { slugPreview.textContent = ''; return; }
       var preview = normalizeSlugText(title);
@@ -186,7 +229,7 @@
         var da = String(d.getDate()).padStart(2, '0');
         preview = y + '/' + mo + '/' + da + '/' + preview;
       }
-      slugPreview.textContent = 'Aperçu : ' + preview;
+      slugPreview.textContent = '→ ' + preview;
     }
 
     if (titleInput) titleInput.addEventListener('input', updateSlugPreview);
