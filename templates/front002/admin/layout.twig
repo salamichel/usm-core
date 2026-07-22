@@ -8,37 +8,68 @@
   <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
   <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}?v={{ "now"|date("U") }}">
   {% block head %}{% endblock %}
+  <style>
+    :root { --usm-brown: #94674d; --usm-brown-dark: #7a5540; }
+    /* Scrollbar discrète dans la sidebar */
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    /* Transition sur les liens sidebar */
+    .sidebar-link { transition: background 0.15s, color 0.15s; }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
 {# ═══════════════════════════════════════════════════════════════
    Sidebar (desktop) — fixed left column
 ═══════════════════════════════════════════════════════════════ #}
 {% set p = current_path %}
-<aside class="hidden lg:flex fixed inset-y-0 left-0 w-52 flex-col bg-black text-white z-30">
+<aside class="hidden lg:flex fixed inset-y-0 left-0 w-56 flex-col bg-slate-900 text-white z-30 border-r border-slate-800">
 
   {# Logo / home #}
   <a href="{{ url('admin') }}"
-     class="flex items-center gap-2 px-5 py-4 font-black text-base border-b-4 border-usm-brown hover:bg-gray-900 transition">
-    ⚙ USM Admin
+     class="flex items-center gap-3 px-5 py-5 border-b border-slate-800 hover:bg-slate-800 transition group">
+    <div class="w-8 h-8 bg-usm-brown rounded-lg flex items-center justify-center flex-shrink-0 shadow-inner">
+      <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </div>
+    <div>
+      <div class="font-black text-sm text-white leading-tight">USM Admin</div>
+      <div class="text-[10px] text-slate-400 font-medium">Volley-Ball</div>
+    </div>
   </a>
 
   {# Navigation groupée #}
-  <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6 text-sm">
+  <nav class="sidebar-nav flex-1 overflow-y-auto py-4 px-3 space-y-5 text-sm">
+
+    {# ── Tableau de bord ── #}
+    <a href="{{ url('admin') }}"
+       class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold
+              {{ p == '/admin' or p == '/admin/' ? 'bg-usm-brown text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+      <svg class="w-4 h-4 flex-shrink-0 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+      Tableau de bord
+    </a>
 
     {# ── Contenu ── #}
     <div>
-      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Contenu</div>
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-3">Contenu</div>
       <div class="space-y-0.5">
-        {% set links = [
-          [url('admin/posts'), '📰 Articles',  '/admin/posts'],
-          [url('admin/tags'),  '🏷️ Tags',       '/admin/tags'],
-          [url('admin/pages'), '📄 Pages',      '/admin/pages'],
+        {% set nav_contenu = [
+          [url('admin/posts'),  'Articles',   '/admin/posts',  'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6m-6-4h6'],
+          [url('admin/tags'),   'Tags',       '/admin/tags',   'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'],
+          [url('admin/pages'),  'Pages',      '/admin/pages',  'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
         ] %}
-        {% for link in links %}
+        {% for link in nav_contenu %}
           <a href="{{ link[0] }}"
-             class="flex items-center px-3 py-2 rounded font-semibold transition
-                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+             class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+            <svg class="w-4 h-4 flex-shrink-0 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="{{ link[3] }}" />
+            </svg>
             {{ link[1] }}
           </a>
         {% endfor %}
@@ -47,18 +78,21 @@
 
     {# ── Site ── #}
     <div>
-      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Site</div>
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-3">Site</div>
       <div class="space-y-0.5">
-        {% set links = [
-          [url('admin/home-blocks'), '🏠 Accueil',       '/admin/home-blocks'],
-          [url('admin/menu'),        '≡ Menu nav',       '/admin/menu'],          
-          [url('admin/stats'),       '📈 Statistiques',  '/admin/stats'],
-          [url('admin/site-config'), '⚙️ Configuration',  '/admin/site-config'],
+        {% set nav_site = [
+          [url('admin/home-blocks'), 'Accueil',       '/admin/home-blocks', 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+          [url('admin/menu'),        'Menu nav',      '/admin/menu',        'M4 6h16M4 12h16M4 18h16'],
+          [url('admin/stats'),       'Statistiques',  '/admin/stats',       'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+          [url('admin/site-config'), 'Configuration', '/admin/site-config', 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'],
         ] %}
-        {% for link in links %}
+        {% for link in nav_site %}
           <a href="{{ link[0] }}"
-             class="flex items-center px-3 py-2 rounded font-semibold transition
-                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+             class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+            <svg class="w-4 h-4 flex-shrink-0 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="{{ link[3] }}" />
+            </svg>
             {{ link[1] }}
           </a>
         {% endfor %}
@@ -67,21 +101,24 @@
 
     {# ── Club ── #}
     <div>
-      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Club</div>
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-3">Club</div>
       <div class="space-y-0.5">
-        {% set links = [
-          [url('admin/locations'),          '📍 Emplacements',  '/admin/locations'],
-          [url('admin/saisons'),            '📅 Saisons',       '/admin/saisons'],
-          [url('admin/joueurs'),            '👥 Joueurs',       '/admin/joueurs'],
-          [url('admin/equipes-config'),     '⚽ Équipes',       '/admin/equipes-config'],
-          [url('admin/categories-equipes'), '🗂️ Catégories',     '/admin/categories-equipes'],
-          [url('admin/manifestations'),     '📅 Manifestations', '/admin/manifestations'],
-          [url('admin/mots-cles'),          '🔤 Mots-clés',     '/admin/mots-cles'],
+        {% set nav_club = [
+          [url('admin/locations'),          'Emplacements',   '/admin/locations',          'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z'],
+          [url('admin/saisons'),            'Saisons',        '/admin/saisons',            'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
+          [url('admin/joueurs'),            'Joueurs',        '/admin/joueurs',            'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
+          [url('admin/equipes-config'),     'Équipes',        '/admin/equipes-config',     'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'],
+          [url('admin/categories-equipes'), 'Catégories',     '/admin/categories-equipes', 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
+          [url('admin/manifestations'),     'Manifestations', '/admin/manifestations',     'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'],
+          [url('admin/mots-cles'),          'Mots-clés',      '/admin/mots-cles',          'M7 20l4-16m2 16l4-16M6 9h14M4 15h14'],
         ] %}
-        {% for link in links %}
+        {% for link in nav_club %}
           <a href="{{ link[0] }}"
-             class="flex items-center px-3 py-2 rounded font-semibold transition
-                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+             class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold
+                    {{ p starts with link[2] ? 'bg-usm-brown text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+            <svg class="w-4 h-4 flex-shrink-0 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="{{ link[3] }}" />
+            </svg>
             {{ link[1] }}
           </a>
         {% endfor %}
@@ -90,35 +127,48 @@
 
     {# ── Support ── #}
     <div>
-      <div class="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 px-2">Support</div>
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-3">Support</div>
       <div class="space-y-0.5">
-        {% set support_links = [
-          [url('admin/contacts'), '💬 Messages Brevo', '/admin/contacts', 'contact_stats'],
-          [url('admin/email-logs'), '✉️ Suivi des e-mails', '/admin/email-logs', null],
-        ] %}
-        {% for link in support_links %}
-          <a href="{{ link[0] }}"
-             class="flex items-center justify-between px-3 py-2 rounded font-semibold transition
-                    {{ p starts with link[2] ? 'bg-usm-brown text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-            <span>{{ link[1] }}</span>
-            {% if link[3] == 'contact_stats' and contact_stats.new > 0 %}
-              <span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full ml-2">{{ contact_stats.new }}</span>            
-            {% endif %}
-          </a>
-        {% endfor %}
+        <a href="{{ url('admin/contacts') }}"
+           class="sidebar-link flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl font-semibold
+                  {{ p starts with '/admin/contacts' ? 'bg-usm-brown text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+          <span class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 flex-shrink-0 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Messages
+          </span>
+          {% if contact_stats.new > 0 %}
+            <span class="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ contact_stats.new }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url('admin/email-logs') }}"
+           class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold
+                  {{ p starts with '/admin/email-logs' ? 'bg-usm-brown text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+          <svg class="w-4 h-4 flex-shrink-0 opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Suivi e-mails
+        </a>
       </div>
     </div>
 
   </nav>
 
   {# Footer sidebar #}
-  <div class="px-3 py-4 border-t border-gray-800 space-y-0.5 text-sm">
+  <div class="px-3 py-4 border-t border-slate-800 space-y-0.5">
     <a href="{{ url('/') }}"
-       class="flex items-center px-3 py-2 rounded font-semibold text-gray-400 hover:bg-gray-800 hover:text-white transition">
-      ← Site public
+       class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition">
+      <svg class="w-4 h-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+      </svg>
+      Site public
     </a>
     <a href="{{ url('admin/logout') }}"
-       class="flex items-center px-3 py-2 rounded font-semibold text-gray-400 hover:bg-gray-800 hover:text-white transition">
+       class="sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:bg-rose-900/30 hover:text-rose-300 transition">
+      <svg class="w-4 h-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
       Déconnexion
     </a>
   </div>
@@ -128,67 +178,81 @@
 {# ═══════════════════════════════════════════════════════════════
    Top bar (mobile + tablet)
 ═══════════════════════════════════════════════════════════════ #}
-<header class="lg:hidden sticky top-0 z-20 bg-black text-white border-b-4 border-usm-brown">
+<header class="lg:hidden sticky top-0 z-20 bg-slate-900 text-white border-b border-slate-800">
   <div class="flex items-center justify-between px-4 py-3">
-    <a href="{{ url('admin') }}" class="font-black text-base">⚙ USM Admin</a>
+    <a href="{{ url('admin') }}" class="flex items-center gap-2.5 font-black text-sm">
+      <div class="w-7 h-7 bg-usm-brown rounded-lg flex items-center justify-center flex-shrink-0">
+        <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      USM Admin
+    </a>
     <button id="burger" aria-label="Menu" aria-expanded="false"
-            class="flex flex-col justify-center gap-1.5 w-9 h-9 p-1.5">
-      <span class="block h-0.5 bg-white transition-all duration-200"></span>
-      <span class="block h-0.5 bg-white transition-all duration-200"></span>
-      <span class="block h-0.5 bg-white transition-all duration-200"></span>
+            class="w-9 h-9 flex flex-col justify-center gap-1.5 p-2 rounded-lg hover:bg-slate-800 transition">
+      <span class="block h-0.5 bg-white rounded-full transition-all duration-200"></span>
+      <span class="block h-0.5 bg-white rounded-full transition-all duration-200"></span>
+      <span class="block h-0.5 bg-white rounded-full transition-all duration-200"></span>
     </button>
   </div>
 
-  {# Drawer mobile — mêmes groupes #}
-  <nav id="mobile-menu" class="hidden border-t-2 border-usm-brown px-4 py-4 text-sm font-semibold space-y-4 bg-black text-white">
+  {# Drawer mobile #}
+  <nav id="mobile-menu" class="hidden border-t border-slate-800 px-4 py-4 text-sm space-y-5 bg-slate-900 text-white max-h-[80vh] overflow-y-auto">
+
+    <a href="{{ url('admin') }}" class="flex items-center gap-2 py-1.5 font-semibold text-slate-200 hover:text-white">
+      🏠 Tableau de bord
+    </a>
 
     <div>
-      <div class="text-xs font-black text-amber-400 uppercase mb-2 tracking-wider">Contenu</div>
+      <div class="text-[10px] font-black text-amber-400 uppercase mb-2 tracking-widest">Contenu</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/posts') }}" class="block py-1 hover:text-amber-400">📰 Articles</a>
-        <a href="{{ url('admin/tags') }}"  class="block py-1 hover:text-amber-400">🏷️ Tags</a>
-        <a href="{{ url('admin/pages') }}" class="block py-1 hover:text-amber-400">📄 Pages</a>
+        <a href="{{ url('admin/posts') }}" class="block py-1.5 font-semibold text-slate-300 hover:text-white">📰 Articles</a>
+        <a href="{{ url('admin/tags') }}"  class="block py-1.5 font-semibold text-slate-300 hover:text-white">🏷️ Tags</a>
+        <a href="{{ url('admin/pages') }}" class="block py-1.5 font-semibold text-slate-300 hover:text-white">📄 Pages</a>
       </div>
     </div>
 
     <div>
-      <div class="text-xs font-black text-amber-400 uppercase mb-2 tracking-wider">Site</div>
+      <div class="text-[10px] font-black text-amber-400 uppercase mb-2 tracking-widest">Site</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/home-blocks') }}" class="block py-1 hover:text-amber-400">🏠 Accueil</a>
-        <a href="{{ url('admin/menu') }}"        class="block py-1 hover:text-amber-400">≡ Menu nav</a>
-        <a href="{{ url('admin/stats') }}"       class="block py-1 hover:text-amber-400">📈 Statistiques</a>
-        <a href="{{ url('admin/site-config') }}" class="block py-1 hover:text-amber-400">⚙️ Configuration</a>
+        <a href="{{ url('admin/home-blocks') }}" class="block py-1.5 font-semibold text-slate-300 hover:text-white">🏠 Accueil</a>
+        <a href="{{ url('admin/menu') }}"        class="block py-1.5 font-semibold text-slate-300 hover:text-white">≡ Menu nav</a>
+        <a href="{{ url('admin/stats') }}"       class="block py-1.5 font-semibold text-slate-300 hover:text-white">📈 Statistiques</a>
+        <a href="{{ url('admin/site-config') }}" class="block py-1.5 font-semibold text-slate-300 hover:text-white">⚙️ Configuration</a>
       </div>
     </div>
 
     <div>
-      <div class="text-xs font-black text-amber-400 uppercase mb-2 tracking-wider">Club</div>
+      <div class="text-[10px] font-black text-amber-400 uppercase mb-2 tracking-widest">Club</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/saisons') }}"           class="block py-1 hover:text-amber-400">📅 Saisons</a>
-        <a href="{{ url('admin/saisons/joueurs') }}"   class="block py-1 hover:text-amber-400">👥 Joueurs</a>
-        <a href="{{ url('admin/equipes-config') }}"    class="block py-1 hover:text-amber-400">⚽ Équipes</a>
-        <a href="{{ url('admin/categories-equipes') }}" class="block py-1 hover:text-amber-400">🗂️ Catégories</a>
-        <a href="{{ url('admin/manifestations') }}"     class="block py-1 hover:text-amber-400">📅 Manifestations</a>
-        <a href="{{ url('admin/mots-cles') }}"          class="block py-1 hover:text-amber-400">🔤 Mots-clés</a>
+        <a href="{{ url('admin/locations') }}"          class="block py-1.5 font-semibold text-slate-300 hover:text-white">📍 Emplacements</a>
+        <a href="{{ url('admin/saisons') }}"            class="block py-1.5 font-semibold text-slate-300 hover:text-white">📅 Saisons</a>
+        <a href="{{ url('admin/joueurs') }}"            class="block py-1.5 font-semibold text-slate-300 hover:text-white">👥 Joueurs</a>
+        <a href="{{ url('admin/equipes-config') }}"     class="block py-1.5 font-semibold text-slate-300 hover:text-white">⚽ Équipes</a>
+        <a href="{{ url('admin/categories-equipes') }}" class="block py-1.5 font-semibold text-slate-300 hover:text-white">🗂️ Catégories</a>
+        <a href="{{ url('admin/manifestations') }}"     class="block py-1.5 font-semibold text-slate-300 hover:text-white">📅 Manifestations</a>
+        <a href="{{ url('admin/mots-cles') }}"          class="block py-1.5 font-semibold text-slate-300 hover:text-white">🔤 Mots-clés</a>
       </div>
     </div>
 
     <div>
-      <div class="text-xs font-black text-amber-400 uppercase mb-2 tracking-wider">Support</div>
+      <div class="text-[10px] font-black text-amber-400 uppercase mb-2 tracking-widest">Support</div>
       <div class="space-y-1 pl-2">
-        <a href="{{ url('admin/contacts') }}" class="block py-1 hover:text-amber-400 flex items-center justify-between">
-          <span>💬 Messages de contact</span>
+        <a href="{{ url('admin/contacts') }}" class="flex items-center justify-between py-1.5 font-semibold text-slate-300 hover:text-white">
+          <span>💬 Messages</span>
           {% if contact_stats.new > 0 %}
-            <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mr-2">{{ contact_stats.new }}</span>
+            <span class="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ contact_stats.new }}</span>
           {% endif %}
         </a>
-        <a href="{{ url('admin/email-logs') }}" class="block py-1 hover:text-amber-400">✉️ Suivi des e-mails</a>
+        <a href="{{ url('admin/email-logs') }}" class="block py-1.5 font-semibold text-slate-300 hover:text-white">✉️ Suivi e-mails</a>
       </div>
     </div>
 
-    <hr class="border-gray-700">
-    <a href="{{ url('/') }}"            class="block py-1 hover:text-amber-400 opacity-70">← Site public</a>
-    <a href="{{ url('admin/logout') }}" class="block py-1 hover:text-amber-400">Déconnexion</a>
+    <div class="border-t border-slate-800 pt-3 space-y-1">
+      <a href="{{ url('/') }}"            class="block py-1.5 font-semibold text-slate-400 hover:text-white">← Site public</a>
+      <a href="{{ url('admin/logout') }}" class="block py-1.5 font-semibold text-rose-400 hover:text-rose-300">Déconnexion</a>
+    </div>
   </nav>
 </header>
 
@@ -215,12 +279,15 @@
 {# ═══════════════════════════════════════════════════════════════
    Main content — décalé de la largeur de la sidebar sur desktop
 ═══════════════════════════════════════════════════════════════ #}
-<div class="lg:ml-52 flex flex-col min-h-screen">
+<div class="lg:ml-56 flex flex-col min-h-screen">
 
   {# Flash #}
   {% include '_flash.twig' %}
 
-  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+  {# Breadcrumb contextuel (injecté par les pages filles) #}
+  {% block breadcrumb %}{% endblock %}
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
     {% block content %}{% endblock %}
   </main>
 
