@@ -113,6 +113,11 @@ class AgendaController
             unset($row);
         }
 
+        $userId = null;
+        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
+            $userId = (int) ($_SESSION['LogInId'] ?? 0);
+        }
+
         View::render('agenda/index.twig', [
             'joueurs'        => $data['joueurs'],
             'manifestations' => $data['manifestations'],
@@ -120,6 +125,7 @@ class AgendaController
             'filters'        => $filters,
             'filterOptions'  => AgendaService::getFilterOptions(),
             'can_view_player_details' => $canViewPlayerDetails,
+            'currentUserId'  => $userId,
         ]);
     }
 
