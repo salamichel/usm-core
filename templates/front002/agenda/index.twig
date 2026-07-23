@@ -94,6 +94,12 @@
 					</div>
 				</div>
 
+				{% if currentUserId %}
+					<div class="flex items-center gap-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2">
+						<span class="text-indigo-500">💡</span>
+						<span>Cliquez sur les cases de votre ligne pour modifier vos présences en direct.</span>
+					</div>
+				{% endif %}
 			</div>
 
 			{% if manifestations is empty %}
@@ -148,7 +154,7 @@
 									{% set ok = (m.nb_present + m.nb_disponible + m.nb_selection) >= 6 %}
 									{% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
 
-									<th class="border-b border-r border-slate-200 {{ col_top }} {{ col_bg }} px-3 py-3 text-left font-normal min-w-[180px] align-top">
+									<th class="border-b border-r border-slate-200 {{ col_top }} {{ col_bg }} px-3 py-3 text-left font-normal min-w-[180px] align-top" data-manifestation-header="{{ mid }}">
 
 										<div class="flex items-center justify-between gap-1 mb-2">
 											<span class="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest {{ type_text_color }}">
@@ -200,76 +206,56 @@
 											{% endif %}
 										</div>
 
-										<div class="border-t border-slate-200 pt-2 space-y-1.5 text-[11px]">
+										<div class="border-t border-slate-200 pt-2 space-y-1.5 text-[11px]" data-stats-container="{{ mid }}">
 											{% if 'Match' in m.type %}
-												<div class="px-2 py-1 rounded font-semibold text-xs text-center {% if ok %}text-emerald-700 bg-emerald-50{% else %}text-rose-700 bg-rose-50{% endif %}">
+												<div class="px-2 py-1 rounded font-semibold text-xs text-center {% if ok %}text-emerald-700 bg-emerald-50{% else %}text-rose-700 bg-rose-50{% endif %}" data-team-badge="{{ mid }}">
 													{% if ok %}✓ Équipe OK{% else %}⚠ Sous-effectif
 													{% endif %}
 												</div>
 												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
-													{% if m.nb_selection > 0 %}
-														<span class="text-amber-700">Sélection:
-															<strong>{{ m.nb_selection }}</strong>
-														</span>
-													{% endif %}
-													{% if m.nb_present > 0 %}
-														<span class="text-emerald-700">Présents:
-															<strong>{{ m.nb_present }}</strong>
-														</span>
-													{% endif %}
+													<span class="text-amber-700 {% if m.nb_selection == 0 %}hidden{% endif %}" data-stat-wrap="selection-{{ mid }}">Sélection:
+														<strong data-stat="selection-{{ mid }}">{{ m.nb_selection }}</strong>
+													</span>
+													<span class="text-emerald-700 {% if m.nb_present == 0 %}hidden{% endif %}" data-stat-wrap="present-{{ mid }}">Présents:
+														<strong data-stat="present-{{ mid }}">{{ m.nb_present }}</strong>
+													</span>
 												</div>
 												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
-													{% if m.nb_disponible > 0 %}
-														<span class="text-blue-700">Dispos:
-															<strong>{{ m.nb_disponible }}</strong>
-														</span>
-													{% endif %}
-													{% if m.nb_indisponible > 0 %}
-														<span class="text-rose-700">Indispos:
-															<strong>{{ m.nb_indisponible }}</strong>
-														</span>
-													{% endif %}
+													<span class="text-blue-700 {% if m.nb_disponible == 0 %}hidden{% endif %}" data-stat-wrap="disponible-{{ mid }}">Dispos:
+														<strong data-stat="disponible-{{ mid }}">{{ m.nb_disponible }}</strong>
+													</span>
+													<span class="text-rose-700 {% if m.nb_indisponible == 0 %}hidden{% endif %}" data-stat-wrap="indisponible-{{ mid }}">Indispos:
+														<strong data-stat="indisponible-{{ mid }}">{{ m.nb_indisponible }}</strong>
+													</span>
 												</div>
 												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
-													{% if m.nb_absent > 0 %}
-														<span class="text-rose-800">Absents:
-															<strong>{{ m.nb_absent }}</strong>
-														</span>
-													{% endif %}
-													{% if m.nb_ne_sait_pas > 0 %}
-														<span class="text-orange-600">Ne sait pas:
-															<strong>{{ m.nb_ne_sait_pas }}</strong>
-														</span>
-													{% endif %}
+													<span class="text-rose-800 {% if m.nb_absent == 0 %}hidden{% endif %}" data-stat-wrap="absent-{{ mid }}">Absents:
+														<strong data-stat="absent-{{ mid }}">{{ m.nb_absent }}</strong>
+													</span>
+													<span class="text-orange-600 {% if m.nb_ne_sait_pas == 0 %}hidden{% endif %}" data-stat-wrap="ne_sait_pas-{{ mid }}">Ne sait pas:
+														<strong data-stat="ne_sait_pas-{{ mid }}">{{ m.nb_ne_sait_pas }}</strong>
+													</span>
 												</div>
 											{% else %}
 												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
-													<span class="text-emerald-700">Présents:
-														<strong>{{ m.nb_present }}</strong>
+													<span class="text-emerald-700" data-stat-wrap="present-{{ mid }}">Présents:
+														<strong data-stat="present-{{ mid }}">{{ m.nb_present }}</strong>
 													</span>
-													<span class="text-rose-700">Absents:
-														<strong>{{ m.nb_absent }}</strong>
+													<span class="text-rose-700" data-stat-wrap="absent-{{ mid }}">Absents:
+														<strong data-stat="absent-{{ mid }}">{{ m.nb_absent }}</strong>
 													</span>
 												</div>
 												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
-													{% if m.nb_disponible > 0 %}
-														<span class="text-blue-700">Dispos:
-															<strong>{{ m.nb_disponible }}</strong>
-														</span>
-													{% endif %}
-													{% if m.nb_indisponible > 0 %}
-														<span class="text-rose-700">Indispos:
-															<strong>{{ m.nb_indisponible }}</strong>
-														</span>
-													{% endif %}
+													<span class="text-blue-700 {% if m.nb_disponible == 0 %}hidden{% endif %}" data-stat-wrap="disponible-{{ mid }}">Dispos:
+														<strong data-stat="disponible-{{ mid }}">{{ m.nb_disponible }}</strong>
+													</span>
+													<span class="text-rose-700 {% if m.nb_indisponible == 0 %}hidden{% endif %}" data-stat-wrap="indisponible-{{ mid }}">Indispos:
+														<strong data-stat="indisponible-{{ mid }}">{{ m.nb_indisponible }}</strong>
+													</span>
 												</div>
-												{% if m.nb_ne_sait_pas > 0 %}
-													<div>
-														<span class="text-orange-600">Ne sait pas:
-															<strong>{{ m.nb_ne_sait_pas }}</strong>
-														</span>
-													</div>
-												{% endif %}
+												<span class="text-orange-600 {% if m.nb_ne_sait_pas == 0 %}hidden{% endif %}" data-stat-wrap="ne_sait_pas-{{ mid }}">Ne sait pas:
+													<strong data-stat="ne_sait_pas-{{ mid }}">{{ m.nb_ne_sait_pas }}</strong>
+												</span>
 											{% endif %}
 										</div>
 									</th>
@@ -282,10 +268,11 @@
 								{% for jid, nom in joueurs %}
 									{% set row = cross[jid] %}
 									{% set nb_manif = manifestations|length %}
+									{% set is_current_user = currentUserId is defined and currentUserId and (jid == currentUserId) %}
 
-									<tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40">
+									<tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40 {% if is_current_user %}bg-indigo-50/20{% endif %}">
 
-										<td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800">
+										<td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800 {% if is_current_user %}ring-2 ring-indigo-500/50 bg-indigo-50/80 font-bold text-indigo-950{% endif %}">
 											{% if row.nb_participation < nb_manif %}
 												<img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
 											{% elseif row.nb_ne_sait_pas > 3 %}
@@ -299,6 +286,9 @@
 											{% set nom_famille = parts[0] %}
 											{% set prenom = parts|last %}
 											<span class="ml-1.5 text-xs">{{ nom_famille|upper }} {{ prenom }}</span>
+											{% if is_current_user %}
+												<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[var(--primary)] text-white shadow-sm inline-block">Vous</span>
+											{% endif %}
 										</td>
 
 										{% for mid, m in manifestations %}
@@ -363,9 +353,26 @@
 												{% set icone = '—' %}{% set libelle = 'S.R.' %}
 											{% endif %}
 
-											<td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }}" title="{{ part ? part.text : '' }}">
-												<span class="text-sm">{{ icone }}</span>
-												<span class="text-xs">{{ libelle }}</span>
+											{% set is_user_cell = is_current_user and not m.annule %}
+
+											<td class="border-b border-r border-slate-200 px-2 py-1.5 text-center font-medium {{ cell_bg }} {{ text_color }} {% if is_user_cell %}cursor-pointer hover:ring-2 hover:ring-[var(--primary)] hover:z-20 transition-all select-none relative group{% endif %}" 
+												{% if is_user_cell %}
+													data-user-cell="true"
+													data-manifestation-id="{{ mid }}"
+													data-player-id="{{ jid }}"
+													data-current-status="{{ part ? part.text : '' }}"
+													data-event-type="{{ 'Match' in m.type ? 'match' : 'other' }}"
+													data-is-selected="{{ is_selected ? '1' : '0' }}"
+													data-is-cancelled="{{ m.annule ? '1' : '0' }}"
+													title="Cliquer pour modifier votre présence"
+												{% else %}
+													title="{{ part ? part.text : '' }}"
+												{% endif %}>
+												<span class="cell-icon text-sm">{{ icone }}</span>
+												<span class="cell-label text-xs">{{ libelle }}</span>
+												{% if is_user_cell %}
+													<span class="absolute right-0.5 top-0.5 text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-slate-400">✏️</span>
+												{% endif %}
 											</td>
 										{% endfor %}
 
@@ -514,34 +521,275 @@
 
 	<script>
 		(function () {
-var table = document.querySelector('.agenda-table');
-var buttons = document.querySelectorAll('.zoom-btn');
-if (! table || ! buttons.length) 
-return;
+			// 1. Gestion du Zoom
+			var table = document.querySelector('.agenda-table');
+			var buttons = document.querySelectorAll('.zoom-btn');
+			if (table && buttons.length) {
+				function applyZoom(z) {
+					table.style.zoom = z;
+					buttons.forEach(function (b) {
+						b.classList.toggle('active', parseFloat(b.dataset.zoom) === z);
+					});
+					try {
+						localStorage.setItem('agendaZoom', String(z));
+					} catch (e) {}
+				}
+				var stored = null;
+				try {
+					stored = localStorage.getItem('agendaZoom');
+				} catch (e) {}
+				var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
+				applyZoom(initial);
+				buttons.forEach(function (b) {
+					b.addEventListener('click', function () {
+						applyZoom(parseFloat(b.dataset.zoom));
+					});
+				});
+			}
 
+			// Toast Helper
+			function showToast(message, type = 'success') {
+				const toast = document.createElement('div');
+				toast.className = `fixed bottom-5 right-5 z-[9999] px-4 py-3 rounded-2xl text-xs font-bold shadow-xl transition-all duration-300 transform translate-y-10 opacity-0 ${type === 'success' ? 'bg-slate-900 text-white border border-slate-800' : 'bg-rose-600 text-white'}`;
+				toast.textContent = message;
+				document.body.appendChild(toast);
+				
+				setTimeout(() => {
+					toast.classList.remove('translate-y-10', 'opacity-0');
+				}, 10);
 
+				setTimeout(() => {
+					toast.classList.add('translate-y-10', 'opacity-0');
+					setTimeout(() => {
+						toast.remove();
+					}, 300);
+				}, 3000);
+			}
 
-function applyZoom(z) {
-table.style.zoom = z;
-buttons.forEach(function (b) {
-b.classList.toggle('active', parseFloat(b.dataset.zoom) === z);
-});
-try {
-localStorage.setItem('agendaZoom', String(z));
-} catch (e) {}
-}
+			// 2. Modification directe de présence au clic sur les cellules du joueur connecté
+			const userCells = document.querySelectorAll('[data-user-cell="true"]');
+			if (!userCells.length) return;
 
-var stored = null;
-try {
-stored = localStorage.getItem('agendaZoom');
-} catch (e) {}
-var initial = stored ? parseFloat(stored) : (window.innerWidth < 768 ? 0.65 : 1);
-applyZoom(initial);
-buttons.forEach(function (b) {
-b.addEventListener('click', function () {
-applyZoom(parseFloat(b.dataset.zoom));
-});
-});
-})();
+			let activePopover = null;
+
+			function closePopover() {
+				if (activePopover) {
+					activePopover.remove();
+					activePopover = null;
+				}
+			}
+
+			document.addEventListener('click', (e) => {
+				if (activePopover && !activePopover.contains(e.target) && !e.target.closest('[data-user-cell="true"]')) {
+					closePopover();
+				}
+			});
+
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') closePopover();
+			});
+
+			function getCategoryForStatus(status) {
+				if (!status || status === '.') return 'no_response';
+				if (status.indexOf('Sélectionné') === 0 || status === 'En réserve') return 'selected';
+				if (status.indexOf('Présent') === 0) return 'present';
+				if (status === 'Disponible si nécessaire') return 'available_if_needed';
+				if (status === 'Disponible' || status === 'Joker') return 'available';
+				if (status === 'Indisponible') return 'unavailable';
+				if (status === 'Absent' || status === 'Absent(e)') return 'absent';
+				if (status === 'Ne sait pas' || status === '?') return 'unknown';
+				return 'no_response';
+			}
+
+			function updateCellVisual(cell, newStatus) {
+				cell.dataset.currentStatus = newStatus;
+				const cat = getCategoryForStatus(newStatus);
+
+				const bgClasses = ['bg-amber-100', 'bg-emerald-100', 'bg-sky-100', 'bg-cyan-100', 'bg-rose-100', 'bg-gray-100', 'bg-white', 'bg-rose-200'];
+				const textClasses = ['text-amber-800', 'text-emerald-800', 'text-sky-800', 'text-cyan-800', 'text-rose-800', 'text-gray-800', 'text-gray-400', 'text-rose-900'];
+
+				cell.classList.remove(...bgClasses, ...textClasses);
+
+				let icon = '—', label = 'S.R.', cellBg = 'bg-white', textColor = 'text-gray-400';
+
+				switch(cat) {
+					case 'selected':
+						icon = '★'; label = 'Sél.'; cellBg = 'bg-amber-100'; textColor = 'text-amber-800';
+						break;
+					case 'present':
+						icon = '✓';
+						if (newStatus.includes('à 2')) label = 'Prés. à 2';
+						else if (newStatus.includes('à 3')) label = 'Prés. à 3';
+						else if (newStatus.includes('à 4')) label = 'Prés. à 4';
+						else if (newStatus.includes('à 5')) label = 'Prés. à 5';
+						else label = 'Prés.';
+						cellBg = 'bg-emerald-100'; textColor = 'text-emerald-800';
+						break;
+					case 'available':
+						icon = '◐'; label = 'Dispo'; cellBg = 'bg-sky-100'; textColor = 'text-sky-800';
+						break;
+					case 'available_if_needed':
+						icon = '○'; label = 'Si néc.'; cellBg = 'bg-cyan-100'; textColor = 'text-cyan-800';
+						break;
+					case 'unavailable':
+						icon = '✗'; label = 'Indispo'; cellBg = 'bg-rose-100'; textColor = 'text-rose-800';
+						break;
+					case 'absent':
+						icon = '✗'; label = 'Absent'; cellBg = 'bg-rose-100'; textColor = 'text-rose-800';
+						break;
+					case 'unknown':
+						icon = '?'; label = '?'; cellBg = 'bg-gray-100'; textColor = 'text-gray-800';
+						break;
+					default:
+						icon = '—'; label = 'S.R.'; cellBg = 'bg-white'; textColor = 'text-gray-400';
+				}
+
+				cell.classList.add(cellBg, textColor);
+				const iconSpan = cell.querySelector('.cell-icon');
+				const labelSpan = cell.querySelector('.cell-label');
+				if (iconSpan) iconSpan.textContent = icon;
+				if (labelSpan) labelSpan.textContent = label;
+				cell.title = newStatus && newStatus !== '.' ? newStatus : '';
+			}
+
+			function updateHeaderStats(mid, counts) {
+				if (!counts) return;
+
+				const statsKeys = ['present', 'disponible', 'indisponible', 'absent', 'ne_sait_pas', 'selection'];
+				statsKeys.forEach(key => {
+					const el = document.querySelector(`[data-stat="${key}-${mid}"]`);
+					const wrap = document.querySelector(`[data-stat-wrap="${key}-${mid}"]`);
+					const countVal = counts['nb_' + key] !== undefined ? counts['nb_' + key] : 0;
+					if (el) el.textContent = countVal;
+					if (wrap) {
+						if (countVal > 0) wrap.classList.remove('hidden');
+						else if (key !== 'present' && key !== 'absent') wrap.classList.add('hidden');
+					}
+				});
+
+				const teamBadge = document.querySelector(`[data-team-badge="${mid}"]`);
+				if (teamBadge) {
+					const totalOk = (counts.nb_present || 0) + (counts.nb_disponible || 0) + (counts.nb_selection || 0);
+					const isOk = totalOk >= 6;
+					if (isOk) {
+						teamBadge.textContent = '✓ Équipe OK';
+						teamBadge.className = 'px-2 py-1 rounded font-semibold text-xs text-center text-emerald-700 bg-emerald-50';
+					} else {
+						teamBadge.textContent = '⚠ Sous-effectif';
+						teamBadge.className = 'px-2 py-1 rounded font-semibold text-xs text-center text-rose-700 bg-rose-50';
+					}
+				}
+			}
+
+			userCells.forEach(cell => {
+				cell.addEventListener('click', (e) => {
+					e.stopPropagation();
+					closePopover();
+
+					const isSelected = cell.dataset.isSelected === '1';
+					const isCancelled = cell.dataset.isCancelled === '1';
+					const mid = cell.dataset.manifestationId;
+					const eventType = cell.dataset.eventType;
+					const currentStatus = cell.dataset.currentStatus || '';
+
+					if (isCancelled) {
+						showToast('Événement annulé : modification impossible.', 'error');
+						return;
+					}
+
+					if (isSelected) {
+						showToast('Vous êtes convoqué(e) pour ce match par votre capitaine. Statut verrouillé.', 'error');
+						return;
+					}
+
+					const popover = document.createElement('div');
+					popover.className = 'fixed z-[9990] bg-white rounded-2xl shadow-xl border border-slate-200 p-2 space-y-1 text-xs min-w-[170px] transition-all animate-in fade-in zoom-in-95';
+
+					const options = [];
+
+					if (eventType === 'match') {
+						options.push(
+							{ label: '✓ Disponible', value: 'Disponible', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+							{ label: '◐ Si besoin', value: 'Disponible si nécessaire', class: 'text-cyan-700 bg-cyan-50 hover:bg-cyan-100' },
+							{ label: '✗ Indisponible', value: 'Indisponible', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+							{ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' }
+						);
+					} else {
+						options.push(
+							{ label: '✓ Présent(e)', value: 'Présent(e)', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+							{ label: '✓ Présent(e) à 2', value: 'Présent(e) à 2', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+							{ label: '✓ Présent(e) à 3', value: 'Présent(e) à 3', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+							{ label: '✓ Présent(e) à 4', value: 'Présent(e) à 4', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+							{ label: '✗ Absent(e)', value: 'Absent(e)', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+							{ label: '? Ne sait pas', value: 'Ne sait pas', class: 'text-orange-700 bg-orange-50 hover:bg-orange-100' },
+							{ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' }
+						);
+					}
+
+					options.forEach(opt => {
+						const btn = document.createElement('button');
+						btn.type = 'button';
+						const isActive = (opt.value === currentStatus) || (opt.value === '.' && (!currentStatus || currentStatus === '.'));
+						btn.className = `w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-2 cursor-pointer ${opt.class} ${isActive ? 'ring-2 ring-indigo-500' : ''}`;
+						btn.innerHTML = `<span>${opt.label}</span>${isActive ? '<span class="text-[10px]">●</span>' : ''}`;
+						
+						btn.addEventListener('click', () => {
+							closePopover();
+							if (opt.value === currentStatus) return;
+
+							cell.style.opacity = '0.5';
+
+							fetch('/api/member/participations/upsert', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									manifestation_id: parseInt(mid),
+									status: opt.value
+								})
+							})
+							.then(r => {
+								if (!r.ok) {
+									return r.json().then(err => { throw new Error(err.message || 'Erreur serveur'); });
+								}
+								return r.json();
+							})
+							.then(data => {
+								cell.style.opacity = '1';
+								if (data.ok) {
+									updateCellVisual(cell, data.new_status || opt.value);
+									updateHeaderStats(mid, data.counts);
+									showToast(data.message || 'Présence mise à jour avec succès', 'success');
+								} else {
+									showToast(data.message || 'Erreur lors de la mise à jour.', 'error');
+								}
+							})
+							.catch(err => {
+								cell.style.opacity = '1';
+								showToast(err.message || 'Erreur réseau.', 'error');
+							});
+						});
+						popover.appendChild(btn);
+					});
+
+					document.body.appendChild(popover);
+					activePopover = popover;
+
+					const rect = cell.getBoundingClientRect();
+					let left = rect.left + window.scrollX - 20;
+					if (left + 180 > window.innerWidth) {
+						left = window.innerWidth - 190;
+					}
+					if (left < 10) left = 10;
+
+					let top = rect.bottom + 6;
+					if (top + popover.offsetHeight > window.innerHeight) {
+						top = rect.top - popover.offsetHeight - 6;
+					}
+
+					popover.style.top = `${top}px`;
+					popover.style.left = `${left}px`;
+				});
+			});
+		})();
 	</script>
 {% endblock %}
