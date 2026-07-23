@@ -655,11 +655,19 @@
 			function updateHeaderStats(mid, counts) {
 				if (!counts) return;
 
-				const statsKeys = ['present', 'disponible', 'indisponible', 'absent', 'ne_sait_pas', 'selection'];
-				statsKeys.forEach(key => {
+				const mapping = {
+					'present': counts.present ?? 0,
+					'disponible': counts.available ?? 0,
+					'indisponible': counts.unavailable ?? 0,
+					'absent': counts.absent ?? 0,
+					'ne_sait_pas': counts.unknown ?? 0,
+					'selection': counts.selected ?? 0
+				};
+
+				Object.keys(mapping).forEach(key => {
+					const countVal = mapping[key];
 					const el = document.querySelector(`[data-stat="${key}-${mid}"]`);
 					const wrap = document.querySelector(`[data-stat-wrap="${key}-${mid}"]`);
-					const countVal = counts['nb_' + key] !== undefined ? counts['nb_' + key] : 0;
 					if (el) el.textContent = countVal;
 					if (wrap) {
 						if (countVal > 0) wrap.classList.remove('hidden');
@@ -669,7 +677,7 @@
 
 				const teamBadge = document.querySelector(`[data-team-badge="${mid}"]`);
 				if (teamBadge) {
-					const totalOk = (counts.nb_present || 0) + (counts.nb_disponible || 0) + (counts.nb_selection || 0);
+					const totalOk = (mapping.present || 0) + (mapping.disponible || 0) + (mapping.selection || 0);
 					const isOk = totalOk >= 6;
 					if (isOk) {
 						teamBadge.textContent = '✓ Équipe OK';
