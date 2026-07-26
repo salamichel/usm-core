@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+// ── Timezone ──────────────────────────────────────────────────────────────────
+date_default_timezone_set(getenv('TZ') ?: 'Europe/Paris');
+
+
 // ── Database ──────────────────────────────────────────────────────────────────
 define('DB_HOST',     getenv('DB_HOST')   ?: 'db');
 define('DB_NAME',     getenv('DB_NAME')   ?: 'usm_volley');

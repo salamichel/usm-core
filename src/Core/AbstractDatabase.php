@@ -20,6 +20,8 @@ abstract class AbstractDatabase
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]);
+                self::$instances[$key]->exec("SET time_zone = '" . date('P') . "'");
+
             } catch (PDOException $e) {
                 if (APP_DEBUG) {
                     throw $e;

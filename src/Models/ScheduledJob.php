@@ -133,35 +133,34 @@ class ScheduledJob
             return;
         }
 
-        // Calcul de la prochaine date d'exécution
-        $baseTime = !empty($executeAt) ? strtotime($executeAt) : time();
-        // S'assurer qu'on part de maintenant si la date passée est déjà ancienne
-        if ($baseTime < time()) {
-            $baseTime = time();
-        }
+        // Calcul de la prochaine date d'exécution sans dérive d'horaire
+        $nextTime = !empty($executeAt) ? strtotime($executeAt) : time();
+        $currentTime = time();
 
-        switch ($frequency) {
-            case 'hourly':
-                $nextTime = strtotime('+1 hour', $baseTime);
-                break;
-            case 'daily':
-                $nextTime = strtotime('+1 day', $baseTime);
-                break;
-            case 'weekly':
-                $nextTime = strtotime('+1 week', $baseTime);
-                break;
-            case 'monthly':
-                $nextTime = strtotime('+1 month', $baseTime);
-                break;
-            default:
-                $nextTime = strtotime('+1 day', $baseTime);
-                break;
-        }
+        do {
+            switch ($frequency) {
+                case 'hourly':
+                    $nextTime = strtotime('+1 hour', $nextTime);
+                    break;
+                case 'daily':
+                    $nextTime = strtotime('+1 day', $nextTime);
+                    break;
+                case 'weekly':
+                    $nextTime = strtotime('+1 week', $nextTime);
+                    break;
+                case 'monthly':
+                    $nextTime = strtotime('+1 month', $nextTime);
+                    break;
+                default:
+                    $nextTime = strtotime('+1 day', $nextTime);
+                    break;
+            }
+        } while ($nextTime <= $currentTime);
 
         $nextExecuteAt = date('Y-m-d H:i:s', $nextTime);
 
         // Si une date de fin est définie et qu'elle est dépassée
-        if (!empty($endAt) && strtotime($nextExecuteAt) > strtotime($endAt)) {
+        if (!empty($endAt) && $nextTime > strtotime($endAt)) {
             $stmt = Database::get()->prepare("
                 UPDATE scheduled_jobs
                 SET status = 'completed', last_run_at = ?, error_message = NULL
