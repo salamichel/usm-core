@@ -130,12 +130,12 @@ class AuthController
         $data = $v->getCleanData(['email']);
         $email = $data['email'];
 
-        $user = Joueur::findByEmail($email);
+        $users = Joueur::findAllByEmail($email);
 
-        if ($user) {
+        if (!empty($users)) {
             try {
                 $brevo = new \App\Services\BrevoService();
-                $success = $brevo->sendPasswordRecovery($user);
+                $success = $brevo->sendPasswordRecovery($users);
                 
                 if (!$success) {
                     \App\Services\Logger::errors()->error('Failed to send password recovery email to ' . $email);

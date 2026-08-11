@@ -141,6 +141,20 @@ class Joueur
     }
 
     /**
+     * Récupère tous les joueurs associés à un email exact.
+     *
+     * @param string $email L'email des joueurs
+     * @return array Liste des comptes joueurs trouvés
+     */
+    public static function findAllByEmail(string $email): array
+    {
+        $db = ExternalDatabase::get();
+        $stmt = $db->prepare("SELECT * FROM Joueurs WHERE Mel = ?");
+        $stmt->execute([trim($email)]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
      * Met à jour un joueur.
      *
      * @param int $id L'ID du joueur

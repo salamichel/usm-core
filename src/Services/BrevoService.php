@@ -542,17 +542,46 @@ class BrevoService
         );
     }
 
-    public function sendPasswordRecovery(array $player): bool
+    public function sendPasswordRecovery(array $players): bool
     {
-        $subject = 'Vos identifiants de connexion - USM Volley';
+        // Support d'un seul compte (tableau associatif) ou d'une liste de comptes
+        if (isset($players['Mel']) || isset($players['mel'])) {
+            $players = [$players];
+        }
+
+        if (empty($players)) {
+            return false;
+        }
+
+        $email = $players[0]['Mel'] ?? $players[0]['mel'] ?? '';
+        if (empty($email)) {
+            return false;
+        }
+
+        $accounts = [];
+        foreach ($players as $p) {
+            $accounts[] = [
+                'name'     => trim(($p['Prénom'] ?? '') . ' ' . ($p['Nom'] ?? '')),
+                'email'    => $p['Mel'] ?? $p['mel'] ?? $email,
+                'password' => $p['mdp'] ?? '',
+            ];
+        }
+
+        $count = count($accounts);
+        $subject = $count > 1
+            ? "Vos identifiants de connexion ($count comptes) - USM Volley"
+            : "Vos identifiants de connexion - USM Volley";
+
+        $recipientName = $count === 1 ? $accounts[0]['name'] : 'Adhérent USM';
 
         try {
             $twig = \App\Core\View::getInstance();
             $htmlContent = $twig->render('emails/password_recovery.twig', [
-                'PLAYER_NAME' => $player['Prénom'] . ' ' . $player['Nom'],
-                'EMAIL'       => $player['Mel'],
-                'PASSWORD'    => $player['mdp'],
+                'ACCOUNTS'    => $accounts,
+                'EMAIL'       => $email,
                 'LOGIN_URL'   => BASE_URL . '/member/login',
+                'PLAYER_NAME' => $accounts[0]['name'],
+                'PASSWORD'    => $accounts[0]['password'],
             ]);
         } catch (\Throwable $e) {
             Logger::errors()->error('Failed to render password recovery email template via Twig', ['error' => $e->getMessage()]);
@@ -560,8 +589,8 @@ class BrevoService
         }
 
         return $this->sendEmail(
-            $player['Mel'],
-            $player['Prénom'] . ' ' . $player['Nom'],
+            $email,
+            $recipientName,
             $subject,
             $htmlContent,
             null,
