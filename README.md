@@ -131,10 +131,11 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
 4. Ajustements manuels post-import
 5. Public accède à `/equipes` avec liste et détails
 
-### Agenda
-1. Saison activée → données syncronisées depuis base externe
+### Agenda & Ciblage des événements
+1. Saison activée → données synchronisées depuis base externe
 2. Affichage tableau croisé joueurs × événements
-3. Suivi de participation en temps réel
+3. Suivi de participation en temps réel et espace adhérent
+4. Ciblage et éligibilité mutualisés (`EventTargetingService`) garantissant une stricte synchronisation entre les événements visibles dans le dashboard adhérent et les notifications reçues par email (rappels hebdomadaires, création de manifestations).
 
 ### Formulaire de contact
 1. Visiteur remplit le formulaire `/contact`

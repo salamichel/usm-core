@@ -227,41 +227,9 @@ class Participation
      * @param array $categories Liste des catégories du joueur (ex: ['DEP', 'L1', 'Adulte'])
      * @return array Liste des manifestations avec statut de participation
      */
-    public static function getUpcomingForMember(int $userId, array $categories): array
+    public static function getUpcomingForMember(int $userId, array $categories = []): array
     {
-        if (empty($categories)) {
-            return [];
-        }
-
-        $db = ExternalDatabase::get();
-
-        $queryData = self::getMemberEventConditions($userId, $categories, 'm');
-
-        if (empty($queryData['conditions'])) {
-            return [];
-        }
-
-        $sql = "SELECT 
-                    m.id_manifestation, 
-                    m.ManifestationTypée, 
-                    m.Date, 
-                    m.Lieu, 
-                    m.Statut,
-                    m.Durée_créneau,
-                    m.Nombre_terrain,
-                    m.Commentaire,
-                    p.Participation as user_status
-                FROM Manifestation m
-                LEFT JOIN Participation p ON m.id_manifestation = p.id_manifestation AND p.id_joueur = ?
-                WHERE (" . implode(' OR ', $queryData['conditions']) . ")
-                  AND m.Date >= DATE_SUB(NOW(), INTERVAL 1 DAY)
-                ORDER BY m.Date ASC";
-
-        $bindings = array_merge([$userId], $queryData['bindings']);
-
-        $stmt = $db->prepare($sql);
-        $stmt->execute($bindings);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return \App\Services\Agenda\EventTargetingService::getUpcomingForPlayer($userId, null, null, true);
     }
 }
+

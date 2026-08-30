@@ -63,89 +63,23 @@ class EventNotificationService
         }
         $saisonId = (int)$saison['id'];
 
-        $manifType = $event['ManifestationTypée'] ?? $event['manifestation_type'] ?? '';
-        $parts = explode(' - ', $manifType, 3);
-        $type = $parts[1] ?? ''; // Match / Entraînement / Vie du club ...
-        $title = $parts[2] ?? $manifType;
-
-        $isMatch = (mb_strtolower($type) === 'match');
-
-        // Récupérer tous les snapshots de joueurs pour la saison active
-        $allPlayers = \App\Models\JoueurSnapshot::findBySaison($saisonId);
-        if (empty($allPlayers)) {
+        $recipients = EventTargetingService::getEligibleAndSubscribedPlayersForCreation($event, $saisonId);
+        if (empty($recipients)) {
             return;
         }
 
         $brevo = new BrevoService();
-
-        if ($isMatch) {
-            // Déterminer l'équipe correspondante
-            $activeTeams = \App\Models\EquipeConfig::allActive();
-            $matchingTeams = [];
-            foreach ($activeTeams as $team) {
-                $filter = $team['manifestation_filter'];
-                if ($filter && str_contains($manifType, $filter)) {
-                    $matchingTeams[] = $team;
-                }
-            }
-
-            if (empty($matchingTeams)) {
-                return;
-            }
-
-            foreach ($matchingTeams as $team) {
-                $es = \App\Models\EquipeSaison::findBySaisonAndEquipe($saisonId, $team['id']);
-                if (!$es) {
-                    continue;
-                }
-
-                $teamPlayers = \App\Models\EquipeSaisonJoueur::findByEquipeSaison($es['id']);
-                foreach ($teamPlayers as $tp) {
-                    $playerId = (int)$tp['id_joueur'];
-
-                    if (\App\Models\MemberEmailPreference::isSubscribed($playerId, $saisonId, 'match')) {
-                        $playerDb = \App\Models\Joueur::findById($playerId);
-                        if ($playerDb && !empty($playerDb['Mel'])) {
-                            $brevo->sendEventCreationNotification($playerDb, $event, $team['libelle']);
-                        }
-                    }
-                }
-            }
-        } else {
-            // C'est un entraînement ou autre
-            $trainingTypes = \App\Models\MotsClef::getTrainingTypes();
-            $isTraining = false;
-            $matchedTrainingType = null;
-
-            foreach ($trainingTypes as $tt) {
-                if ($manifType === $tt) {
-                    $isTraining = true;
-                    $matchedTrainingType = $tt;
-                    break;
-                }
-            }
-
-            if ($isTraining && $matchedTrainingType !== null) {
-                foreach ($allPlayers as $playerSnap) {
-                    $playerId = (int)$playerSnap['id_joueur'];
-                    if (\App\Models\MemberEmailPreference::isSubscribed($playerId, $saisonId, $matchedTrainingType)) {
-                        $playerDb = \App\Models\Joueur::findById($playerId);
-                        if ($playerDb && !empty($playerDb['Mel'])) {
-                            $brevo->sendEventCreationNotification($playerDb, $event, $title);
-                        }
-                    }
-                }
-            } else {
-                // Autres événements (Vie du club & Tournois)
-                foreach ($allPlayers as $playerSnap) {
-                    $playerId = (int)$playerSnap['id_joueur'];
-                    if (\App\Models\MemberEmailPreference::isSubscribed($playerId, $saisonId, 'club_life')) {
-                        $playerDb = \App\Models\Joueur::findById($playerId);
-                        if ($playerDb && !empty($playerDb['Mel'])) {
-                            $brevo->sendEventCreationNotification($playerDb, $event, 'Tous les adhérents');
-                        }
-                    }
-                }
+        foreach ($recipients as $recipient) {
+            $playerDb = $recipient['player_db'];
+            $targetLabel = $recipient['target_label'];
+            try {
+                $brevo->sendEventCreationNotification($playerDb, $event, $targetLabel);
+            } catch (\Throwable $e) {
+                Logger::errors()->error('Failed to send event creation notification email', [
+                    'player_id' => $playerDb['id_joueur'] ?? null,
+                    'event_id'  => $event['id_manifestation'] ?? null,
+                    'error'     => $e->getMessage()
+                ]);
             }
         }
     }
@@ -166,30 +100,11 @@ class EventNotificationService
         $start = date('Y-m-d') . ' 00:00:00';
         $end = date('Y-m-d', strtotime('+7 days')) . ' 23:59:59';
 
-        $db = \App\Core\ExternalDatabase::get();
-        $stmt = $db->prepare("
-            SELECT * FROM Manifestation 
-            WHERE Date >= ? AND Date <= ? AND (Statut IS NULL OR Statut NOT LIKE '%Annulé%')
-            ORDER BY Date ASC
-        ");
-        $stmt->execute([$start, $end]);
-        $events = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-
-        if (empty($events)) {
-            return 0;
-        }
-
         $allPlayers = \App\Models\JoueurSnapshot::findBySaison($saisonId);
         if (empty($allPlayers)) {
             return 0;
         }
 
-        $activeTeams = [];
-        foreach (\App\Models\EquipeConfig::allActive() as $tc) {
-            $activeTeams[$tc['id']] = $tc;
-        }
-
-        $trainingTypes = \App\Models\MotsClef::getTrainingTypes();
         $brevo = new BrevoService();
         $emailsSent = 0;
 
@@ -200,76 +115,31 @@ class EventNotificationService
                 continue;
             }
 
-            $playerTeams = \App\Models\EquipeSaisonJoueur::findEquipesByJoueur($playerId, $saisonId);
-            $enrichedPlayerTeams = [];
+            // Récupérer exactement les événements ciblés pour ce joueur sur les 7 prochains jours
+            $playerEvents = EventTargetingService::getUpcomingForPlayer($playerId, $start, $end, false);
 
-            foreach ($playerTeams as $pt) {
-                $teamId = (int)$pt['id'];
-                if (isset($activeTeams[$teamId])) {
-                    $enrichedPlayerTeams[] = $activeTeams[$teamId];
-                }
+            if (empty($playerEvents)) {
+                continue;
             }
 
-            $playerEvents = [];
-
-            foreach ($events as $event) {
-                $manifType = $event['ManifestationTypée'] ?? '';
-                $parts = explode(' - ', $manifType, 3);
-                $type = $parts[1] ?? '';
-                $isMatch = (mb_strtolower($type) === 'match');
-
-                $isConcerned = false;
-
-                if ($isMatch) {
-                    foreach ($enrichedPlayerTeams as $team) {
-                        $filter = $team['manifestation_filter'];
-                        if ($filter && str_contains($manifType, $filter)) {
-                            $isConcerned = true;
-                            break;
-                        }
-                    }
-                } else {
-                    $isTraining = false;
-                    $matchedTrainingType = null;
-
-                    foreach ($trainingTypes as $tt) {
-                        if ($manifType === $tt) {
-                            $isTraining = true;
-                            $matchedTrainingType = $tt;
-                            break;
-                        }
-                    }
-
-                    if ($isTraining && $matchedTrainingType !== null) {
-                        if (\App\Models\MemberEmailPreference::isSubscribed($playerId, $saisonId, $matchedTrainingType)) {
-                            $isConcerned = true;
-                        }
-                    } else {
-                        $isConcerned = true;
-                    }
-                }
-
-                if ($isConcerned) {
-                    $stmtStatus = $db->prepare("
-                        SELECT Participation FROM Participation 
-                        WHERE id_joueur = ? AND id_manifestation = ? 
-                        LIMIT 1
-                    ");
-                    $stmtStatus->execute([$playerId, (int)$event['id_manifestation']]);
-                    $currentStatus = $stmtStatus->fetchColumn();
-
-                    $event['current_status'] = $currentStatus ?: null;
-                    $playerEvents[] = $event;
-                }
+            // Normaliser le champ current_status pour le template d'email
+            foreach ($playerEvents as &$pEvent) {
+                $pEvent['current_status'] = $pEvent['user_status'] ?? null;
             }
+            unset($pEvent);
 
-            if (!empty($playerEvents)) {
-                $playerDb = \App\Models\Joueur::findById($playerId);
-                if ($playerDb && !empty($playerDb['Mel'])) {
+            $playerDb = \App\Models\Joueur::findById($playerId);
+            if ($playerDb && !empty($playerDb['Mel'])) {
+                try {
                     $success = $brevo->sendWeeklyPresenceNotification($playerDb, $playerEvents, $saison);
                     if ($success) {
                         $emailsSent++;
                     }
+                } catch (\Throwable $e) {
+                    Logger::errors()->error('Failed to send weekly presence notification email', [
+                        'player_id' => $playerId,
+                        'error'     => $e->getMessage()
+                    ]);
                 }
             }
         }
@@ -277,3 +147,4 @@ class EventNotificationService
         return $emailsSent;
     }
 }
+
