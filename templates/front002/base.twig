@@ -199,6 +199,59 @@
   {% block pwa_scripts %}{% endblock %}
   {% block scripts %}{% endblock %}
 
+  {# ── Gestion de la Session Permanente (localStorage & Auto-reconnexion) ── #}
+  <script>
+    (function() {
+      {% if app.session.LogIn %}
+        {% if app.session.auth_token %}
+          try {
+            localStorage.setItem('usm_member_auth', '{{ app.session.auth_token }}');
+          } catch(e) {}
+        {% else %}
+          var match = document.cookie.match(new RegExp('(?:^|; )usm_remember=([^;]*)'));
+          if (match && match[1]) {
+            try {
+              localStorage.setItem('usm_member_auth', decodeURIComponent(match[1]));
+            } catch(e) {}
+          }
+        {% endif %}
+      {% else %}
+        try {
+          var savedToken = localStorage.getItem('usm_member_auth');
+          var currentPath = window.location.pathname;
+          if (savedToken && currentPath !== '/member/logout') {
+            fetch('/api/member/auto-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: savedToken })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              if (data && data.ok) {
+                if (data.token) {
+                  localStorage.setItem('usm_member_auth', data.token);
+                }
+                window.location.reload();
+              } else {
+                localStorage.removeItem('usm_member_auth');
+              }
+            })
+            .catch(function() {});
+          }
+        } catch(e) {}
+      {% endif %}
+
+      document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (form && form.action && form.action.indexOf('/member/logout') !== -1) {
+          try {
+            localStorage.removeItem('usm_member_auth');
+          } catch(err) {}
+        }
+      });
+    })();
+  </script>
+
   {# ── Lazy Cron Asynchrone ── #}
   <script>
     (function() {

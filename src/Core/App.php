@@ -19,6 +19,7 @@ use App\Controllers\Member\CaptainController;
 use App\Controllers\Api\ArticleApiController;
 use App\Controllers\Api\EmailPreferenceApiController;
 use App\Controllers\Api\CronController;
+use App\Controllers\Api\MemberAuthApiController;
 use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\CategorieEquipeController;
 use App\Controllers\Admin\TagController;
@@ -134,6 +135,7 @@ class App
         // ── API ───────────────────────────────────────────────────────────────
         $r->post('/api/member/participations/upsert', [ParticipationController::class, 'apiUpsert']);
         $r->post('/api/captain/participation/update', [CaptainController::class, 'apiUpdatePlayerParticipation']);
+        $r->post('/api/member/auto-login', [MemberAuthApiController::class, 'autoLogin']);
         $r->options('/api/articles', [ArticleApiController::class, 'create']);
         $r->post('/api/articles',   [ArticleApiController::class, 'create']);
         $r->get('/api/member-email-preferences/get', [EmailPreferenceApiController::class, 'get']);

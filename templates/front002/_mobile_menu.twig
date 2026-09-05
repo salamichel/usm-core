@@ -50,7 +50,9 @@
         </button>
       </form>
     {% else %}
-      <a href="{{ url('member/login') }}" class="mobile-menu-login-btn">
+      {% set current_uri = app.server.REQUEST_URI|default('/') %}
+      {% set mobile_login_url = (current_uri and not ('/member/login' in current_uri) and not ('/member/logout' in current_uri)) ? url('member/login') ~ '?redirect=' ~ current_uri|url_encode : url('member/login') %}
+      <a href="{{ mobile_login_url }}" class="mobile-menu-login-btn">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
         </svg>

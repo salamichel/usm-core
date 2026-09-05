@@ -304,4 +304,53 @@ class Joueur
         $stmt = $db->query($sql);
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: [];
     }
+
+    /**
+     * Génère un token d'authentification persistant (pour localStorage et reconnexion automatique).
+     */
+    public static function generateAuthToken(array $user): string
+    {
+        $id = (int)$user['id_joueur'];
+        $email = $user['Mel'] ?? '';
+        $mdp = $user['mdp'] ?? '';
+        $secret = defined('AUTH_SECRET_KEY') ? AUTH_SECRET_KEY : 'usm_fallback_key';
+
+        $signature = hash_hmac('sha256', $id . '|' . $email . '|' . $mdp, $secret);
+        $payload = json_encode(['id' => $id, 'sig' => $signature]);
+
+        return rtrim(strtr(base64_encode($payload), '+/', '-_'), '=');
+    }
+
+    /**
+     * Vérifie un token persistant et retourne le joueur correspondant si valide.
+     */
+    public static function verifyAuthToken(string $token): ?array
+    {
+        $json = base64_decode(strtr($token, '-_', '+/'));
+        if (!$json) {
+            return null;
+        }
+
+        $data = json_decode($json, true);
+        if (!is_array($data) || !isset($data['id'], $data['sig'])) {
+            return null;
+        }
+
+        $id = (int)$data['id'];
+        $user = self::findById($id);
+        if (!$user) {
+            return null;
+        }
+
+        $email = $user['Mel'] ?? '';
+        $mdp = $user['mdp'] ?? '';
+        $secret = defined('AUTH_SECRET_KEY') ? AUTH_SECRET_KEY : 'usm_fallback_key';
+
+        $expectedSig = hash_hmac('sha256', $id . '|' . $email . '|' . $mdp, $secret);
+        if (!hash_equals($expectedSig, $data['sig'])) {
+            return null;
+        }
+
+        return $user;
+    }
 }

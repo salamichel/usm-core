@@ -65,47 +65,33 @@
     {% endif %}
     
     {# --- LIGNE PRINCIPALE (Date Badge + Contenu Grille) --- #}
-    <div class="flex flex-col md:flex-row md:items-center gap-5 w-full">
+    <div class="flex flex-col md:flex-row md:items-center gap-4 sm:gap-5 w-full">
         
-        {# --- 1. Date Badge (Jour & Mois) & Title/Type row on mobile --- #}
-        <div class="flex items-center gap-4 w-full md:w-auto">
+        {# --- 1. Date Badge (Jour & Mois) + Titre/Type sur mobile --- #}
+        <div class="flex items-start md:items-center gap-3.5 sm:gap-4 w-full md:w-auto">
             {% set date_parts = m.date_display|split(' ') %}
-            <div class="flex-shrink-0 w-14 h-14 bg-slate-900 text-white rounded-2xl flex flex-col items-center justify-center shadow-sm relative z-20">
+            <div class="flex-shrink-0 w-13 h-13 sm:w-14 sm:h-14 bg-slate-900 text-white rounded-2xl flex flex-col items-center justify-center shadow-sm relative z-20">
                 <span class="text-xl font-black leading-none">{{ date_parts[1] }}</span>
                 <span class="text-[9px] font-bold uppercase tracking-wider mt-1 text-slate-400">{{ date_parts[2]|slice(0, 3)|upper }}</span>
             </div>
 
+            {# Mobile uniquement : Titre + Type + Horaire + Lieu #}
             <div class="md:hidden space-y-1 z-20 flex-grow">
-                <span class="text-[9px] font-black tracking-wider text-indigo-600/80 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[9px] font-black tracking-wider text-indigo-600 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
+                    {% if m.time_range %}
+                        <span class="text-[10px] font-bold text-slate-400">• {{ m.time_range }}</span>
+                    {% endif %}
+                </div>
                 <h3 class="text-base font-black text-slate-900 leading-snug">
                     {% if show_link %}
-                        <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors after:absolute after:inset-0 after:rounded-[28px] z-10">
+                        <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors">
                             {{ m.titre }}
                         </a>
                     {% else %}
                         {{ m.titre }}
                     {% endif %}
                 </h3>
-            </div>
-        </div>
-
-        {# --- 2. Contenu en grille de colonnes sur Desktop --- #}
-        <div class="flex-grow grid grid-cols-1 {% if allow_actions %}md:grid-cols-4{% else %}md:grid-cols-3{% endif %} gap-6 items-center w-full">
-            
-            {# Colonne 1 : Titre, Type, Lieu #}
-            <div class="space-y-1 z-20">
-                <div class="hidden md:block space-y-1">
-                    <span class="text-[9px] font-black tracking-wider text-indigo-600/80 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
-                    <h3 class="text-base font-black text-slate-900 leading-snug">
-                        {% if show_link %}
-                            <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors after:absolute after:inset-0 after:rounded-[28px] z-10">
-                                {{ m.titre }}
-                            </a>
-                        {% else %}
-                            {{ m.titre }}
-                        {% endif %}
-                    </h3>
-                </div>
                 {% if m.lieu %}
                     <span class="text-xs text-slate-500 font-semibold inline-flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -113,64 +99,149 @@
                     </span>
                 {% endif %}
             </div>
+        </div>
 
-            {# Colonne 2 : Plage horaire & Barre de Progression (Effectif) #}
-            <div class="space-y-2 z-20">
-                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-600 uppercase tracking-wide">
-                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ m.time_range|default('Horaire non précisé') }}</span>
-                    {% if m.google_calendar_url %}
-                        <a href="{{ m.google_calendar_url }}" target="_blank" rel="noopener noreferrer" class="ml-2 inline-flex items-center text-slate-400 hover:text-emerald-600 transition-colors relative z-30" title="Ajouter à Google Agenda">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
+        {# --- 2. Contenu en grille Desktop (3 colonnes) et Mobile réordonné --- #}
+        <div class="flex-grow grid grid-cols-1 {% if allow_actions %}md:grid-cols-12{% else %}md:grid-cols-2{% endif %} gap-4 md:gap-6 items-center w-full">
+            
+            {# Colonne 1 Desktop : Titre, Type, Lieu, Horaire & Durée #}
+            <div class="hidden md:block {% if allow_actions %}md:col-span-4{% else %}md:col-span-1{% endif %} space-y-1.5 z-20">
+                <span class="text-[9px] font-black tracking-wider text-indigo-600 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
+                <h3 class="text-base font-black text-slate-900 leading-snug">
+                    {% if show_link %}
+                        <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors">
+                            {{ m.titre }}
                         </a>
+                    {% else %}
+                        {{ m.titre }}
                     {% endif %}
+                </h3>
+                <div class="flex flex-col gap-1 pt-0.5 text-xs text-slate-500 font-semibold">
+                    {% if m.lieu %}
+                        <span class="inline-flex items-center gap-1 text-slate-600">
+                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            {{ m.lieu }}
+                        </span>
+                    {% endif %}
+                    <div class="flex items-center gap-1.5 text-slate-600">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ m.time_range|default('Horaire non précisé') }}</span>
+                        {% if m.duration %}
+                            <span class="text-slate-400 font-normal">({{ m.duration }})</span>
+                        {% endif %}
+                        {% if m.google_calendar_url %}
+                            <a href="{{ m.google_calendar_url }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-slate-400 hover:text-emerald-600 transition-colors" title="Ajouter à Google Agenda">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
-
-                {# Barre de progression #}
-                {% if m.is_match %}
-                    {% set min_req = m.min_players|default(6) %}
-                    {% set total_count = m.nb_present + m.nb_disponible + m.nb_selection %}
-                    {% set pct = (total_count >= min_req) ? 100 : (total_count / min_req * 100) %}
-                    <div>
-                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1">
-                            <span class="progress-label flex items-center gap-1">
-                                {% if total_count >= min_req %}
-                                    <span class="text-emerald-600 flex items-center gap-1">✓ Équipe complète ({{ total_count }})</span>
-                                {% else %}
-                                    <span class="text-orange-500">⚠ Sous-effectif ({{ total_count }}/{{ min_req }})</span>
-                                {% endif %}
-                            </span>
-                            <span>Durée : {{ m.duration|default('1h30') }}</span>
-                        </div>
-                        <div class="w-full bg-slate-100/80 h-2 rounded-full overflow-hidden relative border border-slate-50">
-                            <div class="progress-bar h-full rounded-full transition-all duration-500 {% if total_count >= 6 %}bg-gradient-to-r from-emerald-400 to-teal-500{% else %}bg-gradient-to-r from-orange-400 to-amber-500{% endif %}" style="width: {{ pct }}%"></div>
-                        </div>
-                    </div>
-                {% else %}
-                    {% set total_presents = m.nb_present %}
-                    {% set target_train = 12 %}
-                    {% set pct_train = (total_presents >= target_train) ? 100 : (total_presents / target_train * 100) %}
-                    <div>
-                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1">
-                            <span class="progress-label text-indigo-500">{{ total_presents }} présent(s)</span>
-                            <span>Durée : {{ m.duration|default('1h30') }}</span>
-                        </div>
-                        <div class="w-full bg-slate-100/80 h-2 rounded-full overflow-hidden relative border border-slate-50">
-                            <div class="progress-bar h-full rounded-full transition-all duration-500 bg-gradient-to-r from-indigo-400 to-indigo-600" style="width: {{ pct_train }}%"></div>
-                        </div>
-                    </div>
-                {% endif %}
             </div>
 
-            {# Colonne 3 : Membres & Récapitulatif #}
-            <div class="z-20 w-full">
-                <div class="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-4 w-full">
+            {# --- PRIORITÉ MOBILE : ZONE ACTIONS (ordre 1 sur mobile, colonne 3 sur desktop) --- #}
+            {% if allow_actions %}
+                <div class="order-1 md:order-3 {% if allow_actions %}md:col-span-5{% endif %} flex flex-col gap-2 bg-slate-50/90 md:bg-transparent p-3.5 md:p-0 rounded-2xl border border-slate-100 md:border-0 md:border-l md:border-slate-100 md:pl-5 z-20">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Votre statut :</span>
+                        <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-black {% if m.annule %}text-rose-600 line-through{% elseif m.user_status %}{% if m.user_status_category == 'selected' %}text-amber-600{% elseif m.user_status_category in ['available', 'present'] %}text-emerald-600{% elseif m.user_status_category == 'available_if_needed' %}text-amber-500{% elseif m.user_status_category in ['unavailable', 'absent'] %}text-rose-500{% elseif m.user_status_category == 'unknown' %}text-slate-600{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
+                            {% if m.annule %}
+                                Annulé
+                            {% elseif m.user_status %}
+                                {% if m.user_status_category == 'selected' %} <span class="mr-1 text-xs">★</span> {{ m.user_status }}
+                                {% elseif m.user_status_category in ['available', 'present'] %} <span class="mr-1 text-xs">✓</span> {{ m.user_status }}
+                                {% elseif m.user_status_category == 'available_if_needed' %} <span class="mr-1 text-xs">◐</span> Si besoin
+                                {% elseif m.user_status_category in ['unavailable', 'absent'] %} <span class="mr-1 text-xs">✗</span> {{ m.user_status }}
+                                {% elseif m.user_status_category == 'unknown' %} <span class="mr-1 text-xs">?</span> {{ m.user_status }}
+                                {% else %} {{ m.user_status }} {% endif %}
+                            {% else %}
+                                Non renseigné
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5 w-full mt-0.5">
+                        {% if m.annule %}
+                            <div class="text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm">
+                                ✗ Événement annulé
+                            </div>
+                        {% elseif is_selected %}
+                            <div class="text-xs font-extrabold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm">
+                                <span class="text-amber-500 text-sm">★</span> Convoqué(e) par le capitaine
+                            </div>
+                        {% elseif is_overlapping_selected %}
+                            <div class="text-xs font-extrabold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm" title="Vous êtes déjà convoqué(e) sur un autre match à cet horaire.">
+                                <span class="text-rose-500 text-sm">⚠</span> Créneau concurrent (Bloqué)
+                            </div>
+                        {% else %}
+                            {% if m.is_match %}
+                                {% set is_dispo = m.user_status_category == 'available' %}
+                                <button type="button" 
+                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if is_dispo %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200{% endif %}" 
+                                        data-status="Disponible"
+                                        title="Disponible">
+                                    <span class="text-xs">✓</span> Dispo
+                                </button>
+
+                                {% set is_sib = m.user_status_category == 'available_if_needed' %}
+                                <button type="button" 
+                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if is_sib %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200{% endif %}" 
+                                        data-status="Disponible si nécessaire"
+                                        title="Si besoin">
+                                    <span class="text-xs">◐</span> Si besoin
+                                </button>
+
+                                {% set is_indispo = m.user_status_category == 'unavailable' %}
+                                <button type="button" 
+                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if is_indispo %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200{% endif %}" 
+                                        data-status="Indisponible"
+                                        title="Indisponible">
+                                    <span class="text-xs">✗</span> Indispo
+                                </button>
+                            {% else %}
+                                {% set is_present = m.user_status_category == 'present' %}
+                                <select class="status-select flex-1 min-w-[90px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border shadow-sm {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200{% endif %}">
+                                    <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
+                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 5" {% if m.user_status == 'Présent(e) à 5' %}selected{% endif %}>✓ Présent à 5</option>
+                                </select>
+
+                                <button type="button" 
+                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if m.user_status == 'Absent(e)' %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200{% endif %}" 
+                                        data-status="Absent(e)"
+                                        title="Absent">
+                                    <span class="text-xs">✗</span> Absent
+                                </button>
+
+                                <button type="button" 
+                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if m.user_status == 'Ne sait pas' %}bg-slate-600 text-white{% else %}bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}" 
+                                        data-status="Ne sait pas"
+                                        title="Incertain">
+                                    <span class="text-xs">?</span> Ne sait pas
+                                </button>
+                            {% endif %}
+                            
+                            {% set is_reset = not m.user_status or m.user_status == '.' %}
+                            <button type="button" 
+                                    class="status-btn px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_reset %}bg-slate-400 text-white{% else %}bg-slate-100 text-slate-400 hover:bg-slate-200 border border-slate-200{% endif %}" 
+                                    data-status="." 
+                                    title="Réinitialiser votre réponse">
+                                ⊘
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {# --- PARTICIPANTS & RÉCAPITULATIF (ordre 2 sur mobile, colonne 2 sur desktop) --- #}
+            <div class="order-2 md:order-2 {% if allow_actions %}md:col-span-3{% else %}md:col-span-1{% endif %} z-20 w-full pt-2 md:pt-0 border-t border-slate-100 md:border-t-0">
+                <div class="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-3 w-full">
                     {# Membres #}
                     <div class="flex flex-col items-start">
-                        <span class="text-[9px] font-black text-slate-400 tracking-wider uppercase">Membres</span>
-                        <div class="flex items-center mt-1.5 avatar-stack">
+                        <span class="text-[9px] font-black text-slate-400 tracking-wider uppercase">Inscrits</span>
+                        <div class="flex items-center mt-1 avatar-stack">
                             {% if can_view_player_details %}
                                 {% set list_players = m.is_match ? ((m.annule ? [] : m.selected)|merge(m.available)|merge(m.available_if_needed)) : m.present %}
                                 {% set max_avatars = 5 %}
@@ -217,7 +288,7 @@
 
                     {# Récapitulatif #}
                     <div class="flex flex-col items-end md:items-start md:border-t md:border-slate-100 md:pt-2 md:w-full">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Récapitulatif</span>
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Effectifs</span>
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap justify-end md:justify-start">
                             {% if m.is_match %}
                                 {% if not m.annule %}
@@ -270,103 +341,6 @@
                     </div>
                 </div>
             </div>
-
-            {# Colonne 4 : Statut & Vote (Uniquement si connecté) #}
-            {% if allow_actions %}
-                <div class="flex flex-col gap-2.5 md:border-l md:border-slate-100 md:pl-4 z-20">
-                    <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Mon Statut</span>
-                        <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-black mt-0.5 {% if m.annule %}text-rose-600 line-through{% elseif m.user_status %}{% if m.user_status_category == 'selected' %}text-amber-600{% elseif m.user_status_category in ['available', 'present'] %}text-emerald-600{% elseif m.user_status_category == 'available_if_needed' %}text-amber-500{% elseif m.user_status_category in ['unavailable', 'absent'] %}text-rose-500{% elseif m.user_status_category == 'unknown' %}text-slate-600{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
-                            {% if m.annule %}
-                                Annulé
-                            {% elseif m.user_status %}
-                                {% if m.user_status_category == 'selected' %} <span class="mr-1 text-xs">★</span> {{ m.user_status }}
-                                {% elseif m.user_status_category in ['available', 'present'] %} <span class="mr-1 text-xs">✓</span> {{ m.user_status }}
-                                {% elseif m.user_status_category == 'available_if_needed' %} <span class="mr-1 text-xs">◐</span> Si besoin
-                                {% elseif m.user_status_category in ['unavailable', 'absent'] %} <span class="mr-1 text-xs">✗</span> {{ m.user_status }}
-                                {% elseif m.user_status_category == 'unknown' %} <span class="mr-1 text-xs">?</span> {{ m.user_status }}
-                                {% else %} {{ m.user_status }} {% endif %}
-                            {% else %}
-                                Non renseigné
-                            {% endif %}
-                        </span>
-                    </div>
-
-                    <div class="flex flex-wrap gap-1.5 w-full mt-1">
-                        {% if m.annule %}
-                            <div class="text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm">
-                                ✗ Événement annulé
-                            </div>
-                        {% elseif is_selected %}
-                            <div class="text-xs font-extrabold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm">
-                                <span class="text-amber-500 text-sm">★</span> Convoqué(e) par le capitaine
-                            </div>
-                        {% elseif is_overlapping_selected %}
-                            <div class="text-xs font-extrabold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm" title="Vous êtes déjà convoqué(e) sur un autre match à cet horaire.">
-                                <span class="text-rose-500 text-sm">⚠</span> Créneau concurrent (Bloqué)
-                            </div>
-                        {% else %}
-                            {% if m.is_match %}
-                                {% set is_dispo = m.user_status_category == 'available' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_dispo %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100{% endif %}" 
-                                        data-status="Disponible"
-                                        title="Disponible">
-                                    <span class="text-xs">✓</span> Dispo
-                                </button>
-
-                                {% set is_sib = m.user_status_category == 'available_if_needed' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_sib %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-100{% endif %}" 
-                                        data-status="Disponible si nécessaire"
-                                        title="Si besoin">
-                                    <span class="text-xs">◐</span> Si besoin
-                                </button>
-
-                                {% set is_indispo = m.user_status_category == 'unavailable' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_indispo %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100{% endif %}" 
-                                        data-status="Indisponible"
-                                        title="Indisponible">
-                                    <span class="text-xs">✗</span> Indispo
-                                </button>
-                            {% else %}
-                                {% set is_present = m.user_status_category == 'present' %}
-                                <select class="status-select flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100{% endif %}">
-                                    <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 5" {% if m.user_status == 'Présent(e) à 5' %}selected{% endif %}>✓ Présent à 5</option>
-                                </select>
-
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if m.user_status == 'Absent(e)' %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100{% endif %}" 
-                                        data-status="Absent(e)"
-                                        title="Absent">
-                                    <span class="text-xs">✗</span> Absent
-                                </button>
-
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[80px] px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if m.user_status == 'Ne sait pas' %}bg-slate-600 text-white{% else %}bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-100{% endif %}" 
-                                        data-status="Ne sait pas"
-                                        title="Incertain">
-                                    <span class="text-xs">?</span> Ne sait pas
-                                </button>
-                            {% endif %}
-                            
-                            {% set is_reset = not m.user_status or m.user_status == '.' %}
-                            <button type="button" 
-                                    class="status-btn px-2.5 py-2 rounded-xl text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_reset %}bg-slate-400 text-white{% else %}bg-slate-100 text-slate-400 hover:bg-slate-200{% endif %}" 
-                                    data-status="." 
-                                    title="Réinitialiser">
-                                ⊘
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
 
         </div>
 

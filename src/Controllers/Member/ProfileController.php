@@ -19,7 +19,8 @@ class ProfileController
         // Vérification d'accès adhérent
         if (!isset($_SESSION['LogIn']) || $_SESSION['LogIn'] !== true) {
             View::flash('error', 'Veuillez vous connecter pour accéder à cette page.');
-            header('Location: /member/login');
+            $redirect = $_SERVER['REQUEST_URI'] ?? '/member/profile';
+            header('Location: /member/login?redirect=' . urlencode($redirect));
             exit;
         }
 

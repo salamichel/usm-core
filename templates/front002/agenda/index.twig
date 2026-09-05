@@ -291,6 +291,7 @@
 											<span class="ml-1.5 text-xs">{{ nom_famille|upper }} {{ prenom }}</span>
 											{% if is_current_user %}
 												<span class="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[var(--primary)] text-white shadow-sm inline-block">Vous</span>
+												<span class="ml-1 px-1.5 py-0.5 text-[9px] font-extrabold rounded-full bg-amber-100 text-amber-800 border border-amber-200 shadow-sm inline-flex items-center gap-0.5" title="Cliquez sur les cases de votre ligne pour modifier vos disponibilités en direct">✏️ Ligne modifiable</span>
 											{% endif %}
 										</td>
 
@@ -374,7 +375,7 @@
 												<span class="cell-icon text-sm">{{ icone }}</span>
 												<span class="cell-label text-xs">{{ libelle }}</span>
 												{% if is_user_cell %}
-													<span class="absolute right-0.5 top-0.5 text-[8px] opacity-0 group-hover:opacity-100 transition-opacity text-slate-400">✏️</span>
+													<span class="absolute right-1 top-0.5 text-[10px] opacity-75 group-hover:opacity-100 group-hover:scale-125 transition-all text-slate-500 drop-shadow-sm pointer-events-none select-none" title="Cliquer pour modifier votre participation">✏️</span>
 												{% endif %}
 											</td>
 										{% endfor %}

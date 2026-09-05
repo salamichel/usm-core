@@ -23,6 +23,10 @@
         {# --- FLOATING ACTION BUTTON CENTRAL : CONNEXION --- #}
         {% set v_url_3 = site_config.visitor_bottom_url_3|default('member/login') %}
         {% set v_href_3 = (v_url_3 starts with 'http://' or v_url_3 starts with 'https://' or v_url_3 starts with '#' or v_url_3 starts with '/') ? v_url_3 : url(v_url_3) %}
+        {% set current_uri = app.server.REQUEST_URI|default('/') %}
+        {% if 'member/login' in v_href_3 and current_uri and not ('/member/login' in current_uri) and not ('/member/logout' in current_uri) %}
+            {% set v_href_3 = v_href_3 ~ (v_href_3 matches '/\\?/' ? '&' : '?') ~ 'redirect=' ~ current_uri|url_encode %}
+        {% endif %}
         <div class="relative -top-5 z-50 flex justify-center w-16 flex-shrink-0">
             <a href="{{ v_href_3 }}" class="w-14 h-14 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-[0_4px_10px_rgba(15,23,42,0.4)] hover:bg-slate-800 active:scale-90 transition-all duration-200 border-4 border-white" title="{{ site_config.visitor_bottom_label_3|default('Se connecter') }}">
                 {% include '_icon.twig' with {name: site_config.visitor_bottom_icon_3|default('lock'), class: 'w-6 h-6'} %}

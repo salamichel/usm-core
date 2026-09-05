@@ -16,13 +16,16 @@ class AuthController
      */
     public function loginForm(): void
     {
-        // Redirection si l'adhérent est déjà connecté
-        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
-            header('Location: /member/dashboard');
-            exit;
+        $redirect = $_GET['redirect'] ?? '/member/dashboard';
+        if (!str_starts_with($redirect, '/') || str_starts_with($redirect, '//')) {
+            $redirect = '/member/dashboard';
         }
 
-        $redirect = $_GET['redirect'] ?? '/member/dashboard';
+        // Redirection si l'adhérent est déjà connecté
+        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn'] === true) {
+            header('Location: ' . $redirect);
+            exit;
+        }
 
         // Utilise une vue front-end
         View::render('auth/login.twig', [
@@ -69,6 +72,20 @@ class AuthController
             $captainedTeams = $saisonActive ? EquipeSaisonJoueur::findCaptainedTeams((int)$user['id_joueur'], $saisonActive['id']) : [];
             $_SESSION['IsCaptainSaison'] = !empty($captainedTeams);
 
+            // Génération du token d'authentification persistant (localStorage & Cookie 1 an)
+            $authToken = Joueur::generateAuthToken($user);
+            $_SESSION['auth_token'] = $authToken;
+
+            $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+            setcookie('usm_remember', $authToken, [
+                'expires'  => time() + 31536000,
+                'path'     => '/',
+                'domain'   => '',
+                'secure'   => $isHttps,
+                'httponly' => false,
+                'samesite' => 'Lax'
+            ]);
+
             View::flash('success', 'Bienvenue ' . $user['Prénom'] . ' !');
             header('Location: ' . $redirectUrl);
             exit;
@@ -90,7 +107,17 @@ class AuthController
         $_SESSION['AdminWeb'] = false;
         $_SESSION['IsCaptainSaison'] = false;
         
-        unset($_SESSION['LogInId'], $_SESSION['user_name'], $_SESSION['user_email']);
+        unset($_SESSION['LogInId'], $_SESSION['user_name'], $_SESSION['user_email'], $_SESSION['auth_token']);
+
+        // Supprimer le cookie de reconnexion
+        setcookie('usm_remember', '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'domain'   => '',
+            'secure'   => false,
+            'httponly' => false,
+            'samesite' => 'Lax'
+        ]);
         
         header('Location: /member/login');
         exit;

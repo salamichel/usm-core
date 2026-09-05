@@ -35,6 +35,7 @@ if (getenv('BASE_URL')) {
 define('THEME',     getenv('THEME') ?: 'front001');
 define('APP_DEBUG', (bool)(getenv('APP_DEBUG') ?: true));
 define('CRON_SECURITY_TOKEN', getenv('CRON_SECURITY_TOKEN') ?: 'usm_volley_fallback_cron_token_2026');
+define('AUTH_SECRET_KEY', getenv('AUTH_SECRET_KEY') ?: 'usm_volley_secret_permanent_key_2026');
 
 // ── Agenda & Events ────────────────────────────────────────────────────────────
 define('MINI_AGENDA_LIMIT', (int)(getenv('MINI_AGENDA_LIMIT') ?: 5));

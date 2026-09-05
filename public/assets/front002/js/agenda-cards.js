@@ -2,9 +2,6 @@
     // ==========================================
     // 1. ACTIONS DE MASSE (Bulk actions)
     // ==========================================
-    // ==========================================
-    // 1. ACTIONS DE MASSE (Bulk actions)
-    // ==========================================
     function initBulkFilters() {
         console.log("initBulkFilters: Initialisation des filtres d'actions groupées...");
         const typeSelect = document.getElementById('bulk-type-select');
@@ -28,66 +25,6 @@
         const cards = Array.from(grid.querySelectorAll('[data-manifestation-id]'));
         console.log("initBulkFilters: Nombre de cartes d'événements trouvées :", cards.length);
 
-        function applyBulkFiltersToCards() {
-            const typeVal = typeSelect.value;
-            const subtypeVal = subtypeSelect.value;
-            const locationVal = locationSelect.value;
-            const kindVal = kindSelect.value;
-
-            cards.forEach(card => {
-                // 1. Filtrage type
-                const cardType = card.dataset.eventTypeRaw || '';
-                if (typeVal && cardType !== typeVal) {
-                    card.style.display = 'none';
-                    return;
-                }
-
-                // 2. Filtrage sous-type
-                const cardSubtype = card.dataset.eventSubtypeRaw || '';
-                if (subtypeVal && cardSubtype !== subtypeVal) {
-                    card.style.display = 'none';
-                    return;
-                }
-
-                // 3. Filtrage lieu
-                const cardLocation = card.dataset.eventLocationRaw || '';
-                if (locationVal && cardLocation.toLowerCase().trim() !== locationVal.toLowerCase().trim()) {
-                    card.style.display = 'none';
-                    return;
-                }
-
-                // 4. Filtrage dispo/présence
-                const cardKind = card.dataset.eventKindRaw || '';
-                if (kindVal && cardKind !== kindVal) {
-                    card.style.display = 'none';
-                    return;
-                }
-
-                // Si tout correspond, afficher la carte
-                card.style.display = '';
-            });
-
-            // Gérer le placeholder "Aucun événement ne correspond à ce filtre."
-            const visibleCards = cards.filter(c => c.style.display !== 'none');
-            let placeholder = document.getElementById('no-filter-events-placeholder');
-            if (visibleCards.length === 0) {
-                if (!placeholder) {
-                    placeholder = document.createElement('div');
-                    placeholder.id = 'no-filter-events-placeholder';
-                    placeholder.className = 'p-8 text-center bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm w-full';
-                    placeholder.textContent = 'Aucun événement ne correspond à ces critères.';
-                    grid.appendChild(placeholder);
-                }
-            } else {
-                if (placeholder) placeholder.remove();
-            }
-
-            // Régénérer le slider de dates selon les événements visibles
-            if (typeof buildDateSlider === 'function') {
-                buildDateSlider();
-            }
-        }
-
         function updateBulkFilters() {
             const events = cards.map(card => ({
                 type: card.dataset.eventTypeRaw || '',
@@ -96,55 +33,31 @@
                 kind: card.dataset.eventKindRaw || ''
             }));
 
-            console.log("updateBulkFilters: Liste brute des événements :", events);
-
             // Sélections actuelles
             let selectedType = typeSelect.value;
             let selectedSubtype = subtypeSelect.value;
             let selectedLocation = locationSelect.value;
             let selectedKind = kindSelect.value;
 
-            // Clear highlights of active dashboard filters if user interacts with bulk filters
-            if (selectedType || selectedSubtype || selectedLocation || selectedKind) {
-                activeFilterType = null;
-                activeFilterValue = null;
-                document.querySelectorAll('[data-kpi-filter]').forEach(el => {
-                    el.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50');
-                });
-                document.querySelectorAll('[data-type-filter]').forEach(el => {
-                    el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
-                });
-                document.querySelectorAll('[data-lieu-filter]').forEach(el => {
-                    el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
-                });
-                const resetBtn = document.getElementById('reset-dashboard-filters');
-                if (resetBtn) resetBtn.classList.remove('hidden');
-            }
-
-            // Filtrer les événements par type
+            // Filtrer les options dynamiques par cascade
             const eventsForType = selectedType ? events.filter(e => e.type === selectedType) : events;
 
-            // Si le sous-type sélectionné n'est plus valide, le réinitialiser
             const validSubtypes = [...new Set(eventsForType.map(e => e.subtype))].filter(Boolean);
             if (selectedSubtype && !validSubtypes.includes(selectedSubtype)) {
                 selectedSubtype = '';
                 subtypeSelect.value = '';
             }
 
-            // Filtrer les événements par type ET sous-type
             const eventsForSubtype = selectedSubtype ? eventsForType.filter(e => e.subtype === selectedSubtype) : eventsForType;
 
-            // Si le lieu sélectionné n'est plus valide, le réinitialiser
             const validLocations = [...new Set(eventsForSubtype.map(e => e.location))].filter(Boolean);
             if (selectedLocation && !validLocations.includes(selectedLocation)) {
                 selectedLocation = '';
                 locationSelect.value = '';
             }
 
-            // Filtrer les événements par type, sous-type ET lieu
             const eventsForLocation = selectedLocation ? eventsForSubtype.filter(e => e.location === selectedLocation) : eventsForSubtype;
 
-            // Si la nature (kind) sélectionnée n'est plus valide, la réinitialiser
             const validKinds = [...new Set(eventsForLocation.map(e => e.kind))].filter(Boolean);
             if (selectedKind && !validKinds.includes(selectedKind)) {
                 selectedKind = '';
@@ -152,28 +65,22 @@
             }
 
             // Mettre à jour les options des sélecteurs
-            // 1. Type (toujours tous les types uniques du tableau initial)
             const uniqueTypes = [...new Set(events.map(e => e.type))].filter(Boolean).sort();
-            console.log("updateBulkFilters: Types uniques trouvés :", uniqueTypes);
             updateSelectOptions(typeSelect, uniqueTypes, selectedType, 'Tous les types');
 
-            // 2. Sous-type (selon le type sélectionné)
             const uniqueSubtypes = validSubtypes.sort();
-            console.log("updateBulkFilters: Sous-types uniques trouvés :", uniqueSubtypes);
             updateSelectOptions(subtypeSelect, uniqueSubtypes, selectedSubtype, 'Tous les sous-types');
 
-            // 3. Lieu (selon type + sous-type)
             const uniqueLocations = validLocations.sort();
-            console.log("updateBulkFilters: Lieux uniques trouvés :", uniqueLocations);
             updateSelectOptions(locationSelect, uniqueLocations, selectedLocation, 'Tous les lieux');
 
-            // 4. Nature (selon type + sous-type + lieu)
             const uniqueKinds = validKinds.sort();
-            console.log("updateBulkFilters: Natures uniques trouvées :", uniqueKinds);
             updateSelectOptions(kindSelect, uniqueKinds, selectedKind, 'Tous (Dispo & Présences)');
 
-            // Appliquer le filtre visuel en direct sur les cartes
-            applyBulkFiltersToCards();
+            // Appliquer le filtrage unifié en direct
+            if (typeof applyUnifiedFilters === 'function') {
+                applyUnifiedFilters();
+            }
         }
 
         function updateSelectOptions(selectElement, optionsArray, currentValue, defaultLabel) {
@@ -198,36 +105,16 @@
         // Alimentation initiale des sélecteurs
         updateBulkFilters();
 
-        // Gestionnaire d'application des actions de masse
+        // Gestionnaire d'application des actions de masse sur les cartes VISIBLES
         applyBtn.addEventListener('click', () => {
-            const typeVal = typeSelect.value;
-            const subtypeVal = subtypeSelect.value;
-            const locationVal = locationSelect.value;
-            const kindVal = kindSelect.value;
             const statusChoice = document.getElementById('bulk-status-select').value;
-
             if (!statusChoice) return;
 
-            console.log("applyBtn click: application du statut groupé...", { typeVal, subtypeVal, locationVal, kindVal, statusChoice });
+            // Appliquer uniquement aux cartes actuellement visibles
+            const visibleCards = cards.filter(c => c.style.display !== 'none');
+            console.log("applyBtn click: application du statut groupé sur cartes visibles...", { statusChoice, count: visibleCards.length });
 
-            cards.forEach(card => {
-                // 1. Filtrage type
-                const cardType = card.dataset.eventTypeRaw || '';
-                if (typeVal && cardType !== typeVal) return;
-
-                // 2. Filtrage sous-type
-                const cardSubtype = card.dataset.eventSubtypeRaw || '';
-                if (subtypeVal && cardSubtype !== subtypeVal) return;
-
-                // 3. Filtrage lieu
-                const cardLocation = card.dataset.eventLocationRaw || '';
-                if (locationVal && cardLocation.toLowerCase().trim() !== locationVal.toLowerCase().trim()) return;
-
-                // 4. Filtrage dispo/présence
-                const cardKind = card.dataset.eventKindRaw || '';
-                if (kindVal && cardKind !== kindVal) return;
-
-                // 5. Détermination du statut
+            visibleCards.forEach(card => {
                 const isMatch = (card.dataset.eventFilter === 'match');
                 let targetStatus = statusChoice;
                 if (statusChoice === 'Disponible') {
@@ -251,21 +138,6 @@
                     }
                 }
             });
-
-            // Filtre visuel de tableau de bord optionnel
-            if (typeVal) {
-                activeFilterType = 'type';
-                if (typeVal.toLowerCase().includes('match')) activeFilterValue = 'match';
-                else if (typeVal.toLowerCase().includes('entrain')) activeFilterValue = 'entrainement';
-                else if (typeVal.toLowerCase().includes('tournoi') || typeVal.toLowerCase().includes('plateau')) activeFilterValue = 'tournois';
-                else if (typeVal.toLowerCase().includes('forum')) activeFilterValue = 'forum';
-                else activeFilterValue = typeVal.toLowerCase();
-                applyDashboardFilters();
-            } else if (locationVal) {
-                activeFilterType = 'lieu';
-                activeFilterValue = locationVal;
-                applyDashboardFilters();
-            }
         });
     }
 
@@ -652,39 +524,6 @@
     // ==========================================
     function initAll() {
         console.log("initAll: Initialisation globale des composants...");
-        // Toggle affichage compact
-        const toggleCompactBtn = document.getElementById('toggle-compact-btn');
-        const eventGrid = document.getElementById('event-grid');
-        if (toggleCompactBtn && eventGrid) {
-            const localPref = localStorage.getItem('usm-dashboard-compact');
-            const isCompact = localPref === null ? true : localPref === 'true';
-
-            if (isCompact) {
-                eventGrid.classList.add('compact-grid');
-                updateCompactBtnUI(true);
-            } else {
-                eventGrid.classList.remove('compact-grid');
-                updateCompactBtnUI(false);
-            }
-
-            toggleCompactBtn.addEventListener('click', () => {
-                const active = eventGrid.classList.toggle('compact-grid');
-                localStorage.setItem('usm-dashboard-compact', active);
-                updateCompactBtnUI(active);
-            });
-        }
-
-        function updateCompactBtnUI(isCompact) {
-            const iconEl = document.getElementById('toggle-compact-icon');
-            const textEl = document.getElementById('toggle-compact-text');
-            if (isCompact) {
-                if (iconEl) iconEl.textContent = '⊞';
-                if (textEl) textEl.textContent = 'Vue détaillée';
-            } else {
-                if (iconEl) iconEl.textContent = '☰';
-                if (textEl) textEl.textContent = 'Vue compacte';
-            }
-        }
         // Toggle filtres
         const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
         const collapsibleFilters = document.getElementById('collapsible-filters');
@@ -698,17 +537,20 @@
         // Recherche dynamique client-side
         const searchInput = document.getElementById('agenda-search');
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const val = e.target.value.toLowerCase().trim();
-                const cards = document.querySelectorAll('#event-grid > div');
-                cards.forEach(card => {
-                    const title = card.querySelector('h3').textContent.toLowerCase();
-                    const location = card.querySelector('.text-slate-500')?.textContent.toLowerCase() || '';
-                    const matches = title.includes(val) || location.includes(val);
-                    card.style.display = matches ? '' : 'none';
-                });
-                // Régénérer le slider de dates selon les événements visibles
-                buildDateSlider();
+            searchInput.addEventListener('input', () => {
+                if (typeof applyUnifiedFilters === 'function') {
+                    applyUnifiedFilters();
+                } else {
+                    const val = searchInput.value.toLowerCase().trim();
+                    const cards = document.querySelectorAll('#event-grid > div');
+                    cards.forEach(card => {
+                        const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+                        const location = card.querySelector('.text-slate-500')?.textContent.toLowerCase() || '';
+                        const matches = title.includes(val) || location.includes(val);
+                        card.style.display = matches ? '' : 'none';
+                    });
+                    buildDateSlider();
+                }
             });
         }
 
@@ -966,7 +808,7 @@
     }
 
     // ==========================================
-    // 5. FILTRES DU TABLEAU DE BORD (Dashboard)
+    // 5. FILTRES DU TABLEAU DE BORD (Dashboard - Unifiés & Cumulatifs)
     // ==========================================
     let activeFilterType = null;
     let activeFilterValue = null;
@@ -995,12 +837,27 @@
             .trim();
     }
 
-    function applyDashboardFilters() {
+    function applyUnifiedFilters() {
         const cards = document.querySelectorAll('#event-grid > div[data-manifestation-id]');
+        if (cards.length === 0) return;
+
         const labelSpan = document.getElementById('active-filter-label');
         const resetBtn = document.getElementById('reset-dashboard-filters');
+        const targetCountBadge = document.getElementById('bulk-target-count');
 
-        // Nettoyer les surbrillances
+        const typeSelect = document.getElementById('bulk-type-select');
+        const subtypeSelect = document.getElementById('bulk-subtype-select');
+        const locationSelect = document.getElementById('bulk-location-select');
+        const kindSelect = document.getElementById('bulk-kind-select');
+        const searchInput = document.getElementById('agenda-search');
+
+        const typeVal = typeSelect ? typeSelect.value : '';
+        const subtypeVal = subtypeSelect ? subtypeSelect.value : '';
+        const locationVal = locationSelect ? locationSelect.value : '';
+        const kindVal = kindSelect ? kindSelect.value : '';
+        const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        // Nettoyer surbrillances UI
         document.querySelectorAll('[data-kpi-filter]').forEach(el => {
             el.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50');
         });
@@ -1011,116 +868,157 @@
             el.classList.remove('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
         });
 
-        if (!activeFilterType) {
-            cards.forEach(card => card.style.display = '');
-            if (labelSpan) labelSpan.textContent = '';
-            if (resetBtn) resetBtn.classList.add('hidden');
-
-            // Retirer le placeholder si présent
-            const placeholder = document.getElementById('no-filter-events-placeholder');
-            if (placeholder) placeholder.remove();
-
-            return;
-        }
-
-        if (resetBtn) resetBtn.classList.remove('hidden');
-
-        // Appliquer la surbrillance sur les éléments actifs
-        if (activeFilterType === 'kpi') {
+        // Surbrillance active
+        const labels = [];
+        if (activeFilterType === 'kpi' && activeFilterValue) {
             const el = document.querySelector(`[data-kpi-filter="${activeFilterValue}"]`);
             if (el) el.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50');
 
-            let label = '';
-            if (activeFilterValue === 'this-week') label = 'Cette semaine';
-            else if (activeFilterValue === 'next-week') label = 'Semaine prochaine';
-            else if (activeFilterValue === 'action-required') label = 'À répondre';
-            if (labelSpan) labelSpan.textContent = ` (Filtre : ${label})`;
-
-            const thisWeekRange = getWeekRange(0);
-            const nextWeekRange = getWeekRange(1);
-
-            cards.forEach(card => {
-                const dateStr = card.dataset.eventDate;
-                const eventDate = new Date(dateStr + 'T00:00:00');
-                const status = card.dataset.currentStatus || '.';
-
-                let matches = false;
-                if (activeFilterValue === 'this-week') {
-                    matches = eventDate >= thisWeekRange.start && eventDate <= thisWeekRange.end;
-                } else if (activeFilterValue === 'next-week') {
-                    matches = eventDate >= nextWeekRange.start && eventDate <= nextWeekRange.end;
-                } else if (activeFilterValue === 'action-required') {
-                    matches = !status || status === '.' || status === 'Ne sait pas encore';
-                }
-                card.style.display = matches ? '' : 'none';
-            });
-        } else if (activeFilterType === 'type') {
+            if (activeFilterValue === 'this-week') labels.push('Cette semaine');
+            else if (activeFilterValue === 'next-week') labels.push('Semaine prochaine');
+            else if (activeFilterValue === 'action-required') labels.push('À répondre');
+        } else if (activeFilterType === 'type' && activeFilterValue) {
             const activeFilterNorm = normalizeString(activeFilterValue);
             document.querySelectorAll('[data-type-filter]').forEach(el => {
                 const filterNorm = normalizeString(el.dataset.typeFilter || '');
                 const isMatch = (filterNorm === activeFilterNorm) || 
                                 (filterNorm === 'tournois' && activeFilterNorm === 'tournoi') || 
                                 (filterNorm === 'tournoi' && activeFilterNorm === 'tournois');
-                if (isMatch) {
-                    el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
-                }
+                if (isMatch) el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
             });
-
-            const activeFilterLower = activeFilterValue.toLowerCase().trim();
-            let label = activeFilterValue.charAt(0).toUpperCase() + activeFilterValue.slice(1);
-            if (activeFilterLower === 'entrainement' || activeFilterLower === 'entraînement') label = 'Entraînements';
-            else if (activeFilterLower === 'match') label = 'Matchs';
-            else if (activeFilterLower === 'tournois' || activeFilterLower === 'tournoi') label = 'Tournois';
-            else if (activeFilterLower === 'forum') label = 'Forums';
-            if (labelSpan) labelSpan.textContent = ` (Filtre : ${label})`;
-
-            cards.forEach(card => {
-                const cardType = card.dataset.eventTypeRaw || '';
-                const normCardType = normalizeString(cardType);
-                const normFilterVal = normalizeString(activeFilterValue);
-                let matches = false;
-
-                if (normFilterVal === 'match') {
-                    matches = normCardType.includes('match');
-                } else if (normFilterVal === 'entrainement') {
-                    matches = normCardType.includes('entrain');
-                } else if (normFilterVal === 'tournois' || normFilterVal === 'tournoi') {
-                    matches = normCardType.includes('tournoi') || normCardType.includes('plateau');
-                } else {
-                    matches = normCardType === normFilterVal;
-                }
-                card.style.display = matches ? '' : 'none';
-            });
-        } else if (activeFilterType === 'lieu') {
+            labels.push(activeFilterValue);
+        } else if (activeFilterType === 'lieu' && activeFilterValue) {
             document.querySelectorAll(`[data-lieu-filter="${activeFilterValue}"]`).forEach(el => {
                 el.classList.add('bg-indigo-50/80', 'font-bold', 'text-indigo-900');
             });
+            labels.push(activeFilterValue);
+        }
 
-            if (labelSpan) labelSpan.textContent = ` (Filtre : ${activeFilterValue})`;
+        if (typeVal) labels.push(typeVal);
+        if (subtypeVal) labels.push(subtypeVal);
+        if (locationVal) labels.push(locationVal);
+        if (kindVal) labels.push(kindVal);
 
-            cards.forEach(card => {
+        const hasActiveFilters = Boolean(activeFilterType || typeVal || subtypeVal || locationVal || kindVal || searchVal);
+        if (resetBtn) resetBtn.classList.toggle('hidden', !hasActiveFilters);
+        if (labelSpan) labelSpan.textContent = labels.length > 0 ? ` (${labels.join(' + ')})` : '';
+
+        const thisWeekRange = getWeekRange(0);
+        const nextWeekRange = getWeekRange(1);
+
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            // A. Condition KPI / Section
+            let matchesSection = true;
+            if (activeFilterType === 'kpi') {
+                const dateStr = card.dataset.eventDate;
+                const eventDate = new Date(dateStr + 'T00:00:00');
+                const status = card.dataset.currentStatus || '.';
+
+                if (activeFilterValue === 'this-week') {
+                    matchesSection = eventDate >= thisWeekRange.start && eventDate <= thisWeekRange.end;
+                } else if (activeFilterValue === 'next-week') {
+                    matchesSection = eventDate >= nextWeekRange.start && eventDate <= nextWeekRange.end;
+                } else if (activeFilterValue === 'action-required') {
+                    matchesSection = !status || status === '.' || status === 'Ne sait pas encore';
+                }
+            } else if (activeFilterType === 'type') {
+                const cardType = card.dataset.eventTypeRaw || '';
+                const normCardType = normalizeString(cardType);
+                const normFilterVal = normalizeString(activeFilterValue);
+                if (normFilterVal === 'match') {
+                    matchesSection = normCardType.includes('match');
+                } else if (normFilterVal === 'entrainement') {
+                    matchesSection = normCardType.includes('entrain');
+                } else if (normFilterVal === 'tournois' || normFilterVal === 'tournoi') {
+                    matchesSection = normCardType.includes('tournoi') || normCardType.includes('plateau');
+                } else {
+                    matchesSection = normCardType === normFilterVal;
+                }
+            } else if (activeFilterType === 'lieu') {
                 const cardLieu = (card.dataset.eventLocation || '').trim().toLowerCase();
-                const filterLieu = activeFilterValue.trim().toLowerCase();
-                card.style.display = cardLieu === filterLieu ? '' : 'none';
-            });
+                const filterLieu = (activeFilterValue || '').trim().toLowerCase();
+                matchesSection = cardLieu === filterLieu;
+            }
+
+            if (!matchesSection) {
+                card.style.display = 'none';
+                return;
+            }
+
+            // B. Condition Type dropdown
+            const cardType = card.dataset.eventTypeRaw || '';
+            if (typeVal && cardType !== typeVal) {
+                card.style.display = 'none';
+                return;
+            }
+
+            // C. Condition Sous-Type dropdown
+            const cardSubtype = card.dataset.eventSubtypeRaw || '';
+            if (subtypeVal && cardSubtype !== subtypeVal) {
+                card.style.display = 'none';
+                return;
+            }
+
+            // D. Condition Lieu dropdown
+            const cardLocation = card.dataset.eventLocationRaw || '';
+            if (locationVal && cardLocation.toLowerCase().trim() !== locationVal.toLowerCase().trim()) {
+                card.style.display = 'none';
+                return;
+            }
+
+            // E. Condition Nature dropdown
+            const cardKind = card.dataset.eventKindRaw || '';
+            if (kindVal && cardKind !== kindVal) {
+                card.style.display = 'none';
+                return;
+            }
+
+            // F. Condition Barre de recherche (si présente)
+            if (searchVal) {
+                const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+                const loc = card.querySelector('.text-slate-500')?.textContent.toLowerCase() || '';
+                if (!title.includes(searchVal) && !loc.includes(searchVal)) {
+                    card.style.display = 'none';
+                    return;
+                }
+            }
+
+            // Tout correspond !
+            card.style.display = '';
+            visibleCount++;
+        });
+
+        // Mettre à jour le badge du bouton d'action groupée
+        if (targetCountBadge) {
+            targetCountBadge.textContent = visibleCount;
         }
 
         // Gérer le placeholder si aucun résultat
-        const visibleCards = Array.from(cards).filter(c => c.style.display !== 'none');
         let placeholder = document.getElementById('no-filter-events-placeholder');
-        if (visibleCards.length === 0) {
-            if (!placeholder) {
+        const grid = document.getElementById('event-grid');
+        if (visibleCount === 0) {
+            if (!placeholder && grid) {
                 placeholder = document.createElement('div');
                 placeholder.id = 'no-filter-events-placeholder';
                 placeholder.className = 'p-8 text-center bg-white rounded-2xl border border-slate-100 text-slate-400 text-sm w-full';
-                placeholder.textContent = 'Aucun événement ne correspond à ce filtre.';
-                const grid = document.getElementById('event-grid');
-                if (grid) grid.appendChild(placeholder);
+                placeholder.textContent = 'Aucun événement ne correspond à ces critères cumulés.';
+                grid.appendChild(placeholder);
             }
         } else {
             if (placeholder) placeholder.remove();
         }
+
+        // Régénérer le slider de dates selon les événements visibles
+        if (typeof buildDateSlider === 'function') {
+            buildDateSlider();
+        }
     }
+
+    // Alias pour la compatibilité
+    window.applyDashboardFilters = applyUnifiedFilters;
+    window.applyUnifiedFilters = applyUnifiedFilters;
 
     function resetBulkSelectsWithoutTriggering() {
         const typeSelect = document.getElementById('bulk-type-select');
@@ -1133,7 +1031,7 @@
             locationSelect.value = '';
             kindSelect.value = '';
 
-            // Re-populate selects to default unfiltered states
+            // Réinitialiser les options de sélection complètes
             const grid = document.getElementById('event-grid');
             if (grid) {
                 const cards = Array.from(grid.querySelectorAll('[data-manifestation-id]'));
@@ -1181,10 +1079,9 @@
     }
 
     function initDashboardFilters() {
-        // Enregistrer les écouteurs de clics sur les KPIs
+        // Enregistrer les écouteurs de clics sur les KPIs (cumulatif avec les selects)
         document.querySelectorAll('[data-kpi-filter]').forEach(el => {
             el.addEventListener('click', () => {
-                resetBulkSelectsWithoutTriggering();
                 const val = el.dataset.kpiFilter;
                 if (activeFilterType === 'kpi' && activeFilterValue === val) {
                     activeFilterType = null;
@@ -1193,14 +1090,13 @@
                     activeFilterType = 'kpi';
                     activeFilterValue = val;
                 }
-                applyDashboardFilters();
+                applyUnifiedFilters();
             });
         });
 
-        // Enregistrer les écouteurs sur les types d'événements
+        // Enregistrer les écouteurs sur les types d'événements (statistiques)
         document.querySelectorAll('[data-type-filter]').forEach(el => {
             el.addEventListener('click', () => {
-                resetBulkSelectsWithoutTriggering();
                 const val = el.dataset.typeFilter;
                 if (activeFilterType === 'type' && activeFilterValue === val) {
                     activeFilterType = null;
@@ -1209,14 +1105,13 @@
                     activeFilterType = 'type';
                     activeFilterValue = val;
                 }
-                applyDashboardFilters();
+                applyUnifiedFilters();
             });
         });
 
         // Enregistrer les écouteurs sur les lieux
         document.querySelectorAll('[data-lieu-filter]').forEach(el => {
             el.addEventListener('click', () => {
-                resetBulkSelectsWithoutTriggering();
                 const val = el.dataset.lieuFilter;
                 if (activeFilterType === 'lieu' && activeFilterValue === val) {
                     activeFilterType = null;
@@ -1225,16 +1120,18 @@
                     activeFilterType = 'lieu';
                     activeFilterValue = val;
                 }
-                applyDashboardFilters();
+                applyUnifiedFilters();
             });
         });
 
-        // Bouton réinitialiser
+        // Bouton réinitialiser (efface tout : KPIs, types, lieux, dropdowns et recherche)
         document.getElementById('reset-dashboard-filters')?.addEventListener('click', () => {
             resetBulkSelectsWithoutTriggering();
             activeFilterType = null;
             activeFilterValue = null;
-            applyDashboardFilters();
+            const searchInput = document.getElementById('agenda-search');
+            if (searchInput) searchInput.value = '';
+            applyUnifiedFilters();
         });
     }
 

@@ -24,7 +24,8 @@ class CaptainController
     {
         if (!isset($_SESSION['LogIn']) || $_SESSION['LogIn'] !== true) {
             View::flash('error', 'Veuillez vous connecter pour accéder à l\'espace capitaine.');
-            header('Location: /member/login');
+            $redirect = $_SERVER['REQUEST_URI'] ?? '/member/captain';
+            header('Location: /member/login?redirect=' . urlencode($redirect));
             exit;
         }
 
