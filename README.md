@@ -134,7 +134,11 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
 ### Agenda & Espace Adhérent
 1. Saison activée → données synchronisées depuis base externe.
 2. Tableau croisé joueurs × événements avec icône d'édition en direct (`✏️`) sur les participations modifiables.
-3. Cartes d'événements responsives optimisées (boutons d'action prioritaires, suppression de jauge superflue).
+3. Cartes d'événements haute lisibilité et ergonomie moderne :
+   - Carte entièrement cliquable vers le détail de l'événement (`/agenda/{id}`) sans interférer avec les actions interactives.
+   - Badge de date proéminent (jour de la semaine, numéro et mois).
+   - Pastilles haute visibilité pour l'horaire précis et le lieu de l'événement.
+   - Pied de carte dédié intégrant le statut actuel et les boutons d'action de participation repositionnés en bas de carte sur mobile et desktop.
 4. Suivi de participation et modifications en lot avec filtres cumulatifs (périodes, types, sous-types, lieux, recherche).
 5. Authentification adhérent persistante (session 1 an, jeton cryptographique `localStorage`, reconnexion transparente sans interruption).
 6. Redirection contextuelle vers la page d'origine après authentification (`?redirect=...`).

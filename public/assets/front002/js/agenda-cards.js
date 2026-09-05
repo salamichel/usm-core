@@ -339,6 +339,7 @@
         if (!btn) return;
 
         e.preventDefault();
+        e.stopPropagation();
 
         const card = btn.closest('[data-manifestation-id]');
         if (!card) return;
@@ -348,6 +349,19 @@
         const oldStatus = card.dataset.currentStatus || '.';
 
         submitStatusUpdate(btn, manifestationId, newStatus, oldStatus, card);
+    });
+
+    // Navigation globale au clic sur la carte (sans intercepter les boutons, selects, modales, etc.)
+    document.addEventListener('click', function (e) {
+        // Ignorer si le clic provient d'un élément interactif
+        if (e.target.closest('.status-btn, .status-select, .player-list-trigger, a, button, select, input, label, textarea')) {
+            return;
+        }
+
+        const card = e.target.closest('[data-event-url]');
+        if (card && card.dataset.eventUrl) {
+            window.location.href = card.dataset.eventUrl;
+        }
     });
 
     document.addEventListener('change', function (e) {

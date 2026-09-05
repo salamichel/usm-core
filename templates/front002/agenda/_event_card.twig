@@ -12,21 +12,22 @@
 {% set is_overlapping_selected = m.is_overlapping_selected|default(false) and not m.annule %}
 
 {% if m.annule %}
-    {% set is_active_bg = 'bg-rose-50/10 border-rose-200/80 opacity-75 shadow-sm' %}
+    {% set is_active_bg = 'bg-rose-50/20 border-rose-200/80 opacity-80 shadow-sm' %}
 {% elseif m.provisoire %}
-    {% set is_active_bg = 'bg-amber-50/10 border-amber-300 shadow-sm' %}
+    {% set is_active_bg = 'bg-amber-50/20 border-amber-300 shadow-sm' %}
 {% elseif is_selected %}
-    {% set is_active_bg = 'bg-amber-50/20 border-amber-400 ring-4 ring-amber-400/30 shadow-md shadow-amber-200/50' %}
+    {% set is_active_bg = 'bg-amber-50/30 border-amber-400 ring-4 ring-amber-400/30 shadow-md shadow-amber-200/50' %}
 {% elseif is_overlapping_selected %}
     {% set is_active_bg = 'bg-slate-50/60 border-slate-200 opacity-90 shadow-sm' %}
 {% elseif is_first %}
-    {% set is_active_bg = 'bg-indigo-50/20 border-indigo-200/60 shadow-sm' %}
+    {% set is_active_bg = 'bg-indigo-50/20 border-indigo-200/80 shadow-sm' %}
 {% else %}
-    {% set is_active_bg = 'bg-white border-slate-100 hover:border-slate-200/80 shadow-sm hover:shadow-md' %}
+    {% set is_active_bg = 'bg-white border-slate-200/80 shadow-sm hover:border-indigo-300 hover:shadow-md' %}
 {% endif %}
 
-<div class="rounded-[28px] border p-5 transition-all duration-300 flex flex-col relative {{ is_active_bg }}" 
+<div class="group rounded-[28px] border transition-all duration-300 flex flex-col relative overflow-hidden cursor-pointer {{ is_active_bg }}" 
      data-manifestation-id="{{ m.id }}" 
+     data-event-url="{{ url('agenda/' ~ m.id) }}"
      data-event-date="{{ m.date|slice(0, 10) }}"
      data-event-filter="{% if 'forum' in m.titre|lower or 'forum' in m.type|lower %}forum{% elseif m.is_match %}match{% else %}{{ m.type|lower|replace({' ': '-'}) }}{% endif %}"
      data-current-status="{{ m.user_status|default('.') }}"
@@ -37,209 +38,127 @@
      data-event-location-raw="{{ m.lieu|default('') }}"
      data-event-kind-raw="{% if 'Présences' in m.ManifestationTypée %}Présences{% else %}Disponibilités{% endif %}">
 
-    {# Statut Badges #}
+    {# Statut Badges Flottants #}
     {% if m.annule %}
-        <div class="absolute -top-3 -right-3 z-30">
-            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white border border-rose-500 shadow-md">
+        <div class="absolute -top-1 -right-1 z-30">
+            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-bl-2xl rounded-tr-2xl text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white shadow-md">
                 ✗ Annulé
             </span>
         </div>
     {% elseif m.provisoire %}
-        <div class="absolute -top-3 -right-3 z-30">
-            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-900 border border-amber-400 shadow-md">
+        <div class="absolute -top-1 -right-1 z-30">
+            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-bl-2xl rounded-tr-2xl text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-900 shadow-md">
                 ⚠ Provisoire
             </span>
         </div>
     {% elseif is_selected %}
-        <div class="absolute -top-3 -right-3 z-30">
-            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-white border border-amber-400 shadow-lg shadow-amber-500/20 animate-pulse">
+        <div class="absolute -top-1 -right-1 z-30">
+            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-bl-2xl rounded-tr-2xl text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg shadow-amber-500/20 animate-pulse">
                 ★ Convoqué(e)
             </span>
         </div>
     {% elseif is_overlapping_selected %}
-        <div class="absolute -top-3 -right-3 z-30">
-            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 border border-slate-300 shadow-md">
+        <div class="absolute -top-1 -right-1 z-30">
+            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-bl-2xl rounded-tr-2xl text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 shadow-md">
                 ⚠ Créneau concurrent
             </span>
         </div>
     {% endif %}
     
-    {# --- LIGNE PRINCIPALE (Date Badge + Contenu Grille) --- #}
-    <div class="flex flex-col md:flex-row md:items-center gap-4 sm:gap-5 w-full">
-        
-        {# --- 1. Date Badge (Jour & Mois) + Titre/Type sur mobile --- #}
-        <div class="flex items-start md:items-center gap-3.5 sm:gap-4 w-full md:w-auto">
-            {% set date_parts = m.date_display|split(' ') %}
-            <div class="flex-shrink-0 w-13 h-13 sm:w-14 sm:h-14 bg-slate-900 text-white rounded-2xl flex flex-col items-center justify-center shadow-sm relative z-20">
-                <span class="text-xl font-black leading-none">{{ date_parts[1] }}</span>
-                <span class="text-[9px] font-bold uppercase tracking-wider mt-1 text-slate-400">{{ date_parts[2]|slice(0, 3)|upper }}</span>
-            </div>
-
-            {# Mobile uniquement : Titre + Type + Horaire + Lieu #}
-            <div class="md:hidden space-y-1 z-20 flex-grow">
-                <div class="flex items-center gap-2">
-                    <span class="text-[9px] font-black tracking-wider text-indigo-600 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
-                    {% if m.time_range %}
-                        <span class="text-[10px] font-bold text-slate-400">• {{ m.time_range }}</span>
-                    {% endif %}
-                </div>
-                <h3 class="text-base font-black text-slate-900 leading-snug">
-                    {% if show_link %}
-                        <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors">
-                            {{ m.titre }}
-                        </a>
-                    {% else %}
-                        {{ m.titre }}
-                    {% endif %}
-                </h3>
-                {% if m.lieu %}
-                    <span class="text-xs text-slate-500 font-semibold inline-flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        {{ m.lieu }}
-                    </span>
-                {% endif %}
-            </div>
-        </div>
-
-        {# --- 2. Contenu en grille Desktop (3 colonnes) et Mobile réordonné --- #}
-        <div class="flex-grow grid grid-cols-1 {% if allow_actions %}md:grid-cols-12{% else %}md:grid-cols-2{% endif %} gap-4 md:gap-6 items-center w-full">
+    {# --- ZONE CENTRALE : CONTENU DE LA CARTE --- #}
+    <div class="p-5 sm:p-6 flex flex-col gap-4 flex-grow">
+        <div class="flex flex-col md:flex-row md:items-start gap-4 sm:gap-5 w-full">
             
-            {# Colonne 1 Desktop : Titre, Type, Lieu, Horaire & Durée #}
-            <div class="hidden md:block {% if allow_actions %}md:col-span-4{% else %}md:col-span-1{% endif %} space-y-1.5 z-20">
-                <span class="text-[9px] font-black tracking-wider text-indigo-600 uppercase">{{ m.type_simple|default(m.type|default('Événement')) }}</span>
-                <h3 class="text-base font-black text-slate-900 leading-snug">
-                    {% if show_link %}
-                        <a href="{{ url('agenda/' ~ m.id) }}" class="hover:text-[var(--primary)] transition-colors">
-                            {{ m.titre }}
-                        </a>
-                    {% else %}
-                        {{ m.titre }}
-                    {% endif %}
-                </h3>
-                <div class="flex flex-col gap-1 pt-0.5 text-xs text-slate-500 font-semibold">
-                    {% if m.lieu %}
-                        <span class="inline-flex items-center gap-1 text-slate-600">
-                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            {{ m.lieu }}
+            {# --- 1. Date Badge Haute Visibilité (Jour de la semaine, Chiffre, Mois) --- #}
+            {% set date_parts = m.date_display|split(' ') %}
+            <div class="flex-shrink-0 flex items-center md:items-start gap-3.5">
+                <div class="w-16 h-18 sm:w-18 sm:h-20 bg-slate-900 text-white rounded-2xl flex flex-col items-center justify-between p-2 shadow-md relative z-10 group-hover:scale-105 transition-transform duration-200">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-indigo-400 leading-none mt-0.5">
+                        {{ date_parts[0]|default('') }}
+                    </span>
+                    <span class="text-2xl sm:text-3xl font-black leading-none text-white my-auto">
+                        {{ date_parts[1]|default('') }}
+                    </span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-300 leading-none mb-0.5">
+                        {{ date_parts[2]|default('')|slice(0, 3)|upper }}
+                    </span>
+                </div>
+
+                {# Mobile uniquement : Rappel Type & Titre compact #}
+                <div class="md:hidden flex-grow space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {{ m.type_simple|default(m.type|default('Événement')) }}
                         </span>
-                    {% endif %}
-                    <div class="flex items-center gap-1.5 text-slate-600">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>{{ m.time_range|default('Horaire non précisé') }}</span>
-                        {% if m.duration %}
-                            <span class="text-slate-400 font-normal">({{ m.duration }})</span>
-                        {% endif %}
-                        {% if m.google_calendar_url %}
-                            <a href="{{ m.google_calendar_url }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-slate-400 hover:text-emerald-600 transition-colors" title="Ajouter à Google Agenda">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            </a>
-                        {% endif %}
                     </div>
+                    <h3 class="text-base sm:text-lg font-black text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
+                        {% if show_link %}
+                            <a href="{{ url('agenda/' ~ m.id) }}" class="hover:underline">
+                                {{ m.titre }}
+                            </a>
+                        {% else %}
+                            {{ m.titre }}
+                        {% endif %}
+                    </h3>
                 </div>
             </div>
 
-            {# --- PRIORITÉ MOBILE : ZONE ACTIONS (ordre 1 sur mobile, colonne 3 sur desktop) --- #}
-            {% if allow_actions %}
-                <div class="order-1 md:order-3 {% if allow_actions %}md:col-span-5{% endif %} flex flex-col gap-2 bg-slate-50/90 md:bg-transparent p-3.5 md:p-0 rounded-2xl border border-slate-100 md:border-0 md:border-l md:border-slate-100 md:pl-5 z-20">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Votre statut :</span>
-                        <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-black {% if m.annule %}text-rose-600 line-through{% elseif m.user_status %}{% if m.user_status_category == 'selected' %}text-amber-600{% elseif m.user_status_category in ['available', 'present'] %}text-emerald-600{% elseif m.user_status_category == 'available_if_needed' %}text-amber-500{% elseif m.user_status_category in ['unavailable', 'absent'] %}text-rose-500{% elseif m.user_status_category == 'unknown' %}text-slate-600{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
-                            {% if m.annule %}
-                                Annulé
-                            {% elseif m.user_status %}
-                                {% if m.user_status_category == 'selected' %} <span class="mr-1 text-xs">★</span> {{ m.user_status }}
-                                {% elseif m.user_status_category in ['available', 'present'] %} <span class="mr-1 text-xs">✓</span> {{ m.user_status }}
-                                {% elseif m.user_status_category == 'available_if_needed' %} <span class="mr-1 text-xs">◐</span> Si besoin
-                                {% elseif m.user_status_category in ['unavailable', 'absent'] %} <span class="mr-1 text-xs">✗</span> {{ m.user_status }}
-                                {% elseif m.user_status_category == 'unknown' %} <span class="mr-1 text-xs">?</span> {{ m.user_status }}
-                                {% else %} {{ m.user_status }} {% endif %}
-                            {% else %}
-                                Non renseigné
-                            {% endif %}
+            {# --- 2. Détails Événement (Titre Desktop, Badges Horaire & Lieu, Inscrits) --- #}
+            <div class="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 items-start w-full">
+                
+                {# Bloc Titre, Type, Lieu & Horaire #}
+                <div class="md:col-span-8 space-y-2.5">
+                    {# Type et Titre Desktop #}
+                    <div class="hidden md:block space-y-1">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {{ m.type_simple|default(m.type|default('Événement')) }}
                         </span>
+                        <h3 class="text-lg font-black text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
+                            {% if show_link %}
+                                <a href="{{ url('agenda/' ~ m.id) }}" class="hover:underline">
+                                    {{ m.titre }}
+                                </a>
+                            {% else %}
+                                {{ m.titre }}
+                            {% endif %}
+                        </h3>
                     </div>
 
-                    <div class="flex flex-wrap gap-1.5 w-full mt-0.5">
-                        {% if m.annule %}
-                            <div class="text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm">
-                                ✗ Événement annulé
-                            </div>
-                        {% elseif is_selected %}
-                            <div class="text-xs font-extrabold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm">
-                                <span class="text-amber-500 text-sm">★</span> Convoqué(e) par le capitaine
-                            </div>
-                        {% elseif is_overlapping_selected %}
-                            <div class="text-xs font-extrabold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-sm" title="Vous êtes déjà convoqué(e) sur un autre match à cet horaire.">
-                                <span class="text-rose-500 text-sm">⚠</span> Créneau concurrent (Bloqué)
-                            </div>
-                        {% else %}
-                            {% if m.is_match %}
-                                {% set is_dispo = m.user_status_category == 'available' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if is_dispo %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200{% endif %}" 
-                                        data-status="Disponible"
-                                        title="Disponible">
-                                    <span class="text-xs">✓</span> Dispo
-                                </button>
-
-                                {% set is_sib = m.user_status_category == 'available_if_needed' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if is_sib %}bg-amber-500 text-white{% else %}bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200{% endif %}" 
-                                        data-status="Disponible si nécessaire"
-                                        title="Si besoin">
-                                    <span class="text-xs">◐</span> Si besoin
-                                </button>
-
-                                {% set is_indispo = m.user_status_category == 'unavailable' %}
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if is_indispo %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200{% endif %}" 
-                                        data-status="Indisponible"
-                                        title="Indisponible">
-                                    <span class="text-xs">✗</span> Indispo
-                                </button>
-                            {% else %}
-                                {% set is_present = m.user_status_category == 'present' %}
-                                <select class="status-select flex-1 min-w-[90px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border shadow-sm {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200{% endif %}">
-                                    <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
-                                    <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 5" {% if m.user_status == 'Présent(e) à 5' %}selected{% endif %}>✓ Présent à 5</option>
-                                </select>
-
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if m.user_status == 'Absent(e)' %}bg-rose-600 text-white{% else %}bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200{% endif %}" 
-                                        data-status="Absent(e)"
-                                        title="Absent">
-                                    <span class="text-xs">✗</span> Absent
-                                </button>
-
-                                <button type="button" 
-                                        class="status-btn flex-1 min-w-[75px] px-3 py-2.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1 shadow-sm {% if m.user_status == 'Ne sait pas' %}bg-slate-600 text-white{% else %}bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}" 
-                                        data-status="Ne sait pas"
-                                        title="Incertain">
-                                    <span class="text-xs">?</span> Ne sait pas
-                                </button>
+                    {# Badges Haute Visibilité : HORAIRE & LIEU #}
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        {# Badge HORAIRE #}
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs shadow-sm border border-slate-800" title="Horaire de l'événement">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="font-extrabold tracking-wide">{{ m.time_range|default('Horaire non précisé') }}</span>
+                            {% if m.duration %}
+                                <span class="text-slate-400 font-medium text-[11px]">({{ m.duration }})</span>
                             {% endif %}
-                            
-                            {% set is_reset = not m.user_status or m.user_status == '.' %}
-                            <button type="button" 
-                                    class="status-btn px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_reset %}bg-slate-400 text-white{% else %}bg-slate-100 text-slate-400 hover:bg-slate-200 border border-slate-200{% endif %}" 
-                                    data-status="." 
-                                    title="Réinitialiser votre réponse">
-                                ⊘
-                            </button>
+                            {% if m.google_calendar_url %}
+                                <a href="{{ m.google_calendar_url }}" target="_blank" rel="noopener noreferrer" class="ml-1 text-slate-400 hover:text-emerald-400 transition-colors p-0.5" title="Ajouter à Google Agenda">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        {# Badge LIEU #}
+                        {% if m.lieu %}
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/90 text-indigo-950 font-bold text-xs shadow-sm border border-indigo-200/80" title="Lieu de l'événement">
+                                <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="font-black text-indigo-900">{{ m.lieu }}</span>
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-            {% endif %}
 
-            {# --- PARTICIPANTS & RÉCAPITULATIF (ordre 2 sur mobile, colonne 2 sur desktop) --- #}
-            <div class="order-2 md:order-2 {% if allow_actions %}md:col-span-3{% else %}md:col-span-1{% endif %} z-20 w-full pt-2 md:pt-0 border-t border-slate-100 md:border-t-0">
-                <div class="flex flex-row md:flex-col items-center md:items-start justify-between md:justify-start gap-3 w-full">
-                    {# Membres #}
-                    <div class="flex flex-col items-start">
+                {# Bloc Inscrits & Effectifs #}
+                <div class="md:col-span-4 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-2.5 w-full pt-2 md:pt-0 border-t border-slate-100 md:border-t-0">
+                    {# Membres Avatars #}
+                    <div class="flex flex-col items-start md:items-end">
                         <span class="text-[9px] font-black text-slate-400 tracking-wider uppercase">Inscrits</span>
                         <div class="flex items-center mt-1 avatar-stack">
                             {% if can_view_player_details %}
@@ -286,10 +205,9 @@
                         </div>
                     </div>
 
-                    {# Récapitulatif #}
-                    <div class="flex flex-col items-end md:items-start md:border-t md:border-slate-100 md:pt-2 md:w-full">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Effectifs</span>
-                        <div class="flex items-center gap-1.5 mt-1 flex-wrap justify-end md:justify-start">
+                    {# Pastilles Effectifs #}
+                    <div class="flex flex-col items-end md:w-full">
+                        <div class="flex items-center gap-1.5 flex-wrap justify-end">
                             {% if m.is_match %}
                                 {% if not m.annule %}
                                     <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 border border-amber-200 text-amber-800 transition-all flex items-center gap-0.5" 
@@ -340,30 +258,128 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
 
+        {# --- ALERTES & COMMENTAIRES --- #}
+        {% if m.commentaire or (m.nb_terrains != 0 and m.nb_terrains != 1 and m.nb_terrains != '.') %}
+            <div class="mt-1 pt-3 border-t border-slate-100 flex flex-wrap gap-2.5 w-full">
+                {% if m.commentaire %}
+                    <div class="text-xs text-slate-700 bg-indigo-50/50 rounded-xl p-2.5 border border-indigo-100 leading-relaxed flex-grow min-w-[200px] flex items-start gap-2 shadow-xs">
+                        <svg class="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        <span class="italic font-medium">{{ m.commentaire }}</span>
+                    </div>
+                {% endif %}
+
+                {% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
+                {% if terrain_alert %}
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-2.5 py-1.5 h-fit shrink-0">
+                        <span>⚠</span> {{ m.nb_terrains }} terrains alloués
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
     </div>
 
-    {# --- LIGNE INFÉRIEURE : ALERTES / COMMENTAIRES (Pleine largeur sous les infos) --- #}
-    {% if m.commentaire or (m.nb_terrains != 0 and m.nb_terrains != 1 and m.nb_terrains != '.') %}
-        <div class="mt-4 pt-3 border-t border-slate-100/60 flex flex-wrap gap-3 w-full md:pl-20">
-            {% if m.commentaire %}
-                <div class="text-xs text-slate-750 bg-indigo-50/40 rounded-2xl p-3 border border-indigo-100/60 leading-relaxed flex-grow min-w-[200px] flex items-start gap-2 shadow-sm">
-                    <svg class="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    <span class="italic font-semibold text-slate-700 leading-relaxed">{{ m.commentaire }}</span>
-                </div>
-            {% endif %}
+    {# --- 3. PIED DE CARTE DÉDIÉ : ACTIONS & STATUT (EN BAS SUR TOUS LES ÉCRANS) --- #}
+    {% if allow_actions %}
+        <div class="mt-auto border-t border-slate-150/80 bg-slate-50/90 p-4 sm:px-6 sm:py-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 z-20">
+            {# Statut Actuel #}
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Votre statut :</span>
+                <span id="status-{{ m.id }}" class="inline-flex items-center text-xs font-black {% if m.annule %}text-rose-600 line-through{% elseif m.user_status %}{% if m.user_status_category == 'selected' %}text-amber-600{% elseif m.user_status_category in ['available', 'present'] %}text-emerald-600{% elseif m.user_status_category == 'available_if_needed' %}text-amber-500{% elseif m.user_status_category in ['unavailable', 'absent'] %}text-rose-500{% elseif m.user_status_category == 'unknown' %}text-slate-600{% else %}text-slate-600{% endif %}{% else %}text-slate-400{% endif %}">
+                    {% if m.annule %}
+                        Annulé
+                    {% elseif m.user_status %}
+                        {% if m.user_status_category == 'selected' %} <span class="mr-1 text-xs">★</span> {{ m.user_status }}
+                        {% elseif m.user_status_category in ['available', 'present'] %} <span class="mr-1 text-xs">✓</span> {{ m.user_status }}
+                        {% elseif m.user_status_category == 'available_if_needed' %} <span class="mr-1 text-xs">◐</span> Si besoin
+                        {% elseif m.user_status_category in ['unavailable', 'absent'] %} <span class="mr-1 text-xs">✗</span> {{ m.user_status }}
+                        {% elseif m.user_status_category == 'unknown' %} <span class="mr-1 text-xs">?</span> {{ m.user_status }}
+                        {% else %} {{ m.user_status }} {% endif %}
+                    {% else %}
+                        Non renseigné
+                    {% endif %}
+                </span>
+            </div>
 
-            {% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
-            {% if terrain_alert %}
-                <div class="flex items-center gap-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100/60 rounded-xl px-2.5 py-1.5 h-fit shrink-0">
-                    <span>⚠</span> {{ m.nb_terrains }} terrains alloués
-                </div>
-            {% endif %}
+            {# Boutons d'Action / Sélecteur #}
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+                {% if m.annule %}
+                    <div class="text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-xs">
+                        ✗ Événement annulé
+                    </div>
+                {% elseif is_selected %}
+                    <div class="text-xs font-extrabold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-xs">
+                        <span class="text-amber-500 text-sm">★</span> Convoqué(e) par le capitaine
+                    </div>
+                {% elseif is_overlapping_selected %}
+                    <div class="text-xs font-extrabold text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 w-full text-center flex items-center justify-center gap-1.5 shadow-xs" title="Vous êtes déjà convoqué(e) sur un autre match à cet horaire.">
+                        <span class="text-rose-500 text-sm">⚠</span> Créneau concurrent (Bloqué)
+                    </div>
+                {% else %}
+                    {% if m.is_match %}
+                        {% set is_dispo = m.user_status_category == 'available' %}
+                        <button type="button" 
+                                class="status-btn flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm {% if is_dispo %}bg-emerald-600 text-white shadow-emerald-200{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200{% endif %}" 
+                                data-status="Disponible"
+                                title="Disponible">
+                            <span class="text-xs">✓</span> Dispo
+                        </button>
+
+                        {% set is_sib = m.user_status_category == 'available_if_needed' %}
+                        <button type="button" 
+                                class="status-btn flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm {% if is_sib %}bg-amber-500 text-white shadow-amber-200{% else %}bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200{% endif %}" 
+                                data-status="Disponible si nécessaire"
+                                title="Si besoin">
+                            <span class="text-xs">◐</span> Si besoin
+                        </button>
+
+                        {% set is_indispo = m.user_status_category == 'unavailable' %}
+                        <button type="button" 
+                                class="status-btn flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm {% if is_indispo %}bg-rose-600 text-white shadow-rose-200{% else %}bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200{% endif %}" 
+                                data-status="Indisponible"
+                                title="Indisponible">
+                            <span class="text-xs">✗</span> Indispo
+                        </button>
+                    {% else %}
+                        {% set is_present = m.user_status_category == 'present' %}
+                        <select class="status-select flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border shadow-sm {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200{% endif %}">
+                            <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
+                            <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
+                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
+                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
+                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
+                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 5" {% if m.user_status == 'Présent(e) à 5' %}selected{% endif %}>✓ Présent à 5</option>
+                        </select>
+
+                        <button type="button" 
+                                class="status-btn flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm {% if m.user_status == 'Absent(e)' %}bg-rose-600 text-white shadow-rose-200{% else %}bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200{% endif %}" 
+                                data-status="Absent(e)"
+                                title="Absent">
+                            <span class="text-xs">✗</span> Absent
+                        </button>
+
+                        <button type="button" 
+                                class="status-btn flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-sm {% if m.user_status == 'Ne sait pas' %}bg-slate-600 text-white{% else %}bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}" 
+                                data-status="Ne sait pas"
+                                title="Incertain">
+                            <span class="text-xs">?</span> Ne sait pas
+                        </button>
+                    {% endif %}
+                    
+                    {% set is_reset = not m.user_status or m.user_status == '.' %}
+                    <button type="button" 
+                            class="status-btn px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 {% if is_reset %}bg-slate-300 text-slate-700{% else %}bg-slate-100 text-slate-400 hover:bg-slate-200 border border-slate-200{% endif %}" 
+                            data-status="." 
+                            title="Réinitialiser votre réponse">
+                        ⊘
+                    </button>
+                {% endif %}
+            </div>
         </div>
     {% endif %}
 
