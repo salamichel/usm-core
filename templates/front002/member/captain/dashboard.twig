@@ -103,10 +103,10 @@
             </div>
         </div>
 
-        <div class="space-y-12">
+        <div class="space-y-8 sm:space-y-12">
             {% for t in teams %}
-            <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm team-container" data-team-id="{{ t.config.equipe_saison_id }}">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-4">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm team-container" data-team-id="{{ t.config.equipe_saison_id }}">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 mb-4 sm:mb-6 gap-2 sm:gap-4">
                     <div>
                         <span class="inline-block text-xs uppercase tracking-wider text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-md mb-2">Équipe</span>
                         <h2 class="text-2xl font-black text-slate-900">{{ t.config.libelle }}</h2>
@@ -115,62 +115,62 @@
                 </div>
  
                 {# 1. Métriques de l'équipe #}
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
                     <!-- Taux de réponse -->
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-                        <div>
-                            <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Taux de réponse</span>
-                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-response-rate">{{ t.metrics.response_rate }}%</span>
-                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les prochains événements</span>
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
+                        <div class="min-w-0">
+                            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Taux de réponse</span>
+                            <span class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1 block metric-response-rate">{{ t.metrics.response_rate }}%</span>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-semibold block mt-0.5 truncate hidden sm:block">Sur les prochains événements</span>
                         </div>
-                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 ml-2">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         </div>
                     </div>
  
                     <!-- Disponibilité moyenne -->
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-                        <div>
-                            <span class="text-xs font-bold text-slate-450 uppercase tracking-wider block">Disponibilité moyenne</span>
-                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-avg-available">{{ t.metrics.avg_available }}</span>
-                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Joueurs dispo par événement</span>
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
+                        <div class="min-w-0">
+                            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Dispo moyenne</span>
+                            <span class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1 block metric-avg-available">{{ t.metrics.avg_available }}</span>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-semibold block mt-0.5 truncate hidden sm:block">Joueurs dispo par événement</span>
                         </div>
-                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0 ml-2">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         </div>
                     </div>
  
                     <!-- Assiduité entraînements -->
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-                        <div>
-                            <span class="text-xs font-bold text-slate-455 uppercase tracking-wider block">Assiduité Entraînements</span>
-                            <span class="text-2xl font-extrabold text-slate-900 mt-1 block metric-training-attendance">
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm">
+                        <div class="min-w-0">
+                            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block truncate">Assiduité Entraînements</span>
+                            <span class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1 block metric-training-attendance">
                                 {% if t.metrics.has_trainings %}
                                     {{ t.metrics.training_attendance }}%
                                 {% else %}
                                     —
                                 {% endif %}
                             </span>
-                            <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Sur les créneaux d'entraînement</span>
+                            <span class="text-[9px] sm:text-[10px] text-slate-500 font-semibold block mt-0.5 truncate hidden sm:block">Sur les créneaux d'entraînement</span>
                         </div>
-                        <div class="w-12 h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center shrink-0 ml-2">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
                     </div>
  
                     <!-- Alertes Sous-Effectif -->
-                    <div class="border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-slate-50 border-slate-100' }}">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-wider block metric-understaffed-label {{ t.metrics.understaffed_matches > 0 ? 'text-rose-500' : 'text-slate-450' }}">Alerte Sous-Effectif</span>
-                            <span class="text-2xl font-extrabold mt-1 block metric-understaffed-value {{ t.metrics.understaffed_matches > 0 ? 'text-rose-650' : 'text-slate-900' }}">
+                    <div class="border rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm metric-understaffed-container {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-50 border-rose-100 text-rose-900' : 'bg-slate-50 border-slate-100' }}">
+                        <div class="min-w-0">
+                            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider block metric-understaffed-label truncate {{ t.metrics.understaffed_matches > 0 ? 'text-rose-500' : 'text-slate-400' }}">Alerte Sous-Effectif</span>
+                            <span class="text-xl sm:text-2xl font-extrabold mt-0.5 sm:mt-1 block metric-understaffed-value {{ t.metrics.understaffed_matches > 0 ? 'text-rose-650' : 'text-slate-900' }}">
                                 {{ t.metrics.understaffed_matches }}
                             </span>
-                            <span class="text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
+                            <span class="text-[9px] sm:text-[10px] font-semibold block mt-0.5 metric-understaffed-subtext truncate hidden sm:block {{ t.metrics.understaffed_matches > 0 ? 'text-rose-550' : 'text-slate-500' }}">
                                 Matchs en sous-effectif
                             </span>
                         </div>
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center metric-understaffed-icon {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 ml-2 metric-understaffed-icon {{ t.metrics.understaffed_matches > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">
+                            <svg class="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
                     </div>
                 </div>
@@ -372,23 +372,23 @@
                 {% if t.matches|length %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {% for m in t.matches %}
-                    <div class="border border-slate-200 hover:border-slate-300 rounded-2xl p-5 bg-white transition-all flex flex-col justify-between hover:shadow-sm">
+                    <div class="border border-slate-200 hover:border-slate-300 rounded-2xl p-4 sm:p-5 bg-white transition-all flex flex-col justify-between hover:shadow-sm">
                         <div>
-                            <div class="flex justify-between items-start gap-2 mb-3">
-                                <h4 class="font-serif text-lg font-bold text-slate-900 leading-tight">{{ m.titre }}</h4>
-                                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-800">
+                            <div class="flex justify-between items-start gap-2 mb-2.5 sm:mb-3">
+                                <h4 class="font-serif text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ m.titre }}</h4>
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-800 shrink-0">
                                     {{ m.statut }}
                                 </span>
                             </div>
                             
-                            <div class="space-y-1.5 text-sm text-slate-600 mb-4">
+                            <div class="space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
                                 <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📅</span> {{ m.date_display }}</p>
                                 {% if m.time_range %}<p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">🕐</span> {{ m.time_range }}</p>{% endif %}
                                 <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📍</span> {{ m.lieu }}</p>
                                 {% if m.commentaire %}<p class="flex items-center gap-2 italic text-xs text-slate-400"><span class="text-slate-400 w-4 text-center">💬</span> {{ m.commentaire }}</p>{% endif %}
                             </div>
                         {# Jauge des disponibilités (Convoqués / Dispo / Sans réponse / Indispo) #}
-                        <div class="space-y-2 mb-4 mt-1 pt-3 border-t border-slate-100">
+                        <div class="space-y-2 mb-3 sm:mb-4 mt-1 pt-3 border-t border-slate-100">
                             <div class="flex justify-between text-xs font-bold text-slate-500">
                                 <span>Convocations & Réponses</span>
                                 <span>{{ m.total_roster }} joueurs</span>
@@ -415,27 +415,27 @@
                             </div>
                             
                             <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
-                                <div class="flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    <span>Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
+                                <div class="flex items-center gap-1 truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                    <span class="truncate">Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    <span>Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
+                                <div class="flex items-center gap-1 truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span class="truncate">Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                    <span>Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
+                                <div class="flex items-center gap-1 truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
+                                    <span class="truncate">Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                    <span>Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
+                                <div class="flex items-center gap-1 truncate">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                                    <span class="truncate">Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
                                 </div>
                             </div>
                         </div>
                         </div>
 
-                        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="pt-3 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-xs font-bold">
                                     {% if m.nb_selection >= m.min_players %}
@@ -446,22 +446,22 @@
                                 </span>
                             </div>
                             
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 {% if m.nb_sans_reponse > 0 %}
-                                <form method="POST" action="{{ url('member/captain/matches/' ~ m.id ~ '/remind') }}" class="inline">
+                                <form method="POST" action="{{ url('member/captain/matches/' ~ m.id ~ '/remind') }}" class="inline flex-1 sm:flex-initial">
                                     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-                                    <button type="submit" class="text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3.5 py-2 rounded-xl transition text-center shadow-sm flex items-center gap-1 cursor-pointer">
+                                    <button type="submit" class="w-full text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1 cursor-pointer">
                                         ✉️ Relancer ({{ m.nb_sans_reponse }})
                                     </button>
                                 </form>
                                 {% endif %}
                                 <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
-                                   class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl transition text-center shadow-sm flex items-center gap-1">
+                                   class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
                                     ✏️ Modifier
                                 </a>
                                 <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
-                                   class="text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3.5 py-2 rounded-xl transition text-center shadow-sm">
-                                    📋 Sélectionner les joueurs
+                                   class="flex-1 sm:flex-initial text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                                    📋 Sélectionner
                                 </a>
                             </div>
                         </div>
@@ -829,14 +829,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasUnderstaffed = metrics.understaffed_matches > 0;
             
             if (hasUnderstaffed) {
-                underContainer.className = 'border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-rose-50 border-rose-100 text-rose-900';
+                underContainer.className = 'border rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-rose-50 border-rose-100 text-rose-900';
             } else {
-                underContainer.className = 'border rounded-2xl p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-slate-50 border-slate-100';
+                underContainer.className = 'border rounded-2xl p-3 sm:p-4 flex items-center justify-between shadow-sm metric-understaffed-container bg-slate-50 border-slate-100';
             }
 
             const label = underContainer.querySelector('.metric-understaffed-label');
             if (label) {
-                label.className = `text-xs font-bold uppercase tracking-wider block metric-understaffed-label ${hasUnderstaffed ? 'text-rose-500' : 'text-slate-450'}`;
+                label.className = `text-[10px] sm:text-xs font-bold uppercase tracking-wider block metric-understaffed-label truncate ${hasUnderstaffed ? 'text-rose-500' : 'text-slate-400'}`;
             }
 
             const val = underContainer.querySelector('.metric-understaffed-value');
