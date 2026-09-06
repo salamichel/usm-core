@@ -140,9 +140,10 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
    - Pastilles haute visibilité pour l'horaire précis et le lieu de l'événement.
    - Pied de carte dédié intégrant le statut actuel et les boutons d'action de participation repositionnés en bas de carte sur mobile et desktop.
 4. Suivi de participation et modifications en lot avec filtres cumulatifs (périodes, types, sous-types, lieux, recherche).
-5. Authentification adhérent persistante (session 1 an, jeton cryptographique `localStorage`, reconnexion transparente sans interruption).
-6. Redirection contextuelle vers la page d'origine après authentification (`?redirect=...`).
-7. Ciblage et éligibilité mutualisés (`EventTargetingService`) garantissant une synchronisation stricte entre les événements visibles et les notifications par email.
+5. Synchronisation en temps réel du KPI « À répondre » : mise à jour instantanée du compteur et de la bordure ambrée dès le vote d'une carte (1-clic, sélecteur ou modification groupée) avec retour API enrichi.
+6. Authentification adhérent persistante (session 1 an, jeton cryptographique `localStorage`, reconnexion transparente sans interruption).
+7. Redirection contextuelle vers la page d'origine après authentification (`?redirect=...`).
+8. Ciblage et éligibilité mutualisés (`EventTargetingService`) garantissant une synchronisation stricte entre les événements visibles et les notifications par email.
 
 ### Formulaire de contact
 1. Visiteur remplit le formulaire `/contact`

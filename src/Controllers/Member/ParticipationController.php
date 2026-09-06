@@ -68,13 +68,15 @@ class ParticipationController
             // 2. RÉCUPÉRER LES COMPTEURS EXACTS NORMALISÉS POUR LE JS
             // ==========================================
             $counts = \App\Services\AgendaService::getNormalizedCounts($manifestationId);
-    
+            $kpis = \App\Services\MemberDashboardService::getKPIs($userId);
+
             // 3. Renvoyer la réponse enrichie
             echo json_encode([
                 'ok' => true, 
                 'message' => 'Participation mise à jour',
                 'new_status' => $status,
-                'counts' => $counts
+                'counts' => $counts,
+                'kpis' => $kpis
             ]);
     
         } catch (\InvalidArgumentException $e) {

@@ -163,6 +163,56 @@
         };
         return map[s] || 'unknown';
     };
+
+    /**
+     * Met à jour en direct le compteur et le style de la tuile KPI "À répondre"
+     * @param {number|null} exactCount Si fourni par le backend, sinon recalculé depuis les cartes
+     */
+    const updateActionRequiredKpi = (exactCount = null) => {
+        const countSpan = document.getElementById('kpi-action-required-count');
+        const kpiCard = document.getElementById('kpi-action-required-card');
+        const kpiLabel = document.getElementById('kpi-action-required-label');
+
+        let count = exactCount;
+        if (count === null || count === undefined) {
+            // Recalcul client-side depuis l'ensemble des cartes d'événements
+            const allCards = document.querySelectorAll('#event-grid > div[data-manifestation-id]');
+            let pending = 0;
+            allCards.forEach(c => {
+                const st = c.dataset.currentStatus || '.';
+                const cat = helperCat(st);
+                if (!st || st === '.' || cat === 'unknown' || cat === 'empty') {
+                    pending++;
+                }
+            });
+            count = pending;
+        }
+
+        if (countSpan) {
+            countSpan.textContent = count;
+        }
+
+        if (kpiCard) {
+            if (count > 0) {
+                kpiCard.classList.add('border-amber-300', 'border-l-4', 'border-l-amber-500');
+                kpiCard.classList.remove('border-slate-100');
+            } else {
+                kpiCard.classList.remove('border-amber-300', 'border-l-4', 'border-l-amber-500');
+                kpiCard.classList.add('border-slate-100');
+            }
+        }
+
+        if (kpiLabel) {
+            if (count > 0) {
+                kpiLabel.classList.add('text-amber-700');
+                kpiLabel.classList.remove('text-slate-400');
+            } else {
+                kpiLabel.classList.remove('text-amber-700');
+                kpiLabel.classList.add('text-slate-400');
+            }
+        }
+    };
+
     const submitStatusUpdate = (element, manifestationId, newStatus, oldStatus, card) => {
         if (newStatus === oldStatus) return;
 
@@ -179,6 +229,20 @@
 
                 if (data.ok) {
                     card.dataset.currentStatus = newStatus;
+
+                    // Synchronisation temps réel du KPI "À répondre"
+                    if (data.kpis && typeof data.kpis.action_required !== 'undefined') {
+                        updateActionRequiredKpi(data.kpis.action_required);
+                    } else {
+                        updateActionRequiredKpi();
+                    }
+
+                    // Si le filtre actif est "action-required", réappliquer les filtres immédiatement
+                    if (typeof activeFilterType !== 'undefined' && activeFilterType === 'kpi' && activeFilterValue === 'action-required') {
+                        if (typeof applyUnifiedFilters === 'function') {
+                            applyUnifiedFilters();
+                        }
+                    }
 
                     // Mettre à jour l'apparence active/inactive des boutons et select
                     card.querySelectorAll('.status-btn, .status-select').forEach(el => {
@@ -935,7 +999,8 @@
                 } else if (activeFilterValue === 'next-week') {
                     matchesSection = eventDate >= nextWeekRange.start && eventDate <= nextWeekRange.end;
                 } else if (activeFilterValue === 'action-required') {
-                    matchesSection = !status || status === '.' || status === 'Ne sait pas encore';
+                    const cat = helperCat(status);
+                    matchesSection = !status || status === '.' || cat === 'unknown' || cat === 'empty';
                 }
             } else if (activeFilterType === 'type') {
                 const cardType = card.dataset.eventTypeRaw || '';
