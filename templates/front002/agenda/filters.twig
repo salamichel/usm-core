@@ -9,13 +9,15 @@
     {% endif %}
   </div>
 
-  {# Mobile toggle #}
-  <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex items-center justify-between transition">
-    <span>Filtres</span>
-    <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-  </button>
+  {# Mobile toggle (uniquement si non inclus dans un panneau déjà collapsible) #}
+  {% if not is_collapsible_panel %}
+    <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex items-center justify-between transition">
+      <span>Filtres</span>
+      <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+    </button>
+  {% endif %}
 
-  <div id="filters-content" class="hidden md:block space-y-6">
+  <div id="filters-content" class="{% if not is_collapsible_panel %}hidden md:block{% endif %} space-y-6">
 
     {# Type d'évènement Dynamique #}
     <div>

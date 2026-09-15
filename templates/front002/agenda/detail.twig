@@ -154,20 +154,32 @@
           {% endif %}
         {% else %}
           {% set total_presents = event.nb_present %}
+          {% if event.capacity is defined and event.capacity > 0 %}
+            <div class="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm font-bold text-slate-700 mb-6 flex flex-wrap items-center justify-between gap-2">
+              <span>Capacité du créneau : <strong class="text-slate-900">{{ event.capacity }} places</strong> ({{ event.nb_terrains }} terrain{{ event.nb_terrains > 1 ? 's' : '' }} × 6)</span>
+              {% if event.nb_waiting is defined and event.nb_waiting > 0 %}
+                <span class="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-black">
+                  ⏳ {{ event.nb_waiting }} en file d'attente
+                </span>
+              {% else %}
+                <span class="text-xs text-emerald-700 font-bold">Places disponibles</span>
+              {% endif %}
+            </div>
+          {% endif %}
           {% if total_presents >= 12 %}
             <div class="rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-800 px-4 py-3 text-sm font-bold mb-6">
-              ✓ Effectif suffisant — {{ total_presents }} joueurs présents (≥ 12 requis)
+              ✓ Effectif suffisant — {{ total_presents }} joueurs inscrits (≥ 12 requis)
             </div>
           {% else %}
             <div class="rounded-xl border border-rose-100 bg-rose-50/50 text-rose-800 px-4 py-3 text-sm font-bold mb-6">
-              ⚠️ Effectif insuffisant — {{ total_presents }} joueurs présents (12 requis pour un bon entraînement)
+              ⚠️ Effectif insuffisant — {{ total_presents }} joueurs inscrits (12 requis pour un bon entraînement)
             </div>
           {% endif %}
         {% endif %}
 
         {% if can_view_player_details %}
           <h3 class="font-serif text-xl font-bold text-slate-900 mb-4 mt-8">Répartition des joueurs</h3>
-          <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}md:grid-cols-2{% endif %} gap-6">
+          <div class="grid grid-cols-1 {% if event.is_match %}md:grid-cols-2 lg:grid-cols-3{% else %}{% if event.nb_waiting is defined and event.nb_waiting > 0 %}md:grid-cols-3{% else %}md:grid-cols-2{% endif %}{% endif %} gap-6">
             {% if event.is_match %}
               {# 1. Sélectionnés #}
               {{ _self.render_status_list('Sélectionnés', event.selected, 'border-amber-100 text-amber-800 bg-amber-50/10', 'bg-amber-500', event.nb_selected) }}
@@ -178,9 +190,16 @@
               {# 4. Indisponibles #}
               {{ _self.render_status_list('Indisponibles', event.unavailable, 'border-rose-100 text-rose-850 bg-rose-50/10', 'bg-rose-500', event.nb_unavailable) }}
             {% else %}
-              {# 1. Présents #}
-              {{ _self.render_status_list('Présents', event.present, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
-              {# 2. Absents #}
+              {% if event.nb_waiting is defined and event.nb_waiting > 0 %}
+                {# 1. Présents Confirmés #}
+                {{ _self.render_status_list('Présents confirmés', event.present_confirmed, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present_confirmed) }}
+                {# 2. File d'attente #}
+                {{ _self.render_status_list('File d\'attente', event.waiting_list, 'border-amber-200 text-amber-900 bg-amber-50/20', 'bg-amber-500', event.nb_waiting) }}
+              {% else %}
+                {# 1. Présents #}
+                {{ _self.render_status_list('Présents', event.present, 'border-emerald-100 text-emerald-800 bg-emerald-50/10', 'bg-emerald-500', event.nb_present) }}
+              {% endif %}
+              {# Absents #}
               {{ _self.render_status_list('Absents', event.absent, 'border-rose-100 text-rose-800 bg-rose-50/10', 'bg-rose-500', event.nb_absent) }}
             {% endif %}
           </div>
@@ -232,7 +251,7 @@
           {% for p in players %}
             <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200 text-slate-700" title="{{ p.nom }}">
               <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span>
-              {{ p.nom }}{% if p.companion_count is defined and p.companion_count > 0 %} (à {{ p.companion_count + 1 }}){% endif %}
+              {{ p.nom }}{% if p.waiting_position is defined and p.waiting_position %} (Attente +{{ p.waiting_position }}){% elseif p.companion_count is defined and p.companion_count > 0 %} (à {{ p.companion_count + 1 }}){% endif %}
             </span>
           {% endfor %}
         </div>

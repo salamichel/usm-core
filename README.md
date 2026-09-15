@@ -5,7 +5,10 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
 ## 🎯 Caractéristiques
 
 - ⚽ Gestion des équipes et des joueurs
-- 📅 Agenda des matchs et entraînements
+- 📅 Agenda des matchs et entraînements :
+  - Filtrage dynamique (type, manifestation, équipe, lieu, période) avec panneau réactif en un clic
+  - Indicateur de participation personnalisée (calcul des réponses manquantes ciblé selon les équipes/catégories réelles de l'adhérent)
+  - Gestion automatique de la file d'attente en surnombre pour les créneaux d'entraînement (`inscrits > terrains × 6`) avec ordre chronologique et statut `Attente +x`
 - 📝 Blog d'actualités avec tags et catégories
 - 📸 Galerie de photos avec upload Dropzone
 - 📧 Formulaire de contact intégré

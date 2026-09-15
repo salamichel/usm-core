@@ -30,7 +30,7 @@ class ParticipationStatsService
                 return self::defaultStats();
             }
             $stmt = $db->prepare(
-                "SELECT p.Participation, m.ManifestationTypée 
+                "SELECT p.Participation, m.ManifestationTypée, m.Nombre_terrain 
                  FROM Participation p
                  JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
                  WHERE p.id_manifestation = ?"
@@ -43,11 +43,15 @@ class ParticipationStatsService
 
         $stats = self::emptyStats();
         $type = '';
+        $nbTerrains = 0;
 
         foreach ($rows as $row) {
             $statusStr = trim((string)($row['Participation'] ?? ''));
             if (isset($row['ManifestationTypée'])) {
                 $type = $row['ManifestationTypée'];
+            }
+            if (isset($row['Nombre_terrain'])) {
+                $nbTerrains = (int)$row['Nombre_terrain'];
             }
             if ($statusStr === '') {
                 continue;
@@ -79,6 +83,18 @@ class ParticipationStatsService
         $stats['enough_players'] = (
             $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
         ) >= $minRequired;
+
+        $isMatch = (stripos($type, 'match') !== false);
+        if (!$isMatch && $nbTerrains > 0) {
+            $capacity = $nbTerrains * 6;
+            $stats['capacity'] = $capacity;
+            $stats['waiting'] = max(0, $stats['present'] - $capacity);
+            $stats['present_confirmed'] = min($stats['present'], $capacity);
+        } else {
+            $stats['capacity'] = 0;
+            $stats['waiting'] = 0;
+            $stats['present_confirmed'] = $stats['present'];
+        }
 
         return $stats;
     }
@@ -203,6 +219,9 @@ class ParticipationStatsService
             'available_if_needed' => $stats['available_if_needed'] ?? 0,
             'unavailable'         => $stats['unavailable']         ?? 0,
             'present'             => $stats['present']             ?? 0,
+            'present_confirmed'   => $stats['present_confirmed']   ?? ($stats['present'] ?? 0),
+            'waiting'             => $stats['waiting']             ?? 0,
+            'capacity'            => $stats['capacity']            ?? 0,
             'absent'              => $stats['absent']              ?? 0,
             'unknown'             => $stats['unknown']             ?? 0,
             'selected'            => $stats['selected']            ?? 0,
@@ -216,6 +235,9 @@ class ParticipationStatsService
     {
         return [
             'present'             => 0,
+            'present_confirmed'   => 0,
+            'waiting'             => 0,
+            'capacity'            => 0,
             'available'           => 0,
             'available_if_needed' => 0,
             'unavailable'         => 0,

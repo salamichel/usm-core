@@ -585,10 +585,13 @@
         try {
             const playersArray = JSON.parse(playersJson || '[]');
             names = playersArray.map(p => {
-                if (p.companion_count && p.companion_count > 0) {
-                    return `${p.nom} (à ${p.companion_count + 1})`;
+                let label = p.nom;
+                if (p.is_waiting && p.waiting_position) {
+                    label += ` (Attente +${p.waiting_position})`;
+                } else if (p.companion_count && p.companion_count > 0) {
+                    label += ` (à ${p.companion_count + 1})`;
                 }
-                return p.nom;
+                return label;
             });
         } catch (err) {
             console.error("Erreur de parsing des joueurs", err);

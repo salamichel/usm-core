@@ -240,10 +240,15 @@
 													</span>
 												</div>
 											{% else %}
-												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
+												<div class="flex flex-wrap gap-x-2 gap-y-0.5 items-center">
 													<span class="text-emerald-700" data-stat-wrap="present-{{ mid }}">Présents:
-														<strong data-stat="present-{{ mid }}">{{ m.nb_present }}</strong>
+														<strong data-stat="present-{{ mid }}">{{ m.nb_present_confirmed|default(m.nb_present) }}</strong>
 													</span>
+													{% if m.nb_waiting is defined and m.nb_waiting > 0 %}
+														<span class="text-amber-800 font-extrabold bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full text-[10px]" title="En file d'attente (surnombre : {{ m.capacity }} places max)" data-stat-wrap="waiting-{{ mid }}">
+															⏳ +<strong data-stat="waiting-{{ mid }}">{{ m.nb_waiting }}</strong>
+														</span>
+													{% endif %}
 													<span class="text-rose-700" data-stat-wrap="absent-{{ mid }}">Absents:
 														<strong data-stat="absent-{{ mid }}">{{ m.nb_absent }}</strong>
 													</span>
@@ -276,14 +281,14 @@
 									<tr class="{{ loop.index is odd ? 'bg-white' : 'bg-slate-50/50' }} hover:bg-amber-50/40 {% if is_current_user %}bg-indigo-50/20{% endif %}">
 
 										<td class="sticky-left z-10 border-b border-r border-slate-200 px-3 py-2 font-medium bg-slate-50 min-w-[160px] text-slate-800 {% if is_current_user %}ring-2 ring-indigo-500/50 bg-indigo-50/80 font-bold text-indigo-950{% endif %}">
-											{% if row.nb_participation < nb_manif %}
-												<img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="Participation incomplète" loading="lazy" class="inline w-5 h-5">
+											{% if row.nb_manquante_possible is defined and row.nb_manquante_possible > 0 %}
+												<img src="{{ asset('icons/pas_content_violet.png') }}" alt="Participation incomplète" title="{{ row.nb_manquante_possible }} réponse(s) manquante(s) sur vos {{ row.nb_manif_possible }} événements" loading="lazy" class="inline w-5 h-5">
 											{% elseif row.nb_ne_sait_pas > 3 %}
 												<span class="text-base" title="Trop d'hésitations">😕</span>
 											{% elseif row.nb_ne_sait_pas_proche > 0 %}
 												<span class="text-base" title="Réponse attendue bientôt">🤔</span>
 											{% else %}
-												<img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Participation complète" loading="lazy" class="inline w-5 h-5">
+												<img src="{{ asset('icons/content.png') }}" alt="Participation complète" title="Toutes vos participations sont renseignées{% if row.nb_manif_possible is defined %} ({{ row.nb_participation_possible }}/{{ row.nb_manif_possible }}){% endif %}" loading="lazy" class="inline w-5 h-5">
 											{% endif %}
 											{% set parts = nom|split(' ') %}
 											{% set nom_famille = parts[0] %}
@@ -299,6 +304,7 @@
 											{% set part = row[mid] ?? null %}
 											{% set is_selected = part and part.category == 'selected' %}
 											{% set is_present = part and part.category == 'present' %}
+											{% set is_waiting = part and part.is_waiting %}
 											{% set is_available_if_needed = part and part.category == 'available_if_needed' %}
 											{% set is_available = part and part.category == 'available' %}
 											{% set is_unavailable = part and part.category == 'unavailable' %}
@@ -309,8 +315,13 @@
 												{% set cell_bg = 'bg-amber-100' %}
 												{% set text_color = 'text-amber-800' %}
 											{% elseif is_present %}
-												{% set cell_bg = 'bg-emerald-100' %}
-												{% set text_color = 'text-emerald-800' %}
+												{% if is_waiting %}
+													{% set cell_bg = 'bg-amber-100' %}
+													{% set text_color = 'text-amber-900 font-bold' %}
+												{% else %}
+													{% set cell_bg = 'bg-emerald-100' %}
+													{% set text_color = 'text-emerald-800' %}
+												{% endif %}
 											{% elseif is_available %}
 												{% set cell_bg = 'bg-sky-100' %}
 												{% set text_color = 'text-sky-800' %}
@@ -342,7 +353,11 @@
 											{% if is_selected %}
 												{% set icone = '★' %}{% set libelle = 'Sél.' %}
 											{% elseif is_present %}
-												{% set icone = '✓' %}{% set libelle = part.companion_count > 0 ? 'Prés. à ' ~ (part.companion_count + 1) : 'Prés.' %}
+												{% if is_waiting %}
+													{% set icone = '⏳' %}{% set libelle = 'Att. +' ~ part.waiting_position %}
+												{% else %}
+													{% set icone = '✓' %}{% set libelle = part.companion_count > 0 ? 'Prés. à ' ~ (part.companion_count + 1) : 'Prés.' %}
+												{% endif %}
 											{% elseif is_available_if_needed %}
 												{% set icone = '○' %}{% set libelle = 'Si néc.' %}
 											{% elseif is_available %}
@@ -368,9 +383,9 @@
 													data-event-type="{{ 'Match' in m.type ? 'match' : 'other' }}"
 													data-is-selected="{{ is_selected ? '1' : '0' }}"
 													data-is-cancelled="{{ m.annule ? '1' : '0' }}"
-													title="Cliquer pour modifier votre présence"
+													title="{{ is_waiting ? 'En attente (+' ~ part.waiting_position ~ ') — Cliquez pour modifier' : 'Cliquer pour modifier votre présence' }}"
 												{% else %}
-													title="{{ part ? part.text : '' }}"
+													title="{{ is_waiting ? 'En file d\'attente (+' ~ part.waiting_position ~ ') — Capacité du terrain atteinte (' ~ m.capacity ~ ' places max)' : (part ? part.text : '') }}"
 												{% endif %}>
 												<span class="cell-icon text-sm">{{ icone }}</span>
 												<span class="cell-label text-xs">{{ libelle }}</span>
@@ -660,7 +675,8 @@
 				if (!counts) return;
 
 				const mapping = {
-					'present': counts.present ?? 0,
+					'present': counts.present_confirmed ?? counts.present ?? 0,
+					'waiting': counts.waiting ?? 0,
 					'disponible': counts.available ?? 0,
 					'indisponible': counts.unavailable ?? 0,
 					'absent': counts.absent ?? 0,

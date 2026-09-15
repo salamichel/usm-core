@@ -7,6 +7,7 @@ namespace App\Services\Agenda;
 use App\Core\ExternalDatabase;
 use App\Helpers\ParticipationStatus;
 use App\Models\EquipeConfig;
+use App\Services\Agenda\EventTargetingService;
 use App\Services\Agenda\ParticipationStatsService;
 
 /**
@@ -344,23 +345,60 @@ class EventRepository
             // 3. Table croisée via CROSS JOIN + LEFT JOIN
             $ids   = implode(',', array_keys($manifestations));
             $cross = [];
+
+            // Pré-charger les catégories des joueurs pour évaluer leurs participations possibles
+            $playerCategories = [];
+            $jids = array_keys($joueurs);
+            if (!empty($jids)) {
+                try {
+                    $categoryColumns = EquipeConfig::getEquipesSlug();
+                    $placeholders = implode(',', array_fill(0, count($jids), '?'));
+                    $stmtCats = $db->prepare("SELECT * FROM Joueurs WHERE id_joueur IN ($placeholders)");
+                    $stmtCats->execute($jids);
+                    while ($pRow = $stmtCats->fetch()) {
+                        $pId = (int)$pRow['id_joueur'];
+                        $playerCategories[$pId] = [];
+                        foreach ($categoryColumns as $col) {
+                            if (!empty($pRow[$col]) && (int)$pRow[$col] === 1) {
+                                $playerCategories[$pId][] = $col;
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    error_log('getCrossTable: Failed to load player categories - ' . $e->getMessage());
+                }
+            }
+
+            // Identifier les manifestations éligibles pour chaque joueur
+            $eligibleMidsByPlayer = [];
             foreach ($joueurs as $jid => $nom) {
                 $cross[$jid] = [
-                    'nb_participation'       => 0,
-                    'nb_non_absence'         => 0,
-                    'nb_ne_sait_pas'         => 0,
-                    'nb_ne_sait_pas_proche'  => 0,
+                    'nb_participation'          => 0,
+                    'nb_non_absence'            => 0,
+                    'nb_ne_sait_pas'            => 0,
+                    'nb_ne_sait_pas_proche'     => 0,
+                    'nb_manif_possible'         => 0,
+                    'nb_participation_possible' => 0,
+                    'nb_manquante_possible'     => 0,
                 ];
-                foreach (array_keys($manifestations) as $mid) {
+                $eligibleMidsByPlayer[$jid] = [];
+                $pCats = $playerCategories[$jid] ?? [];
+                foreach ($manifestations as $mid => $m) {
                     $cross[$jid][$mid] = '';
+                    if (EventTargetingService::isPlayerConcernedByEvent($jid, $m, $pCats)) {
+                        $cross[$jid]['nb_manif_possible']++;
+                        $eligibleMidsByPlayer[$jid][$mid] = true;
+                    }
                 }
             }
 
             $dateTropProche = time() + 3 * 24 * 3600;
+            $presentsByManif = [];
             $stmt           = $db->query(
                 "SELECT j.id_joueur, m.id_manifestation,
                         COALESCE(p.Participation, '') AS Participation,
-                        DATE_FORMAT(m.`Date`, '%Y-%m-%d %H:%i') AS date2
+                        DATE_FORMAT(m.`Date`, '%Y-%m-%d %H:%i') AS date2,
+                        COALESCE(p.S_MAJ, '1970-01-01 00:00:00') AS s_maj
                  FROM Joueurs j
                  CROSS JOIN Manifestation m
                  LEFT JOIN Participation p ON j.id_joueur = p.id_joueur AND m.id_manifestation = p.id_manifestation
@@ -384,6 +422,10 @@ class EventRepository
                     $status = new ParticipationStatus($part);
                     $cross[$jid]['nb_participation']++;
 
+                    if (!empty($eligibleMidsByPlayer[$jid][$mid])) {
+                        $cross[$jid]['nb_participation_possible']++;
+                    }
+
                     if ($status->isNonAbsence()) {
                         $cross[$jid]['nb_non_absence']++;
                     }
@@ -393,8 +435,59 @@ class EventRepository
                             $cross[$jid]['nb_ne_sait_pas_proche']++;
                         }
                     }
+
+                    if ($status->getCategory() === 'present') {
+                        $presentsByManif[$mid][] = [
+                            'jid'             => $jid,
+                            's_maj'           => $row['s_maj'],
+                            'companion_count' => $status->getCompanionCount(),
+                        ];
+                    }
                 }
             }
+
+            // Calcul des participations manquantes uniquement sur les événements possibles
+            foreach ($joueurs as $jid => $nom) {
+                $cross[$jid]['nb_manquante_possible'] = max(
+                    0,
+                    $cross[$jid]['nb_manif_possible'] - $cross[$jid]['nb_participation_possible']
+                );
+            }
+
+            // Calcul de la file d'attente en surnombre pour chaque manifestation
+            foreach ($manifestations as $mid => &$m) {
+                $nbTerrains = (int)($m['nb_terrains'] ?? 0);
+                $isMatch = $m['is_match'] ?? false;
+                $m['waiting_players'] = [];
+                $m['nb_waiting'] = 0;
+                $m['capacity'] = 0;
+
+                if (!$isMatch && $nbTerrains > 0) {
+                    $capacity = $nbTerrains * 6;
+                    $m['capacity'] = $capacity;
+
+                    $presents = $presentsByManif[$mid] ?? [];
+                    // Tri chronologique des inscrits par date de réponse
+                    usort($presents, function ($a, $b) {
+                        $cmp = strcmp((string)$a['s_maj'], (string)$b['s_maj']);
+                        return ($cmp !== 0) ? $cmp : ($a['jid'] <=> $b['jid']);
+                    });
+
+                    $runningCount = 0;
+                    $waitingPos = 1;
+                    foreach ($presents as $pItem) {
+                        $pCount = 1 + ($pItem['companion_count'] ?? 0);
+                        if ($runningCount >= $capacity) {
+                            $m['waiting_players'][$pItem['jid']] = $waitingPos;
+                            $waitingPos++;
+                        }
+                        $runningCount += $pCount;
+                    }
+                    $m['nb_waiting'] = count($m['waiting_players']);
+                    $m['nb_present_confirmed'] = min($runningCount, $capacity);
+                }
+            }
+            unset($m);
         } catch (\Throwable $e) {
             error_log('getCrossTable: Exception - ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return $empty;
@@ -674,10 +767,11 @@ class EventRepository
             $db = ExternalDatabase::get();
             if ($db && $id > 0) {
                 $stmt = $db->prepare(
-                    "SELECT p.Participation, j.id_joueur, j.Nom, j.Prénom
+                    "SELECT p.Participation, j.id_joueur, j.Nom, j.Prénom, COALESCE(p.S_MAJ, '1970-01-01 00:00:00') AS s_maj
                      FROM Participation p
                      JOIN Joueurs j ON p.id_joueur = j.id_joueur
-                     WHERE p.id_manifestation = ? AND j.id_joueur > 0"
+                     WHERE p.id_manifestation = ? AND j.id_joueur > 0
+                     ORDER BY s_maj ASC, j.id_joueur ASC"
                 );
                 $stmt->execute([$id]);
                 $rows = $stmt->fetchAll();
@@ -694,6 +788,48 @@ class EventRepository
 
                     EventNormalizer::updateManifestationStats($manifestation, $status, $jid, $nomJoueur, $rawStatus);
                     $respondedJoueurIds[] = $jid;
+                }
+
+                // File d'attente en surnombre (capacité = nb_terrains * 6 pour entraînements/séances)
+                $nbTerrains = (int)($manifestation['nb_terrains'] ?? 0);
+                $isMatch = $manifestation['is_match'] ?? false;
+                $manifestation['waiting_list'] = [];
+                $manifestation['present_confirmed'] = [];
+                $manifestation['nb_waiting'] = 0;
+                $manifestation['capacity'] = 0;
+
+                if (!$isMatch && $nbTerrains > 0) {
+                    $capacity = $nbTerrains * 6;
+                    $manifestation['capacity'] = $capacity;
+
+                    $presentList = $manifestation['present'] ?? [];
+                    $confirmed = [];
+                    $waiting = [];
+                    $runningCount = 0;
+                    $waitingPos = 1;
+
+                    foreach ($presentList as $player) {
+                        $pCount = 1 + ($player['companion_count'] ?? 0);
+                        if ($runningCount >= $capacity) {
+                            $player['is_waiting'] = true;
+                            $player['waiting_position'] = $waitingPos;
+                            $player['waiting_label'] = 'Attente +' . $waitingPos;
+                            $waiting[] = $player;
+                            $waitingPos++;
+                        } else {
+                            $player['is_waiting'] = false;
+                            $player['waiting_position'] = null;
+                            $confirmed[] = $player;
+                        }
+                        $runningCount += $pCount;
+                    }
+
+                    $manifestation['present_confirmed'] = $confirmed;
+                    $manifestation['waiting_list'] = $waiting;
+                    $manifestation['nb_waiting'] = count($waiting);
+                    $manifestation['nb_present_confirmed'] = count($confirmed);
+                    // Remplacer la liste complète des présents par les objets enrichis
+                    $manifestation['present'] = array_merge($confirmed, $waiting);
                 }
 
                 // Compléter avec les joueurs sans réponse

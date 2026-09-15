@@ -102,10 +102,13 @@ class AgendaController
                     $statusStr = $row[$mid] ?? '';
                     if (is_string($statusStr) && $statusStr !== '') {
                         $status = new \App\Helpers\ParticipationStatus($statusStr);
+                        $waitingPos = $m['waiting_players'][$jid] ?? null;
                         $row[$mid] = [
-                            'text' => $statusStr,
-                            'category' => $status->getCategory(),
-                            'companion_count' => $status->getCompanionCount()
+                            'text'             => $statusStr,
+                            'category'         => $status->getCategory(),
+                            'companion_count'  => $status->getCompanionCount(),
+                            'is_waiting'       => $waitingPos !== null,
+                            'waiting_position' => $waitingPos,
                         ];
                     }
                 }
