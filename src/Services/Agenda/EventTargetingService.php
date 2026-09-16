@@ -92,12 +92,14 @@ class EventTargetingService
      * @param int $userId ID du joueur
      * @param array|string $event Tableau de manifestation ou chaîne ManifestationTypée
      * @param array|null $playerCategories Catégories pré-chargées du joueur (optionnel)
+     * @param array|null $playerEquipes Équipes pré-chargées du joueur (optionnel)
      * @return bool
      */
     public static function isPlayerConcernedByEvent(
         int $userId,
         array|string $event,
-        ?array $playerCategories = null
+        ?array $playerCategories = null,
+        ?array $playerEquipes = null
     ): bool {
         $manifType = is_array($event)
             ? ($event['ManifestationTypée'] ?? $event['manifestation_type'] ?? '')
@@ -127,8 +129,8 @@ class EventTargetingService
             }
         }
 
-        // 3. Récupération des équipes de l'adhérent (via equipes_config et equipe_saison_joueur)
-        $equipes = self::getPlayerEquipesConfig($userId, $categories);
+        // 3. Récupération des équipes de l'adhérent (via cache fourni ou equipes_config et equipe_saison_joueur)
+        $equipes = $playerEquipes ?? self::getPlayerEquipesConfig($userId, $categories);
 
         // 4. Analyse selon le type (Match vs Entraînement vs Autre)
         $parts = explode(' - ', $manifType, 3);
@@ -333,4 +335,69 @@ class EventTargetingService
 
         return $equipes;
     }
+
+    /**
+     * Pré-charge en mémoire les équipes actives de l'ensemble des joueurs en seulement 2 requêtes SQL locales.
+     * Élimine les milliers de requêtes PDO lors de la génération de l'agenda cross-table.
+     *
+     * @param array<int, array> $playerCategories Mapping [id_joueur => [slug1, slug2, ...]]
+     * @return array<int, array> Mapping [id_joueur => [equipe1, equipe2, ...]]
+     */
+    public static function preloadAllPlayersEquipes(array $playerCategories): array
+    {
+        $playersEquipes = [];
+        try {
+            $dbLoc = Database::get();
+            $allEquipesConfig = $dbLoc->query("SELECT * FROM equipes_config WHERE is_active = 1")->fetchAll(PDO::FETCH_ASSOC);
+            $equipesBySlug = [];
+            $equipesById = [];
+            foreach ($allEquipesConfig as $eq) {
+                if (!empty($eq['slug_colonne'])) {
+                    $equipesBySlug[$eq['slug_colonne']] = $eq;
+                }
+                $equipesById[(int)$eq['id']] = $eq;
+            }
+
+            $seasonEquipesByPlayer = [];
+            $saison = Saison::getActive();
+            $saisonId = $saison ? (int)$saison['id'] : 0;
+            if ($saisonId > 0) {
+                $stmt = $dbLoc->prepare(
+                    "SELECT js.id_joueur, es.equipe_id
+                     FROM equipe_saison_joueur esj
+                     JOIN joueur_snapshots js ON js.id = esj.snapshot_id
+                     JOIN equipe_saison es ON es.id = esj.equipe_saison_id
+                     WHERE es.saison_id = ?"
+                );
+                $stmt->execute([$saisonId]);
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $jId = (int)$row['id_joueur'];
+                    $eqId = (int)$row['equipe_id'];
+                    if (isset($equipesById[$eqId])) {
+                        $seasonEquipesByPlayer[$jId][] = $equipesById[$eqId];
+                    }
+                }
+            }
+
+            foreach ($playerCategories as $jid => $cats) {
+                $eqs = [];
+                foreach ($cats as $cat) {
+                    if (isset($equipesBySlug[$cat])) {
+                        $eqs[$equipesBySlug[$cat]['id']] = $equipesBySlug[$cat];
+                    }
+                }
+                if (isset($seasonEquipesByPlayer[$jid])) {
+                    foreach ($seasonEquipesByPlayer[$jid] as $seq) {
+                        $eqs[$seq['id']] = $seq;
+                    }
+                }
+                $playersEquipes[$jid] = array_values($eqs);
+            }
+        } catch (\Throwable $e) {
+            error_log('preloadAllPlayersEquipes failed: ' . $e->getMessage());
+        }
+
+        return $playersEquipes;
+    }
 }
+

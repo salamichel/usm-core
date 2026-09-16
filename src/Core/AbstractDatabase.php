@@ -20,7 +20,11 @@ abstract class AbstractDatabase
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]);
-                self::$instances[$key]->exec("SET time_zone = '" . date('P') . "'");
+                try {
+                    self::$instances[$key]->exec("SET time_zone = '" . date('P') . "'");
+                } catch (\Throwable) {
+                    // Certains hébergeurs mutualisés (ex: Free / InfinityFree) interdisent la modification de time_zone
+                }
 
             } catch (PDOException $e) {
                 if (APP_DEBUG) {

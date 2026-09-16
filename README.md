@@ -6,6 +6,7 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
 
 - ⚽ Gestion des équipes et des joueurs
 - 📅 Agenda des matchs et entraînements :
+  - Architecture Haute Performance : chargement groupé en mémoire (Batch Fetching) réduisant le temps de génération de 27s à moins d'1s, immunisé contre les timeouts des hébergements mutualisés (Free, InfinityFree)
   - Filtrage dynamique (type, manifestation, équipe, lieu, période) avec panneau réactif en un clic
   - Indicateur de participation personnalisée (calcul des réponses manquantes ciblé selon les équipes/catégories réelles de l'adhérent)
   - Gestion automatique de la file d'attente en surnombre pour les créneaux d'entraînement (`inscrits > terrains × 6`) avec ordre chronologique et statut `Attente +x`
