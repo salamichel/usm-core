@@ -86,7 +86,7 @@ class ParticipationStatsService
 
         $isMatch = (stripos($type, 'match') !== false);
         if (!$isMatch && $nbTerrains > 0) {
-            $capacity = $nbTerrains * 6;
+            $capacity = $nbTerrains * 12;
             $stats['capacity'] = $capacity;
             $stats['waiting'] = max(0, $stats['present'] - $capacity);
             $stats['present_confirmed'] = min($stats['present'], $capacity);

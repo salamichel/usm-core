@@ -408,7 +408,7 @@ class EventRepository
                 $m['capacity'] = 0;
 
                 if (!$isMatch && $nbTerrains > 0) {
-                    $capacity = $nbTerrains * 6;
+                    $capacity = $nbTerrains * 12;
                     $m['capacity'] = $capacity;
 
                     $presentList = $m['present'] ?? [];
@@ -835,7 +835,7 @@ class EventRepository
                     $respondedJoueurIds[] = $jid;
                 }
 
-                // File d'attente en surnombre (capacité = nb_terrains * 6 pour entraînements/séances)
+                // File d'attente en surnombre (capacité = nb_terrains * 12 pour entraînements/séances)
                 $nbTerrains = (int)($manifestation['nb_terrains'] ?? 0);
                 $isMatch = $manifestation['is_match'] ?? false;
                 $manifestation['waiting_list'] = [];
@@ -844,7 +844,7 @@ class EventRepository
                 $manifestation['capacity'] = 0;
 
                 if (!$isMatch && $nbTerrains > 0) {
-                    $capacity = $nbTerrains * 6;
+                    $capacity = $nbTerrains * 12;
                     $manifestation['capacity'] = $capacity;
 
                     $presentList = $manifestation['present'] ?? [];
