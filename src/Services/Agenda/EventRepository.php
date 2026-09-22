@@ -434,11 +434,23 @@ class EventRepository
                         $runningCount += $pCount;
                     }
 
+                    $confirmedHeadcount = 0;
+                    foreach ($confirmed as $cp) {
+                        $confirmedHeadcount += 1 + ($cp['companion_count'] ?? 0);
+                    }
+                    $waitingHeadcount = 0;
+                    foreach ($waiting as $wp) {
+                        $waitingHeadcount += 1 + ($wp['companion_count'] ?? 0);
+                    }
+
                     $m['present_confirmed'] = $confirmed;
                     $m['waiting_list'] = $waiting;
-                    $m['nb_waiting'] = count($waiting);
-                    $m['nb_present_confirmed'] = count($confirmed);
+                    $m['nb_waiting'] = $waitingHeadcount;
+                    $m['nb_present_confirmed'] = $confirmedHeadcount;
                     $m['present'] = array_merge($confirmed, $waiting);
+                } else {
+                    $m['nb_waiting'] = 0;
+                    $m['nb_present_confirmed'] = $m['nb_present'] ?? 0;
                 }
 
                 // Compléter avec les joueurs sans réponse (calcul rapide en mémoire)
@@ -869,12 +881,24 @@ class EventRepository
                         $runningCount += $pCount;
                     }
 
+                    $confirmedHeadcount = 0;
+                    foreach ($confirmed as $cp) {
+                        $confirmedHeadcount += 1 + ($cp['companion_count'] ?? 0);
+                    }
+                    $waitingHeadcount = 0;
+                    foreach ($waiting as $wp) {
+                        $waitingHeadcount += 1 + ($wp['companion_count'] ?? 0);
+                    }
+
                     $manifestation['present_confirmed'] = $confirmed;
                     $manifestation['waiting_list'] = $waiting;
-                    $manifestation['nb_waiting'] = count($waiting);
-                    $manifestation['nb_present_confirmed'] = count($confirmed);
+                    $manifestation['nb_waiting'] = $waitingHeadcount;
+                    $manifestation['nb_present_confirmed'] = $confirmedHeadcount;
                     // Remplacer la liste complète des présents par les objets enrichis
                     $manifestation['present'] = array_merge($confirmed, $waiting);
+                } else {
+                    $manifestation['nb_waiting'] = 0;
+                    $manifestation['nb_present_confirmed'] = $manifestation['nb_present'] ?? 0;
                 }
 
                 // Compléter avec les joueurs sans réponse

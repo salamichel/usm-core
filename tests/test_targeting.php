@@ -66,9 +66,9 @@ assert($isConcernedUfolep === true, "Plateau UFOLEP 3 match must concern player 
 $isConcernedL1 = EventTargetingService::isPlayerConcernedByEvent(539, 'Matchs - Match - Match L1');
 assert($isConcernedL1 === false, "Match L1 must NOT concern player 539 who only has UFOLEP_3");
 
-// Carla AUZOU (ID 511) has L2 which has training_filter "Présences - Entrainement - CompetLib (jeu libre)"
-$isConcernedTraining511 = EventTargetingService::isPlayerConcernedByEvent(511, 'Présences - Entrainement - CompetLib (jeu libre)');
-assert($isConcernedTraining511 === true, "Player with L2 must be concerned by CompetLib (jeu libre) training");
+// Player 465 (Ruben PENIN) has L2 which has training_filter "Présences - Entrainement - CompetLib (jeu libre)"
+$isConcernedTraining465 = EventTargetingService::isPlayerConcernedByEvent(465, 'Présences - Entrainement - CompetLib (jeu libre)');
+assert($isConcernedTraining465 === true, "Player with L2 must be concerned by CompetLib (jeu libre) training");
 
 echo "All isPlayerConcernedByEvent unit assertions passed!" . PHP_EOL;
 

@@ -33,7 +33,8 @@ class ParticipationStatsService
                 "SELECT p.Participation, m.ManifestationTypée, m.Nombre_terrain 
                  FROM Participation p
                  JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
-                 WHERE p.id_manifestation = ?"
+                 JOIN Joueurs j ON p.id_joueur = j.id_joueur
+                 WHERE p.id_manifestation = ? AND j.id_joueur > 0"
             );
             $stmt->execute([$manifestationId]);
             $rows = $stmt->fetchAll();
@@ -115,11 +116,12 @@ class ParticipationStatsService
             $db           = ExternalDatabase::get();
             $placeholders = implode(',', array_fill(0, count($manifestationIds), '?'));
             $stmt         = $db->prepare(
-                "SELECT p.id_manifestation, p.Participation, m.ManifestationTypée, COUNT(*) as cnt
+                "SELECT p.id_manifestation, p.Participation, m.ManifestationTypée, m.Nombre_terrain, COUNT(*) as cnt
                  FROM Participation p
                  JOIN Manifestation m ON p.id_manifestation = m.id_manifestation
-                 WHERE p.id_manifestation IN ($placeholders)
-                 GROUP BY p.id_manifestation, m.ManifestationTypée, p.Participation"
+                 JOIN Joueurs j ON p.id_joueur = j.id_joueur
+                 WHERE p.id_manifestation IN ($placeholders) AND j.id_joueur > 0
+                 GROUP BY p.id_manifestation, m.ManifestationTypée, m.Nombre_terrain, p.Participation"
             );
             $stmt->execute($manifestationIds);
             $rows = $stmt->fetchAll();
@@ -129,6 +131,7 @@ class ParticipationStatsService
 
         $result = array_fill_keys($manifestationIds, self::emptyStats());
         $typesMap = [];
+        $terrainsMap = [];
 
         foreach ($rows as $row) {
             $mid      = (int)($row['id_manifestation'] ?? 0);
@@ -138,6 +141,9 @@ class ParticipationStatsService
 
             if (isset($row['ManifestationTypée'])) {
                 $typesMap[$mid] = $row['ManifestationTypée'];
+            }
+            if (isset($row['Nombre_terrain'])) {
+                $terrainsMap[$mid] = (int)$row['Nombre_terrain'];
             }
 
             if (!isset($result[$mid])) {
@@ -168,6 +174,19 @@ class ParticipationStatsService
             $stats['enough_players'] = (
                 $stats['present'] + $stats['available'] + $stats['selected'] + $stats['available_if_needed']
             ) >= $minRequired;
+
+            $isMatch = (stripos($type, 'match') !== false);
+            $nbTerrains = $terrainsMap[$mid] ?? 0;
+            if (!$isMatch && $nbTerrains > 0) {
+                $capacity = $nbTerrains * 12;
+                $stats['capacity'] = $capacity;
+                $stats['waiting'] = max(0, $stats['present'] - $capacity);
+                $stats['present_confirmed'] = min($stats['present'], $capacity);
+            } else {
+                $stats['capacity'] = 0;
+                $stats['waiting'] = 0;
+                $stats['present_confirmed'] = $stats['present'];
+            }
         }
         unset($stats);
 
@@ -218,7 +237,8 @@ class ParticipationStatsService
             'available'           => $stats['available']           ?? 0,
             'available_if_needed' => $stats['available_if_needed'] ?? 0,
             'unavailable'         => $stats['unavailable']         ?? 0,
-            'present'             => $stats['present']             ?? 0,
+            'present'             => $stats['present_confirmed']   ?? ($stats['present'] ?? 0),
+            'present_total'       => $stats['present']             ?? 0,
             'present_confirmed'   => $stats['present_confirmed']   ?? ($stats['present'] ?? 0),
             'waiting'             => $stats['waiting']             ?? 0,
             'capacity'            => $stats['capacity']            ?? 0,

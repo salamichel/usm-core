@@ -118,7 +118,6 @@ class ParticipationController
             exit;
         }
 
-        // Valider et normaliser le statut
         $allowedStatuses = [
             'Disponible' => 'Disponible',
             'Disponible si nécessaire' => 'Disponible si nécessaire',
@@ -126,7 +125,27 @@ class ParticipationController
             'Présent(e)' => 'Présent(e)',
             'Absent(e)' => 'Absent(e)',
             'Présent' => 'Présent(e)',
-            'Absent' => 'Absent(e)'
+            'Absent' => 'Absent(e)',
+            'Présent(e) à 2' => 'Présent(e) à 2',
+            'Présent à 2' => 'Présent(e) à 2',
+            'Présent(e) à 3' => 'Présent(e) à 3',
+            'Présent à 3' => 'Présent(e) à 3',
+            'Présent(e) à 4' => 'Présent(e) à 4',
+            'Présent à 4' => 'Présent(e) à 4',
+            'Présent(e) à 5' => 'Présent(e) à 5',
+            'Présent à 5' => 'Présent(e) à 5',
+            'Présent(e) + 1' => 'Présent(e) à 2',
+            'Présent + 1' => 'Présent(e) à 2',
+            'Présent(e) +1' => 'Présent(e) à 2',
+            'Présent +1' => 'Présent(e) à 2',
+            'Présent(e) + 2' => 'Présent(e) à 3',
+            'Présent + 2' => 'Présent(e) à 3',
+            'Présent(e) +2' => 'Présent(e) à 3',
+            'Présent +2' => 'Présent(e) à 3',
+            'Présent(e) + 3' => 'Présent(e) à 4',
+            'Présent + 3' => 'Présent(e) à 4',
+            'Présent(e) +3' => 'Présent(e) à 4',
+            'Présent +3' => 'Présent(e) à 4',
         ];
         if (!isset($allowedStatuses[$status])) {
             View::render('agenda/participation_confirmed.twig', [

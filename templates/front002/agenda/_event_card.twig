@@ -242,15 +242,13 @@
                                      {% if can_view_player_details %}data-players='{{ m.present|default([])|json_encode|e('html_attr') }}'{% endif %}>
                                     <span class="text-[9px]">✓</span> <span class="count-value">{{ m.nb_present_confirmed|default(m.nb_present|default(0)) }}</span>
                                 </div>
-                                {% if m.nb_waiting is defined and m.nb_waiting > 0 %}
-                                    <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 border border-amber-300 text-amber-900 transition-all flex items-center gap-0.5 shadow-xs" 
-                                         data-title="File d'attente (surnombre)" 
-                                         data-status-key="waiting"
-                                         {% if can_view_player_details %}data-players='{{ m.waiting_list|default([])|json_encode|e('html_attr') }}'{% endif %}
-                                         title="En file d'attente : capacité du terrain atteinte ({{ m.capacity }} places max)">
-                                        <span>⏳</span> <span class="count-value">+{{ m.nb_waiting }} attente</span>
-                                    </div>
-                                {% endif %}
+                                 <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 border border-amber-300 text-amber-900 transition-all flex items-center gap-0.5 shadow-xs {% if not (m.nb_waiting is defined and m.nb_waiting > 0) %}hidden{% endif %}" 
+                                      data-title="File d'attente (surnombre)" 
+                                      data-status-key="waiting"
+                                      {% if can_view_player_details %}data-players='{{ m.waiting_list|default([])|json_encode|e('html_attr') }}'{% endif %}
+                                      title="En file d'attente : capacité du terrain atteinte ({{ m.capacity }} places max)">
+                                     <span>⏳</span> <span class="count-value">+{{ m.nb_waiting|default(0) }} attente</span>
+                                 </div>
                                 <div class="{% if can_view_player_details %}player-list-trigger cursor-pointer hover:scale-105{% endif %} px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 border border-rose-100 text-rose-600 transition-all flex items-center gap-0.5" 
                                      data-title="Joueurs absents" 
                                      data-status-key="absent"

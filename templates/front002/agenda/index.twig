@@ -220,7 +220,7 @@
 														<strong data-stat="selection-{{ mid }}">{{ m.nb_selection }}</strong>
 													</span>
 													<span class="text-emerald-700 {% if m.nb_present == 0 %}hidden{% endif %}" data-stat-wrap="present-{{ mid }}">Présents:
-														<strong data-stat="present-{{ mid }}">{{ m.nb_present }}</strong>
+														<strong data-stat="present-{{ mid }}">{{ m.nb_present_confirmed|default(m.nb_present) }}</strong>
 													</span>
 												</div>
 												<div class="flex flex-wrap gap-x-2 gap-y-0.5">
@@ -244,11 +244,9 @@
 													<span class="text-emerald-700" data-stat-wrap="present-{{ mid }}">Présents:
 														<strong data-stat="present-{{ mid }}">{{ m.nb_present_confirmed|default(m.nb_present) }}</strong>
 													</span>
-													{% if m.nb_waiting is defined and m.nb_waiting > 0 %}
-														<span class="text-amber-800 font-extrabold bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full text-[10px]" title="En file d'attente (surnombre : {{ m.capacity }} places max)" data-stat-wrap="waiting-{{ mid }}">
-															⏳ +<strong data-stat="waiting-{{ mid }}">{{ m.nb_waiting }}</strong>
-														</span>
-													{% endif %}
+													<span class="text-amber-800 font-extrabold bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full text-[10px] {% if not (m.nb_waiting is defined and m.nb_waiting > 0) %}hidden{% endif %}" title="En file d'attente (surnombre : {{ m.capacity }} places max)" data-stat-wrap="waiting-{{ mid }}">
+														⏳ +<strong data-stat="waiting-{{ mid }}">{{ m.nb_waiting|default(0) }}</strong>
+													</span>
 													<span class="text-rose-700" data-stat-wrap="absent-{{ mid }}">Absents:
 														<strong data-stat="absent-{{ mid }}">{{ m.nb_absent }}</strong>
 													</span>
@@ -637,10 +635,10 @@
 						break;
 					case 'present':
 						icon = '✓';
-						if (newStatus.includes('à 2')) label = 'Prés. à 2';
-						else if (newStatus.includes('à 3')) label = 'Prés. à 3';
-						else if (newStatus.includes('à 4')) label = 'Prés. à 4';
-						else if (newStatus.includes('à 5')) label = 'Prés. à 5';
+						if (newStatus.includes('à 2') || newStatus.includes('+ 1') || newStatus.includes('+1')) label = 'Prés. à 2';
+						else if (newStatus.includes('à 3') || newStatus.includes('+ 2') || newStatus.includes('+2')) label = 'Prés. à 3';
+						else if (newStatus.includes('à 4') || newStatus.includes('+ 3') || newStatus.includes('+3')) label = 'Prés. à 4';
+						else if (newStatus.includes('à 5') || newStatus.includes('+ 4') || newStatus.includes('+4')) label = 'Prés. à 5';
 						else label = 'Prés.';
 						cellBg = 'bg-emerald-100'; textColor = 'text-emerald-800';
 						break;

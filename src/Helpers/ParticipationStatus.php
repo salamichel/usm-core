@@ -28,18 +28,58 @@ class ParticipationStatus
         "Présent à 2"              => "present",
         "Present(e) a 2"           => "present",
         "Present a 2"              => "present",
+        "Présent(e) + 1"           => "present",
+        "Présent + 1"              => "present",
+        "Present(e) + 1"           => "present",
+        "Present + 1"              => "present",
+        "Présent(e) +1"            => "present",
+        "Présent +1"               => "present",
+        "Present(e) +1"            => "present",
+        "Present +1"               => "present",
         "Présent(e) à 3"           => "present",
         "Présent à 3"              => "present",
         "Present(e) a 3"           => "present",
         "Present a 3"              => "present",
+        "Présent(e) + 2"           => "present",
+        "Présent + 2"              => "present",
+        "Present(e) + 2"           => "present",
+        "Present + 2"              => "present",
+        "Présent(e) +2"            => "present",
+        "Présent +2"               => "present",
+        "Present(e) +2"            => "present",
+        "Present +2"               => "present",
         "Présent(e) à 4"           => "present",
         "Présent à 4"              => "present",
         "Present(e) a 4"           => "present",
         "Present a 4"              => "present",
+        "Présent(e) + 3"           => "present",
+        "Présent + 3"              => "present",
+        "Present(e) + 3"           => "present",
+        "Present + 3"              => "present",
+        "Présent(e) +3"            => "present",
+        "Présent +3"               => "present",
+        "Present(e) +3"            => "present",
+        "Present +3"               => "present",
         "Présent(e) à 5"           => "present",
         "Présent à 5"              => "present",
         "Present(e) a 5"           => "present",
         "Present a 5"              => "present",
+        "Présent(e) + 4"           => "present",
+        "Présent + 4"              => "present",
+        "Present(e) + 4"           => "present",
+        "Present + 4"              => "present",
+        "Présent(e) +4"            => "present",
+        "Présent +4"               => "present",
+        "Present(e) +4"            => "present",
+        "Present +4"               => "present",
+        "Présent(e) + 5"           => "present",
+        "Présent + 5"              => "present",
+        "Present(e) + 5"           => "present",
+        "Present + 5"              => "present",
+        "Présent(e) +5"            => "present",
+        "Présent +5"               => "present",
+        "Present(e) +5"            => "present",
+        "Present +5"               => "present",
         "Ne sait pas"              => "unknown",
         "?"                        => "unknown",
     ];
@@ -143,6 +183,13 @@ class ParticipationStatus
     public function getCompanionCount(): int
     {
         if ($this->isPresent()) {
+            if (preg_match("/\+\s*(\d+)/", $this->status, $matches)) {
+                return (int)$matches[1];
+            }
+            if (preg_match("/(?:à|a)\s*(\d+)/i", $this->status, $matches)) {
+                $num = (int)$matches[1];
+                return max(0, $num - 1);
+            }
             if (preg_match("/(\d+)/", $this->status, $matches)) {
                 $num = (int)$matches[1];
                 return max(0, $num - 1);

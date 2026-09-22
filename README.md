@@ -9,7 +9,7 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
   - Architecture Haute Performance : chargement groupé en mémoire (Batch Fetching) réduisant le temps de génération de 27s à moins d'1s, immunisé contre les timeouts des hébergements mutualisés (Free, InfinityFree)
   - Filtrage dynamique (type, manifestation, équipe, lieu, période) avec panneau réactif en un clic
   - Indicateur de participation personnalisée (calcul des réponses manquantes ciblé selon les équipes/catégories réelles de l'adhérent)
-  - Gestion automatique de la file d'attente en surnombre pour les créneaux d'entraînement (`inscrits > terrains × 6`) avec ordre chronologique et statut `Attente +x`
+  - Gestion automatique de la file d'attente en surnombre pour les créneaux d'entraînement (`inscrits > terrains × 12`) avec ordre chronologique, comptabilisation fidèle des accompagnants (`Présent(e) +x` / `Présent(e) à x`) et statut `Attente +x`
 - 📝 Blog d'actualités avec tags et catégories
 - 📸 Galerie de photos avec upload Dropzone
 - 📧 Formulaire de contact intégré

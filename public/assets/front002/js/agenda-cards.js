@@ -159,6 +159,11 @@
             'Disponible si nécessaire': 'available_if_needed', 'Disponible si n': 'available_if_needed',
             'Indisponible': 'unavailable', 'Absent': 'absent', 'Absent(e)': 'absent', 'Non': 'absent',
             'Présent': 'present', 'Présent(e)': 'present', 'Présent(e) à 2': 'present', 'Présent(e) à 3': 'present', 'Présent(e) à 4': 'present', 'Présent(e) à 5': 'present',
+            'Présent(e) + 1': 'present', 'Présent + 1': 'present', 'Présent(e) +1': 'present', 'Présent +1': 'present',
+            'Présent(e) + 2': 'present', 'Présent + 2': 'present', 'Présent(e) +2': 'present', 'Présent +2': 'present',
+            'Présent(e) + 3': 'present', 'Présent + 3': 'present', 'Présent(e) +3': 'present', 'Présent +3': 'present',
+            'Présent(e) + 4': 'present', 'Présent + 4': 'present', 'Présent(e) +4': 'present', 'Présent +4': 'present',
+            'Présent(e) + 5': 'present', 'Présent + 5': 'present', 'Présent(e) +5': 'present', 'Présent +5': 'present',
             'Ne sait pas': 'unknown', '?': 'unknown', 'Ne sait pas encore': 'unknown'
         };
         return map[s] || 'unknown';
