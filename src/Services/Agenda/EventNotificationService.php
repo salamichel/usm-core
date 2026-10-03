@@ -193,6 +193,12 @@ class EventNotificationService
             $stmt->execute([$specificEventId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row && (empty($row['Statut']) || stripos($row['Statut'], 'Annulé') === false)) {
+                $manifType = (string)($row['ManifestationTypée'] ?? '');
+                $isMatchOrPlateau = (stripos($manifType, 'match') !== false || stripos($manifType, 'plateau') !== false);
+                if (!$isMatchOrPlateau) {
+                    return $stats; // Uniquement Match ou Plateau (exclut les entraînements)
+                }
+
                 // Interdiction formelle de relancer sur des rencontres ou événements passés
                 if (!empty($row['Date']) && strtotime((string)$row['Date']) <= time()) {
                     return $stats;
@@ -218,6 +224,10 @@ class EventNotificationService
             $stmt = $extDb->prepare("
                 SELECT * FROM Manifestation
                 WHERE (Statut IS NULL OR Statut NOT LIKE '%Annulé%')
+                  AND (
+                      ManifestationTypée LIKE '%Match%'
+                      OR ManifestationTypée LIKE '%Plateau%'
+                  )
                   AND (DATE(Date) = ? OR DATE(Date) = ?)
                   AND Date > NOW()
                 ORDER BY Date ASC
@@ -228,6 +238,11 @@ class EventNotificationService
             foreach ($rows as $row) {
                 if (empty($row['Date']) || strtotime((string)$row['Date']) <= time()) {
                     continue; // Ignorer systématiquement les événements passés
+                }
+
+                $manifType = (string)($row['ManifestationTypée'] ?? '');
+                if (stripos($manifType, 'match') === false && stripos($manifType, 'plateau') === false) {
+                    continue; // Strictement Match ou Plateau
                 }
 
                 $eventDateStr = substr((string)$row['Date'], 0, 10);
@@ -249,7 +264,6 @@ class EventNotificationService
 
         // Pré-charger les équipes et snapshots de la saison
         $activeTeams = EquipeConfig::allActive();
-        $allSnaps = JoueurSnapshot::findBySaison($saisonId);
 
         foreach ($eventsToProcess as $item) {
             $row = $item['row'];
@@ -257,55 +271,30 @@ class EventNotificationService
             $eventId = (int)$row['id_manifestation'];
             $normEvent = EventNormalizer::buildBaseFields($row);
             $manifType = (string)($row['ManifestationTypée'] ?? '');
-            $isMatch = (stripos($manifType, 'match') !== false);
 
-            // 1. Déterminer les joueurs ciblés et le label d'équipe
+            // 1. Déterminer les joueurs de l'équipe ciblée par la rencontre
             $candidatePlayers = [];
 
-            if ($isMatch) {
-                $matchingTeams = [];
-                foreach ($activeTeams as $team) {
-                    $filter = $team['manifestation_filter'] ?: $team['libelle'];
-                    if ($filter && (str_contains($manifType, $filter) || str_contains($row['Lieu'] ?? '', $filter))) {
-                        $matchingTeams[] = $team;
-                    }
+            $matchingTeams = [];
+            foreach ($activeTeams as $team) {
+                $filter = $team['manifestation_filter'] ?: $team['libelle'];
+                if ($filter && (str_contains($manifType, $filter) || str_contains($row['Lieu'] ?? '', $filter))) {
+                    $matchingTeams[] = $team;
                 }
+            }
 
-                foreach ($matchingTeams as $team) {
-                    $es = EquipeSaison::findBySaisonAndEquipe($saisonId, (int)$team['id']);
-                    if (!$es) {
-                        continue;
-                    }
-                    $teamPlayers = EquipeSaisonJoueur::findByEquipeSaison((int)$es['id']);
-                    foreach ($teamPlayers as $tp) {
-                        $pid = (int)$tp['id_joueur'];
-                        if ($pid > 0) {
-                            $candidatePlayers[$pid] = [
-                                'team_name' => $team['libelle'],
-                                'pref_key'  => 'match',
-                            ];
-                        }
-                    }
+            foreach ($matchingTeams as $team) {
+                $es = EquipeSaison::findBySaisonAndEquipe($saisonId, (int)$team['id']);
+                if (!$es) {
+                    continue;
                 }
-            } else {
-                $trainingTypes = MotsClef::getTrainingTypes();
-                $matchedTrainingType = null;
-                foreach ($trainingTypes as $tt) {
-                    if ($manifType === $tt || str_contains($manifType, $tt)) {
-                        $matchedTrainingType = $tt;
-                        break;
-                    }
-                }
-                $prefKey = $matchedTrainingType ?: 'club_life';
-                $parts = explode(' - ', $manifType, 3);
-                $teamName = $parts[2] ?? ($parts[1] ?? $manifType);
-
-                foreach ($allSnaps as $snap) {
-                    $pid = (int)$snap['id_joueur'];
-                    if ($pid > 0 && EventTargetingService::isPlayerConcernedByEvent($pid, $row)) {
+                $teamPlayers = EquipeSaisonJoueur::findByEquipeSaison((int)$es['id']);
+                foreach ($teamPlayers as $tp) {
+                    $pid = (int)$tp['id_joueur'];
+                    if ($pid > 0) {
                         $candidatePlayers[$pid] = [
-                            'team_name' => $teamName,
-                            'pref_key'  => $prefKey,
+                            'team_name' => $team['libelle'],
+                            'pref_key'  => 'match',
                         ];
                     }
                 }
