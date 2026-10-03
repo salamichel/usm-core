@@ -193,8 +193,17 @@ class EventNotificationService
             $stmt->execute([$specificEventId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($row && (empty($row['Statut']) || stripos($row['Statut'], 'Annulé') === false)) {
+                // Interdiction formelle de relancer sur des rencontres ou événements passés
+                if (!empty($row['Date']) && strtotime((string)$row['Date']) <= time()) {
+                    return $stats;
+                }
+
                 $eventDateStr = substr((string)$row['Date'], 0, 10);
                 $diffDays = (int)round((strtotime($eventDateStr) - strtotime($todayStr)) / 86400);
+                if ($diffDays <= 0) {
+                    return $stats;
+                }
+
                 $reminderType = ($diffDays === 2) ? 'j-2' : (($diffDays === 1) ? 'j-1' : 'manual');
                 $eventsToProcess[] = [
                     'row'           => $row,
@@ -210,12 +219,17 @@ class EventNotificationService
                 SELECT * FROM Manifestation
                 WHERE (Statut IS NULL OR Statut NOT LIKE '%Annulé%')
                   AND (DATE(Date) = ? OR DATE(Date) = ?)
+                  AND Date > NOW()
                 ORDER BY Date ASC
             ");
             $stmt->execute([$j1Str, $j2Str]);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
             foreach ($rows as $row) {
+                if (empty($row['Date']) || strtotime((string)$row['Date']) <= time()) {
+                    continue; // Ignorer systématiquement les événements passés
+                }
+
                 $eventDateStr = substr((string)$row['Date'], 0, 10);
                 $diffDays = (int)round((strtotime($eventDateStr) - strtotime($todayStr)) / 86400);
                 if ($diffDays === 2) {

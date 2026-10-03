@@ -149,7 +149,7 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
 7. Redirection contextuelle vers la page d'origine après authentification (`?redirect=...`).
 8. Ciblage et éligibilité mutualisés (`EventTargetingService`) garantissant une synchronisation stricte entre les événements visibles et les notifications par email.
 9. **Relances automatiques de disponibilité (J-2 et J-1)** :
-   - Détection automatique des personnes n'ayant pas renseigné leur présence/disponibilité pour les rencontres et événements à venir.
+   - Détection automatique des personnes n'ayant pas renseigné leur présence/disponibilité pour les rencontres et événements à venir (exclusion stricte des événements passés ou déjà commencés).
    - Envoi automatisé à J-2 et J-1 via Brevo avec boutons de réponse instantanée (1-clic avec jeton sécurisé HMAC-SHA256).
    - Suivi idempotent et anti-spam via la table locale `event_reminders_sent` (garantit au maximum 1 relance à J-2 et 1 relance à J-1 par adhérent).
    - Déclenchement automatique par le planificateur (`ScheduledJob` action `event_reminder`), par le Lazy Cron (`/api/cron/lazy-trigger`), ou par appel direct externe (`GET /api/cron/event-reminder?token=...`).

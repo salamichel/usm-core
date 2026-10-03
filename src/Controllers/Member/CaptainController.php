@@ -1096,6 +1096,13 @@ class CaptainController
             exit;
         }
 
+        // Vérifier que la rencontre n'est pas déjà passée ou commencée
+        if (!empty($event['Date']) && strtotime($event['Date']) <= time()) {
+            View::flash('error', 'Impossible d\'envoyer des relances : cette rencontre est déjà passée.');
+            header('Location: /member/captain');
+            exit;
+        }
+
         // Vérifier que le match appartient à une équipe gérée par ce capitaine
         $matchedTeam = null;
         foreach ($captainedTeams as $team) {
