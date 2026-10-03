@@ -367,110 +367,246 @@
                     </div>
                 </div>
 
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Rencontres et Convocations</h3>
+                {# Rencontres et Convocations (À venir et Passées) #}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Rencontres et Convocations</h3>
 
-                {% if t.matches|length %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {% for m in t.matches %}
-                    <div class="border border-slate-200 hover:border-slate-300 rounded-2xl p-4 sm:p-5 bg-white transition-all flex flex-col justify-between hover:shadow-sm">
-                        <div>
-                            <div class="flex justify-between items-start gap-2 mb-2.5 sm:mb-3">
-                                <h4 class="font-serif text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ m.titre }}</h4>
-                                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-800 shrink-0">
-                                    {{ m.statut }}
-                                </span>
-                            </div>
-                            
-                            <div class="space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
-                                <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📅</span> {{ m.date_display }}</p>
-                                {% if m.time_range %}<p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">🕐</span> {{ m.time_range }}</p>{% endif %}
-                                <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📍</span> {{ m.lieu }}</p>
-                                {% if m.commentaire %}<p class="flex items-center gap-2 italic text-xs text-slate-400"><span class="text-slate-400 w-4 text-center">💬</span> {{ m.commentaire }}</p>{% endif %}
-                            </div>
-                        {# Jauge des disponibilités (Convoqués / Dispo / Sans réponse / Indispo) #}
-                        <div class="space-y-2 mb-3 sm:mb-4 mt-1 pt-3 border-t border-slate-100">
-                            <div class="flex justify-between text-xs font-bold text-slate-500">
-                                <span>Convocations & Réponses</span>
-                                <span>{{ m.total_roster }} joueurs</span>
-                            </div>
-                            
-                            <div class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden">
-                                {% set pct_sel = m.total_roster > 0 ? (m.nb_selection / m.total_roster * 100) : 0 %}
-                                {% set pct_disp = m.total_roster > 0 ? (m.nb_disponible / m.total_roster * 100) : 0 %}
-                                {% set pct_sans = m.total_roster > 0 ? (m.nb_sans_reponse / m.total_roster * 100) : 0 %}
-                                {% set pct_indisp = m.total_roster > 0 ? (m.nb_indisponible / m.total_roster * 100) : 0 %}
-                                
-                                {% if m.nb_selection > 0 %}
-                                    <div class="bg-amber-500 h-full" style="width: {{ pct_sel }}%" title="Sélectionnés : {{ m.nb_selection }}"></div>
-                                {% endif %}
-                                {% if m.nb_disponible > 0 %}
-                                    <div class="bg-emerald-500 h-full" style="width: {{ pct_disp }}%" title="Disponibles : {{ m.nb_disponible }}"></div>
-                                {% endif %}
-                                {% if m.nb_sans_reponse > 0 %}
-                                    <div class="bg-slate-300 h-full" style="width: {{ pct_sans }}%" title="Sans réponse : {{ m.nb_sans_reponse }}"></div>
-                                {% endif %}
-                                {% if m.nb_indisponible > 0 %}
-                                    <div class="bg-rose-500 h-full" style="width: {{ pct_indisp }}%" title="Indisponibles : {{ m.nb_indisponible }}"></div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
-                                <div class="flex items-center gap-1 truncate">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                                    <span class="truncate">Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
-                                </div>
-                                <div class="flex items-center gap-1 truncate">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                    <span class="truncate">Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
-                                </div>
-                                <div class="flex items-center gap-1 truncate">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
-                                    <span class="truncate">Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
-                                </div>
-                                <div class="flex items-center gap-1 truncate">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-                                    <span class="truncate">Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
-                                </div>
-                            </div>
-                        </div>
-                        </div>
-
-                        <div class="pt-3 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-xs font-bold">
-                                    {% if m.nb_selection >= m.min_players %}
-                                        <span class="text-emerald-600">✓ Effectif suffisant</span> ({{ m.nb_selection }} joueurs)
-                                    {% else %}
-                                        <span class="text-rose-500">⚠ Sous-effectif</span> ({{ m.nb_selection }}/{{ m.min_players }} requis)
-                                    {% endif %}
-                                </span>
-                            </div>
-                            
-                            <div class="flex flex-wrap items-center gap-2">
-                                {% if m.nb_sans_reponse > 0 and (not m.is_past) and (not m.Date or m.Date > "now"|date("Y-m-d H:i:s")) and (m.nb_selection + m.nb_disponible < m.min_players) %}
-                                <form method="POST" action="{{ url('member/captain/matches/' ~ m.id ~ '/remind') }}" class="inline flex-1 sm:flex-initial">
-                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
-                                    <button type="submit" class="w-full text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1 cursor-pointer">
-                                        ✉️ Relancer ({{ m.nb_sans_reponse }})
-                                    </button>
-                                </form>
-                                {% endif %}
-                                <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
-                                   class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
-                                    ✏️ Modifier
-                                </a>
-                                <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
-                                   class="flex-1 sm:flex-initial text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
-                                    📋 Sélectionner
-                                </a>
-                            </div>
-                        </div>
+                    {% if t.matches|length and t.past_matches|length %}
+                    <div class="inline-flex p-1 bg-slate-100 rounded-2xl gap-1 self-start sm:self-auto">
+                        <button type="button" onclick="switchCaptainMatchTab({{ t.config.equipe_saison_id }}, 'upcoming')" id="btn-captain-upcoming-{{ t.config.equipe_saison_id }}"
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-900 shadow-sm cursor-pointer">
+                            À venir ({{ t.matches|length }})
+                        </button>
+                        <button type="button" onclick="switchCaptainMatchTab({{ t.config.equipe_saison_id }}, 'past')" id="btn-captain-past-{{ t.config.equipe_saison_id }}"
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 cursor-pointer">
+                            Rencontres passées ({{ t.past_matches|length }})
+                        </button>
                     </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
-                {% else %}
+
+                {# Bloc 1 : Matchs à venir #}
+                {% if t.matches|length %}
+                <div id="tab-captain-upcoming-{{ t.config.equipe_saison_id }}" class="space-y-4">
+                    {% if not t.past_matches|length %}
+                    <div class="mb-2">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                            {{ t.matches|length }} match{{ t.matches|length > 1 ? 's' : '' }} programmé{{ t.matches|length > 1 ? 's' : '' }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for m in t.matches %}
+                        <div class="border border-slate-200 hover:border-slate-300 rounded-2xl p-4 sm:p-5 bg-white transition-all flex flex-col justify-between hover:shadow-sm">
+                            <div>
+                                <div class="flex justify-between items-start gap-2 mb-2.5 sm:mb-3">
+                                    <h4 class="font-serif text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ m.titre }}</h4>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-800 shrink-0">
+                                        {{ m.statut }}
+                                    </span>
+                                </div>
+                                
+                                <div class="space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
+                                    <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📅</span> {{ m.date_display }}</p>
+                                    {% if m.time_range %}<p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">🕐</span> {{ m.time_range }}</p>{% endif %}
+                                    <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📍</span> {{ m.lieu }}</p>
+                                    {% if m.commentaire %}<p class="flex items-center gap-2 italic text-xs text-slate-400"><span class="text-slate-400 w-4 text-center">💬</span> {{ m.commentaire }}</p>{% endif %}
+                                </div>
+                                {# Jauge des disponibilités (Convoqués / Dispo / Sans réponse / Indispo) #}
+                                <div class="space-y-2 mb-3 sm:mb-4 mt-1 pt-3 border-t border-slate-100">
+                                    <div class="flex justify-between text-xs font-bold text-slate-500">
+                                        <span>Convocations & Réponses</span>
+                                        <span>{{ m.total_roster }} joueurs</span>
+                                    </div>
+                                    
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden">
+                                        {% set pct_sel = m.total_roster > 0 ? (m.nb_selection / m.total_roster * 100) : 0 %}
+                                        {% set pct_disp = m.total_roster > 0 ? (m.nb_disponible / m.total_roster * 100) : 0 %}
+                                        {% set pct_sans = m.total_roster > 0 ? (m.nb_sans_reponse / m.total_roster * 100) : 0 %}
+                                        {% set pct_indisp = m.total_roster > 0 ? (m.nb_indisponible / m.total_roster * 100) : 0 %}
+                                        
+                                        {% if m.nb_selection > 0 %}
+                                            <div class="bg-amber-500 h-full" style="width: {{ pct_sel }}%" title="Sélectionnés : {{ m.nb_selection }}"></div>
+                                        {% endif %}
+                                        {% if m.nb_disponible > 0 %}
+                                            <div class="bg-emerald-500 h-full" style="width: {{ pct_disp }}%" title="Disponibles : {{ m.nb_disponible }}"></div>
+                                        {% endif %}
+                                        {% if m.nb_sans_reponse > 0 %}
+                                            <div class="bg-slate-300 h-full" style="width: {{ pct_sans }}%" title="Sans réponse : {{ m.nb_sans_reponse }}"></div>
+                                        {% endif %}
+                                        {% if m.nb_indisponible > 0 %}
+                                            <div class="bg-rose-500 h-full" style="width: {{ pct_indisp }}%" title="Indisponibles : {{ m.nb_indisponible }}"></div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                            <span class="truncate">Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                            <span class="truncate">Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
+                                            <span class="truncate">Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                                            <span class="truncate">Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-bold">
+                                        {% if m.nb_selection >= m.min_players %}
+                                            <span class="text-emerald-600">✓ Effectif suffisant</span> ({{ m.nb_selection }} joueurs)
+                                        {% else %}
+                                            <span class="text-rose-500">⚠ Sous-effectif</span> ({{ m.nb_selection }}/{{ m.min_players }} requis)
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex flex-wrap items-center gap-2">
+                                    {% if m.nb_sans_reponse > 0 and (not m.is_past) and (not m.Date or m.Date > "now"|date("Y-m-d H:i:s")) and (m.nb_selection + m.nb_disponible < m.min_players) %}
+                                    <form method="POST" action="{{ url('member/captain/matches/' ~ m.id ~ '/remind') }}" class="inline flex-1 sm:flex-initial">
+                                        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                                        <button type="submit" class="w-full text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1 cursor-pointer">
+                                            ✉️ Relancer ({{ m.nb_sans_reponse }})
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
+                                       class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                                        ✏️ Modifier
+                                    </a>
+                                    <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
+                                       class="flex-1 sm:flex-initial text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                                        📋 Sélectionner
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Bloc 2 : Rencontres passées #}
+                {% if t.past_matches|length %}
+                <div id="tab-captain-past-{{ t.config.equipe_saison_id }}" class="space-y-4 {% if t.matches|length %}hidden{% endif %}">
+                    {% if not t.matches|length %}
+                    <div class="mb-2">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            {{ t.past_matches|length }} rencontre{{ t.past_matches|length > 1 ? 's' : '' }} jouée{{ t.past_matches|length > 1 ? 's' : '' }} cette saison
+                        </span>
+                    </div>
+                    {% endif %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for m in t.past_matches %}
+                        <div class="border border-slate-200 hover:border-slate-300 rounded-2xl p-4 sm:p-5 bg-white transition-all flex flex-col justify-between hover:shadow-sm">
+                            <div>
+                                <div class="flex justify-between items-start gap-2 mb-2.5 sm:mb-3">
+                                    <h4 class="font-serif text-base sm:text-lg font-bold text-slate-900 leading-tight">{{ m.titre }}</h4>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700 border border-slate-200 shrink-0">
+                                        {{ m.statut == 'Annulé' ? '✕ Annulé' : (m.statut == 'Reporté' ? '⏱ Reporté' : '✓ Terminé') }}
+                                    </span>
+                                </div>
+                                
+                                <div class="space-y-1 sm:space-y-1.5 text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
+                                    <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📅</span> {{ m.date_display }}</p>
+                                    {% if m.time_range %}<p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">🕐</span> {{ m.time_range }}</p>{% endif %}
+                                    <p class="flex items-center gap-2"><span class="text-slate-400 w-4 text-center">📍</span> {{ m.lieu }}</p>
+                                    {% if m.commentaire %}<p class="flex items-center gap-2 italic text-xs text-slate-400"><span class="text-slate-400 w-4 text-center">💬</span> {{ m.commentaire }}</p>{% endif %}
+                                </div>
+
+                                {# Jauge des disponibilités & Convocations #}
+                                <div class="space-y-2 mb-3 sm:mb-4 mt-1 pt-3 border-t border-slate-100">
+                                    <div class="flex justify-between text-xs font-bold text-slate-500">
+                                        <span>Feuille de match</span>
+                                        <span>{{ m.total_roster }} joueurs inscrits</span>
+                                    </div>
+                                    
+                                    <div class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden">
+                                        {% set pct_sel = m.total_roster > 0 ? (m.nb_selection / m.total_roster * 100) : 0 %}
+                                        {% set pct_disp = m.total_roster > 0 ? (m.nb_disponible / m.total_roster * 100) : 0 %}
+                                        {% set pct_sans = m.total_roster > 0 ? (m.nb_sans_reponse / m.total_roster * 100) : 0 %}
+                                        {% set pct_indisp = m.total_roster > 0 ? (m.nb_indisponible / m.total_roster * 100) : 0 %}
+                                        
+                                        {% if m.nb_selection > 0 %}
+                                            <div class="bg-amber-500 h-full" style="width: {{ pct_sel }}%" title="Sélectionnés : {{ m.nb_selection }}"></div>
+                                        {% endif %}
+                                        {% if m.nb_disponible > 0 %}
+                                            <div class="bg-emerald-500 h-full" style="width: {{ pct_disp }}%" title="Disponibles : {{ m.nb_disponible }}"></div>
+                                        {% endif %}
+                                        {% if m.nb_sans_reponse > 0 %}
+                                            <div class="bg-slate-300 h-full" style="width: {{ pct_sans }}%" title="Sans réponse : {{ m.nb_sans_reponse }}"></div>
+                                        {% endif %}
+                                        {% if m.nb_indisponible > 0 %}
+                                            <div class="bg-rose-500 h-full" style="width: {{ pct_indisp }}%" title="Indisponibles : {{ m.nb_indisponible }}"></div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                            <span class="truncate">Sélectionnés: <strong class="text-slate-800">{{ m.nb_selection }}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                            <span class="truncate">Disponibles: <strong class="text-slate-800">{{ m.nb_disponible }}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
+                                            <span class="truncate">Sans réponse: <strong class="text-slate-800">{{ m.nb_sans_reponse }}</strong></span>
+                                        </div>
+                                        <div class="flex items-center gap-1 truncate">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                                            <span class="truncate">Indisponibles: <strong class="text-slate-800">{{ m.nb_indisponible }}</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-bold text-slate-700">
+                                        {% if m.nb_selection > 0 %}
+                                            <span class="text-emerald-700 font-extrabold">{{ m.nb_selection }}</span> joueur{{ m.nb_selection > 1 ? 's convoqués' : ' convoqué' }}
+                                        {% else %}
+                                            <span class="text-slate-400 italic">Feuille non renseignée</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <a href="{{ url('agenda/' ~ m.id) }}" 
+                                       class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                                        👁 Détails
+                                    </a>
+                                    <a href="{{ url('member/captain/matches/' ~ m.id ~ '/edit') }}" 
+                                       class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                                        ✏️ Modifier
+                                    </a>
+                                    <a href="{{ url('member/captain/matches/' ~ m.id ~ '/select-players') }}" 
+                                       class="flex-1 sm:flex-initial text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1">
+                                        📋 Feuille de match
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not t.matches|length and not t.past_matches|length %}
                 <div class="p-8 text-center bg-slate-50 rounded-2xl text-slate-400 text-sm italic">
-                    Aucun match à venir pour cette équipe. Cliquez sur "Créer un Match" pour en planifier un.
+                    Aucun match programmé ou passé pour cette équipe cette saison. Cliquez sur "Créer un Match" pour en planifier un.
                 </div>
                 {% endif %}
             </div>
@@ -1003,5 +1139,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+function switchCaptainMatchTab(teamId, tab) {
+    var upcomingPane = document.getElementById('tab-captain-upcoming-' + teamId);
+    var pastPane = document.getElementById('tab-captain-past-' + teamId);
+    var upcomingBtn = document.getElementById('btn-captain-upcoming-' + teamId);
+    var pastBtn = document.getElementById('btn-captain-past-' + teamId);
+
+    if (!upcomingPane || !pastPane) return;
+
+    if (tab === 'upcoming') {
+        upcomingPane.classList.remove('hidden');
+        pastPane.classList.add('hidden');
+        if (upcomingBtn) {
+            upcomingBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+            upcomingBtn.classList.remove('text-slate-600');
+        }
+        if (pastBtn) {
+            pastBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+            pastBtn.classList.add('text-slate-600');
+        }
+    } else {
+        pastPane.classList.remove('hidden');
+        upcomingPane.classList.add('hidden');
+        if (pastBtn) {
+            pastBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+            pastBtn.classList.remove('text-slate-600');
+        }
+        if (upcomingBtn) {
+            upcomingBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+            upcomingBtn.classList.add('text-slate-600');
+        }
+    }
+}
 </script>
 {% endblock %}

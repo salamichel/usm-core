@@ -5,6 +5,7 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
 ## 🎯 Caractéristiques
 
 - ⚽ Gestion des équipes et des joueurs (pages équipes avec effectif, photos, capitaines et suivi complet des rencontres de la saison : matchs à venir, rencontres passées, indicateurs de convocation et liens interactifs vers les feuilles de match)
+- 👑 Espace Capitaine dédié : suivi des présences, création/édition de matchs, sélection de l'effectif, consultation des matchs passés et des convocations de la saison avec bascule interactive
 - 📅 Agenda des matchs et entraînements :
   - Architecture Haute Performance : chargement groupé en mémoire (Batch Fetching) réduisant le temps de génération de 27s à moins d'1s, immunisé contre les timeouts des hébergements mutualisés (Free, InfinityFree)
   - Filtrage dynamique (type, manifestation, équipe, lieu, période) avec panneau réactif en un clic
