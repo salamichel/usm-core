@@ -64,6 +64,70 @@ class CronController
     }
 
     /**
+     * Tâche planifiée automatique des relances d'événements à J-2 et J-1.
+     * Route: GET /api/cron/event-reminder
+     */
+    public function eventReminder(): void
+    {
+        header('Content-Type: application/json');
+
+        // Récupérer le token de sécurité
+        $configuredToken = defined('CRON_SECURITY_TOKEN') ? CRON_SECURITY_TOKEN : '';
+        $providedToken = $_GET['token'] ?? '';
+
+        if (empty($configuredToken) || $providedToken !== $configuredToken) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'message' => 'Accès interdit. Token invalide.']);
+            exit;
+        }
+
+        $startTime = microtime(true);
+        try {
+            $eventId = !empty($_GET['event_id']) ? (int)$_GET['event_id'] : null;
+            $res = EventNotificationService::sendEventReminders($eventId);
+            $durationMs = (int)round((microtime(true) - $startTime) * 1000);
+
+            ScheduledJobLog::log(
+                null,
+                'event_reminder',
+                'success',
+                "Rappels J-2/J-1 directs : {$res['sent']} e-mail(s) ({$res['j2']} J-2, {$res['j1']} J-1)",
+                $durationMs
+            );
+
+            Logger::app()->info('Event reminder cron executed successfully', [
+                'emails_sent' => $res['sent'],
+                'j2' => $res['j2'],
+                'j1' => $res['j1'],
+                'duration_ms' => $durationMs
+            ]);
+
+            echo json_encode([
+                'ok' => true,
+                'emails_sent' => $res['sent'],
+                'j2_count' => $res['j2'],
+                'j1_count' => $res['j1'],
+                'events_processed' => $res['events_count'],
+                'duration_ms' => $durationMs
+            ]);
+        } catch (\Throwable $e) {
+            $durationMs = (int)round((microtime(true) - $startTime) * 1000);
+            ScheduledJobLog::log(null, 'event_reminder', 'failed', $e->getMessage(), $durationMs);
+
+            Logger::errors()->error('Failed to run event reminder cron', [
+                'error' => $e->getMessage()
+            ]);
+
+            http_response_code(500);
+            echo json_encode([
+                'ok' => false,
+                'message' => 'Erreur interne lors de l\'envoi des rappels : ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
      * Déclenchement Lazy Cron asynchrone depuis le navigateur d'un visiteur réel.
      * Route: POST /api/cron/lazy-trigger
      */
@@ -130,13 +194,15 @@ class CronController
                         $stmtLogs->execute();
                         $cleanedLogs = $stmtLogs->rowCount();
 
-                        $details = "Nettoyage : $cleanedEmails e-mail log(s) et $cleanedLogs trace(s) purgé(s).";
+                        $cleanedReminders = \App\Models\EventReminderSent::cleanupOldLogs(90);
+
+                        $details = "Nettoyage : $cleanedEmails e-mail log(s), $cleanedLogs trace(s) et $cleanedReminders rappel(s) purgé(s).";
                         break;
 
                     case 'event_reminder':
-                        if (!empty($payload['event_id'])) {
-                            $details = "Rappel d'événement ID {$payload['event_id']} traité.";
-                        }
+                        $specificEventId = !empty($payload['event_id']) ? (int)$payload['event_id'] : null;
+                        $res = EventNotificationService::sendEventReminders($specificEventId);
+                        $details = "Rappels J-2/J-1 : {$res['sent']} e-mail(s) envoyé(s) ({$res['j2']} J-2, {$res['j1']} J-1, {$res['skipped']} ignoré(s) / déjà renseignés).";
                         break;
 
                     default:

@@ -89,38 +89,70 @@
         {# Gallery #}
         {{ components.gallery(photos) }}
 
-        {# Upcoming matches #}
-        {% if mini_agenda_events|length %}
-        <div class="space-y-4">
+        {# Calendrier & Rencontres (Prochains matchs & Rencontres passées) #}
+        {% if upcoming_matches|length or past_matches|length %}
+        <div class="space-y-5" id="rencontres-section">
           <div class="flex items-baseline justify-between flex-wrap gap-3">
             <div>
-              <span class="inline-block text-xs uppercase tracking-[0.25em] text-slate-400 font-semibold mb-1">Calendrier</span>
-              <h2 class="font-serif text-2xl font-bold text-slate-900">Prochains matchs</h2>
+              <span class="inline-block text-xs uppercase tracking-[0.25em] text-slate-400 font-semibold mb-1">Calendrier & Résultats</span>
+              <h2 class="font-serif text-2xl font-bold text-slate-900">
+                Rencontres de l'équipe
+              </h2>
             </div>
             {% if agenda_filter_url %}
-            <a href="{{ agenda_filter_url }}" class="text-xs font-bold text-[var(--primary)] hover:underline underline-offset-4">Agenda complet →</a>
+            <a href="{{ agenda_filter_url }}" class="text-xs font-bold text-[var(--primary)] hover:underline underline-offset-4">Agenda complet du club →</a>
             {% endif %}
           </div>
-      
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {% for event in mini_agenda_events %}
-            <div class="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-205">
-              <div class="flex justify-between items-start gap-4">
-                <div class="flex-1 min-w-0">
-                  <h3 class="font-serif font-bold text-base text-slate-900 leading-tight mb-3">{{ event.titre }}</h3>
-                  <div class="space-y-1 text-xs text-slate-500">
-                    <p class="flex items-center gap-1.5"><span class="text-slate-400">📅</span> {{ event.date_display }}</p>
-                    {% if event.time_range %}<p class="flex items-center gap-1.5"><span class="text-slate-400">🕐</span> {{ event.time_range }}</p>{% endif %}
-                    <p class="flex items-center gap-1.5"><span class="text-slate-400">📍</span> {{ event.lieu }}</p>
-                  </div>
-                </div>
-                <div class="flex-shrink-0">
-                  {{ agendaMacros.render_participation_badge(event.nb_present, event.nb_available, event.nb_unavailable) }}
-                </div>
-              </div>
-            </div>
-            {% endfor %}
+
+          {# Onglets de bascule si les deux listes ont des matchs #}
+          {% if upcoming_matches|length and past_matches|length %}
+          <div class="inline-flex p-1 bg-slate-100 rounded-2xl gap-1">
+            <button type="button" onclick="switchMatchTab('upcoming')" id="tab-btn-upcoming"
+                    class="match-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-900 shadow-sm cursor-pointer">
+              À venir ({{ upcoming_matches|length }})
+            </button>
+            <button type="button" onclick="switchMatchTab('past')" id="tab-btn-past"
+                    class="match-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 cursor-pointer">
+              Rencontres passées ({{ past_matches|length }})
+            </button>
           </div>
+          {% endif %}
+
+          {# Onglet / Bloc 1 : Matchs à venir #}
+          {% if upcoming_matches|length %}
+          <div id="tab-content-upcoming" class="match-tab-pane space-y-4">
+            {% if not past_matches|length %}
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                {{ upcoming_matches|length }} match{{ upcoming_matches|length > 1 ? 's' : '' }} programmé{{ upcoming_matches|length > 1 ? 's' : '' }}
+              </span>
+            </div>
+            {% endif %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {% for event in upcoming_matches %}
+                {% include 'equipes/_match_card.twig' with { event: event } %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {# Onglet / Bloc 2 : Rencontres passées #}
+          {% if past_matches|length %}
+          <div id="tab-content-past" class="match-tab-pane space-y-4 {% if upcoming_matches|length %}hidden{% endif %}">
+            {% if not upcoming_matches|length %}
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                {{ past_matches|length }} rencontre{{ past_matches|length > 1 ? 's' : '' }} jouée{{ past_matches|length > 1 ? 's' : '' }} cette saison
+              </span>
+            </div>
+            {% endif %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {% for event in past_matches %}
+                {% include 'equipes/_match_card.twig' with { event: event } %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
         </div>
         {% endif %}
         
@@ -352,4 +384,38 @@
     {% endif %}
   </script>
 {% endif %}
+<script>
+  function switchMatchTab(tab) {
+    var upcomingPane = document.getElementById('tab-content-upcoming');
+    var pastPane = document.getElementById('tab-content-past');
+    var upcomingBtn = document.getElementById('tab-btn-upcoming');
+    var pastBtn = document.getElementById('tab-btn-past');
+
+    if (!upcomingPane || !pastPane) return;
+
+    if (tab === 'upcoming') {
+      upcomingPane.classList.remove('hidden');
+      pastPane.classList.add('hidden');
+      if (upcomingBtn) {
+        upcomingBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        upcomingBtn.classList.remove('text-slate-600');
+      }
+      if (pastBtn) {
+        pastBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+        pastBtn.classList.add('text-slate-600');
+      }
+    } else {
+      pastPane.classList.remove('hidden');
+      upcomingPane.classList.add('hidden');
+      if (pastBtn) {
+        pastBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        pastBtn.classList.remove('text-slate-600');
+      }
+      if (upcomingBtn) {
+        upcomingBtn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+        upcomingBtn.classList.add('text-slate-600');
+      }
+    }
+  }
+</script>
 {% endblock %}

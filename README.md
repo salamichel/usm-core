@@ -4,7 +4,7 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
 
 ## 🎯 Caractéristiques
 
-- ⚽ Gestion des équipes et des joueurs
+- ⚽ Gestion des équipes et des joueurs (pages équipes avec effectif, photos, capitaines et suivi complet des rencontres de la saison : matchs à venir, rencontres passées, indicateurs de convocation et liens interactifs vers les feuilles de match)
 - 📅 Agenda des matchs et entraînements :
   - Architecture Haute Performance : chargement groupé en mémoire (Batch Fetching) réduisant le temps de génération de 27s à moins d'1s, immunisé contre les timeouts des hébergements mutualisés (Free, InfinityFree)
   - Filtrage dynamique (type, manifestation, équipe, lieu, période) avec panneau réactif en un clic
@@ -148,6 +148,11 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
 6. Authentification adhérent persistante (session 1 an, jeton cryptographique `localStorage`, reconnexion transparente sans interruption).
 7. Redirection contextuelle vers la page d'origine après authentification (`?redirect=...`).
 8. Ciblage et éligibilité mutualisés (`EventTargetingService`) garantissant une synchronisation stricte entre les événements visibles et les notifications par email.
+9. **Relances automatiques de disponibilité (J-2 et J-1)** :
+   - Détection automatique des personnes n'ayant pas renseigné leur présence/disponibilité pour les rencontres et événements à venir.
+   - Envoi automatisé à J-2 et J-1 via Brevo avec boutons de réponse instantanée (1-clic avec jeton sécurisé HMAC-SHA256).
+   - Suivi idempotent et anti-spam via la table locale `event_reminders_sent` (garantit au maximum 1 relance à J-2 et 1 relance à J-1 par adhérent).
+   - Déclenchement automatique par le planificateur (`ScheduledJob` action `event_reminder`), par le Lazy Cron (`/api/cron/lazy-trigger`), ou par appel direct externe (`GET /api/cron/event-reminder?token=...`).
 
 ### Formulaire de contact
 1. Visiteur remplit le formulaire `/contact`

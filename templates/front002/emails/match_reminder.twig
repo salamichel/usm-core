@@ -6,14 +6,30 @@
 {% block header_sub_color %}#bae6fd{% endblock %}
 
 {% block header_title %}⏰ Réponse attendue{% endblock %}
-{% block header_subtitle %}USM Volley — Relance disponibilité{% endblock %}
+{% block header_subtitle %}USM Volley — {{ REMINDER_BADGE|default('Relance disponibilité') }}{% endblock %}
 
 {% block content %}
     <div class="greeting">Bonjour {{ PLAYER_NAME }},</div>
+    {% if IS_MATCH and TEAM_NAME %}
     <div class="intro">Votre capitaine de l'équipe <strong>{{ TEAM_NAME }}</strong> attend votre réponse concernant votre présence ou disponibilité pour la rencontre suivante :</div>
+    {% elseif TEAM_NAME %}
+    <div class="intro">Votre réponse concernant votre présence ou disponibilité est attendue pour l'événement suivant (<strong>{{ TEAM_NAME }}</strong>) :</div>
+    {% else %}
+    <div class="intro">Votre réponse concernant votre présence ou disponibilité est attendue pour l'événement suivant :</div>
+    {% endif %}
+
+    {% if REMINDER_TYPE == 'j-1' %}
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; color: #991b1b; font-size: 13px; font-weight: 600;">
+        ⚠️ Attention : cet événement se déroule dès <strong>demain</strong> ! Merci de valider votre disponibilité sans tarder.
+    </div>
+    {% elseif REMINDER_TYPE == 'j-2' %}
+    <div style="background-color: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; color: #1e40af; font-size: 13px;">
+        ℹ️ Cet événement a lieu dans <strong>2 jours</strong>. Merci d'indiquer votre disponibilité.
+    </div>
+    {% endif %}
 
     <div class="info-box" style="background-color: #f0f9ff; border-left-color: #0284c7; border-color: #e0f2fe;">
-        <div class="field-label" style="color: #0369a1;">🏆 Rencontre</div>
+        <div class="field-label" style="color: #0369a1;">{% if IS_MATCH %}🏆 Rencontre{% else %}📅 Événement{% endif %}</div>
         <div class="field-value title" style="color: #0c4a6e;">{{ EVENT_TITLE }}</div>
 
         <div class="field-label" style="color: #0369a1;">📅 Date et Heure</div>

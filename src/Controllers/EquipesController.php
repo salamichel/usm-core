@@ -222,14 +222,45 @@ class EquipesController
         $joueurs    = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
         $capitaines = $es ? EquipeSaisonJoueur::findCaptainsByEquipeSaison($es['id']) : [];
 
-        // Mini agenda: upcoming matches for this team
-        $miniAgendaEvents = [];
+        // Filtres par saison pour les manifestations
+        $seasonFilters = [];
+        if ($saison) {
+            $dateDebut = $saison['date_debut'] ?? null;
+            $dateFin   = $saison['date_fin'] ?? null;
+
+            if (!$dateDebut && !empty($saison['libelle']) && preg_match('/^(\d{4})/', (string)$saison['libelle'], $sm)) {
+                $startYear = (int)$sm[1];
+                $dateDebut = $startYear . '-08-01';
+                if (!$dateFin) {
+                    $dateFin = ($startYear + 1) . '-07-31';
+                }
+            }
+
+            if ($dateDebut) {
+                $seasonFilters['date_from'] = $dateDebut;
+            }
+            if ($dateFin) {
+                $seasonFilters['date_to'] = $dateFin . (strlen((string)$dateFin) === 10 ? ' 23:59:59' : '');
+            }
+        }
+
+        // Agenda : rencontres à venir et passées pour cette équipe
+        $upcomingMatches = [];
+        $pastMatches = [];
         $agendaFilterUrl = '';
         if (!empty($equipe['slug_colonne'])) {
-            $miniAgendaEvents = AgendaService::getUpcomingMatchesForTeam(
+            $upcomingMatches = AgendaService::getUpcomingMatchesForTeam(
                 $equipe['slug_colonne'],
-                MINI_AGENDA_LIMIT,
-                $equipe['manifestation_filter'] ?? null
+                defined('MINI_AGENDA_LIMIT') ? MINI_AGENDA_LIMIT : 10,
+                $equipe['manifestation_filter'] ?? null,
+                $seasonFilters
+            );
+
+            $pastMatches = AgendaService::getPastMatchesForTeam(
+                $equipe['slug_colonne'],
+                30,
+                $equipe['manifestation_filter'] ?? null,
+                $seasonFilters
             );
 
             // Build agenda filter URL with team and manifestation filters
@@ -321,8 +352,9 @@ class EquipesController
             'capitaines'         => $capitaines,
             'saison'             => $saison,
             'allSaisons'         => $allSaisons,
-            'otherEquipes'       => $otherEquipes,
-            'mini_agenda_events' => $miniAgendaEvents,
+            'upcoming_matches'   => $upcomingMatches,
+            'past_matches'       => $pastMatches,
+            'mini_agenda_events' => $upcomingMatches,
             'agenda_filter_url'  => $agendaFilterUrl,
             'categorie_desc'     => $categorieDesc,
             'categorie_slug'     => SlugManager::generate($categorie['nom']),
@@ -420,14 +452,46 @@ class EquipesController
         $photos  = $cover ? array_filter($allPhotos, fn($p) => $p['id'] !== $cover['id']) : $allPhotos;
         $joueurs = $es ? EquipeSaisonJoueur::findByEquipeSaison($es['id']) : [];
 
-        $miniAgendaEvents = [];
+        // Filtres par saison pour les manifestations
+        $seasonFilters = [];
+        if ($saison) {
+            $dateDebut = $saison['date_debut'] ?? null;
+            $dateFin   = $saison['date_fin'] ?? null;
+
+            if (!$dateDebut && !empty($saison['libelle']) && preg_match('/^(\d{4})/', (string)$saison['libelle'], $sm)) {
+                $startYear = (int)$sm[1];
+                $dateDebut = $startYear . '-08-01';
+                if (!$dateFin) {
+                    $dateFin = ($startYear + 1) . '-07-31';
+                }
+            }
+
+            if ($dateDebut) {
+                $seasonFilters['date_from'] = $dateDebut;
+            }
+            if ($dateFin) {
+                $seasonFilters['date_to'] = $dateFin . (strlen((string)$dateFin) === 10 ? ' 23:59:59' : '');
+            }
+        }
+
+        $upcomingMatches = [];
+        $pastMatches = [];
         $agendaFilterUrl = '';
         if (!empty($equipe['slug_colonne'])) {
-            $miniAgendaEvents = AgendaService::getUpcomingMatchesForTeam(
+            $upcomingMatches = AgendaService::getUpcomingMatchesForTeam(
                 $equipe['slug_colonne'],
-                MINI_AGENDA_LIMIT,
-                $equipe['manifestation_filter'] ?? null
+                defined('MINI_AGENDA_LIMIT') ? MINI_AGENDA_LIMIT : 10,
+                $equipe['manifestation_filter'] ?? null,
+                $seasonFilters
             );
+
+            $pastMatches = AgendaService::getPastMatchesForTeam(
+                $equipe['slug_colonne'],
+                30,
+                $equipe['manifestation_filter'] ?? null,
+                $seasonFilters
+            );
+
             $agendaFilterUrl = '/agenda?team=' . urlencode($equipe['slug_colonne']);
             if (!empty($equipe['manifestation_filter'])) {
                 $agendaFilterUrl .= '&manifestation=' . urlencode($equipe['manifestation_filter']);
@@ -480,9 +544,33 @@ class EquipesController
             breadcrumbs: $breadcrumbs,
         );
 
+        $ffvbLinks = [];
+        if (!empty($equipe['ffvb_link'])) {
+            $lines = explode("\n", str_replace("\r", "", $equipe['ffvb_link']));
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (empty($line)) {
+                    continue;
+                }
+                if (str_contains($line, '|')) {
+                    $parts = explode('|', $line, 2);
+                    $ffvbLinks[] = [
+                        'label' => trim($parts[0]),
+                        'url'   => trim($parts[1])
+                    ];
+                } else {
+                    $ffvbLinks[] = [
+                        'label' => 'Voir les résultats',
+                        'url'   => $line
+                    ];
+                }
+            }
+        }
+
         View::render('equipes/detail.twig', [
             'meta'               => $meta,
             'equipe'             => $equipe,
+            'ffvb_links'         => $ffvbLinks,
             'cover'              => $cover,
             'photos'             => $photos,
             'joueurs'            => $joueurs,
@@ -490,7 +578,9 @@ class EquipesController
             'saison'             => $saison,
             'allSaisons'         => $allSaisons,
             'otherEquipes'       => $otherEquipes,
-            'mini_agenda_events' => $miniAgendaEvents,
+            'upcoming_matches'   => $upcomingMatches,
+            'past_matches'       => $pastMatches,
+            'mini_agenda_events' => $upcomingMatches,
             'agenda_filter_url'  => $agendaFilterUrl,
             'categorie_desc'     => $categorieDesc,
             'categorie_slug'     => SlugManager::generate($categorie['nom']),

@@ -305,7 +305,7 @@ class BrevoService
         );
     }
 
-    public function sendMatchReminderNotification(array $player, array $event, string $teamName): bool
+    public function sendMatchReminderNotification(array $player, array $event, string $teamName, ?string $reminderType = null): bool
     {
         $playerEmail = $player['Mel'] ?? $player['mel'] ?? $player['data']['Mel'] ?? null;
         if (!$playerEmail) {
@@ -315,7 +315,17 @@ class BrevoService
 
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
         $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
-        $subject = '⏰ Rappel : réponse attendue - ' . $eventTitle;
+
+        $badgeText = 'Relance disponibilité';
+        if ($reminderType === 'j-2') {
+            $subject = '⏰ Rappel (J-2) : réponse attendue - ' . $eventTitle;
+            $badgeText = 'Rappel J-2';
+        } elseif ($reminderType === 'j-1') {
+            $subject = '⚠️ Dernier rappel (J-1) : réponse attendue - ' . $eventTitle;
+            $badgeText = 'Dernier rappel J-1 (Demain)';
+        } else {
+            $subject = '⏰ Rappel : réponse attendue - ' . $eventTitle;
+        }
 
         $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
         $eventTime = $event['time_display'] ?? '';
@@ -367,6 +377,9 @@ class BrevoService
                 'EVENT_LOCATION' => $this->escapeHtml($eventLocation),
                 'BUTTONS_HTML' => $buttonsHtml,
                 'DASHBOARD_URL' => BASE_URL . '/member/dashboard?event_id=' . $eventId,
+                'REMINDER_TYPE' => $reminderType,
+                'REMINDER_BADGE' => $badgeText,
+                'IS_MATCH' => $event['is_match'] ?? false,
             ]);
         } catch (\Throwable $e) {
             Logger::errors()->error('Failed to render match reminder email template via Twig', ['error' => $e->getMessage()]);

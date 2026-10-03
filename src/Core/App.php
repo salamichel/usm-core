@@ -141,6 +141,7 @@ class App
         $r->get('/api/member-email-preferences/get', [EmailPreferenceApiController::class, 'get']);
         $r->post('/api/member-email-preferences/update', [EmailPreferenceApiController::class, 'update']);
         $r->get('/api/cron/weekly-presence', [CronController::class, 'weeklyPresence']);
+        $r->get('/api/cron/event-reminder', [CronController::class, 'eventReminder']);
         $r->post('/api/cron/lazy-trigger', [CronController::class, 'lazyTrigger']);
 
         // ── Admin auth ────────────────────────────────────────────────────────

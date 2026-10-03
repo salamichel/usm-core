@@ -606,6 +606,16 @@ class EventRepository
                 $bindings[] = date('Y-m-d', strtotime('Sunday next week')) . ' 23:59:59';
             }
 
+            $dateClause = "m.Date >= CURDATE()";
+            if (!empty($filters['date_from']) && $filters['date_from'] > date('Y-m-d')) {
+                $dateClause = "m.Date >= ?";
+                $bindings[] = $filters['date_from'];
+            }
+            if (!empty($filters['date_to'])) {
+                $dateClause .= " AND m.Date <= ?";
+                $bindings[] = $filters['date_to'];
+            }
+
             $bindings[] = $limit;
 
             $stmt = $db->prepare(
@@ -613,7 +623,7 @@ class EventRepository
                         m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
                  FROM Manifestation m
                  WHERE m.id_manifestation > 0 AND $manifestationClause
-                   AND m.Date >= CURDATE()
+                   AND $dateClause
                  ORDER BY m.Date ASC
                  LIMIT ?"
             );
@@ -649,11 +659,13 @@ class EventRepository
                     'id'                => $id,
                     'titre'             => $titre,
                     'type'              => $type,
+                    'date_raw'          => $row['Date'],
                     'date_display'      => $dateObj ? EventNormalizer::formatDateDisplay($dateObj) : $row['Date'],
                     'time_range'        => $timeRange,
                     'lieu'              => $row['Lieu'],
                     'commentaire'       => $row['Commentaire'] ?? '',
                     'statut'            => $row['Statut'] ?? '',
+                    'is_past'           => false,
                     'nb_present'        => 0,
                     'nb_disponible'     => 0,
                     'nb_indisponible'   => 0,
@@ -685,6 +697,139 @@ class EventRepository
             return array_values($events);
         } catch (\Throwable $e) {
             error_log('getUpcomingMatchesForTeam: Exception - ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Matchs passés d'une équipe avec leurs stats de participation agrégées.
+     *
+     * @param string      $teamCode            Slug colonne de l'équipe (ex: 'DEP', 'UFOLEP_1')
+     * @param int         $limit               Nombre max de matchs
+     * @param string|null $manifestationFilter Filtre optionnel sur le nom de la manifestation
+     * @param array       $filters             Filtres supplémentaires (date_from, date_to, etc.)
+     */
+    public static function getPastMatchesForTeam(
+        string $teamCode,
+        int $limit = 30,
+        ?string $manifestationFilter = null,
+        array $filters = []
+    ): array {
+        try {
+            $db = ExternalDatabase::get();
+            if (!$db || !self::teamColumn($teamCode)) {
+                return [];
+            }
+
+            $manifestationClause = "m.ManifestationTypée LIKE '% - Match - %'";
+            $bindings            = [];
+
+            if (!empty($manifestationFilter)) {
+                $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
+                $bindings[]          = '%' . $manifestationFilter;
+            }
+
+            if (!empty($filters['location'])) {
+                $manifestationClause .= " AND m.Lieu = ?";
+                $bindings[]          = $filters['location'];
+            }
+            if (!empty($filters['type'])) {
+                $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
+                $bindings[]          = '%' . $filters['type'] . '%';
+            }
+
+            if (!empty($filters['date_from'])) {
+                $manifestationClause .= " AND m.Date >= ?";
+                $bindings[]          = $filters['date_from'];
+            }
+
+            if (!empty($filters['date_to']) && $filters['date_to'] < date('Y-m-d H:i:s')) {
+                $manifestationClause .= " AND m.Date <= ?";
+                $bindings[]          = $filters['date_to'];
+            } else {
+                $manifestationClause .= " AND m.Date < NOW()";
+            }
+
+            $bindings[] = $limit;
+
+            $stmt = $db->prepare(
+                "SELECT m.id_manifestation, m.ManifestationTypée, m.Date,
+                        m.Durée_créneau, m.Nombre_terrain, m.Lieu, m.Commentaire, m.Statut
+                 FROM Manifestation m
+                 WHERE m.id_manifestation > 0 AND $manifestationClause
+                 ORDER BY m.Date DESC
+                 LIMIT ?"
+            );
+
+            if (!$stmt->execute($bindings)) {
+                return [];
+            }
+
+            $events           = [];
+            $manifestationIds = [];
+
+            while ($row = $stmt->fetch()) {
+                $id = (int)$row['id_manifestation'];
+                $manifestationIds[] = $id;
+
+                $parts = explode(' - ', $row['ManifestationTypée'], 3);
+                $type  = $parts[1] ?? '';
+                $titre = $parts[2] ?? $row['ManifestationTypée'];
+
+                // Calcul de la plage horaire
+                $timeRange = '';
+                if (!empty($row['Durée_créneau'])) {
+                    $hm = explode('h', $row['Durée_créneau'], 2);
+                    $h  = (int)($hm[0] ?? 0);
+                    $m  = isset($hm[1]) && $hm[1] !== '' ? (int)$hm[1] : 0;
+                    $ts = strtotime($row['Date']);
+                    $timeRange = date('H\hi', $ts) . ' - ' . date('H\hi', strtotime("+{$h} hour +{$m} minute", $ts));
+                }
+
+                $dateObj = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $row['Date']);
+
+                $events[$id] = [
+                    'id'                => $id,
+                    'titre'             => $titre,
+                    'type'              => $type,
+                    'date_raw'          => $row['Date'],
+                    'date_display'      => $dateObj ? EventNormalizer::formatDateDisplay($dateObj) : $row['Date'],
+                    'time_range'        => $timeRange,
+                    'lieu'              => $row['Lieu'],
+                    'commentaire'       => $row['Commentaire'] ?? '',
+                    'statut'            => $row['Statut'] ?? '',
+                    'is_past'           => true,
+                    'nb_present'        => 0,
+                    'nb_disponible'     => 0,
+                    'nb_indisponible'   => 0,
+                    'nb_ne_sait_pas'    => 0,
+                    'nb_pas_de_reponse' => 0,
+                ];
+            }
+
+            if (empty($events)) {
+                return [];
+            }
+
+            // Enrichissement avec stats de participation (batch, pas de N+1)
+            $stats = ParticipationStatsService::getParticipationStatsBatch($manifestationIds);
+            foreach ($events as &$event) {
+                if (isset($stats[$event['id']])) {
+                    $s = $stats[$event['id']];
+                    $event['nb_present']      = $s['present']     ?? 0;
+                    $event['nb_disponible']   = $s['available']   ?? 0;
+                    $event['nb_indisponible'] = $s['unavailable'] ?? 0;
+                    $event['nb_ne_sait_pas']  = $s['unknown']     ?? 0;
+                    $event['min_players']     = $s['min_required'] ?? 6;
+                } else {
+                    $event['min_players']     = 6;
+                }
+            }
+            unset($event);
+
+            return array_values($events);
+        } catch (\Throwable $e) {
+            error_log('getPastMatchesForTeam: Exception - ' . $e->getMessage());
             return [];
         }
     }
