@@ -57,6 +57,27 @@ class CaptainController
             'next_week' => !empty($_GET['next_week']),
         ];
 
+        $seasonFilters = $filters;
+        if ($saisonActive) {
+            $dateDebut = $saisonActive['date_debut'] ?? null;
+            $dateFin   = $saisonActive['date_fin'] ?? null;
+
+            if (!$dateDebut && !empty($saisonActive['libelle']) && preg_match('/^(\d{4})/', (string)$saisonActive['libelle'], $sm)) {
+                $startYear = (int)$sm[1];
+                $dateDebut = $startYear . '-08-01';
+                if (!$dateFin) {
+                    $dateFin = ($startYear + 1) . '-07-31';
+                }
+            }
+
+            if ($dateDebut && empty($seasonFilters['date_from'])) {
+                $seasonFilters['date_from'] = $dateDebut;
+            }
+            if ($dateFin && empty($seasonFilters['date_to'])) {
+                $seasonFilters['date_to'] = $dateFin . (strlen((string)$dateFin) === 10 ? ' 23:59:59' : '');
+            }
+        }
+
         $teamsData = [];
         foreach ($captainedTeams as $team) {
             $rosterPlayers = EquipeSaisonJoueur::findByEquipeSaison($team['equipe_saison_id']);
@@ -67,55 +88,31 @@ class CaptainController
                 $team['slug_colonne'],
                 50,
                 $team['manifestation_filter'] ?? null,
-                $filters
+                $seasonFilters
             );
 
-            // Charger les détails de sélection et dispo pour chaque match
-            foreach ($matches as &$match) {
-                $db = ExternalDatabase::get();
-                $stmt = $db->prepare("SELECT id_joueur, Participation FROM Participation WHERE id_manifestation = ?");
-                $stmt->execute([$match['id']]);
-                $participations = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
+            // 2. Rencontres passées de la saison pour les cartes
+            $pastMatches = AgendaService::getPastMatchesForTeam(
+                $team['slug_colonne'],
+                50,
+                $team['manifestation_filter'] ?? null,
+                $seasonFilters
+            );
 
-                $nbSelection = 0;
-                $nbDisponible = 0;
-                $nbIndisponible = 0;
-                $nbSansReponse = 0;
+            $minPlayers = (int)($team['min_players'] ?? 6);
+            $this->enrichMatchesWithRosterParticipations($matches, $rosterPlayers, $minPlayers);
+            $this->enrichMatchesWithRosterParticipations($pastMatches, $rosterPlayers, $minPlayers);
 
-                foreach ($rosterPlayers as $rp) {
-                    $jid = (int)$rp['id_joueur'];
-                    $status = $participations[$jid] ?? '';
-                    $statusObj = new \App\Helpers\ParticipationStatus($status);
-
-                    if ($statusObj->getCategory() === 'selected') {
-                        $nbSelection++;
-                    } elseif ($statusObj->getCategory() === 'available' || $statusObj->getCategory() === 'available_if_needed' || $statusObj->getCategory() === 'present') {
-                        $nbDisponible++;
-                    } elseif ($statusObj->getCategory() === 'unavailable' || $statusObj->getCategory() === 'absent') {
-                        $nbIndisponible++;
-                    } else {
-                        $nbSansReponse++;
-                    }
-                }
-
-                $match['nb_selection'] = $nbSelection;
-                $match['nb_disponible'] = $nbDisponible;
-                $match['nb_indisponible'] = $nbIndisponible;
-                $match['nb_sans_reponse'] = $nbSansReponse;
-                $match['total_roster'] = count($rosterPlayers);
-                $match['min_players'] = (int)($team['min_players'] ?? 6);
-            }
-            unset($match);
-
-            // 2. Grille de présence et métriques de l'équipe
+            // 3. Grille de présence et métriques de l'équipe
             $data = $this->buildTeamGridAndMetrics($team, $rosterPlayers, $playerIds, $filters);
 
             $teamsData[] = [
-                'config' => $team,
-                'matches' => $matches,
+                'config'          => $team,
+                'matches'         => $matches,
+                'past_matches'    => $pastMatches,
                 'upcoming_events' => $data['upcoming_events'],
-                'grid_players' => $data['grid_players'],
-                'metrics' => $data['metrics']
+                'grid_players'    => $data['grid_players'],
+                'metrics'         => $data['metrics']
             ];
         }
 
@@ -1209,5 +1206,77 @@ class CaptainController
 
         header('Location: /member/captain');
         exit;
+    }
+
+    /**
+     * Enrichit une liste de matchs avec les participations et métriques des joueurs du roster.
+     */
+    private function enrichMatchesWithRosterParticipations(array &$matches, array $rosterPlayers, int $minPlayers): void
+    {
+        if (empty($matches)) {
+            return;
+        }
+
+        $matchIds = array_column($matches, 'id');
+        $playerIds = array_map(fn($p) => (int)$p['id_joueur'], $rosterPlayers);
+
+        $participationsByMatch = [];
+        if (!empty($matchIds) && !empty($playerIds)) {
+            $db = ExternalDatabase::get();
+            $matchPlaceholders = implode(',', array_fill(0, count($matchIds), '?'));
+            $playerPlaceholders = implode(',', array_fill(0, count($playerIds), '?'));
+
+            $stmt = $db->prepare("
+                SELECT id_manifestation, id_joueur, Participation 
+                FROM Participation 
+                WHERE id_manifestation IN ($matchPlaceholders) 
+                  AND id_joueur IN ($playerPlaceholders)
+            ");
+            $params = array_merge($matchIds, $playerIds);
+            $stmt->execute($params);
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $mid = (int)$row['id_manifestation'];
+                $jid = (int)$row['id_joueur'];
+                $participationsByMatch[$mid][$jid] = $row['Participation'];
+            }
+        }
+
+        foreach ($matches as &$match) {
+            $mid = (int)$match['id'];
+            $participations = $participationsByMatch[$mid] ?? [];
+
+            $nbSelection = 0;
+            $nbDisponible = 0;
+            $nbIndisponible = 0;
+            $nbSansReponse = 0;
+
+            foreach ($rosterPlayers as $rp) {
+                $jid = (int)$rp['id_joueur'];
+                $status = $participations[$jid] ?? '';
+                $statusObj = new \App\Helpers\ParticipationStatus($status);
+
+                if ($statusObj->getCategory() === 'selected') {
+                    $nbSelection++;
+                } elseif ($statusObj->getCategory() === 'available' || $statusObj->getCategory() === 'available_if_needed' || $statusObj->getCategory() === 'present') {
+                    $nbDisponible++;
+                } elseif ($statusObj->getCategory() === 'unavailable' || $statusObj->getCategory() === 'absent') {
+                    $nbIndisponible++;
+                } else {
+                    $nbSansReponse++;
+                }
+            }
+
+            $match['nb_selection'] = $nbSelection;
+            $match['nb_selected'] = $nbSelection;
+            $match['nb_disponible'] = $nbDisponible;
+            $match['nb_available'] = $nbDisponible;
+            $match['nb_indisponible'] = $nbIndisponible;
+            $match['nb_unavailable'] = $nbIndisponible;
+            $match['nb_sans_reponse'] = $nbSansReponse;
+            $match['nb_no_response'] = $nbSansReponse;
+            $match['total_roster'] = count($rosterPlayers);
+            $match['min_players'] = $minPlayers;
+        }
+        unset($match);
     }
 }

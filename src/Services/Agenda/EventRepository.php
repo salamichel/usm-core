@@ -683,13 +683,21 @@ class EventRepository
             foreach ($events as &$event) {
                 if (isset($stats[$event['id']])) {
                     $s = $stats[$event['id']];
-                    $event['nb_present']      = $s['present']     ?? 0;
-                    $event['nb_disponible']   = $s['available']   ?? 0;
-                    $event['nb_indisponible'] = $s['unavailable'] ?? 0;
-                    $event['nb_ne_sait_pas']  = $s['unknown']     ?? 0;
-                    $event['min_players']     = $s['min_required'] ?? 6;
+                    $event['nb_present']                  = $s['present']              ?? 0;
+                    $event['nb_available']                = $s['available']            ?? 0;
+                    $event['nb_disponible']               = $s['available']            ?? 0;
+                    $event['nb_available_if_needed']      = $s['available_if_needed']  ?? 0;
+                    $event['nb_disponible_si_necessaire'] = $s['available_if_needed']  ?? 0;
+                    $event['nb_unavailable']              = $s['unavailable']          ?? 0;
+                    $event['nb_indisponible']             = $s['unavailable']          ?? 0;
+                    $event['nb_selected']                 = $s['selected']             ?? 0;
+                    $event['nb_selection']                = $s['selected']             ?? 0;
+                    $event['nb_absent']                   = $s['absent']               ?? 0;
+                    $event['nb_unknown']                  = $s['unknown']              ?? 0;
+                    $event['nb_ne_sait_pas']              = $s['unknown']              ?? 0;
+                    $event['min_players']                 = $s['min_required']         ?? 6;
                 } else {
-                    $event['min_players']     = 6;
+                    $event['min_players']                 = 6;
                 }
             }
             unset($event);
@@ -816,13 +824,21 @@ class EventRepository
             foreach ($events as &$event) {
                 if (isset($stats[$event['id']])) {
                     $s = $stats[$event['id']];
-                    $event['nb_present']      = $s['present']     ?? 0;
-                    $event['nb_disponible']   = $s['available']   ?? 0;
-                    $event['nb_indisponible'] = $s['unavailable'] ?? 0;
-                    $event['nb_ne_sait_pas']  = $s['unknown']     ?? 0;
-                    $event['min_players']     = $s['min_required'] ?? 6;
+                    $event['nb_present']                  = $s['present']              ?? 0;
+                    $event['nb_available']                = $s['available']            ?? 0;
+                    $event['nb_disponible']               = $s['available']            ?? 0;
+                    $event['nb_available_if_needed']      = $s['available_if_needed']  ?? 0;
+                    $event['nb_disponible_si_necessaire'] = $s['available_if_needed']  ?? 0;
+                    $event['nb_unavailable']              = $s['unavailable']          ?? 0;
+                    $event['nb_indisponible']             = $s['unavailable']          ?? 0;
+                    $event['nb_selected']                 = $s['selected']             ?? 0;
+                    $event['nb_selection']                = $s['selected']             ?? 0;
+                    $event['nb_absent']                   = $s['absent']               ?? 0;
+                    $event['nb_unknown']                  = $s['unknown']              ?? 0;
+                    $event['nb_ne_sait_pas']              = $s['unknown']              ?? 0;
+                    $event['min_players']                 = $s['min_required']         ?? 6;
                 } else {
-                    $event['min_players']     = 6;
+                    $event['min_players']                 = 6;
                 }
             }
             unset($event);

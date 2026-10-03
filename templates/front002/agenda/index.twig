@@ -154,7 +154,8 @@
 										{% set col_bg  = type_bg %}
 									{% endif %}
 
-									{% set ok = (m.nb_present + m.nb_disponible + m.nb_selection) >= 6 %}
+									{% set total_committed = (m.nb_selected|default(m.nb_selection|default(0))) + (m.nb_available|default(m.nb_disponible|default(0))) + (m.nb_available_if_needed|default(m.nb_disponible_si_necessaire|default(0))) + (m.nb_present|default(0)) %}
+									{% set ok = total_committed >= (m.min_players|default(6)) %}
 									{% set terrain_alert = (m.nb_terrains != 0) and (m.nb_terrains != 1) and (m.nb_terrains != '.') %}
 
 									<th class="border-b border-r border-slate-200 {{ col_top }} {{ col_bg }} px-3 py-3 text-left font-normal min-w-[180px] align-top" data-manifestation-header="{{ mid }}">

@@ -130,11 +130,17 @@ class EventNormalizer
             'nb_present'                  => 0,
             'nb_absent'                   => 0,
             'nb_available'                => 0,
+            'nb_disponible'               => 0,
             'nb_available_if_needed'      => 0,
+            'nb_disponible_si_necessaire' => 0,
             'nb_unavailable'              => 0,
+            'nb_indisponible'             => 0,
             'nb_selected'                 => 0,
+            'nb_selection'                => 0,
             'nb_unknown'                  => 0,
+            'nb_ne_sait_pas'              => 0,
             'nb_no_response'              => $totalJoueurs,
+            'nb_pas_de_reponse'           => $totalJoueurs,
             'present'                     => [],
             'absent'                      => [],
             'available'                   => [],
@@ -143,6 +149,7 @@ class EventNormalizer
             'selected'                    => [],
             'unknown'                     => [],
             'no_response'                 => [],
+            'pas_de_reponse'              => [],
             'is_match'                    => str_contains($type, 'Match'),
             'is_training'                 => str_contains($type, 'Entra') || str_contains($type, 'BEACH'),
             'type_simple'                 => $type,
@@ -181,7 +188,8 @@ class EventNormalizer
                     'unavailable',
                     'selected',
                     'unknown',
-                    'no_response'
+                    'no_response',
+                    'pas_de_reponse'
                 ] as $key
             ) {
                 $manifestationStats[$key] = [];
@@ -192,18 +200,22 @@ class EventNormalizer
             'selected'    => (function () use ($playerInfo, &$manifestationStats) {
                 $manifestationStats['selected'][] = $playerInfo;
                 $manifestationStats['nb_selected']++;
+                $manifestationStats['nb_selection'] = $manifestationStats['nb_selected'];
             })(),
             'available'   => (function () use ($playerInfo, &$manifestationStats) {
                 $manifestationStats['available'][] = $playerInfo;
                 $manifestationStats['nb_available']++;
+                $manifestationStats['nb_disponible'] = $manifestationStats['nb_available'];
             })(),
             'available_if_needed' => (function () use ($playerInfo, &$manifestationStats) {
                 $manifestationStats['available_if_needed'][] = $playerInfo;
                 $manifestationStats['nb_available_if_needed']++;
+                $manifestationStats['nb_disponible_si_necessaire'] = $manifestationStats['nb_available_if_needed'];
             })(),
             'unavailable' => (function () use ($playerInfo, &$manifestationStats) {
                 $manifestationStats['unavailable'][] = $playerInfo;
                 $manifestationStats['nb_unavailable']++;
+                $manifestationStats['nb_indisponible'] = $manifestationStats['nb_unavailable'];
             })(),
             'absent'      => (function () use ($playerInfo, &$manifestationStats) {
                 $manifestationStats['absent'][] = $playerInfo;
@@ -218,12 +230,14 @@ class EventNormalizer
             'unknown'     => (function () use ($playerInfo, &$manifestationStats) {
                 $manifestationStats['unknown'][] = $playerInfo;
                 $manifestationStats['nb_unknown']++;
+                $manifestationStats['nb_ne_sait_pas'] = $manifestationStats['nb_unknown'];
             })(),
             default       => null,
         };
 
         if ($category !== 'no_response') {
             $manifestationStats['nb_no_response']--;
+            $manifestationStats['nb_pas_de_reponse'] = $manifestationStats['nb_no_response'];
         }
     }
 
