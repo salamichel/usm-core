@@ -149,7 +149,7 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
 7. Redirection contextuelle vers la page d'origine après authentification (`?redirect=...`).
 8. Ciblage et éligibilité mutualisés (`EventTargetingService`) garantissant une synchronisation stricte entre les événements visibles et les notifications par email.
 9. **Relances automatiques de disponibilité (J-2 et J-1)** :
-   - Détection automatique des personnes sans réponse strictement réservée aux types **Match** et **Plateau** à venir (exclusion totale des entraînements, de la vie du club et des événements passés/en cours).
+   - Détection automatique des personnes sans réponse strictement réservée aux types **Match** et **Plateau** à venir, et **uniquement si l'équipe est en sous-effectif** (`joueurs engagés < min_players requis`). Exclusion totale des entraînements, des événements passés et des équipes déjà au complet.
    - Envoi automatisé à J-2 et J-1 via Brevo avec boutons de réponse instantanée (1-clic avec jeton sécurisé HMAC-SHA256).
    - Suivi idempotent et anti-spam via la table locale `event_reminders_sent` (garantit au maximum 1 relance à J-2 et 1 relance à J-1 par adhérent).
    - Déclenchement automatique par le planificateur (`ScheduledJob` action `event_reminder`), par le Lazy Cron (`/api/cron/lazy-trigger`), ou par appel direct externe (`GET /api/cron/event-reminder?token=...`).

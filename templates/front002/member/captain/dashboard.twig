@@ -447,7 +447,7 @@
                             </div>
                             
                             <div class="flex flex-wrap items-center gap-2">
-                                {% if m.nb_sans_reponse > 0 and (not m.is_past) and (not m.Date or m.Date > "now"|date("Y-m-d H:i:s")) %}
+                                {% if m.nb_sans_reponse > 0 and (not m.is_past) and (not m.Date or m.Date > "now"|date("Y-m-d H:i:s")) and (m.nb_selection + m.nb_disponible < m.min_players) %}
                                 <form method="POST" action="{{ url('member/captain/matches/' ~ m.id ~ '/remind') }}" class="inline flex-1 sm:flex-initial">
                                     <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
                                     <button type="submit" class="w-full text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-2 rounded-xl transition text-center shadow-sm flex items-center justify-center gap-1 cursor-pointer">

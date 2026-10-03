@@ -1128,6 +1128,31 @@ class CaptainController
         $stmt->execute([$matchId]);
         $participations = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR) ?: [];
 
+        // Vérifier si l'équipe est déjà au complet / effectif suffisant
+        $minRequired = (int)($matchedTeam['min_players'] ?? 0);
+        if ($minRequired <= 0) {
+            $minRequired = \App\Services\Agenda\ParticipationStatsService::getMinPlayersRequired($event['ManifestationTypée'] ?? '');
+        }
+
+        $committedCount = 0;
+        foreach ($joueurs as $j) {
+            $jid = (int)$j['id_joueur'];
+            $rawStatus = $participations[$jid] ?? '';
+            if ($rawStatus !== '') {
+                $statusObj = new \App\Helpers\ParticipationStatus($rawStatus);
+                $cat = $statusObj->getCategory();
+                if (in_array($cat, ['selected', 'available', 'available_if_needed', 'present'], true)) {
+                    $committedCount++;
+                }
+            }
+        }
+
+        if ($committedCount >= $minRequired) {
+            View::flash('info', "Effectif suffisant ($committedCount/$minRequired joueur(s) engagé(s)). Aucune relance n'est nécessaire.");
+            header('Location: /member/captain');
+            exit;
+        }
+
         $brevo = new BrevoService();
         $sentCount = 0;
         $failedCount = 0;

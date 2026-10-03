@@ -262,7 +262,7 @@ class EventNotificationService
         $stats['events_count'] = count($eventsToProcess);
         $brevo = new BrevoService();
 
-        // Pré-charger les équipes et snapshots de la saison
+        // Pré-charger les équipes de la saison
         $activeTeams = EquipeConfig::allActive();
 
         foreach ($eventsToProcess as $item) {
@@ -272,7 +272,12 @@ class EventNotificationService
             $normEvent = EventNormalizer::buildBaseFields($row);
             $manifType = (string)($row['ManifestationTypée'] ?? '');
 
-            // 1. Déterminer les joueurs de l'équipe ciblée par la rencontre
+            // 1. Récupérer les statuts de participations déjà enregistrés pour cette manifestation
+            $stmtPart = $extDb->prepare("SELECT id_joueur, Participation FROM Participation WHERE id_manifestation = ?");
+            $stmtPart->execute([$eventId]);
+            $participations = $stmtPart->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+
+            // 2. Déterminer les joueurs de l'équipe ciblée UNIQUEMENT si l'équipe est en sous-effectif
             $candidatePlayers = [];
 
             $matchingTeams = [];
@@ -289,6 +294,35 @@ class EventNotificationService
                     continue;
                 }
                 $teamPlayers = EquipeSaisonJoueur::findByEquipeSaison((int)$es['id']);
+                if (empty($teamPlayers)) {
+                    continue;
+                }
+
+                $minRequired = (int)($team['min_players'] ?? 0);
+                if ($minRequired <= 0) {
+                    $minRequired = ParticipationStatsService::getMinPlayersRequired($manifType);
+                }
+
+                // Calculer le nombre de joueurs engagés (sélectionnés, disponibles ou présents)
+                $committedCount = 0;
+                foreach ($teamPlayers as $tp) {
+                    $pid = (int)$tp['id_joueur'];
+                    $rawStatus = (string)($participations[$pid] ?? '');
+                    if ($rawStatus !== '') {
+                        $statusObj = new ParticipationStatus($rawStatus);
+                        $cat = $statusObj->getCategory();
+                        if (in_array($cat, ['selected', 'available', 'available_if_needed', 'present'], true)) {
+                            $committedCount++;
+                        }
+                    }
+                }
+
+                // RÈGLE MÉTIER : Envoi d'une relance UNIQUEMENT si l'équipe est en sous-effectif (< minRequired)
+                if ($committedCount >= $minRequired) {
+                    continue; // Effectif complet ou suffisant : aucune relance envoyée pour cette équipe
+                }
+
+                // L'équipe est en sous-effectif (< minRequired) : cibler ses joueurs
                 foreach ($teamPlayers as $tp) {
                     $pid = (int)$tp['id_joueur'];
                     if ($pid > 0) {
@@ -303,11 +337,6 @@ class EventNotificationService
             if (empty($candidatePlayers)) {
                 continue;
             }
-
-            // 2. Récupérer les statuts de participations déjà enregistrés pour cette manifestation
-            $stmtPart = $extDb->prepare("SELECT id_joueur, Participation FROM Participation WHERE id_manifestation = ?");
-            $stmtPart->execute([$eventId]);
-            $participations = $stmtPart->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
 
             // 3. Récupérer les joueurs ayant déjà reçu ce rappel
             $alreadySent = EventReminderSent::getSentPlayerIds($eventId, $reminderType);
