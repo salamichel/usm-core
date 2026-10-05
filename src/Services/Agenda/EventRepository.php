@@ -576,16 +576,17 @@ class EventRepository
     ): array {
         try {
             $db = ExternalDatabase::get();
-            if (!$db || !self::teamColumn($teamCode)) {
+            if (!$db) {
                 return [];
             }
 
-            $manifestationClause = "m.ManifestationTypée LIKE '% - Match - %'";
+            $manifestationClause = "(m.ManifestationTypée LIKE '% - Match - %' OR m.ManifestationTypée LIKE 'Match%')";
             $bindings            = [];
 
-            if (!empty($manifestationFilter)) {
+            $filter = !empty($manifestationFilter) ? trim($manifestationFilter) : '';
+            if (!empty($filter)) {
                 $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
-                $bindings[]          = '%' . $manifestationFilter;
+                $bindings[]          = '%' . $filter . '%';
             }
 
             if (!empty($filters['location'])) {
@@ -725,16 +726,17 @@ class EventRepository
     ): array {
         try {
             $db = ExternalDatabase::get();
-            if (!$db || !self::teamColumn($teamCode)) {
+            if (!$db) {
                 return [];
             }
 
-            $manifestationClause = "m.ManifestationTypée LIKE '% - Match - %'";
+            $manifestationClause = "(m.ManifestationTypée LIKE '% - Match - %' OR m.ManifestationTypée LIKE 'Match%')";
             $bindings            = [];
 
-            if (!empty($manifestationFilter)) {
+            $filter = !empty($manifestationFilter) ? trim($manifestationFilter) : '';
+            if (!empty($filter)) {
                 $manifestationClause .= " AND m.ManifestationTypée LIKE ?";
-                $bindings[]          = '%' . $manifestationFilter;
+                $bindings[]          = '%' . $filter . '%';
             }
 
             if (!empty($filters['location'])) {

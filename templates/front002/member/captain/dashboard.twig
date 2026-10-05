@@ -369,16 +369,22 @@
 
                 {# Rencontres et Convocations (À venir et Passées) #}
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Rencontres et Convocations</h3>
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Rencontres et Convocations</h3>
+                        <a href="{{ url('member/captain/matches/create') }}?team_id={{ t.config.id }}" class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold transition shadow-sm">
+                            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            Créer un Match
+                        </a>
+                    </div>
 
-                    {% if t.matches|length and t.past_matches|length %}
+                    {% if t.past_matches|length %}
                     <div class="inline-flex p-1 bg-slate-100 rounded-2xl gap-1 self-start sm:self-auto">
                         <button type="button" onclick="switchCaptainMatchTab({{ t.config.equipe_saison_id }}, 'upcoming')" id="btn-captain-upcoming-{{ t.config.equipe_saison_id }}"
-                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-900 shadow-sm cursor-pointer">
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {% if t.matches|length or not t.past_matches|length %}bg-white text-slate-900 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %} cursor-pointer">
                             À venir ({{ t.matches|length }})
                         </button>
                         <button type="button" onclick="switchCaptainMatchTab({{ t.config.equipe_saison_id }}, 'past')" id="btn-captain-past-{{ t.config.equipe_saison_id }}"
-                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900 cursor-pointer">
+                                class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {% if not t.matches|length and t.past_matches|length %}bg-white text-slate-900 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %} cursor-pointer">
                             Rencontres passées ({{ t.past_matches|length }})
                         </button>
                     </div>
@@ -386,8 +392,8 @@
                 </div>
 
                 {# Bloc 1 : Matchs à venir #}
-                {% if t.matches|length %}
-                <div id="tab-captain-upcoming-{{ t.config.equipe_saison_id }}" class="space-y-4">
+                <div id="tab-captain-upcoming-{{ t.config.equipe_saison_id }}" class="space-y-4 {% if not t.matches|length and t.past_matches|length %}hidden{% endif %}">
+                    {% if t.matches|length %}
                     {% if not t.past_matches|length %}
                     <div class="mb-2">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
@@ -493,8 +499,24 @@
                         </div>
                         {% endfor %}
                     </div>
+                    {% else %}
+                        {% if t.past_matches|length %}
+                        <div class="p-8 text-center bg-slate-50/80 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                                🏐
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm">Aucun match à venir programmé</p>
+                                <p class="text-slate-500 text-xs mt-0.5">Planifiez la prochaine rencontre pour débuter les convocations.</p>
+                            </div>
+                            <a href="{{ url('member/captain/matches/create') }}?team_id={{ t.config.id }}" class="mt-1 bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 text-xs shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Créer un Match
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
-                {% endif %}
 
                 {# Bloc 2 : Rencontres passées #}
                 {% if t.past_matches|length %}
@@ -605,8 +627,18 @@
                 {% endif %}
 
                 {% if not t.matches|length and not t.past_matches|length %}
-                <div class="p-8 text-center bg-slate-50 rounded-2xl text-slate-400 text-sm italic">
-                    Aucun match programmé ou passé pour cette équipe cette saison. Cliquez sur "Créer un Match" pour en planifier un.
+                <div class="p-8 text-center bg-slate-50/80 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-xl">
+                        🏐
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">Aucun match programmé ou passé pour cette équipe cette saison.</p>
+                        <p class="text-slate-500 text-xs mt-0.5">Planifiez dès maintenant une rencontre pour cette équipe.</p>
+                    </div>
+                    <a href="{{ url('member/captain/matches/create') }}?team_id={{ t.config.id }}" class="mt-1 bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-2.5 rounded-xl font-bold transition flex items-center gap-2 text-sm shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Créer un Match
+                    </a>
                 </div>
                 {% endif %}
             </div>

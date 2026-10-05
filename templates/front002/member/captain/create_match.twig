@@ -30,7 +30,7 @@
                     <select id="team_id" name="team_id" required
                             class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-800 font-semibold focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
                         {% for team in teams %}
-                        <option value="{{ team.id }}">{{ team.libelle }}</option>
+                        <option value="{{ team.id }}" {% if selected_team_id == team.id %}selected{% endif %}>{{ team.libelle }}</option>
                         {% endfor %}
                     </select>
                 </div>

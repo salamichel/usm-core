@@ -84,18 +84,20 @@ class CaptainController
             $playerIds = array_map(fn($p) => (int)$p['id_joueur'], $rosterPlayers);
 
             // 1. Prochains matchs pour les cartes
+            // Pour les matchs à venir, on applique les filtres utilisateurs (type, lieu, semaine) sans bloquer par date_to saisonnière
+            $filterName = !empty($team['manifestation_filter']) ? $team['manifestation_filter'] : ('Match ' . $team['libelle']);
             $matches = AgendaService::getUpcomingMatchesForTeam(
                 $team['slug_colonne'],
                 50,
-                $team['manifestation_filter'] ?? null,
-                $seasonFilters
+                $filterName,
+                $filters
             );
 
             // 2. Rencontres passées de la saison pour les cartes
             $pastMatches = AgendaService::getPastMatchesForTeam(
                 $team['slug_colonne'],
                 50,
-                $team['manifestation_filter'] ?? null,
+                $filterName,
                 $seasonFilters
             );
 
@@ -136,15 +138,18 @@ class CaptainController
     {
         [$userId, $saisonActive, $captainedTeams] = $this->checkAccess();
 
+        $selectedTeamId = isset($_GET['team_id']) ? (int)$_GET['team_id'] : null;
+
         $locations = \App\Models\MotsClef::getByCategory('Lieu');
         $durations = \App\Models\MotsClef::getByCategory('Durée_créneau');
         $statuses = \App\Models\MotsClef::getByCategory('Statut');
 
         View::render('member/captain/create_match.twig', [
-            'teams'     => $captainedTeams,
-            'locations' => $locations,
-            'durations' => $durations,
-            'statuses'  => $statuses
+            'teams'            => $captainedTeams,
+            'selected_team_id' => $selectedTeamId,
+            'locations'        => $locations,
+            'durations'        => $durations,
+            'statuses'         => $statuses
         ]);
     }
 
