@@ -195,13 +195,15 @@ class App
         $r->post('/admin/saisons/delete-bulk',   [SaisonController::class, 'deleteBulk']);
         $r->get('/admin/saisons/joueurs',        [AdminJoueurController::class, 'index']);
         $r->post('/admin/saisons/flash-select',   [SaisonController::class, 'flashSelect']);
+        $r->post('/admin/saisons/send-weekly-reminder', [SaisonController::class, 'sendWeeklyReminder']);
         $r->get('/admin/saisons/{id}/edit',      [SaisonController::class, 'edit']);
         $r->post('/admin/saisons/{id}/edit',     [SaisonController::class, 'update']);
         $r->post('/admin/saisons/{id}/delete',   [SaisonController::class, 'delete']);
         $r->post('/admin/saisons/{id}/flash',    [SaisonController::class, 'flash']);
         $r->get('/admin/saisons/{id}/snapshots', [SaisonController::class, 'snapshots']);
         $r->post('/admin/saisons/{id}/purge',    [SaisonController::class, 'purge']);
-        $r->post('/admin/saisons/send-weekly-reminder', [SaisonController::class, 'sendWeeklyReminder']);
+        $r->get('/admin/saisons/{id}/joueurs/{pid}/email-preferences',  [SaisonController::class, 'getEmailPreferences']);
+        $r->post('/admin/saisons/{id}/joueurs/{pid}/email-preferences', [SaisonController::class, 'updateEmailPreferences']);
 
         // ── Admin joueurs (Tableur AJAX) ──────────────────────────────────────
         $r->get('/admin/joueurs',                   [AdminJoueurController::class, 'index']);

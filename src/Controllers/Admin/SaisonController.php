@@ -8,6 +8,8 @@ use App\Core\View;
 use App\Models\JoueurSnapshot;
 use App\Models\Saison;
 use App\Models\EquipeConfig;
+use App\Models\MemberEmailPreference;
+use App\Models\MotsClef;
 use App\Services\Validator;
 
 class SaisonController extends AdminCrudController
@@ -228,6 +230,115 @@ class SaisonController extends AdminCrudController
         }
         
         $this->redirect('/admin/saisons');
+    }
+
+    /**
+     * Retourne les préférences d'emails d'un joueur pour une saison en JSON.
+     * Route: GET /admin/saisons/{id}/joueurs/{pid}/email-preferences
+     */
+    public function getEmailPreferences(array $params): void
+    {
+        header('Content-Type: application/json');
+
+        $saisonId = (int)($params['id'] ?? 0);
+        $playerId = (int)($params['pid'] ?? 0);
+
+        if ($saisonId <= 0 || $playerId <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Paramètres invalides.']);
+            exit;
+        }
+
+        $saison = Saison::find($saisonId);
+        if (!$saison) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Saison introuvable.']);
+            exit;
+        }
+
+        $trainingTypes = MotsClef::getTrainingTypes();
+        $dbPrefs = MemberEmailPreference::getPreferences($playerId, $saisonId);
+
+        $preferences = [
+            [
+                'key'           => 'match',
+                'label'         => 'Avis de création de match',
+                'is_subscribed' => isset($dbPrefs['match']) ? ((int)$dbPrefs['match'] === 1) : true,
+            ],
+            [
+                'key'           => 'weekly_presence',
+                'label'         => 'Rappel hebdomadaire de présence',
+                'is_subscribed' => isset($dbPrefs['weekly_presence']) ? ((int)$dbPrefs['weekly_presence'] === 1) : true,
+            ],
+            [
+                'key'           => 'club_life',
+                'label'         => 'Vie du club & Tournois',
+                'is_subscribed' => isset($dbPrefs['club_life']) ? ((int)$dbPrefs['club_life'] === 1) : true,
+            ],
+        ];
+
+        foreach ($trainingTypes as $type) {
+            $cleanLabel = trim(str_replace(['Présences - ', 'Disponibilités - '], '', $type));
+            $preferences[] = [
+                'key'           => $type,
+                'label'         => 'Entraînement : ' . $cleanLabel,
+                'is_subscribed' => isset($dbPrefs[$type]) ? ((int)$dbPrefs[$type] === 1) : true,
+            ];
+        }
+
+        echo json_encode([
+            'success'     => true,
+            'preferences' => $preferences,
+        ]);
+        exit;
+    }
+
+    /**
+     * Met à jour les préférences d'emails d'un joueur pour une saison.
+     * Route: POST /admin/saisons/{id}/joueurs/{pid}/email-preferences
+     */
+    public function updateEmailPreferences(array $params): void
+    {
+        header('Content-Type: application/json');
+
+        $saisonId = (int)($params['id'] ?? $_POST['saison_id'] ?? 0);
+        $playerId = (int)($params['pid'] ?? $_POST['player_id'] ?? 0);
+
+        if ($saisonId <= 0 || $playerId <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Paramètres invalides.']);
+            exit;
+        }
+
+        $saison = Saison::find($saisonId);
+        if (!$saison) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Saison introuvable.']);
+            exit;
+        }
+
+        $postedPrefs   = $_POST['preferences'] ?? [];
+        $trainingTypes = MotsClef::getTrainingTypes();
+        $allKeys       = array_merge(['match', 'weekly_presence', 'club_life'], $trainingTypes);
+
+        try {
+            foreach ($allKeys as $key) {
+                $isSubscribed = isset($postedPrefs[$key]) && (string)$postedPrefs[$key] === '1';
+                MemberEmailPreference::setPreference($playerId, $saisonId, $key, $isSubscribed);
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Préférences enregistrées avec succès.',
+            ]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error'   => 'Erreur lors de l’enregistrement : ' . $e->getMessage(),
+            ]);
+        }
+        exit;
     }
 }
 
