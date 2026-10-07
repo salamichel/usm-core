@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Admin{% endblock %} — USM Volley</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
   <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}?v={{ "now"|date("U") }}">
   {% block head %}{% endblock %}
   <style>
+    [x-cloak] { display: none !important; }
     :root { --usm-brown: #94674d; --usm-brown-dark: #7a5540; }
     /* Scrollbar discrète dans la sidebar */
     .sidebar-nav::-webkit-scrollbar { width: 4px; }

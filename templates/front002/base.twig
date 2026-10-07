@@ -119,6 +119,7 @@
   {# ── Tailwind CDN + config (variables dynamiques via site_config) ── #}
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest" defer></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -141,6 +142,7 @@
 
   {# CSS vars dynamiques (dépendent de site_config, doivent rester inline) #}
   <style>
+    [x-cloak] { display: none !important; }
     :root {
       --primary:            {{ site_config.primary_color|default('#1d4ed8') }};
       --header-bg:          {{ site_config.header_bg_color|default('#ffffff') }};
