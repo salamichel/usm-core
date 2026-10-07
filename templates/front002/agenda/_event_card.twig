@@ -94,17 +94,26 @@
                     <h3 class="text-base sm:text-lg font-black text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
                         {% if show_link %}
                             <a href="{{ url('agenda/' ~ m.id) }}" class="hover:underline">
-                                {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold text-sm block sm:inline">vs {{ m.opponent_name }}</span>{% endif %}
+                                {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold text-sm block sm:inline">{% if m.is_plateau %}Plateau vs {{ m.opponent_name }}{% else %}vs {{ m.opponent_name }}{% endif %}</span>{% endif %}
                             </a>
                         {% else %}
-                            {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold text-sm block sm:inline">vs {{ m.opponent_name }}</span>{% endif %}
+                            {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold text-sm block sm:inline">{% if m.is_plateau %}Plateau vs {{ m.opponent_name }}{% else %}vs {{ m.opponent_name }}{% endif %}</span>{% endif %}
                         {% endif %}
                     </h3>
                     {% if m.has_score %}
-                        <div class="pt-1">
+                        <div class="pt-1 flex flex-wrap items-center gap-1.5">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black {{ m.outcome_badge_classes|default('bg-slate-100 text-slate-800') }}">
-                                🏆 {{ m.outcome_label|default('Résultat') }} : {{ m.score_formatted }}
+                                🏆 {% if m.is_plateau %}Bilan : {{ m.score_formatted }}{% else %}{{ m.outcome_label|default('Résultat') }} : {{ m.score_formatted }}{% endif %}
                             </span>
+                            {% if m.is_plateau and m.encounters is defined %}
+                                {% for enc in m.encounters %}
+                                    {% if enc.has_score %}
+                                        <span class="text-[10px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-md">
+                                            vs {{ enc.opponent_name }} ({{ enc.score_formatted }})
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
@@ -123,17 +132,26 @@
                             </span>
                             {% if m.has_score %}
                                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black {{ m.outcome_badge_classes|default('bg-slate-100 text-slate-800') }}">
-                                    🏆 {{ m.outcome_label|default('Résultat') }} {{ m.score_formatted }}
+                                    🏆 {% if m.is_plateau %}Bilan : {{ m.score_formatted }}{% else %}{{ m.outcome_label|default('Résultat') }} : {{ m.score_formatted }}{% endif %}
                                 </span>
+                                {% if m.is_plateau and m.encounters is defined %}
+                                    {% for enc in m.encounters %}
+                                        {% if enc.has_score %}
+                                            <span class="text-[10px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-md">
+                                                vs {{ enc.opponent_name }} ({{ enc.score_formatted }})
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
                             {% endif %}
                         </div>
                         <h3 class="text-lg font-black text-slate-900 leading-snug group-hover:text-indigo-600 transition-colors">
                             {% if show_link %}
                                 <a href="{{ url('agenda/' ~ m.id) }}" class="hover:underline">
-                                    {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold">vs {{ m.opponent_name }}</span>{% endif %}
+                                    {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold">{% if m.is_plateau %}Plateau vs {{ m.opponent_name }}{% else %}vs {{ m.opponent_name }}{% endif %}</span>{% endif %}
                                 </a>
                             {% else %}
-                                {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold">vs {{ m.opponent_name }}</span>{% endif %}
+                                {{ m.titre }}{% if m.opponent_name %} <span class="text-amber-700 font-extrabold">{% if m.is_plateau %}Plateau vs {{ m.opponent_name }}{% else %}vs {{ m.opponent_name }}{% endif %}</span>{% endif %}
                             {% endif %}
                         </h3>
                     </div>

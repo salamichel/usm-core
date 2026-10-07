@@ -709,15 +709,25 @@ class EventRepository
                 if (isset($matchResults[$event['id']])) {
                     $mr = $matchResults[$event['id']];
                     $event['match_result'] = $mr;
+                    $event['is_plateau'] = !empty($mr['is_plateau']);
+                    $event['encounters'] = $mr['encounters'] ?? [];
+                    $event['summary_record'] = $mr['summary_record'] ?? null;
                     $event['opponent_name'] = $mr['opponent_name'] ?? null;
                     $event['opponent_club'] = $mr['opponent_club'] ?? null;
                     $event['opponent_city'] = $mr['opponent_city'] ?? null;
-                    if ($mr['sets_for'] !== null && $mr['sets_against'] !== null) {
+                    if (!empty($mr['has_score'])) {
                         $event['has_score'] = true;
-                        $event['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $event['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $event['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $event['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$mr['sets_for'], (int)$mr['sets_against']);
+                        if (!empty($mr['is_plateau'])) {
+                            $event['score_formatted'] = $mr['summary_record'] ?? '';
+                            $event['outcome'] = $mr['outcome'] ?? null;
+                            $event['outcome_label'] = $mr['summary_record'] ?? '';
+                            $event['outcome_badge_classes'] = $mr['outcome_badge_classes'] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+                        } else {
+                            $event['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $event['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $event['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $event['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$mr['sets_for'], (int)$mr['sets_against']);
+                        }
                     } else {
                         $event['has_score'] = false;
                     }
@@ -725,6 +735,9 @@ class EventRepository
                     $event['match_result'] = null;
                     $event['opponent_name'] = null;
                     $event['has_score'] = false;
+                    $event['is_plateau'] = false;
+                    $event['encounters'] = [];
+                    $event['summary_record'] = null;
                 }
             }
             unset($event);
@@ -877,15 +890,25 @@ class EventRepository
                 if (isset($matchResults[$event['id']])) {
                     $mr = $matchResults[$event['id']];
                     $event['match_result'] = $mr;
+                    $event['is_plateau'] = !empty($mr['is_plateau']);
+                    $event['encounters'] = $mr['encounters'] ?? [];
+                    $event['summary_record'] = $mr['summary_record'] ?? null;
                     $event['opponent_name'] = $mr['opponent_name'] ?? null;
                     $event['opponent_club'] = $mr['opponent_club'] ?? null;
                     $event['opponent_city'] = $mr['opponent_city'] ?? null;
-                    if ($mr['sets_for'] !== null && $mr['sets_against'] !== null) {
+                    if (!empty($mr['has_score'])) {
                         $event['has_score'] = true;
-                        $event['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $event['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $event['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $event['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$mr['sets_for'], (int)$mr['sets_against']);
+                        if (!empty($mr['is_plateau'])) {
+                            $event['score_formatted'] = $mr['summary_record'] ?? '';
+                            $event['outcome'] = $mr['outcome'] ?? null;
+                            $event['outcome_label'] = $mr['summary_record'] ?? '';
+                            $event['outcome_badge_classes'] = $mr['outcome_badge_classes'] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+                        } else {
+                            $event['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $event['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $event['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $event['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$mr['sets_for'], (int)$mr['sets_against']);
+                        }
                     } else {
                         $event['has_score'] = false;
                     }
@@ -893,6 +916,9 @@ class EventRepository
                     $event['match_result'] = null;
                     $event['opponent_name'] = null;
                     $event['has_score'] = false;
+                    $event['is_plateau'] = false;
+                    $event['encounters'] = [];
+                    $event['summary_record'] = null;
                 }
             }
             unset($event);
@@ -1134,15 +1160,25 @@ class EventRepository
                 $matchRes = \App\Models\MatchResult::findByManifestation($id);
                 if ($matchRes) {
                     $manifestation['match_result'] = $matchRes;
+                    $manifestation['is_plateau'] = !empty($matchRes['is_plateau']);
+                    $manifestation['encounters'] = $matchRes['encounters'] ?? [];
+                    $manifestation['summary_record'] = $matchRes['summary_record'] ?? null;
                     $manifestation['opponent_name'] = $matchRes['opponent_name'] ?? null;
                     $manifestation['opponent_club'] = $matchRes['opponent_club'] ?? null;
                     $manifestation['opponent_city'] = $matchRes['opponent_city'] ?? null;
-                    if ($matchRes['sets_for'] !== null && $matchRes['sets_against'] !== null) {
+                    if (!empty($matchRes['has_score'])) {
                         $manifestation['has_score'] = true;
-                        $manifestation['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
-                        $manifestation['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
-                        $manifestation['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
-                        $manifestation['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
+                        if (!empty($matchRes['is_plateau'])) {
+                            $manifestation['score_formatted'] = $matchRes['summary_record'] ?? '';
+                            $manifestation['outcome'] = $matchRes['outcome'] ?? null;
+                            $manifestation['outcome_label'] = $matchRes['summary_record'] ?? '';
+                            $manifestation['outcome_badge_classes'] = $matchRes['outcome_badge_classes'] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+                        } else {
+                            $manifestation['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
+                            $manifestation['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
+                            $manifestation['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
+                            $manifestation['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$matchRes['sets_for'], (int)$matchRes['sets_against']);
+                        }
                     } else {
                         $manifestation['has_score'] = false;
                     }
@@ -1150,6 +1186,9 @@ class EventRepository
                     $manifestation['match_result'] = null;
                     $manifestation['opponent_name'] = null;
                     $manifestation['has_score'] = false;
+                    $manifestation['is_plateau'] = false;
+                    $manifestation['encounters'] = [];
+                    $manifestation['summary_record'] = null;
                 }
             }
         } catch (\Throwable $e) {
@@ -1216,12 +1255,23 @@ class EventRepository
                 if (isset($matchResults[$ev['id']])) {
                     $mr = $matchResults[$ev['id']];
                     $ev['match_result'] = $mr;
+                    $ev['is_plateau'] = !empty($mr['is_plateau']);
+                    $ev['encounters'] = $mr['encounters'] ?? [];
+                    $ev['summary_record'] = $mr['summary_record'] ?? null;
                     $ev['opponent_name'] = $mr['opponent_name'] ?? null;
-                    if ($mr['sets_for'] !== null && $mr['sets_against'] !== null) {
+                    if (!empty($mr['has_score'])) {
                         $ev['has_score'] = true;
-                        $ev['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $ev['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$mr['sets_for'], (int)$mr['sets_against']);
-                        $ev['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$mr['sets_for'], (int)$mr['sets_against']);
+                        if (!empty($mr['is_plateau'])) {
+                            $ev['score_formatted'] = $mr['summary_record'] ?? '';
+                            $ev['outcome'] = $mr['outcome'] ?? null;
+                            $ev['outcome_label'] = $mr['summary_record'] ?? '';
+                        } else {
+                            $ev['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $ev['outcome'] = \App\Helpers\MatchResultLabel::getOutcome((int)$mr['sets_for'], (int)$mr['sets_against']);
+                            $ev['outcome_label'] = \App\Helpers\MatchResultLabel::getOutcomeLabel((int)$mr['sets_for'], (int)$mr['sets_against']);
+                        }
+                    } else {
+                        $ev['has_score'] = false;
                     }
                 }
             }
@@ -1347,11 +1397,21 @@ class EventRepository
                     $mid = (int)$r['id_manifestation'];
                     if (isset($results[$mid])) {
                         $r['match_result'] = $results[$mid];
+                        $r['is_plateau'] = !empty($results[$mid]['is_plateau']);
+                        $r['encounters'] = $results[$mid]['encounters'] ?? [];
+                        $r['summary_record'] = $results[$mid]['summary_record'] ?? null;
                         $r['opponent_name'] = $results[$mid]['opponent_name'] ?? null;
-                        if ($results[$mid]['sets_for'] !== null && $results[$mid]['sets_against'] !== null) {
+                        if (!empty($results[$mid]['has_score'])) {
                             $r['has_score'] = true;
-                            $r['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$results[$mid]['sets_for'], (int)$results[$mid]['sets_against']);
-                            $r['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$results[$mid]['sets_for'], (int)$results[$mid]['sets_against']);
+                            if (!empty($results[$mid]['is_plateau'])) {
+                                $r['score_formatted'] = $results[$mid]['summary_record'] ?? '';
+                                $r['outcome_badge_classes'] = $results[$mid]['outcome_badge_classes'] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+                            } else {
+                                $r['score_formatted'] = \App\Helpers\MatchResultLabel::formatScore((int)$results[$mid]['sets_for'], (int)$results[$mid]['sets_against']);
+                                $r['outcome_badge_classes'] = \App\Helpers\MatchResultLabel::getBadgeClasses((int)$results[$mid]['sets_for'], (int)$results[$mid]['sets_against']);
+                            }
+                        } else {
+                            $r['has_score'] = false;
                         }
                     }
                 }

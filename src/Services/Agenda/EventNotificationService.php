@@ -461,9 +461,9 @@ class EventNotificationService
                 continue;
             }
 
-            // Vérifier si un score est déjà renseigné
+            // Vérifier si tous les scores sont déjà renseignés
             $res = \App\Models\MatchResult::findByManifestation($eventId);
-            if ($res && $res['sets_for'] !== null && $res['sets_against'] !== null) {
+            if ($res && !empty($res['all_scores_entered'])) {
                 continue; // Déjà renseigné !
             }
 

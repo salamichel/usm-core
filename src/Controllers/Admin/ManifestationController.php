@@ -162,11 +162,13 @@ class ManifestationController extends BaseAdminController
         ];
 
         $matchResult = \App\Models\MatchResult::findByManifestation($id);
+        $currentEncounters = \App\Models\MatchResult::findAllByManifestation($id);
 
         View::render('admin/manifestations/form.twig', array_merge($this->getFormOptions(), [
-            'manifestation' => $manifestationData,
-            'match_result'  => $matchResult,
-            'action'        => BASE_URL . '/admin/manifestations/' . $id . '/edit',
+            'manifestation'      => $manifestationData,
+            'match_result'       => $matchResult,
+            'current_encounters' => $currentEncounters,
+            'action'             => BASE_URL . '/admin/manifestations/' . $id . '/edit',
         ]));
     }
 
@@ -229,24 +231,54 @@ class ManifestationController extends BaseAdminController
 
         EventRepository::updateEvent($id, $formData);
 
-        // Mise à jour de l'adversaire et du score s'il y a lieu
-        $opponentTeamId = !empty($_POST['opponent_team_id']) ? (int)$_POST['opponent_team_id'] : null;
-        if ($opponentTeamId) {
-            $setsFor = isset($_POST['sets_for']) && $_POST['sets_for'] !== '' ? (int)$_POST['sets_for'] : null;
-            $setsAgainst = isset($_POST['sets_against']) && $_POST['sets_against'] !== '' ? (int)$_POST['sets_against'] : null;
-            $existingResult = \App\Models\MatchResult::findByManifestation($id);
-            $hasScore = ($setsFor !== null && $setsAgainst !== null);
+        // Mise à jour des adversaires et scores
+        $opponentTeamIds = [];
+        if (!empty($_POST['opponent_team_ids']) && is_array($_POST['opponent_team_ids'])) {
+            $opponentTeamIds = array_map('intval', $_POST['opponent_team_ids']);
+        } elseif (!empty($_POST['opponent_team_id'])) {
+            $opponentTeamIds[] = (int)$_POST['opponent_team_id'];
+        }
 
-            \App\Models\MatchResult::upsert([
-                'manifestation_id'     => $id,
-                'opponent_team_id'     => $opponentTeamId,
-                'sets_for'             => $setsFor,
-                'sets_against'         => $setsAgainst,
-                'set_details'          => $existingResult['set_details'] ?? null,
-                'entered_by_joueur_id' => $existingResult['entered_by_joueur_id'] ?? null,
-                'entered_by_admin'     => 1,
-                'entered_at'           => $hasScore ? ($existingResult['entered_at'] ?? date('Y-m-d H:i:s')) : null,
-            ]);
+        if (!empty($opponentTeamIds)) {
+            \App\Models\MatchResult::syncManifestationOpponents($id, $opponentTeamIds, null, true);
+
+            if (!empty($_POST['scores']) && is_array($_POST['scores'])) {
+                foreach ($_POST['scores'] as $oppId => $scoreData) {
+                    $oppId = (int)$oppId;
+                    if ($oppId <= 0) continue;
+                    $setsFor = isset($scoreData['sets_for']) && $scoreData['sets_for'] !== '' ? (int)$scoreData['sets_for'] : null;
+                    $setsAgainst = isset($scoreData['sets_against']) && $scoreData['sets_against'] !== '' ? (int)$scoreData['sets_against'] : null;
+                    if ($setsFor !== null && $setsAgainst !== null) {
+                        \App\Models\MatchResult::upsert([
+                            'manifestation_id'     => $id,
+                            'opponent_team_id'     => $oppId,
+                            'sets_for'             => $setsFor,
+                            'sets_against'         => $setsAgainst,
+                            'entered_by_admin'     => 1,
+                            'entered_at'           => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+                }
+            } elseif (count($opponentTeamIds) === 1 && isset($_POST['sets_for'])) {
+                $oppId = $opponentTeamIds[0];
+                $setsFor = $_POST['sets_for'] !== '' ? (int)$_POST['sets_for'] : null;
+                $setsAgainst = $_POST['sets_against'] !== '' ? (int)$_POST['sets_against'] : null;
+                $existingResult = \App\Models\MatchResult::findByManifestation($id);
+                $hasScore = ($setsFor !== null && $setsAgainst !== null);
+
+                \App\Models\MatchResult::upsert([
+                    'manifestation_id'     => $id,
+                    'opponent_team_id'     => $oppId,
+                    'sets_for'             => $setsFor,
+                    'sets_against'         => $setsAgainst,
+                    'set_details'          => $existingResult['set_details'] ?? null,
+                    'entered_by_joueur_id' => $existingResult['entered_by_joueur_id'] ?? null,
+                    'entered_by_admin'     => 1,
+                    'entered_at'           => $hasScore ? ($existingResult['entered_at'] ?? date('Y-m-d H:i:s')) : null,
+                ]);
+            }
+        } elseif (isset($_POST['opponent_team_id']) && $_POST['opponent_team_id'] === '') {
+            \App\Models\MatchResult::deleteByManifestation($id);
         }
 
         if (!$wasCancelled && $isCancelledNow) {

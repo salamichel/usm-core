@@ -192,28 +192,11 @@ class CaptainController
 
         $data = $v->getCleanData(['team_id', 'date', 'location', 'commentaire', 'duration', 'statut']);
 
-        // Gestion de l'équipe adverse (sélection existante ou création à la volée)
-        $opponentTeamId = !empty($_POST['opponent_team_id']) ? (int)$_POST['opponent_team_id'] : null;
-        $newOpponentName = trim((string)($_POST['new_opponent_name'] ?? ''));
+        // Gestion des équipes adverses (sélection multiple et/ou créations à la volée)
+        $opponentTeamIds = $this->extractOpponentTeamIdsFromPost($userId);
 
-        if (!empty($newOpponentName)) {
-            $existing = \App\Models\OpponentTeam::findByName($newOpponentName);
-            if ($existing) {
-                $opponentTeamId = (int)$existing['id'];
-            } else {
-                $opponentTeamId = \App\Models\OpponentTeam::create([
-                    'name'                 => $newOpponentName,
-                    'club'                 => trim((string)($_POST['new_opponent_club'] ?? '')),
-                    'city'                 => trim((string)($_POST['new_opponent_city'] ?? '')),
-                    'is_active'            => 1,
-                    'needs_review'         => 1,
-                    'created_by_joueur_id' => $userId,
-                ]);
-            }
-        }
-
-        if (empty($opponentTeamId)) {
-            View::flash('error', 'L\'équipe adverse est obligatoire.');
+        if (empty($opponentTeamIds)) {
+            View::flash('error', 'Au moins une équipe adverse est obligatoire.');
             header('Location: /member/captain/matches/create');
             exit;
         }
@@ -240,7 +223,8 @@ class CaptainController
         }
 
         // Construire ManifestationTypée
-        $filter = $selectedTeam['manifestation_filter'] ?: 'Match ' . $selectedTeam['libelle'];
+        $isPlateau = ($_POST['event_nature'] ?? '') === 'plateau' || count($opponentTeamIds) > 1 || stripos($selectedTeam['manifestation_filter'] ?? '', 'plateau') !== false;
+        $filter = $selectedTeam['manifestation_filter'] ?: ($isPlateau ? 'Plateau ' : 'Match ') . $selectedTeam['libelle'];
         $manifestationType = "Disponibilités - Match - " . $filter;
 
         try {
@@ -253,24 +237,16 @@ class CaptainController
                 'statut' => $data['statut']
             ]);
 
-            // Lier l'équipe adverse dans match_results (sans score encore)
-            \App\Models\MatchResult::upsert([
-                'manifestation_id'     => $id,
-                'opponent_team_id'     => $opponentTeamId,
-                'sets_for'             => null,
-                'sets_against'         => null,
-                'set_details'          => null,
-                'entered_by_joueur_id' => $userId,
-                'entered_by_admin'     => 0,
-                'has_score'            => false,
-            ]);
+            // Synchroniser les équipes adverses dans match_results (sans score encore)
+            \App\Models\MatchResult::syncManifestationOpponents($id, $opponentTeamIds, $userId);
 
             $event = EventRepository::findEventRaw($id);
             if ($event) {
                 \App\Services\Agenda\EventNotificationService::sendCreationNotifications($event);
             }
 
-            View::flash('success', 'Match créé avec succès et publié dans l\'agenda.');
+            $labelSuccess = $isPlateau ? 'Plateau créé avec succès et publié dans l\'agenda.' : 'Match créé avec succès et publié dans l\'agenda.';
+            View::flash('success', $labelSuccess);
             header('Location: /member/captain');
             exit;
         } catch (\Exception $e) {
@@ -323,21 +299,23 @@ class CaptainController
         $statuses = \App\Models\MotsClef::getByCategory('Statut');
         $opponentTeams = \App\Models\OpponentTeam::allActive();
         $currentResult = \App\Models\MatchResult::findByManifestation($matchId);
+        $currentEncounters = \App\Models\MatchResult::findAllByManifestation($matchId);
 
         View::render('member/captain/edit_match.twig', [
-            'event'          => $event,
-            'date_value'     => $dateValue,
-            'team'           => $matchedTeam,
-            'locations'      => $locations,
-            'durations'      => $durations,
-            'statuses'       => $statuses,
-            'opponent_teams' => $opponentTeams,
-            'current_result' => $currentResult,
+            'event'              => $event,
+            'date_value'         => $dateValue,
+            'team'               => $matchedTeam,
+            'locations'          => $locations,
+            'durations'          => $durations,
+            'statuses'           => $statuses,
+            'opponent_teams'     => $opponentTeams,
+            'current_result'     => $currentResult,
+            'current_encounters' => $currentEncounters,
         ]);
     }
 
     /**
-     * Enregistre les modifications d'un match.
+     * Enregistre les modifications d'un match ou d'un plateau.
      * Route: POST /member/captain/matches/{id}/edit
      */
     public function updateMatch(array $params): void
@@ -383,28 +361,11 @@ class CaptainController
 
         $data = $v->getCleanData(['date', 'location', 'commentaire', 'duration', 'statut']);
 
-        // Gestion de l'équipe adverse (sélection ou création à la volée)
-        $opponentTeamId = !empty($_POST['opponent_team_id']) ? (int)$_POST['opponent_team_id'] : null;
-        $newOpponentName = trim((string)($_POST['new_opponent_name'] ?? ''));
+        // Gestion des équipes adverses (sélection multiple et/ou créations à la volée)
+        $opponentTeamIds = $this->extractOpponentTeamIdsFromPost($userId);
 
-        if (!empty($newOpponentName)) {
-            $existing = \App\Models\OpponentTeam::findByName($newOpponentName);
-            if ($existing) {
-                $opponentTeamId = (int)$existing['id'];
-            } else {
-                $opponentTeamId = \App\Models\OpponentTeam::create([
-                    'name'                 => $newOpponentName,
-                    'club'                 => trim((string)($_POST['new_opponent_club'] ?? '')),
-                    'city'                 => trim((string)($_POST['new_opponent_city'] ?? '')),
-                    'is_active'            => 1,
-                    'needs_review'         => 1,
-                    'created_by_joueur_id' => $userId,
-                ]);
-            }
-        }
-
-        if (empty($opponentTeamId)) {
-            View::flash('error', 'L\'équipe adverse est obligatoire.');
+        if (empty($opponentTeamIds)) {
+            View::flash('error', 'Au moins une équipe adverse est obligatoire.');
             header('Location: /member/captain/matches/' . $matchId . '/edit');
             exit;
         }
@@ -432,19 +393,8 @@ class CaptainController
                 'statut' => $data['statut']
             ]);
 
-            // Mettre à jour l'adversaire dans match_results
-            $existingResult = \App\Models\MatchResult::findByManifestation($matchId);
-            \App\Models\MatchResult::upsert([
-                'manifestation_id'     => $matchId,
-                'opponent_team_id'     => $opponentTeamId,
-                'sets_for'             => $existingResult['sets_for'] ?? null,
-                'sets_against'         => $existingResult['sets_against'] ?? null,
-                'set_details'          => $existingResult['set_details'] ?? null,
-                'entered_by_joueur_id' => $existingResult['entered_by_joueur_id'] ?? $userId,
-                'entered_by_admin'     => $existingResult['entered_by_admin'] ?? 0,
-                'entered_at'           => $existingResult['entered_at'] ?? null,
-                'has_score'            => !empty($existingResult['has_score']),
-            ]);
+            // Synchroniser les équipes adverses dans match_results
+            \App\Models\MatchResult::syncManifestationOpponents($matchId, $opponentTeamIds, $userId);
 
             // Notification d'annulation par email
             $isCancelledNow = str_contains($data['statut'], 'Annulé');
@@ -1415,18 +1365,20 @@ class CaptainController
         }
 
         $currentResult = \App\Models\MatchResult::findByManifestation($matchId);
+        $encounters = \App\Models\MatchResult::findAllByManifestation($matchId);
         $opponentTeams = \App\Models\OpponentTeam::allActive();
 
         View::render('member/captain/match_result.twig', [
             'event'          => $event,
             'team'           => $matchedTeam,
             'current_result' => $currentResult,
+            'encounters'     => $encounters,
             'opponent_teams' => $opponentTeams,
         ]);
     }
 
     /**
-     * Enregistre le score saisi par le capitaine.
+     * Enregistre le score saisi par le capitaine (match simple ou plateau).
      * Route: POST /member/captain/matches/{id}/result
      */
     public function updateScoreResult(array $params): void
@@ -1457,7 +1409,81 @@ class CaptainController
             exit;
         }
 
-        // Gestion de l'équipe adverse (sélection ou création à la volée si absente)
+        // Cas 1 : Mode Plateau (soumission groupée via scores[opponent_id])
+        if (!empty($_POST['scores']) && is_array($_POST['scores'])) {
+            $updatedAny = false;
+
+            foreach ($_POST['scores'] as $oppId => $scoreData) {
+                $oppId = (int)$oppId;
+                if ($oppId <= 0) {
+                    continue;
+                }
+
+                $setsFor = isset($scoreData['sets_for']) && $scoreData['sets_for'] !== '' ? (int)$scoreData['sets_for'] : null;
+                $setsAgainst = isset($scoreData['sets_against']) && $scoreData['sets_against'] !== '' ? (int)$scoreData['sets_against'] : null;
+
+                // Si les deux champs sont vides, on n'écrase pas ce match
+                if ($setsFor === null && $setsAgainst === null) {
+                    continue;
+                }
+
+                if ($setsFor === null || $setsAgainst === null) {
+                    View::flash('error', 'Le score en sets (USM et Adversaire) est obligatoire pour chaque match complété.');
+                    header('Location: /member/captain/matches/' . $matchId . '/result');
+                    exit;
+                }
+
+                if ($setsFor < 0 || $setsFor > 5 || $setsAgainst < 0 || $setsAgainst > 5) {
+                    View::flash('error', 'Le nombre de sets doit être compris entre 0 et 5.');
+                    header('Location: /member/captain/matches/' . $matchId . '/result');
+                    exit;
+                }
+
+                if ($setsFor === $setsAgainst) {
+                    View::flash('error', 'Au volleyball, un match ne peut pas se terminer par une égalité en sets.');
+                    header('Location: /member/captain/matches/' . $matchId . '/result');
+                    exit;
+                }
+
+                $rawSets = $scoreData['set_details'] ?? [];
+                $cleanSetDetails = [];
+                if (is_array($rawSets)) {
+                    foreach ($rawSets as $set) {
+                        $pFor = isset($set['for']) && $set['for'] !== '' ? (int)$set['for'] : null;
+                        $pAgainst = isset($set['against']) && $set['against'] !== '' ? (int)$set['against'] : null;
+                        if ($pFor !== null && $pAgainst !== null) {
+                            $cleanSetDetails[] = ['for' => $pFor, 'against' => $pAgainst];
+                        }
+                    }
+                }
+
+                \App\Models\MatchResult::upsert([
+                    'manifestation_id'     => $matchId,
+                    'opponent_team_id'     => $oppId,
+                    'sets_for'             => $setsFor,
+                    'sets_against'         => $setsAgainst,
+                    'set_details'          => $cleanSetDetails,
+                    'entered_by_joueur_id' => $userId,
+                    'entered_by_admin'     => 0,
+                    'entered_at'           => date('Y-m-d H:i:s'),
+                    'has_score'            => true,
+                ]);
+
+                $updatedAny = true;
+            }
+
+            if (!$updatedAny) {
+                View::flash('error', 'Veuillez renseigner au moins un score.');
+                header('Location: /member/captain/matches/' . $matchId . '/result');
+                exit;
+            }
+
+            View::flash('success', 'Scores des rencontres enregistrés avec succès !');
+            header('Location: /member/captain');
+            exit;
+        }
+
+        // Cas 2 : Mode Match simple (soumission directe)
         $opponentTeamId = !empty($_POST['opponent_team_id']) ? (int)$_POST['opponent_team_id'] : null;
         $newOpponentName = trim((string)($_POST['new_opponent_name'] ?? ''));
 
@@ -1541,5 +1567,55 @@ class CaptainController
             header('Location: /member/captain/matches/' . $matchId . '/result');
             exit;
         }
+    }
+
+    /**
+     * Extrait et crée si nécessaire la liste des identifiants des équipes adverses depuis le POST.
+     *
+     * @return int[] Liste d'IDs uniques d'équipes adverses
+     */
+    private function extractOpponentTeamIdsFromPost(int $userId): array
+    {
+        $opponentTeamIds = [];
+        if (!empty($_POST['opponent_team_ids']) && is_array($_POST['opponent_team_ids'])) {
+            $opponentTeamIds = array_map('intval', $_POST['opponent_team_ids']);
+        } elseif (!empty($_POST['opponent_team_id'])) {
+            $opponentTeamIds[] = (int)$_POST['opponent_team_id'];
+        }
+
+        $rawNewOpponents = $_POST['new_opponents'] ?? [];
+        if (!is_array($rawNewOpponents)) {
+            $rawNewOpponents = [];
+        }
+        if (!empty($_POST['new_opponent_name'])) {
+            $rawNewOpponents[] = [
+                'name'  => $_POST['new_opponent_name'],
+                'club'  => $_POST['new_opponent_club'] ?? '',
+                'city'  => $_POST['new_opponent_city'] ?? '',
+            ];
+        }
+
+        foreach ($rawNewOpponents as $newOpp) {
+            $oppName = trim((string)($newOpp['name'] ?? ''));
+            if ($oppName === '') {
+                continue;
+            }
+            $existing = \App\Models\OpponentTeam::findByName($oppName);
+            if ($existing) {
+                $opponentTeamIds[] = (int)$existing['id'];
+            } else {
+                $newId = \App\Models\OpponentTeam::create([
+                    'name'                 => $oppName,
+                    'club'                 => trim((string)($newOpp['club'] ?? '')),
+                    'city'                 => trim((string)($newOpp['city'] ?? '')),
+                    'is_active'            => 1,
+                    'needs_review'         => 1,
+                    'created_by_joueur_id' => $userId,
+                ]);
+                $opponentTeamIds[] = $newId;
+            }
+        }
+
+        return array_values(array_unique(array_filter($opponentTeamIds)));
     }
 }

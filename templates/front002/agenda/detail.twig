@@ -66,36 +66,91 @@
 
       {# Bloc Résultat et Équipe Adverse #}
       {% if event.is_match and (event.opponent_name or event.has_score) %}
-        <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">Rencontre Officielle</span>
-            <div class="text-xl font-black mt-0.5">
-              USM Volley <span class="text-slate-400 font-normal">vs</span> {{ event.opponent_name|default('Adversaire non précisé') }}
-            </div>
-            {% if event.opponent_club or event.opponent_city %}
-              <div class="text-xs text-slate-400 mt-0.5">
-                {{ event.opponent_club }}{% if event.opponent_club and event.opponent_city %} · {% endif %}{{ event.opponent_city }}
+        {% if event.is_plateau %}
+          {# Affichage Spécifique Plateau Multi-équipes #}
+          <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">🎪 Plateau Officiel</span>
+                <div class="text-xl font-black mt-0.5">
+                  Plateau Multi-équipes
+                </div>
               </div>
-            {% endif %}
-          </div>
-          {% if event.has_score %}
-            <div class="flex flex-col sm:items-end">
-              <span class="text-xs font-bold text-slate-400 uppercase">Score final</span>
-              <div class="inline-flex items-center gap-2 mt-1">
-                <span class="px-3 py-1 rounded-xl text-sm font-black {{ event.outcome_badge_classes|default('bg-white/10 text-white') }}">
-                  {{ event.outcome_label|default('Score') }} : {{ event.score_formatted }}
-                </span>
-              </div>
-              {% if event.match_result.set_details is defined and event.match_result.set_details|length > 0 %}
-                <div class="flex items-center gap-1.5 mt-2 text-xs text-slate-300">
-                  {% for s in event.match_result.set_details %}
-                    <span class="bg-white/10 px-2 py-0.5 rounded-md font-mono">{{ s.for }}-{{ s.against }}</span>
-                  {% endfor %}
+              {% if event.has_score %}
+                <div class="inline-flex items-center gap-2">
+                  <span class="px-3 py-1 rounded-xl text-sm font-black {{ event.outcome_badge_classes|default('bg-white/10 text-white') }}">
+                    Bilan global : {{ event.summary_record|default(event.score_formatted) }}
+                  </span>
                 </div>
               {% endif %}
             </div>
-          {% endif %}
-        </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {% for enc in event.encounters %}
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col justify-between gap-3">
+                  <div>
+                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Rencontre {{ loop.index }}</span>
+                    <h3 class="text-base font-black text-white mt-0.5">
+                      USM <span class="text-slate-400 font-normal">vs</span> {{ enc.opponent_name }}
+                    </h3>
+                    {% if enc.opponent_club or enc.opponent_city %}
+                      <p class="text-xs text-slate-400 mt-0.5">{{ enc.opponent_club }}{% if enc.opponent_club and enc.opponent_city %} · {% endif %}{{ enc.opponent_city }}</p>
+                    {% endif %}
+                  </div>
+
+                  {% if enc.has_score %}
+                    <div class="pt-2 border-t border-white/10 flex items-center justify-between">
+                      <span class="px-2.5 py-1 rounded-lg text-xs font-black {{ enc.outcome_badge_classes|default('bg-white/10 text-white') }}">
+                        {{ enc.outcome_label|default('Score') }} : {{ enc.sets_for }} - {{ enc.sets_against }}
+                      </span>
+                      {% if enc.set_details is defined and enc.set_details|length > 0 %}
+                        <div class="flex items-center gap-1 text-[11px] text-slate-300 font-mono">
+                          {% for s in enc.set_details %}
+                            <span class="bg-white/10 px-1.5 py-0.5 rounded">{{ s.for }}-{{ s.against }}</span>
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <span class="text-xs text-slate-500 italic">Score en attente</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          {# Affichage Match Simple #}
+          <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">Rencontre Officielle</span>
+              <div class="text-xl font-black mt-0.5">
+                USM Volley <span class="text-slate-400 font-normal">vs</span> {{ event.opponent_name|default('Adversaire non précisé') }}
+              </div>
+              {% if event.opponent_club or event.opponent_city %}
+                <div class="text-xs text-slate-400 mt-0.5">
+                  {{ event.opponent_club }}{% if event.opponent_club and event.opponent_city %} · {% endif %}{{ event.opponent_city }}
+                </div>
+              {% endif %}
+            </div>
+            {% if event.has_score %}
+              <div class="flex flex-col sm:items-end">
+                <span class="text-xs font-bold text-slate-400 uppercase">Score final</span>
+                <div class="inline-flex items-center gap-2 mt-1">
+                  <span class="px-3 py-1 rounded-xl text-sm font-black {{ event.outcome_badge_classes|default('bg-white/10 text-white') }}">
+                    {{ event.outcome_label|default('Score') }} : {{ event.score_formatted }}
+                  </span>
+                </div>
+                {% if event.match_result.set_details is defined and event.match_result.set_details|length > 0 %}
+                  <div class="flex items-center gap-1.5 mt-2 text-xs text-slate-300">
+                    {% for s in event.match_result.set_details %}
+                      <span class="bg-white/10 px-2 py-0.5 rounded-md font-mono">{{ s.for }}-{{ s.against }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
       {% endif %}
 
       {# Lieu #}

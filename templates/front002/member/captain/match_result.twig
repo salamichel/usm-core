@@ -1,5 +1,5 @@
 {% extends "base.twig" %}
-{% block title %}Saisir le résultat du Match — USM Volley{% endblock %}
+{% block title %}Saisir les résultats — USM Volley{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-slate-50/50 pb-24 md:pb-12">
@@ -12,7 +12,9 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 </a>
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Saisir le score</h1>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">
+                        {% if encounters|length > 1 %}Saisir les scores du Plateau{% else %}Saisir le score du Match{% endif %}
+                    </h1>
                     <p class="text-slate-400 text-sm mt-1">
                         Rencontre du {{ event.date_display }} pour l'équipe <strong>{{ team.libelle }}</strong>
                     </p>
@@ -23,124 +25,202 @@
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 -mt-10">
         <div class="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm space-y-6">
-            <form method="POST" action="{{ url('member/captain/matches/' ~ event.id ~ '/result') }}" class="space-y-6"
-                  x-data="{
-                      setsFor: '{{ current_result.sets_for is defined and current_result.sets_for is not null ? current_result.sets_for : '' }}',
-                      setsAgainst: '{{ current_result.sets_against is defined and current_result.sets_against is not null ? current_result.sets_against : '' }}',
-                      totalSets() {
-                          const f = parseInt(this.setsFor) || 0;
-                          const a = parseInt(this.setsAgainst) || 0;
-                          return Math.max(f + a, 0);
-                      }
-                  }">
+            
+            {# Rappel de l'événement #}
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+                        {% if encounters|length > 1 %}Plateau officiel{% else %}Rencontre officielle{% endif %}
+                    </span>
+                    <span class="font-bold text-slate-800 text-base">{{ event.titre }}</span>
+                </div>
+                <div class="text-slate-600 sm:text-right">
+                    <span>{{ event.date_display }}{% if event.time_display %} à {{ event.time_display }}{% endif %}</span>
+                    <span class="block text-xs text-slate-500">📍 {{ event.lieu|default('Lieu non précisé') }}</span>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url('member/captain/matches/' ~ event.id ~ '/result') }}" class="space-y-6">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
 
-                {# Rappel du match #}
-                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
-                    <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">Rencontre</span>
-                        <span class="font-bold text-slate-800 text-base">{{ event.titre }}</span>
-                    </div>
-                    <div class="text-slate-600 sm:text-right">
-                        <span>{{ event.date_display }}{% if event.time_display %} à {{ event.time_display }}{% endif %}</span>
-                        <span class="block text-xs text-slate-500">📍 {{ event.lieu|default('Lieu non précisé') }}</span>
-                    </div>
-                </div>
-
-                {# Équipe adverse #}
-                <div class="p-4 bg-amber-50/40 border border-amber-200/80 rounded-2xl space-y-3" x-data="{ isNewOpponent: false }">
-                    <div class="flex items-center justify-between">
-                        <label for="opponent_team_id" class="block text-sm font-bold text-slate-900">Équipe adverse *</label>
-                        <button type="button" @click="isNewOpponent = !isNewOpponent" class="text-xs font-bold text-amber-700 hover:text-amber-800 transition flex items-center gap-1 cursor-pointer">
-                            <span x-show="!isNewOpponent" x-cloak>+ Nouvelle équipe non listée</span>
-                            <span x-show="isNewOpponent" x-cloak>← Choisir dans la liste existante</span>
-                        </button>
-                    </div>
-
-                    <div x-show="!isNewOpponent">
-                        <select id="opponent_team_id" name="opponent_team_id" :disabled="isNewOpponent" :required="!isNewOpponent"
-                                class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-800 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                            <option value="">-- Sélectionner l'équipe adverse --</option>
-                            {% for ot in opponent_teams %}
-                                <option value="{{ ot.id }}" {% if current_result and current_result.opponent_team_id == ot.id %}selected{% endif %}>
-                                    {{ ot.name }}{% if ot.city %} ({{ ot.city }}){% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div x-show="isNewOpponent" x-cloak class="space-y-3 pt-2 border-t border-amber-200">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nom complet de l'équipe adverse *</label>
-                            <input type="text" name="new_opponent_name" placeholder="ex: VB Club Toulonnais 2" :disabled="!isNewOpponent" :required="isNewOpponent"
-                                   class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                {% if encounters|length > 1 %}
+                    {# ══════════════════════════════════════════════════════ #}
+                    {# MODE PLATEAU : PLUSIEURS MATCHS À SAISIR              #}
+                    {# ══════════════════════════════════════════════════════ #}
+                    <div class="space-y-6">
+                        <div class="border-b border-slate-100 pb-2">
+                            <h2 class="text-base font-extrabold text-slate-900">Scores des rencontres du plateau</h2>
+                            <p class="text-xs text-slate-500">Saisissez les résultats en sets et le détail des points pour chaque adversaire du plateau.</p>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Club (optionnel)</label>
-                                <input type="text" name="new_opponent_club" placeholder="ex: VBC Toulon" :disabled="!isNewOpponent"
-                                       class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 focus:border-amber-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1">Ville (optionnel)</label>
-                                <input type="text" name="new_opponent_city" placeholder="ex: Toulon" :disabled="!isNewOpponent"
-                                       class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 focus:border-amber-500 focus:outline-none">
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                {# Score en sets #}
-                <div class="border border-slate-200 rounded-2xl p-5 space-y-4">
-                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                        <span>🏆</span> Score final en sets *
-                    </h3>
-
-                    <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto items-center text-center">
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-600">USM (Pour)</label>
-                            <input type="number" name="sets_for" min="0" max="5" required
-                                   x-model="setsFor"
-                                   class="w-full text-center text-2xl font-black py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-600">Adversaire (Contre)</label>
-                            <input type="number" name="sets_against" min="0" max="5" required
-                                   x-model="setsAgainst"
-                                   class="w-full text-center text-2xl font-black py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900">
-                        </div>
-                    </div>
-                    <p class="text-xs text-center text-slate-500">Exemple : <strong>3</strong> pour l'USM et <strong>1</strong> pour l'adversaire (pas d'égalité en volley).</p>
-                </div>
-
-                {# Détail optionnel des sets (points) #}
-                <div class="border border-slate-200 rounded-2xl p-5 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-sm">Détail des points par set (optionnel)</h3>
-                            <p class="text-xs text-slate-500">Renseignez les points de chaque set pour alimenter les statistiques de rencontre.</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2.5">
-                        {% for i in 1..5 %}
-                            {% set setVal = current_result.set_details[i - 1] ?? null %}
-                            <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100"
-                                 x-show="totalSets() === 0 || {{ i }} <= totalSets()">
-                                <span class="w-16 text-xs font-bold text-slate-600">Set {{ i }}</span>
-                                <div class="flex-1 flex items-center gap-2">
-                                    <input type="number" min="0" max="99" name="set_details[{{ i }}][for]" placeholder="USM"
-                                           value="{{ setVal ? setVal.for : '' }}"
-                                           class="w-full text-center py-1.5 px-2 bg-white rounded-lg border border-slate-200 text-sm font-semibold focus:border-amber-500">
-                                    <span class="text-slate-400 font-bold">-</span>
-                                    <input type="number" min="0" max="99" name="set_details[{{ i }}][against]" placeholder="Adv."
-                                           value="{{ setVal ? setVal.against : '' }}"
-                                           class="w-full text-center py-1.5 px-2 bg-white rounded-lg border border-slate-200 text-sm font-semibold focus:border-amber-500">
+                        {% for enc in encounters %}
+                            {% set oppId = enc.opponent_team_id %}
+                            <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 space-y-4">
+                                <div class="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                                    <div>
+                                        <span class="text-[11px] font-black uppercase tracking-wider text-amber-600">Match {{ loop.index }}</span>
+                                        <h3 class="text-base font-black text-slate-900">
+                                            USM <span class="text-slate-400 font-normal">vs</span> {{ enc.opponent_name|default('Adversaire ' ~ loop.index) }}
+                                        </h3>
+                                        {% if enc.opponent_club or enc.opponent_city %}
+                                            <p class="text-xs text-slate-500">{{ enc.opponent_club }}{% if enc.opponent_club and enc.opponent_city %} · {% endif %}{{ enc.opponent_city }}</p>
+                                        {% endif %}
+                                    </div>
+                                    {% if enc.has_score %}
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold {{ enc.outcome_badge_classes|default('bg-emerald-50 text-emerald-700') }}">
+                                            Score actuel : {{ enc.sets_for }} - {{ enc.sets_against }}
+                                        </span>
+                                    {% endif %}
                                 </div>
+
+                                {# Score en sets #}
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold text-slate-700">Score final en sets *</label>
+                                    <div class="grid grid-cols-2 gap-3 max-w-xs items-center text-center">
+                                        <div class="space-y-1">
+                                            <span class="block text-[11px] font-semibold text-slate-500">USM</span>
+                                            <input type="number" name="scores[{{ oppId }}][sets_for]" min="0" max="5"
+                                                   value="{{ enc.sets_for is defined and enc.sets_for is not null ? enc.sets_for : '' }}"
+                                                   placeholder="3"
+                                                   class="w-full text-center text-xl font-black py-2 rounded-xl border border-slate-200 bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <span class="block text-[11px] font-semibold text-slate-500">Adversaire</span>
+                                            <input type="number" name="scores[{{ oppId }}][sets_against]" min="0" max="5"
+                                                   value="{{ enc.sets_against is defined and enc.sets_against is not null ? enc.sets_against : '' }}"
+                                                   placeholder="1"
+                                                   class="w-full text-center text-xl font-black py-2 rounded-xl border border-slate-200 bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {# Détail optionnel des sets (points) #}
+                                <details class="group pt-2">
+                                    <summary class="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer list-none flex items-center gap-1.5 select-none">
+                                        <span class="group-open:rotate-90 transition-transform">▸</span>
+                                        Détail des points par set (optionnel)
+                                    </summary>
+                                    <div class="space-y-2 pt-3 pl-3">
+                                        {% for i in 1..5 %}
+                                            {% set setVal = enc.set_details[i - 1] ?? null %}
+                                            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200/80 max-w-sm">
+                                                <span class="w-14 text-xs font-bold text-slate-600">Set {{ i }}</span>
+                                                <div class="flex-1 flex items-center gap-2">
+                                                    <input type="number" min="0" max="99" name="scores[{{ oppId }}][set_details][{{ i }}][for]" placeholder="USM"
+                                                           value="{{ setVal ? setVal.for : '' }}"
+                                                           class="w-full text-center py-1 px-2 bg-slate-50 rounded-lg border border-slate-200 text-xs font-semibold focus:border-amber-500">
+                                                    <span class="text-slate-400 font-bold text-xs">-</span>
+                                                    <input type="number" min="0" max="99" name="scores[{{ oppId }}][set_details][{{ i }}][against]" placeholder="Adv."
+                                                           value="{{ setVal ? setVal.against : '' }}"
+                                                           class="w-full text-center py-1 px-2 bg-slate-50 rounded-lg border border-slate-200 text-xs font-semibold focus:border-amber-500">
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </details>
                             </div>
                         {% endfor %}
                     </div>
-                </div>
+
+                {% else %}
+                    {# ══════════════════════════════════════════════════════ #}
+                    {# MODE MATCH SIMPLE (1 SEUL ADVERSAIRE)                  #}
+                    {# ══════════════════════════════════════════════════════ #}
+                    {% set singleEnc = encounters[0] ?? current_result %}
+                    
+                    {# Équipe adverse #}
+                    <div class="p-4 bg-amber-50/40 border border-amber-200/80 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label for="opponent_team_id" class="block text-sm font-bold text-slate-900">Équipe adverse *</label>
+                            <button type="button" id="btn-toggle-new-single" class="text-xs font-bold text-amber-700 hover:text-amber-800 transition flex items-center gap-1 cursor-pointer">
+                                + Nouvelle équipe non listée
+                            </button>
+                        </div>
+
+                        <div id="single-existing-box">
+                            <select id="opponent_team_id" name="opponent_team_id" required
+                                    class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-800 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                                <option value="">-- Sélectionner l'équipe adverse --</option>
+                                {% for ot in opponent_teams %}
+                                    <option value="{{ ot.id }}" {% if (singleEnc.opponent_team_id ?? null) == ot.id %}selected{% endif %}>
+                                        {{ ot.name }}{% if ot.city %} ({{ ot.city }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div id="single-new-box" class="space-y-3 pt-2 border-t border-amber-200 hidden">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nom complet de l'équipe adverse *</label>
+                                <input type="text" id="new_opponent_name" name="new_opponent_name" placeholder="ex: VB Club Toulonnais 2" disabled
+                                       class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Club (optionnel)</label>
+                                    <input type="text" id="new_opponent_club" name="new_opponent_club" placeholder="ex: VBC Toulon" disabled
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 focus:border-amber-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ville (optionnel)</label>
+                                    <input type="text" id="new_opponent_city" name="new_opponent_city" placeholder="ex: Toulon" disabled
+                                           class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 focus:border-amber-500 focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Score en sets #}
+                    <div class="border border-slate-200 rounded-2xl p-5 space-y-4">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <span>🏆</span> Score final en sets *
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto items-center text-center">
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-600">USM (Pour)</label>
+                                <input type="number" name="sets_for" min="0" max="5" required
+                                       value="{{ singleEnc.sets_for is defined and singleEnc.sets_for is not null ? singleEnc.sets_for : '' }}"
+                                       class="w-full text-center text-2xl font-black py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-slate-600">Adversaire (Contre)</label>
+                                <input type="number" name="sets_against" min="0" max="5" required
+                                       value="{{ singleEnc.sets_against is defined and singleEnc.sets_against is not null ? singleEnc.sets_against : '' }}"
+                                       class="w-full text-center text-2xl font-black py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-slate-900">
+                            </div>
+                        </div>
+                        <p class="text-xs text-center text-slate-500">Exemple : <strong>3</strong> pour l'USM et <strong>1</strong> pour l'adversaire (pas d'égalité en volley).</p>
+                    </div>
+
+                    {# Détail optionnel des sets (points) #}
+                    <div class="border border-slate-200 rounded-2xl p-5 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-sm">Détail des points par set (optionnel)</h3>
+                                <p class="text-xs text-slate-500">Renseignez les points de chaque set pour alimenter les statistiques de rencontre.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            {% for i in 1..5 %}
+                                {% set setVal = singleEnc.set_details[i - 1] ?? null %}
+                                <div class="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                    <span class="w-16 text-xs font-bold text-slate-600">Set {{ i }}</span>
+                                    <div class="flex-1 flex items-center gap-2">
+                                        <input type="number" min="0" max="99" name="set_details[{{ i }}][for]" placeholder="USM"
+                                               value="{{ setVal ? setVal.for : '' }}"
+                                               class="w-full text-center py-1.5 px-2 bg-white rounded-lg border border-slate-200 text-sm font-semibold focus:border-amber-500">
+                                        <span class="text-slate-400 font-bold">-</span>
+                                        <input type="number" min="0" max="99" name="set_details[{{ i }}][against]" placeholder="Adv."
+                                               value="{{ setVal ? setVal.against : '' }}"
+                                               class="w-full text-center py-1.5 px-2 bg-white rounded-lg border border-slate-200 text-sm font-semibold focus:border-amber-500">
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
 
                 {# Actions #}
                 <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-3">
@@ -150,11 +230,51 @@
                     </a>
                     <button type="submit"
                             class="text-sm font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 px-6 py-3 rounded-xl transition text-center shadow-sm">
-                        Enregistrer le score
+                        {% if encounters|length > 1 %}Enregistrer tous les scores du plateau{% else %}Enregistrer le score{% endif %}
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnToggleSingle = document.getElementById('btn-toggle-new-single');
+    if (!btnToggleSingle) return;
+
+    let isSingleNew = false;
+    const singleExistingBox = document.getElementById('single-existing-box');
+    const singleNewBox = document.getElementById('single-new-box');
+    const selectSingleOpp = document.getElementById('opponent_team_id');
+    const inputSingleName = document.getElementById('new_opponent_name');
+    const inputSingleClub = document.getElementById('new_opponent_club');
+    const inputSingleCity = document.getElementById('new_opponent_city');
+
+    btnToggleSingle.addEventListener('click', function() {
+        isSingleNew = !isSingleNew;
+        if (isSingleNew) {
+            singleExistingBox.classList.add('hidden');
+            singleNewBox.classList.remove('hidden');
+            btnToggleSingle.textContent = '← Choisir dans la liste existante';
+            selectSingleOpp.disabled = true;
+            selectSingleOpp.required = false;
+            inputSingleName.disabled = false;
+            inputSingleName.required = true;
+            inputSingleClub.disabled = false;
+            inputSingleCity.disabled = false;
+        } else {
+            singleExistingBox.classList.remove('hidden');
+            singleNewBox.classList.add('hidden');
+            btnToggleSingle.textContent = '+ Nouvelle équipe non listée';
+            selectSingleOpp.disabled = false;
+            selectSingleOpp.required = true;
+            inputSingleName.disabled = true;
+            inputSingleName.required = false;
+            inputSingleClub.disabled = true;
+            inputSingleCity.disabled = true;
+        }
+    });
+});
+</script>
 {% endblock %}
