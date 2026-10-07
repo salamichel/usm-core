@@ -39,14 +39,17 @@ class ProfileController
         $trainingTypes = [];
         $preferences = [];
 
+        $isCaptain = false;
         if ($saisonActive) {
             $equipes = EquipeSaisonJoueur::findEquipesByJoueur($userId, $saisonActive['id']);
             $trainingTypes = \App\Models\MotsClef::getTrainingTypes();
             $dbPrefs = \App\Models\MemberEmailPreference::getPreferences($userId, $saisonActive['id']);
-            $knownKeys = array_merge(['match', 'weekly_presence', 'club_life'], $trainingTypes);
+            $knownKeys = array_merge(['match', 'weekly_presence', 'club_life', 'score_reminder'], $trainingTypes);
             foreach ($knownKeys as $key) {
                 $preferences[$key] = $dbPrefs[$key] ?? 1;
             }
+            $captained = EquipeSaisonJoueur::findCaptainedTeams($userId, $saisonActive['id']);
+            $isCaptain = !empty($captained);
         }
 
         View::render('member/profile.twig', [
@@ -55,6 +58,7 @@ class ProfileController
             'saison' => $saisonActive,
             'training_types' => $trainingTypes,
             'preferences' => $preferences,
+            'is_captain' => $isCaptain,
         ]);
     }
 
@@ -131,6 +135,12 @@ class ProfileController
                 // 2b. Préférence vie du club & tournois
                 $prefClubLife = isset($_POST['pref_club_life']) && $_POST['pref_club_life'] === '1';
                 \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, 'club_life', $prefClubLife);
+
+                // 2c. Préférence rappel de saisie des scores (capitaines)
+                if (isset($_POST['has_captain_role']) || isset($_POST['pref_score_reminder'])) {
+                    $prefScoreReminder = isset($_POST['pref_score_reminder']) && $_POST['pref_score_reminder'] === '1';
+                    \App\Models\MemberEmailPreference::setPreference($userId, $saisonId, 'score_reminder', $prefScoreReminder);
+                }
 
                 // 3. Préférences entraînements
                 $prefTrainings = $_POST['pref_trainings'] ?? [];

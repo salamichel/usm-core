@@ -315,6 +315,13 @@ class BrevoService
 
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
         $eventTitle = $event['title'] ?? $event['titre'] ?? 'Match';
+        $remindMatchId = (int)($event['id'] ?? $event['id_manifestation'] ?? 0);
+        if ($remindMatchId > 0) {
+            $mr = \App\Models\MatchResult::findByManifestation($remindMatchId);
+            if (!empty($mr['opponent_name'])) {
+                $eventTitle .= ' vs ' . $mr['opponent_name'];
+            }
+        }
 
         $badgeText = 'Relance disponibilité';
         if ($reminderType === 'j-2') {
@@ -510,6 +517,13 @@ class BrevoService
 
         $playerName = trim(($player['Prénom'] ?? $player['prenom'] ?? '') . ' ' . ($player['Nom'] ?? $player['nom'] ?? ''));
         $eventTitle = $newEvent['titre'] ?? 'Match';
+        $newMatchId = (int)($newEvent['id'] ?? $newEvent['id_manifestation'] ?? 0);
+        if ($newMatchId > 0) {
+            $mr = \App\Models\MatchResult::findByManifestation($newMatchId);
+            if (!empty($mr['opponent_name'])) {
+                $eventTitle .= ' vs ' . $mr['opponent_name'];
+            }
+        }
         $subject = '⚠️ Modification match : ' . $eventTitle;
 
         // Old Date formatting
@@ -707,6 +721,16 @@ class BrevoService
         $eventTitle = $parts[2] ?? $rawType;
 
         $isMatch = (mb_strtolower($type) === 'match');
+        $opponentSuffix = '';
+        $eventId = (int)($event['id'] ?? $event['id_manifestation'] ?? 0);
+        if ($isMatch && $eventId > 0) {
+            $mr = \App\Models\MatchResult::findByManifestation($eventId);
+            if (!empty($mr['opponent_name'])) {
+                $opponentSuffix = ' vs ' . $mr['opponent_name'];
+                $eventTitle .= $opponentSuffix;
+            }
+        }
+
         $subject = ($isMatch ? '🏐 Nouveau match créé' : '🏐 Nouvel entraînement/événement créé') . ' : ' . $eventTitle;
 
         $eventDate = $event['Date'] ?? $event['date'] ?? '';
@@ -853,6 +877,64 @@ class BrevoService
             null,
             null,
             'weekly_presence'
+        );
+    }
+
+    public function sendCaptainScoreReminderNotification(
+        array $captain,
+        array $event,
+        string $teamName,
+        int $reminderNo
+    ): bool {
+        $captainEmail = $captain['Mel'] ?? $captain['mel'] ?? $captain['data']['Mel'] ?? null;
+        if (!$captainEmail) {
+            Logger::errors()->error('Cannot send score reminder email: no email address found for captain', ['captain' => $captain]);
+            return false;
+        }
+
+        $captainName = trim(($captain['Prénom'] ?? $captain['prenom'] ?? '') . ' ' . ($captain['Nom'] ?? $captain['nom'] ?? ''));
+        $eventTitle = $event['titre'] ?? 'Match';
+        if (!empty($event['opponent_name'])) {
+            $eventTitle .= ' vs ' . $event['opponent_name'];
+        }
+
+        $subject = '🏆 Saisie du score attendue : ' . $eventTitle;
+        if ($reminderNo > 1) {
+            $subject = "⏰ Relance #{$reminderNo} : Saisie du score attendue - " . $eventTitle;
+        }
+
+        $eventDate = $event['date_display'] ?? $event['Date'] ?? $event['date'] ?? '';
+        if (!empty($event['time_display'])) {
+            $eventDate .= ' à ' . $event['time_display'];
+        }
+        $eventLocation = $event['lieu'] ?? $event['Lieu'] ?? '';
+        $eventId = (int)($event['id'] ?? $event['id_manifestation'] ?? 0);
+
+        try {
+            $twig = \App\Core\View::getInstance();
+            $htmlContent = $twig->render('emails/score_reminder.twig', [
+                'CAPTAIN_NAME'   => $this->escapeHtml($captainName),
+                'TEAM_NAME'      => $this->escapeHtml($teamName),
+                'EVENT_TITLE'    => $this->escapeHtml($eventTitle),
+                'EVENT_DATE'     => $this->escapeHtml($eventDate),
+                'EVENT_LOCATION' => $this->escapeHtml($eventLocation),
+                'REMINDER_NO'    => $reminderNo,
+                'RESULT_URL'     => BASE_URL . '/member/captain/matches/' . $eventId . '/result',
+                'DASHBOARD_URL'  => BASE_URL . '/member/captain',
+            ]);
+        } catch (\Throwable $e) {
+            Logger::errors()->error('Failed to render score reminder email template via Twig', ['error' => $e->getMessage()]);
+            return false;
+        }
+
+        return $this->sendEmail(
+            $captainEmail,
+            $captainName,
+            $subject,
+            $htmlContent,
+            null,
+            null,
+            'score_reminder'
         );
     }
 

@@ -180,10 +180,11 @@ class JoueurSnapshot
                 }
             }
 
-            // Pré-cocher Match, Rappel hebdomadaire & Vie du club à 1 (true)
+            // Pré-cocher Match, Rappel hebdomadaire, Vie du club & Rappel saisie score à 1 (true)
             MemberEmailPreference::setPreference($playerId, $saisonId, 'match', true);
             MemberEmailPreference::setPreference($playerId, $saisonId, 'weekly_presence', true);
             MemberEmailPreference::setPreference($playerId, $saisonId, 'club_life', true);
+            MemberEmailPreference::setPreference($playerId, $saisonId, 'score_reminder', true);
 
             // Pré-cocher les entraînements correspondants (1 si match, 0 sinon)
             foreach ($trainingTypes as $tt) {

@@ -406,6 +406,170 @@ class EventNotificationService
 
         return $stats;
     }
+
+    /**
+     * Envoie les rappels de saisie des scores aux capitaines des rencontres passées.
+     * Règle : lendemain à 9h (J+1), puis relances tous les 2 jours (J+3, J+5), maximum 3 relances.
+     *
+     * @return array{sent: int, skipped: int, events_count: int}
+     */
+    public static function sendScoreReminders(): array
+    {
+        $stats = [
+            'sent'         => 0,
+            'skipped'      => 0,
+            'events_count' => 0,
+        ];
+
+        $saison = Saison::getActive();
+        if (!$saison) {
+            return $stats;
+        }
+        $saisonId = (int)$saison['id'];
+
+        $extDb = ExternalDatabase::get();
+        if (!$extDb) {
+            return $stats;
+        }
+
+        // Récupérer les matchs passés de la saison (jusqu'à 60 jours en arrière) non annulés
+        $stmt = $extDb->prepare("
+            SELECT * FROM Manifestation
+            WHERE (Statut IS NULL OR Statut NOT LIKE '%Annulé%')
+              AND (
+                  ManifestationTypée LIKE '%Match%'
+                  OR ManifestationTypée LIKE '%Plateau%'
+              )
+              AND Date < NOW()
+              AND Date >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+            ORDER BY Date DESC
+        ");
+        $stmt->execute();
+        $pastMatches = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        if (empty($pastMatches)) {
+            return $stats;
+        }
+
+        $activeTeams = EquipeConfig::allActive();
+        $brevo = new BrevoService();
+        $nowTs = time();
+
+        foreach ($pastMatches as $row) {
+            $eventId = (int)$row['id_manifestation'];
+            if ($eventId <= 0) {
+                continue;
+            }
+
+            // Vérifier si un score est déjà renseigné
+            $res = \App\Models\MatchResult::findByManifestation($eventId);
+            if ($res && $res['sets_for'] !== null && $res['sets_against'] !== null) {
+                continue; // Déjà renseigné !
+            }
+
+            // Calcul du temps écoulé depuis la fin du match
+            $matchDateTs = strtotime((string)$row['Date']);
+            if ($matchDateTs === false || $matchDateTs > $nowTs) {
+                continue;
+            }
+
+            $diffHours = ($nowTs - $matchDateTs) / 3600;
+            // Règle : attendre au moins 14 heures après le match (ex: match à 19h -> lendemain 9h = 14h)
+            if ($diffHours < 14) {
+                continue;
+            }
+
+            // Vérifier l'historique des rappels déjà envoyés
+            $lastReminder = \App\Models\ScoreReminderSent::getLastReminder($eventId);
+            $nextReminderNo = 1;
+
+            if ($lastReminder) {
+                $lastNo = (int)$lastReminder['reminder_no'];
+                if ($lastNo >= 3) {
+                    continue; // Maximum 3 relances atteint
+                }
+                $lastSentTs = strtotime((string)$lastReminder['sent_at']);
+                $hoursSinceLast = ($nowTs - $lastSentTs) / 3600;
+                // Relance tous les 2 jours (48h minimum)
+                if ($hoursSinceLast < 46) {
+                    continue;
+                }
+                $nextReminderNo = $lastNo + 1;
+            }
+
+            // Identifier l'équipe concernée
+            $manifType = (string)($row['ManifestationTypée'] ?? '');
+            $targetTeam = null;
+            foreach ($activeTeams as $team) {
+                $filter = $team['manifestation_filter'];
+                if ($filter && str_contains($manifType, $filter)) {
+                    $targetTeam = $team;
+                    break;
+                }
+            }
+
+            if (!$targetTeam) {
+                continue;
+            }
+
+            $es = \App\Models\EquipeSaison::findBySaisonAndEquipe($saisonId, $targetTeam['id']);
+            if (!$es) {
+                continue;
+            }
+
+            // Trouver les capitaines de l'équipe
+            $captains = EquipeSaisonJoueur::findCaptainsByEquipeSaison($es['id']);
+            if (empty($captains)) {
+                continue;
+            }
+
+            $normalizedEvent = \App\Services\Agenda\EventRepository::normalizeManifestation($row);
+            $eventSentAny = false;
+
+            foreach ($captains as $cap) {
+                $capId = (int)$cap['id_joueur'];
+                if (!MemberEmailPreference::isSubscribed($capId, $saisonId, 'score_reminder')) {
+                    continue; // Désabonné des rappels de score
+                }
+
+                $capDb = Joueur::findById($capId);
+                if (!$capDb || empty($capDb['Mel'])) {
+                    continue;
+                }
+
+                try {
+                    $sent = $brevo->sendCaptainScoreReminderNotification(
+                        $capDb,
+                        $normalizedEvent,
+                        $targetTeam['libelle'],
+                        $nextReminderNo
+                    );
+
+                    if ($sent) {
+                        $stats['sent']++;
+                        $eventSentAny = true;
+                    } else {
+                        $stats['skipped']++;
+                    }
+                } catch (\Throwable $e) {
+                    $stats['skipped']++;
+                    Logger::errors()->error('Failed to send captain score reminder', [
+                        'captain_id'  => $capId,
+                        'event_id'    => $eventId,
+                        'reminder_no' => $nextReminderNo,
+                        'error'       => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            if ($eventSentAny) {
+                \App\Models\ScoreReminderSent::markAsSent($eventId, $nextReminderNo);
+                $stats['events_count']++;
+            }
+        }
+
+        return $stats;
+    }
 }
 
 

@@ -5,7 +5,12 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
 ## 🎯 Caractéristiques
 
 - ⚽ Gestion des équipes et des joueurs (pages équipes avec effectif, photos, capitaines et suivi complet des rencontres de la saison : matchs à venir, rencontres passées, indicateurs de convocation et liens interactifs vers les feuilles de match)
-- 👑 Espace Capitaine dédié : suivi des présences, création/édition de matchs avec pré-sélection d'équipe, sélection de l'effectif, consultation des matchs passés et des convocations de la saison avec bascule interactive, et bouton de création rapide de match intégré directement dans les états vides (sans match programmé ou à venir)
+- 🏆 Référentiel des Équipes Adverses & Saisie des Scores :
+  - Référentiel centralisé côté Admin (`/admin/opponent-teams`) avec détection des équipes créées à la volée (`needs_review`), validation et fusion automatique des doublons avec réassignation en cascade.
+  - Saisie obligatoire de l'adversaire lors de la création/modification d'un match (sélection ou création libre par le capitaine).
+  - Saisie complète des scores par le capitaine (`/member/captain/matches/{id}/result`) ou l'administrateur : sets obligatoires (0 à 5, interdiction des égalités en sets), points par set optionnels.
+  - Affichage public instantané sur l'agenda et les fiches équipes : intitulé enrichi « USM vs {Adversaire} », badges dynamiques Victoire (vert) / Défaite (rouge) et score final.
+- 👑 Espace Capitaine dédié : suivi des présences, création/édition de matchs avec pré-sélection d'équipe, sélection de l'effectif, consultation des matchs passés et des convocations de la saison avec bascule interactive, bouton de création rapide de match intégré directement dans les états vides, et **bandeau d'alerte rouge proéminent** signalant les matchs passés nécessitant la saisie du score.
 - 📅 Agenda des matchs et entraînements :
   - Architecture Haute Performance : chargement groupé en mémoire (Batch Fetching) réduisant le temps de génération de 27s à moins d'1s, immunisé contre les timeouts des hébergements mutualisés (Free, InfinityFree)
   - Filtrage dynamique (type, manifestation, équipe, lieu, période) avec panneau réactif en un clic
@@ -154,6 +159,12 @@ Les deux bases sont synchronisées automatiquement au démarrage via les migrati
    - Envoi automatisé à J-2 et J-1 via Brevo avec boutons de réponse instantanée (1-clic avec jeton sécurisé HMAC-SHA256).
    - Suivi idempotent et anti-spam via la table locale `event_reminders_sent` (garantit au maximum 1 relance à J-2 et 1 relance à J-1 par adhérent).
    - Déclenchement automatique par le planificateur (`ScheduledJob` action `event_reminder`), par le Lazy Cron (`/api/cron/lazy-trigger`), ou par appel direct externe (`GET /api/cron/event-reminder?token=...`).
+10. **Rappels automatiques de saisie des scores aux capitaines** :
+    - Détection des matchs officiels passés (< 60 jours) non annulés dont le score n'a pas encore été renseigné.
+    - Première relance déclenchée à J+1 (au moins 14 heures après l'heure du match, ex: lendemain 9h pour un match à 19h).
+    - Relances espacées de 48 heures (J+3, J+5) plafonnées à un maximum strict de 3 relances par match via la table `score_reminders_sent`.
+    - Respect des préférences d'e-mail des capitaines (`pref_score_reminder`).
+    - Déclenchement automatique par le planificateur (`ScheduledJob` action `score_reminder`), par le Lazy Cron (`/api/cron/lazy-trigger`), ou par appel direct externe (`GET /api/cron/score-reminder?token=...`).
 
 ### Formulaire de contact
 1. Visiteur remplit le formulaire `/contact`

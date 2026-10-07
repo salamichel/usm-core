@@ -64,6 +64,40 @@
         </div>
       {% endif %}
 
+      {# Bloc Résultat et Équipe Adverse #}
+      {% if event.is_match and (event.opponent_name or event.has_score) %}
+        <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">Rencontre Officielle</span>
+            <div class="text-xl font-black mt-0.5">
+              USM Volley <span class="text-slate-400 font-normal">vs</span> {{ event.opponent_name|default('Adversaire non précisé') }}
+            </div>
+            {% if event.opponent_club or event.opponent_city %}
+              <div class="text-xs text-slate-400 mt-0.5">
+                {{ event.opponent_club }}{% if event.opponent_club and event.opponent_city %} · {% endif %}{{ event.opponent_city }}
+              </div>
+            {% endif %}
+          </div>
+          {% if event.has_score %}
+            <div class="flex flex-col sm:items-end">
+              <span class="text-xs font-bold text-slate-400 uppercase">Score final</span>
+              <div class="inline-flex items-center gap-2 mt-1">
+                <span class="px-3 py-1 rounded-xl text-sm font-black {{ event.outcome_badge_classes|default('bg-white/10 text-white') }}">
+                  {{ event.outcome_label|default('Score') }} : {{ event.score_formatted }}
+                </span>
+              </div>
+              {% if event.match_result.set_details is defined and event.match_result.set_details|length > 0 %}
+                <div class="flex items-center gap-1.5 mt-2 text-xs text-slate-300">
+                  {% for s in event.match_result.set_details %}
+                    <span class="bg-white/10 px-2 py-0.5 rounded-md font-mono">{{ s.for }}-{{ s.against }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
       {# Lieu #}
       {% if event.lieu %}
         <div class="pb-6 border-b border-slate-100">

@@ -1,0 +1,92 @@
+{% extends 'admin/layout.twig' %}
+{% import 'admin/_macros.twig' as m %}
+
+{% block content %}
+<div class="space-y-6">
+  {{ m.page_header('Équipes Adverses', url('admin/opponent-teams/create'), '+ Nouvelle Équipe', [
+    { label: 'Référentiel Adversaires' }
+  ]) }}
+
+  {% if pendingCount > 0 %}
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between text-amber-800">
+      <div class="flex items-center gap-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+        <span class="text-sm font-bold">
+          {{ pendingCount }} équipe(s) ajoutée(s) par un capitaine en attente de vérification / fusion.
+        </span>
+      </div>
+      <span class="text-xs font-semibold bg-amber-200/60 px-2.5 py-1 rounded-lg">À vérifier</span>
+    </div>
+  {% endif %}
+
+  {% if teams is empty %}
+    {{ m.empty_state('Aucune équipe adverse enregistrée.', url('admin/opponent-teams/create'), '+ Créer une équipe') }}
+  {% else %}
+    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-slate-100 bg-slate-50/50 text-slate-500 text-xs uppercase font-bold tracking-wider">
+              <th class="py-3.5 px-6">Nom</th>
+              <th class="py-3.5 px-6">Club</th>
+              <th class="py-3.5 px-6">Ville</th>
+              <th class="py-3.5 px-6 text-center">Statut</th>
+              <th class="py-3.5 px-6 text-center">Validation</th>
+              <th class="py-3.5 px-6 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-700">
+            {% for t in teams %}
+              <tr class="hover:bg-slate-50/50 transition">
+                <td class="py-4 px-6 font-bold text-slate-900">
+                  {{ t.name }}
+                </td>
+                <td class="py-4 px-6 text-slate-600">
+                  {{ t.club|default('—') }}
+                </td>
+                <td class="py-4 px-6 text-slate-600">
+                  {{ t.city|default('—') }}
+                </td>
+                <td class="py-4 px-6 text-center">
+                  {{ m.status_badge(t.is_active, 'Actif', 'Archivé') }}
+                </td>
+                <td class="py-4 px-6 text-center">
+                  {% if t.needs_review %}
+                    <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 text-xs font-bold rounded-full">
+                      À valider
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1 bg-slate-50 text-slate-500 border border-slate-200 px-2.5 py-0.5 text-xs font-bold rounded-full">
+                      Validée
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="py-4 px-6 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    {% if t.needs_review %}
+                      <form method="POST" action="{{ url('admin/opponent-teams/' ~ t.id ~ '/validate') }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                        <button type="submit"
+                                class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition"
+                                title="Valider l'équipe">
+                          Valider
+                        </button>
+                      </form>
+                    {% endif %}
+                    {{ m.action_buttons(
+                      url('admin/opponent-teams/' ~ t.id ~ '/edit'),
+                      url('admin/opponent-teams/' ~ t.id ~ '/delete'),
+                      'Supprimer cette équipe adverse ? Si des scores y sont rattachés, la suppression sera bloquée.',
+                      csrf_token
+                    ) }}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'emails/_layout.twig' %}
+
+{% block title %}Rappel : Saisie du score - USM Volley{% endblock %}
+
+{% block header_bg_color %}#7c2d12{% endblock %}
+{% block header_sub_color %}#fed7aa{% endblock %}
+
+{% block header_title %}🏆 Score à renseigner{% endblock %}
+{% block header_subtitle %}USM Volley — Rôle Capitaine{% endblock %}
+
+{% block content %}
+    <div class="greeting">Bonjour {{ CAPTAIN_NAME }},</div>
+    
+    <div class="intro">
+        En tant que capitaine de l'équipe <strong>{{ TEAM_NAME }}</strong>, nous vous invitons à renseigner le résultat et le score de la rencontre passée suivante :
+    </div>
+
+    {% if REMINDER_NO > 1 %}
+    <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; color: #9a3412; font-size: 13px; font-weight: 600;">
+        ℹ️ Relance n°{{ REMINDER_NO }} : le score de ce match n'a pas encore été enregistré.
+    </div>
+    {% endif %}
+
+    <div class="info-box" style="background-color: #fbf7ee; border-left-color: #f97316; border-color: #fed7aa;">
+        <div class="field-label" style="color: #c2410c;">🏆 Rencontre</div>
+        <div class="field-value title" style="color: #7c2d12;">{{ EVENT_TITLE }}</div>
+
+        <div class="field-label" style="color: #c2410c;">📅 Date de la rencontre</div>
+        <div class="field-value">{{ EVENT_DATE }}</div>
+
+        {% if EVENT_LOCATION %}
+        <div class="field-label" style="color: #c2410c;">📍 Lieu</div>
+        <div class="field-value">{{ EVENT_LOCATION }}</div>
+        {% endif %}
+    </div>
+
+    <p style="font-size: 14px; color: #475569; margin-bottom: 20px;">
+        La saisie du résultat permettra de mettre à jour le bilan de l'équipe et d'afficher le score sur l'agenda public du club.
+    </p>
+
+    <div class="cta-wrapper">
+        <a href="{{ RESULT_URL }}" class="cta-button" style="background-color: #ea580c;">Saisir le score maintenant →</a>
+    </div>
+
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 20px; text-align: center;">
+        Vous pouvez également saisir les résultats directement depuis votre <a href="{{ DASHBOARD_URL }}" style="color: #ea580c; text-decoration: underline;">espace capitaine</a>.
+    </p>
+{% endblock %}
+
+{% block footer %}
+    © USM Volley — Cet e-mail est envoyé aux capitaines d'équipes abonnés aux notifications de score.
+{% endblock %}

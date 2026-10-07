@@ -41,6 +41,7 @@ use App\Controllers\Admin\MotsClefController;
 use App\Controllers\Admin\ManifestationGeneratorController;
 use App\Controllers\Admin\ManifestationController;
 use App\Controllers\Admin\EmailLogController;
+use App\Controllers\Admin\OpponentTeamController;
 use App\Controllers\Admin\JoueurController as AdminJoueurController;
 use App\Controllers\Admin\ScheduledJobController;
 
@@ -130,6 +131,8 @@ class App
         $r->post('/member/captain/matches/{id}/edit', [CaptainController::class, 'updateMatch']);
         $r->get('/member/captain/matches/{id}/select-players', [CaptainController::class, 'selectPlayersForm']);
         $r->post('/member/captain/matches/{id}/select-players', [CaptainController::class, 'updateSelectedPlayers']);
+        $r->get('/member/captain/matches/{id}/result', [CaptainController::class, 'scoreResultForm']);
+        $r->post('/member/captain/matches/{id}/result', [CaptainController::class, 'updateScoreResult']);
         $r->post('/member/captain/matches/{id}/remind', [CaptainController::class, 'remindNoResponse']);
 
         // ── API ───────────────────────────────────────────────────────────────
@@ -142,6 +145,7 @@ class App
         $r->post('/api/member-email-preferences/update', [EmailPreferenceApiController::class, 'update']);
         $r->get('/api/cron/weekly-presence', [CronController::class, 'weeklyPresence']);
         $r->get('/api/cron/event-reminder', [CronController::class, 'eventReminder']);
+        $r->get('/api/cron/score-reminder', [CronController::class, 'scoreReminder']);
         $r->post('/api/cron/lazy-trigger', [CronController::class, 'lazyTrigger']);
 
         // ── Admin auth ────────────────────────────────────────────────────────
@@ -232,6 +236,16 @@ class App
             [EquipeConfigController::class, 'removeJoueur']);
         $r->post('/admin/equipes-config/{id}/saisons/{sid}/joueurs/{jid}/toggle-captain',
             [EquipeConfigController::class, 'toggleCaptain']);
+
+        // ── Admin Équipes adverses ─────────────────────────────────────────────
+        $r->get('/admin/opponent-teams',                 [OpponentTeamController::class, 'index']);
+        $r->get('/admin/opponent-teams/create',          [OpponentTeamController::class, 'create']);
+        $r->post('/admin/opponent-teams/create',         [OpponentTeamController::class, 'store']);
+        $r->post('/admin/opponent-teams/{id}/validate',  [OpponentTeamController::class, 'validate']);
+        $r->post('/admin/opponent-teams/{id}/merge',     [OpponentTeamController::class, 'merge']);
+        $r->get('/admin/opponent-teams/{id}/edit',       [OpponentTeamController::class, 'edit']);
+        $r->post('/admin/opponent-teams/{id}/edit',      [OpponentTeamController::class, 'update']);
+        $r->post('/admin/opponent-teams/{id}/delete',    [OpponentTeamController::class, 'delete']);
 
         // ── Admin catégories d'équipes ────────────────────────────────────────
         $r->get('/admin/categories-equipes',              [CategorieEquipeController::class, 'index']);

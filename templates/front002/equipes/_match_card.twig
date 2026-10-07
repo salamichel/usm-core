@@ -51,9 +51,18 @@
   </div>
 
   {# Titre de la rencontre #}
-  <h3 class="font-serif font-bold text-base text-slate-900 group-hover:text-[var(--primary)] transition-colors leading-snug line-clamp-2 mb-3">
-    {{ event.titre }}
-  </h3>
+  <div class="mb-3 space-y-1">
+    <h3 class="font-serif font-bold text-base text-slate-900 group-hover:text-[var(--primary)] transition-colors leading-snug line-clamp-2">
+      {{ event.titre }}{% if event.opponent_name %} <span class="text-amber-800 font-extrabold block text-sm">vs {{ event.opponent_name }}</span>{% endif %}
+    </h3>
+    {% if event.has_score %}
+      <div class="pt-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black {{ event.outcome_badge_classes|default('bg-slate-100 text-slate-800') }}">
+          🏆 {{ event.outcome_label|default('Résultat') }} : {{ event.score_formatted }}
+        </span>
+      </div>
+    {% endif %}
+  </div>
 
   {# Informations d'organisation #}
   <div class="space-y-1.5 text-xs text-slate-500 mb-4">

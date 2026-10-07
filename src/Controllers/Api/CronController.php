@@ -128,6 +128,67 @@ class CronController
     }
 
     /**
+     * Tâche planifiée automatique des rappels de saisie des scores aux capitaines.
+     * Route: GET /api/cron/score-reminder
+     */
+    public function scoreReminder(): void
+    {
+        header('Content-Type: application/json');
+
+        // Récupérer le token de sécurité
+        $configuredToken = defined('CRON_SECURITY_TOKEN') ? CRON_SECURITY_TOKEN : '';
+        $providedToken = $_GET['token'] ?? '';
+
+        if (empty($configuredToken) || $providedToken !== $configuredToken) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'message' => 'Accès interdit. Token invalide.']);
+            exit;
+        }
+
+        $startTime = microtime(true);
+        try {
+            $res = EventNotificationService::sendScoreReminders();
+            $durationMs = (int)round((microtime(true) - $startTime) * 1000);
+
+            ScheduledJobLog::log(
+                null,
+                'score_reminder',
+                'success',
+                "Rappels score capitaine directs : {$res['sent']} e-mail(s) ({$res['events_count']} match(s))",
+                $durationMs
+            );
+
+            Logger::app()->info('Captain score reminder cron executed successfully', [
+                'emails_sent' => $res['sent'],
+                'events_count' => $res['events_count'],
+                'duration_ms' => $durationMs
+            ]);
+
+            echo json_encode([
+                'ok' => true,
+                'emails_sent' => $res['sent'],
+                'events_processed' => $res['events_count'],
+                'skipped_count' => $res['skipped'],
+                'duration_ms' => $durationMs
+            ]);
+        } catch (\Throwable $e) {
+            $durationMs = (int)round((microtime(true) - $startTime) * 1000);
+            ScheduledJobLog::log(null, 'score_reminder', 'failed', $e->getMessage(), $durationMs);
+
+            Logger::errors()->error('Failed to run captain score reminder cron', [
+                'error' => $e->getMessage()
+            ]);
+
+            http_response_code(500);
+            echo json_encode([
+                'ok' => false,
+                'message' => 'Erreur interne lors de l\'envoi des rappels de score : ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
      * Déclenchement Lazy Cron asynchrone depuis le navigateur d'un visiteur réel.
      * Route: POST /api/cron/lazy-trigger
      */
@@ -195,14 +256,20 @@ class CronController
                         $cleanedLogs = $stmtLogs->rowCount();
 
                         $cleanedReminders = \App\Models\EventReminderSent::cleanupOldLogs(90);
+                        $cleanedScoreReminders = \App\Models\ScoreReminderSent::cleanupOldLogs(90);
 
-                        $details = "Nettoyage : $cleanedEmails e-mail log(s), $cleanedLogs trace(s) et $cleanedReminders rappel(s) purgé(s).";
+                        $details = "Nettoyage : $cleanedEmails e-mail log(s), $cleanedLogs trace(s), $cleanedReminders rappel(s) et $cleanedScoreReminders rappel(s) score purgé(s).";
                         break;
 
                     case 'event_reminder':
                         $specificEventId = !empty($payload['event_id']) ? (int)$payload['event_id'] : null;
                         $res = EventNotificationService::sendEventReminders($specificEventId);
                         $details = "Rappels J-2/J-1 : {$res['sent']} e-mail(s) envoyé(s) ({$res['j2']} J-2, {$res['j1']} J-1, {$res['skipped']} ignoré(s) / déjà renseignés).";
+                        break;
+
+                    case 'score_reminder':
+                        $res = EventNotificationService::sendScoreReminders();
+                        $details = "Rappels score capitaine : {$res['sent']} e-mail(s) envoyé(s) pour {$res['events_count']} match(s).";
                         break;
 
                     default:

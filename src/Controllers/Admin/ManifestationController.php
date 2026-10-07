@@ -107,6 +107,22 @@ class ManifestationController extends BaseAdminController
         $formData['date'] = $dateStr;
 
         $id = EventRepository::createEvent($formData);
+
+        if (!empty($_POST['opponent_team_id'])) {
+            $oppId = (int)$_POST['opponent_team_id'];
+            $setsFor = isset($_POST['sets_for']) && $_POST['sets_for'] !== '' ? (int)$_POST['sets_for'] : null;
+            $setsAgainst = isset($_POST['sets_against']) && $_POST['sets_against'] !== '' ? (int)$_POST['sets_against'] : null;
+            $hasScore = ($setsFor !== null && $setsAgainst !== null);
+            \App\Models\MatchResult::upsert([
+                'manifestation_id'     => $id,
+                'opponent_team_id'     => $oppId,
+                'sets_for'             => $setsFor,
+                'sets_against'         => $setsAgainst,
+                'entered_by_admin'     => 1,
+                'entered_at'           => $hasScore ? date('Y-m-d H:i:s') : null,
+            ]);
+        }
+
         $event = EventRepository::findEventRaw($id);
         if ($event && $formData['send_notification_email']) {
             \App\Services\Agenda\EventNotificationService::sendCreationNotifications($event);
@@ -145,8 +161,11 @@ class ManifestationController extends BaseAdminController
             'commentaire'        => $event['Commentaire'],
         ];
 
+        $matchResult = \App\Models\MatchResult::findByManifestation($id);
+
         View::render('admin/manifestations/form.twig', array_merge($this->getFormOptions(), [
             'manifestation' => $manifestationData,
+            'match_result'  => $matchResult,
             'action'        => BASE_URL . '/admin/manifestations/' . $id . '/edit',
         ]));
     }
@@ -210,6 +229,26 @@ class ManifestationController extends BaseAdminController
 
         EventRepository::updateEvent($id, $formData);
 
+        // Mise à jour de l'adversaire et du score s'il y a lieu
+        $opponentTeamId = !empty($_POST['opponent_team_id']) ? (int)$_POST['opponent_team_id'] : null;
+        if ($opponentTeamId) {
+            $setsFor = isset($_POST['sets_for']) && $_POST['sets_for'] !== '' ? (int)$_POST['sets_for'] : null;
+            $setsAgainst = isset($_POST['sets_against']) && $_POST['sets_against'] !== '' ? (int)$_POST['sets_against'] : null;
+            $existingResult = \App\Models\MatchResult::findByManifestation($id);
+            $hasScore = ($setsFor !== null && $setsAgainst !== null);
+
+            \App\Models\MatchResult::upsert([
+                'manifestation_id'     => $id,
+                'opponent_team_id'     => $opponentTeamId,
+                'sets_for'             => $setsFor,
+                'sets_against'         => $setsAgainst,
+                'set_details'          => $existingResult['set_details'] ?? null,
+                'entered_by_joueur_id' => $existingResult['entered_by_joueur_id'] ?? null,
+                'entered_by_admin'     => 1,
+                'entered_at'           => $hasScore ? ($existingResult['entered_at'] ?? date('Y-m-d H:i:s')) : null,
+            ]);
+        }
+
         if (!$wasCancelled && $isCancelledNow) {
             $fullEvent = EventRepository::getEventById($id);
             if ($fullEvent) {
@@ -236,6 +275,7 @@ class ManifestationController extends BaseAdminController
             return;
         }
 
+        \App\Models\MatchResult::deleteByManifestation($id);
         EventRepository::deleteEvent($id);
         View::flash('success', 'Manifestation supprimée avec succès.');
         $this->redirect('/admin/manifestations');
@@ -256,6 +296,9 @@ class ManifestationController extends BaseAdminController
         }
 
         $ids = array_map('intval', $rawIds);
+        foreach ($ids as $delId) {
+            \App\Models\MatchResult::deleteByManifestation($delId);
+        }
         $deletedCount = EventRepository::deleteEventsBulk($ids);
 
         if ($deletedCount > 0) {
@@ -273,10 +316,11 @@ class ManifestationController extends BaseAdminController
     private function getFormOptions(): array
     {
         return [
-            'types'     => MotsClef::getByCategory('ManifestationTypée'),
-            'locations' => MotsClef::getByCategory('Lieu'),
-            'durations' => MotsClef::getByCategory('Durée_créneau'),
-            'statuses'  => MotsClef::getByCategory('Statut'),
+            'types'          => MotsClef::getByCategory('ManifestationTypée'),
+            'locations'      => MotsClef::getByCategory('Lieu'),
+            'durations'      => MotsClef::getByCategory('Durée_créneau'),
+            'statuses'       => MotsClef::getByCategory('Statut'),
+            'opponent_teams' => \App\Models\OpponentTeam::allActive(),
         ];
     }
 }

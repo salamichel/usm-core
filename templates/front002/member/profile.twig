@@ -171,6 +171,22 @@
                                 </div>
                             </label>
 
+                            {% if is_captain %}
+                            <input type="hidden" name="has_captain_role" value="1">
+                            {# Rappel Saisie Score (Capitaine) #}
+                            <label class="flex items-start gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50/70 transition cursor-pointer">
+                                <input type="checkbox" name="pref_score_reminder" value="1" {% if preferences['score_reminder'] == 1 %}checked{% endif %}
+                                       class="mt-1 rounded border-amber-300 text-amber-600 focus:ring-amber-500/20 focus:ring-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="block font-bold text-slate-900 text-sm">Rappels de saisie des scores</span>
+                                        <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">Rôle Capitaine</span>
+                                    </div>
+                                    <span class="block text-slate-600 text-xs mt-0.5">Recevoir un rappel par e-mail le lendemain des rencontres passées dont le score n'a pas encore été renseigné.</span>
+                                </div>
+                            </label>
+                            {% endif %}
+
                             {# Entraînements #}
                             {% if training_types|length > 0 %}
                                 <div class="mt-6">

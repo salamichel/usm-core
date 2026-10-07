@@ -107,6 +107,16 @@
       </div>
 
       <div class="font-bold text-base text-slate-900 ml-6">{{ m_item.Date|date('d/m/Y H:i') }} <span class="text-xs text-slate-400 font-mono">({{ m_item.Durée_créneau }})</span></div>
+      {% if m_item.opponent_name %}
+        <div class="flex items-center gap-1.5 text-xs text-slate-700 font-semibold ml-6">
+          <span>vs {{ m_item.opponent_name }}</span>
+          {% if m_item.has_score %}
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ m_item.outcome_badge_classes }}">
+              {{ m_item.score_formatted }}
+            </span>
+          {% endif %}
+        </div>
+      {% endif %}
       <div class="text-xs text-slate-500 font-medium ml-6">📍 {{ m_item.Lieu }} · Terrains : {{ m_item.Nombre_terrain }}</div>
       {% if m_item.Commentaire %}
         <div class="text-xs bg-slate-50 border-l-2 border-[#94674d] p-2 rounded-r-xl italic text-slate-600 ml-6">{{ m_item.Commentaire }}</div>
@@ -147,7 +157,23 @@
             <input type="checkbox" name="ids[]" value="{{ m_item.id_manifestation }}" class="manifestation-checkbox w-4 h-4 rounded border-slate-300 text-[#94674d] focus:ring-[#94674d]/30" />
           </td>
           <td class="px-5 py-3.5 font-bold text-slate-700 text-xs">
-            <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-mono">{{ m_item.ManifestationTypée }}</span>
+            <div class="flex flex-col gap-1 items-start">
+              <span class="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-mono">{{ m_item.ManifestationTypée }}</span>
+              {% if m_item.opponent_name %}
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="text-[11px] font-semibold text-slate-600">vs {{ m_item.opponent_name }}</span>
+                  {% if m_item.has_score %}
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold {{ m_item.outcome_badge_classes }}">
+                      {{ m_item.score_formatted }}
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                      Score non saisi
+                    </span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
           </td>
           <td class="px-5 py-3.5">
             <div class="font-semibold text-slate-900">{{ m_item.Date|date('d/m/Y H:i') }}</div>
