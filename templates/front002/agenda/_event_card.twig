@@ -362,11 +362,12 @@
                         {% set is_present = m.user_status_category == 'present' %}
                         <select class="status-select flex-1 sm:flex-initial px-3 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer focus:ring-2 focus:ring-[var(--primary)]/20 focus:outline-none border shadow-sm {% if is_present %}bg-emerald-600 text-white border-emerald-600{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200{% endif %}">
                             <option class="text-slate-950 bg-white font-bold" value="" {% if not is_present %}selected{% endif %} disabled hidden>✓ Présent</option>
-                            <option class="text-slate-950 bg-white font-bold" value="Présent(e)" {% if m.user_status == 'Présent(e)' %}selected{% endif %}>✓ Présent seul</option>
-                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 2" {% if m.user_status == 'Présent(e) à 2' %}selected{% endif %}>✓ Présent à 2</option>
-                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 3" {% if m.user_status == 'Présent(e) à 3' %}selected{% endif %}>✓ Présent à 3</option>
-                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 4" {% if m.user_status == 'Présent(e) à 4' %}selected{% endif %}>✓ Présent à 4</option>
-                            <option class="text-slate-950 bg-white font-bold" value="Présent(e) à 5" {% if m.user_status == 'Présent(e) à 5' %}selected{% endif %}>✓ Présent à 5</option>
+                            {% set present_options = [] %}
+                            {% for st in participation_statuses.entrainement|default([]) %}
+                                {% if 'Présent' in st or 'Present' in st %}
+                                    <option class="text-slate-950 bg-white font-bold" value="{{ st }}" {% if m.user_status == st %}selected{% endif %}>✓ {{ st }}</option>
+                                {% endif %}
+                            {% endfor %}
                         </select>
 
                         <button type="button" 

@@ -40,9 +40,7 @@ class DashboardController
             'stats' => $stats,
             'statuses' => [
                 'match' => \App\Models\MotsClef::getByCategory('Participation_match'),
-                'entrainement' => \App\Models\MotsClef::getByCategory('Participation_entrai'),
-                'club' => \App\Models\MotsClef::getByCategory('Participation_club'),
-                'beach' => \App\Models\MotsClef::getByCategory('Participation_beach')
+                'entrainement' => \App\Models\MotsClef::getByCategory('Participation_entrai')
             ]
         ]);
     }

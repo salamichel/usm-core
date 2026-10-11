@@ -588,6 +588,11 @@
 			const userCells = document.querySelectorAll('[data-user-cell="true"]');
 			if (!userCells.length) return;
 
+			const AGENDA_STATUSES = {
+				entrainement: {{ participation_statuses.entrainement|default([])|json_encode|raw }},
+				match: {{ participation_statuses.match|default([])|json_encode|raw }}
+			};
+
 			let activePopover = null;
 
 			function closePopover() {
@@ -735,22 +740,60 @@
 					const options = [];
 
 					if (eventType === 'match') {
-						options.push(
-							{ label: '✓ Disponible', value: 'Disponible', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-							{ label: '◐ Si besoin', value: 'Disponible si nécessaire', class: 'text-cyan-700 bg-cyan-50 hover:bg-cyan-100' },
-							{ label: '✗ Indisponible', value: 'Indisponible', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
-							{ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' }
-						);
+						if (AGENDA_STATUSES.match && AGENDA_STATUSES.match.length) {
+							AGENDA_STATUSES.match.forEach(stat => {
+								const cat = getCategoryForStatus(stat);
+								let btnClass = 'text-slate-700 bg-slate-50 hover:bg-slate-100';
+								let icon = '';
+								if (cat === 'available') {
+									btnClass = 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100';
+									icon = '✓ ';
+								} else if (cat === 'available_if_needed') {
+									btnClass = 'text-cyan-700 bg-cyan-50 hover:bg-cyan-100';
+									icon = '◐ ';
+								} else if (cat === 'unavailable') {
+									btnClass = 'text-rose-700 bg-rose-50 hover:bg-rose-100';
+									icon = '✗ ';
+								} else if (cat === 'unknown') {
+									btnClass = 'text-orange-700 bg-orange-50 hover:bg-orange-100';
+									icon = '? ';
+								}
+								options.push({ label: icon + stat, value: stat, class: btnClass });
+							});
+						} else {
+							options.push(
+								{ label: '✓ Disponible', value: 'Disponible', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+								{ label: '◐ Si besoin', value: 'Disponible si nécessaire', class: 'text-cyan-700 bg-cyan-50 hover:bg-cyan-100' },
+								{ label: '✗ Indisponible', value: 'Indisponible', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' }
+							);
+						}
+						options.push({ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' });
 					} else {
-						options.push(
-							{ label: '✓ Présent(e)', value: 'Présent(e)', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-							{ label: '✓ Présent(e) à 2', value: 'Présent(e) à 2', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-							{ label: '✓ Présent(e) à 3', value: 'Présent(e) à 3', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-							{ label: '✓ Présent(e) à 4', value: 'Présent(e) à 4', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
-							{ label: '✗ Absent(e)', value: 'Absent(e)', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
-							{ label: '? Ne sait pas', value: 'Ne sait pas', class: 'text-orange-700 bg-orange-50 hover:bg-orange-100' },
-							{ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' }
-						);
+						if (AGENDA_STATUSES.entrainement && AGENDA_STATUSES.entrainement.length) {
+							AGENDA_STATUSES.entrainement.forEach(stat => {
+								const cat = getCategoryForStatus(stat);
+								let btnClass = 'text-slate-700 bg-slate-50 hover:bg-slate-100';
+								let icon = '';
+								if (cat === 'present') {
+									btnClass = 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100';
+									icon = '✓ ';
+								} else if (cat === 'absent') {
+									btnClass = 'text-rose-700 bg-rose-50 hover:bg-rose-100';
+									icon = '✗ ';
+								} else if (cat === 'unknown') {
+									btnClass = 'text-orange-700 bg-orange-50 hover:bg-orange-100';
+									icon = '? ';
+								}
+								options.push({ label: icon + stat, value: stat, class: btnClass });
+							});
+						} else {
+							options.push(
+								{ label: '✓ Présent(e)', value: 'Présent(e)', class: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+								{ label: '✗ Absent(e)', value: 'Absent(e)', class: 'text-rose-700 bg-rose-50 hover:bg-rose-100' },
+								{ label: '? Ne sait pas', value: 'Ne sait pas', class: 'text-orange-700 bg-orange-50 hover:bg-orange-100' }
+							);
+						}
+						options.push({ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' });
 					}
 
 					options.forEach(opt => {

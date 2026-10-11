@@ -146,15 +146,31 @@ class ParticipationController
             'Présent + 3' => 'Présent(e) à 4',
             'Présent(e) +3' => 'Présent(e) à 4',
             'Présent +3' => 'Présent(e) à 4',
+            'Présent(e) + 4' => 'Présent(e) à 5',
+            'Présent + 4' => 'Présent(e) à 5',
+            'Présent(e) +4' => 'Présent(e) à 5',
+            'Présent +4' => 'Présent(e) à 5',
+            'Présent(e) + 5' => 'Présent(e) à 6',
+            'Présent + 5' => 'Présent(e) à 6',
+            'Présent(e) +5' => 'Présent(e) à 6',
+            'Présent +5' => 'Présent(e) à 6',
         ];
-        if (!isset($allowedStatuses[$status])) {
+
+        // Vérification dynamique si le statut existe dans les mots-clés officiels
+        $dynamicKeywords = array_merge(
+            \App\Models\MotsClef::getByCategory('Participation_entrai'),
+            \App\Models\MotsClef::getByCategory('Participation_match')
+        );
+        $isDynamicMatch = in_array($status, $dynamicKeywords, true);
+
+        if (!isset($allowedStatuses[$status]) && !$isDynamicMatch) {
             View::render('agenda/participation_confirmed.twig', [
                 'success' => false,
                 'message' => 'Statut de participation inconnu.'
             ]);
             exit;
         }
-        $status = $allowedStatuses[$status];
+        $status = $allowedStatuses[$status] ?? $status;
 
         try {
             $event = \App\Services\AgendaService::getEventById($eventId);

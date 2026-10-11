@@ -118,6 +118,10 @@ class View
         $twig->addGlobal('site_config', SiteConfig::all());
         $saison = Saison::getActive();
         $twig->addGlobal('saison_active', $saison ? $saison['libelle'] : '');
+        $twig->addGlobal('participation_statuses', [
+            'entrainement' => \App\Models\MotsClef::getByCategory('Participation_entrai'),
+            'match'        => \App\Models\MotsClef::getByCategory('Participation_match'),
+        ]);
 
         // Load public menu only if not rendering admin pages
         if (!str_starts_with($template, 'admin/')) {
