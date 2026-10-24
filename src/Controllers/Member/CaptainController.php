@@ -704,19 +704,8 @@ class CaptainController
                 return;
             }
 
-            // Récupérer le capitaine connecté pour le mettre en copie (CC)
-            $captainId = (int)($_SESSION['LogInId'] ?? 0);
-            $captain = $captainId ? \App\Models\Joueur::findById($captainId) : null;
-            $cc = [];
-            if ($captain && !empty($captain['Mel'])) {
-                $cc[] = [
-                    'email' => $captain['Mel'],
-                    'name'  => trim(($captain['Prénom'] ?? $captain['prenom'] ?? '') . ' ' . ($captain['Nom'] ?? $captain['nom'] ?? ''))
-                ];
-            }
-
             $brevo = new BrevoService();
-            $brevo->sendTrainingOverlapNotification($player, $trainingEvent, $matchEvent, $cc);
+            $brevo->sendTrainingOverlapNotification($player, $trainingEvent, $matchEvent);
         } catch (\Throwable $e) {
             Logger::errors()->error('Failed to send training overlap email', [
                 'player_id'   => $joueurId,

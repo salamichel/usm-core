@@ -542,7 +542,7 @@ $brevo->sendContactNotification($contact); // notif admin
 $brevo->sendReplyToVisitor($email, $name, $replyText); // réponse visiteur
 $brevo->sendPlayerSelectionNotification($player, $event); // convocation match
 $brevo->sendPlayerDeselectionNotification($player, $event); // désélection match
-$brevo->sendTrainingOverlapNotification($player, $training, $match, $cc); // retrait entraînement avec CC capitaine
+$brevo->sendTrainingOverlapNotification($player, $training, $match); // retrait entraînement du joueur
 $brevo->sendMatchModificationNotification($player, $oldEvent, $newEvent); // modification date/lieu match
 ```
 
