@@ -292,6 +292,7 @@ class App
         $r->get('/admin/manifestations',             [ManifestationController::class, 'index']);
         $r->get('/admin/manifestations/create',      [ManifestationController::class, 'create']);
         $r->post('/admin/manifestations/create',     [ManifestationController::class, 'store']);
+        $r->post('/admin/manifestations/edit-bulk',   [ManifestationController::class, 'editBulk']);
         $r->post('/admin/manifestations/delete-bulk', [ManifestationController::class, 'deleteBulk']);
         $r->get('/admin/manifestations/{id}/edit',   [ManifestationController::class, 'edit']);
         $r->post('/admin/manifestations/{id}/edit',  [ManifestationController::class, 'update']);

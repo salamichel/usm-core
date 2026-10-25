@@ -14,7 +14,7 @@ Site public + interface d'administration pour l'**Unions Salles Mios Volley-Ball
 - 📝 Blog d'actualités avec tags et catégories
 - 📸 Galerie de photos avec upload Dropzone
 - 📧 Formulaire de contact intégré
-- 🔐 Interface d'administration sécurisée
+- 🔐 Interface d'administration sécurisée (gestion des manifestations avec filtres de dates et de statut, planification en série, suppression groupée et édition en masse multi-critères avec notification d'annulation automatique)
 - 📱 Design responsive et accessible
 - 🎨 Design system en néo-brutalisme
 - 🌐 Import automatique d'articles via API CanalBlog

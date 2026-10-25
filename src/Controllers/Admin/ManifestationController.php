@@ -21,9 +21,11 @@ class ManifestationController extends BaseAdminController
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
         $filters = [
-            'type'   => $_GET['type'] ?? '',
-            'lieu'   => $_GET['lieu'] ?? '',
-            'statut' => $_GET['statut'] ?? '',
+            'type'      => $_GET['type'] ?? '',
+            'lieu'      => $_GET['lieu'] ?? '',
+            'statut'    => $_GET['statut'] ?? '',
+            'date_from' => $_GET['date_from'] ?? '',
+            'date_to'   => $_GET['date_to'] ?? '',
         ];
 
         $total = EventRepository::countAllEvents($filters);
@@ -34,12 +36,14 @@ class ManifestationController extends BaseAdminController
         // Récupérer les options de filtres depuis MotsClef
         $types = MotsClef::getByCategory('ManifestationTypée');
         $locations = MotsClef::getByCategory('Lieu');
+        $durations = MotsClef::getByCategory('Durée_créneau');
         $statuses = MotsClef::getByCategory('Statut');
 
         View::render('admin/manifestations/list.twig', [
             'manifestations' => $manifestations,
             'types'          => $types,
             'locations'      => $locations,
+            'durations'      => $durations,
             'statuses'       => $statuses,
             'filters'        => $filters,
             'currentPage'    => $pagination->currentPage,
@@ -238,6 +242,134 @@ class ManifestationController extends BaseAdminController
 
         EventRepository::deleteEvent($id);
         View::flash('success', 'Manifestation supprimée avec succès.');
+        $this->redirect('/admin/manifestations');
+    }
+
+    /**
+     * Modification en masse de manifestations.
+     */
+    public function editBulk(array $params): void
+    {
+        $this->requirePost('/admin/manifestations');
+
+        $rawIds = $_POST['ids'] ?? [];
+        if (!is_array($rawIds) || empty($rawIds)) {
+            View::flash('error', 'Aucune manifestation sélectionnée pour la modification.');
+            $this->redirect('/admin/manifestations');
+            return;
+        }
+
+        $ids = array_values(array_filter(array_map('intval', $rawIds), fn(int $id) => $id > 0));
+        if (empty($ids)) {
+            View::flash('error', 'Identifiants de manifestations invalides.');
+            $this->redirect('/admin/manifestations');
+            return;
+        }
+
+        $updates = [];
+
+        // Type
+        $type = trim($_POST['manifestation_type'] ?? '');
+        if ($type !== '' && $type !== '__NO_CHANGE__') {
+            $updates['manifestation_type'] = $type;
+        }
+
+        // Lieu
+        $location = trim($_POST['location'] ?? '');
+        if ($location !== '' && $location !== '__NO_CHANGE__') {
+            $updates['location'] = $location;
+        }
+
+        // Durée
+        $duration = trim($_POST['duration'] ?? '');
+        if ($duration !== '' && $duration !== '__NO_CHANGE__') {
+            $updates['duration'] = $duration;
+        }
+
+        // Nombre de terrains
+        $nombreTerrain = $_POST['nombre_terrain'] ?? '';
+        if ($nombreTerrain !== '' && $nombreTerrain !== '__NO_CHANGE__') {
+            $nb = (int)$nombreTerrain;
+            if ($nb >= 0) {
+                $updates['nombre_terrain'] = $nb;
+            }
+        }
+
+        // Statut
+        $statut = trim($_POST['statut'] ?? '');
+        if ($statut !== '' && $statut !== '__NO_CHANGE__') {
+            $statuses = MotsClef::getByCategory('Statut');
+            if (in_array($statut, $statuses, true)) {
+                $updates['statut'] = $statut;
+            }
+        }
+
+        // Horaire / Date
+        $timeAction = $_POST['time_action'] ?? 'none';
+        if ($timeAction === 'set_time' && !empty($_POST['new_time'])) {
+            $updates['time_action'] = 'set_time';
+            $updates['time_value'] = trim($_POST['new_time']);
+        } elseif ($timeAction === 'shift_days' && isset($_POST['shift_days']) && $_POST['shift_days'] !== '') {
+            $days = (int)$_POST['shift_days'];
+            if ($days !== 0) {
+                $updates['time_action'] = 'shift_days';
+                $updates['shift_days'] = $days;
+            }
+        } elseif ($timeAction === 'shift_hours' && isset($_POST['shift_hours']) && $_POST['shift_hours'] !== '') {
+            $hours = (int)$_POST['shift_hours'];
+            if ($hours !== 0) {
+                $updates['time_action'] = 'shift_hours';
+                $updates['shift_hours'] = $hours;
+            }
+        }
+
+        // Commentaire
+        $commentMode = $_POST['commentaire_mode'] ?? 'none';
+        if (in_array($commentMode, ['replace', 'append', 'clear'], true)) {
+            $updates['commentaire_mode'] = $commentMode;
+            $updates['commentaire_text'] = trim($_POST['commentaire_text'] ?? '');
+        }
+
+        if (empty($updates)) {
+            View::flash('error', "Aucun champ à modifier n'a été sélectionné.");
+            $this->redirect('/admin/manifestations');
+            return;
+        }
+
+        // Vérifier si un passage en statut Annulé nécessite des notifications
+        $sendNotification = isset($_POST['send_cancellation_email']);
+        $isCancelled = isset($updates['statut']) && str_contains($updates['statut'], 'Annulé');
+
+        $notifiedCount = 0;
+        if ($isCancelled && $sendNotification) {
+            foreach ($ids as $id) {
+                $raw = EventRepository::findEventRaw($id);
+                if ($raw && !str_contains((string)($raw['Statut'] ?? ''), 'Annulé')) {
+                    $fullEvent = EventRepository::getEventById($id);
+                    if ($fullEvent) {
+                        try {
+                            \App\Services\Agenda\EventNotificationService::sendCancellationNotifications($fullEvent);
+                            $notifiedCount++;
+                        } catch (\Throwable $e) {
+                            // Ignorer pour continuer les autres
+                        }
+                    }
+                }
+            }
+        }
+
+        $updatedCount = EventRepository::updateEventsBulk($ids, $updates);
+
+        if ($updatedCount > 0) {
+            $msg = sprintf('%d manifestation(s) mise(s) à jour avec succès.', $updatedCount);
+            if ($notifiedCount > 0) {
+                $msg .= sprintf(" (%d notification(s) d'annulation envoyée(s)).", $notifiedCount);
+            }
+            View::flash('success', $msg);
+        } else {
+            View::flash('error', "Aucune manifestation n'a pu être mise à jour.");
+        }
+
         $this->redirect('/admin/manifestations');
     }
 

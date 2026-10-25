@@ -1228,6 +1228,15 @@ class EventRepository
                 $params[] = $filters['statut'];
             }
 
+            if (!empty($filters['date_from'])) {
+                $sql .= " AND `Date` >= ?";
+                $params[] = $filters['date_from'] . ' 00:00:00';
+            }
+            if (!empty($filters['date_to'])) {
+                $sql .= " AND `Date` <= ?";
+                $params[] = $filters['date_to'] . ' 23:59:59';
+            }
+
             $sql .= " ORDER BY `Date` DESC LIMIT ? OFFSET ?";
 
             $stmt = $db->prepare($sql);
@@ -1282,6 +1291,14 @@ class EventRepository
             if (!empty($filters['statut'])) {
                 $sql .= " AND Statut = ?";
                 $params[] = $filters['statut'];
+            }
+            if (!empty($filters['date_from'])) {
+                $sql .= " AND `Date` >= ?";
+                $params[] = $filters['date_from'] . ' 00:00:00';
+            }
+            if (!empty($filters['date_to'])) {
+                $sql .= " AND `Date` <= ?";
+                $params[] = $filters['date_to'] . ' 23:59:59';
             }
 
             $stmt = $db->prepare($sql);
@@ -1357,5 +1374,101 @@ class EventRepository
         $stmtManif->execute($cleanIds);
 
         return $stmtManif->rowCount();
+    }
+    /**
+     * Met à jour en masse les manifestations sélectionnées selon les champs fournis.
+     *
+     * @param array $ids Liste des identifiants de manifestation à modifier
+     * @param array $updates Tableau associatif des champs à mettre à jour
+     * @return int Nombre de manifestations concernées
+     */
+    public static function updateEventsBulk(array $ids, array $updates): int
+    {
+        $cleanIds = array_values(array_filter(array_map('intval', $ids), fn(int $id) => $id > 0));
+        if (empty($cleanIds) || empty($updates)) {
+            return 0;
+        }
+
+        $setParts = [];
+        $params = [];
+
+        if (isset($updates['manifestation_type']) && $updates['manifestation_type'] !== '') {
+            $setParts[] = "`ManifestationTypée` = ?";
+            $params[] = $updates['manifestation_type'];
+        }
+
+        if (isset($updates['location']) && $updates['location'] !== '') {
+            $setParts[] = "Lieu = ?";
+            $params[] = $updates['location'];
+        }
+
+        if (isset($updates['duration']) && $updates['duration'] !== '') {
+            $setParts[] = "`Durée_créneau` = ?";
+            $params[] = $updates['duration'];
+        }
+
+        if (isset($updates['nombre_terrain']) && $updates['nombre_terrain'] !== null && $updates['nombre_terrain'] !== '') {
+            $setParts[] = "Nombre_terrain = ?";
+            $params[] = (int)$updates['nombre_terrain'];
+        }
+
+        if (isset($updates['statut']) && $updates['statut'] !== '') {
+            $setParts[] = "Statut = ?";
+            $params[] = $updates['statut'];
+        }
+
+        // Gestion de l'horaire / date
+        if (!empty($updates['time_action'])) {
+            if ($updates['time_action'] === 'set_time' && !empty($updates['time_value'])) {
+                $timeVal = $updates['time_value'];
+                if (strlen($timeVal) === 5) {
+                    $timeVal .= ':00';
+                }
+                $setParts[] = "`Date` = CONCAT(DATE(`Date`), ' ', ?)";
+                $params[] = $timeVal;
+            } elseif ($updates['time_action'] === 'shift_days' && isset($updates['shift_days']) && (int)$updates['shift_days'] !== 0) {
+                $days = (int)$updates['shift_days'];
+                $setParts[] = "`Date` = DATE_ADD(`Date`, INTERVAL ? DAY)";
+                $params[] = $days;
+            } elseif ($updates['time_action'] === 'shift_hours' && isset($updates['shift_hours']) && (int)$updates['shift_hours'] !== 0) {
+                $hours = (int)$updates['shift_hours'];
+                $setParts[] = "`Date` = DATE_ADD(`Date`, INTERVAL ? HOUR)";
+                $params[] = $hours;
+            }
+        }
+
+        // Gestion du commentaire
+        if (!empty($updates['commentaire_mode'])) {
+            if ($updates['commentaire_mode'] === 'replace') {
+                $setParts[] = "Commentaire = ?";
+                $params[] = trim($updates['commentaire_text'] ?? '');
+            } elseif ($updates['commentaire_mode'] === 'append') {
+                $textToAppend = trim($updates['commentaire_text'] ?? '');
+                if ($textToAppend !== '') {
+                    $setParts[] = "Commentaire = CASE WHEN Commentaire IS NULL OR Commentaire = '' THEN ? ELSE CONCAT(Commentaire, ' ', ?) END";
+                    $params[] = $textToAppend;
+                    $params[] = $textToAppend;
+                }
+            } elseif ($updates['commentaire_mode'] === 'clear') {
+                $setParts[] = "Commentaire = ''";
+            }
+        }
+
+        if (empty($setParts)) {
+            return 0;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($cleanIds), '?'));
+        $sql = "UPDATE Manifestation SET " . implode(', ', $setParts) . " WHERE id_manifestation IN ($placeholders)";
+        $params = array_merge($params, $cleanIds);
+
+        try {
+            $db = ExternalDatabase::get();
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return count($cleanIds);
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 }
