@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Admin{% endblock %} — USM Volley</title>
+  <link rel="icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ url('favicon.ico') }}">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { theme: { extend: { colors: { 'usm-brown': '#94674d' } } } }</script>
   <link rel="stylesheet" href="{{ asset(theme ~ '/frames.css') }}?v={{ "now"|date("U") }}">
