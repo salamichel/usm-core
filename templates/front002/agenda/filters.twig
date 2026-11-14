@@ -11,13 +11,13 @@
 
   {# Mobile toggle (uniquement si non inclus dans un panneau déjà collapsible) #}
   {% if not is_collapsible_panel %}
-    <button id="filters-toggle" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex items-center justify-between transition">
-      <span>Filtres</span>
-      <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+    <button id="filters-toggle" type="button" aria-expanded="true" class="md:hidden w-full mb-4 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex items-center justify-between transition">
+      <span>Masquer / afficher les filtres</span>
+      <svg class="w-4 h-4 transition-transform" style="transform: rotate(180deg);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
     </button>
   {% endif %}
 
-  <div id="filters-content" class="{% if not is_collapsible_panel %}hidden md:block{% endif %} space-y-6">
+  <div id="filters-content" class="{% if not is_collapsible_panel %}md:block{% endif %} space-y-6">
 
     {# Type d'évènement Dynamique #}
     <div>
@@ -181,11 +181,27 @@
   document.addEventListener('DOMContentLoaded', function() {
     var toggle = document.getElementById('filters-toggle');
     var content = document.getElementById('filters-content');
+    var storageKey = 'usm_agenda_filters_collapsed';
     if (toggle && content) {
-      toggle.addEventListener('click', function() {
-        var hidden = content.classList.toggle('hidden');
+      var applyState = function(collapsed) {
+        content.classList.toggle('hidden', collapsed);
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
         var svg = toggle.querySelector('svg');
-        if (svg) svg.style.transform = hidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        if (svg) svg.style.transform = collapsed ? 'rotate(0deg)' : 'rotate(180deg)';
+      };
+
+      var initialCollapsed = false;
+      try {
+        initialCollapsed = localStorage.getItem(storageKey) === '1';
+      } catch (e) {}
+      applyState(initialCollapsed);
+
+      toggle.addEventListener('click', function() {
+        var collapsed = !content.classList.contains('hidden');
+        applyState(collapsed);
+        try {
+          localStorage.setItem(storageKey, collapsed ? '1' : '0');
+        } catch (e) {}
       });
     }
   });
