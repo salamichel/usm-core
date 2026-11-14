@@ -120,6 +120,13 @@
 </div>
 
 <script>
+  function navigateAgendaWithScroll(url) {
+    try {
+      sessionStorage.setItem('usm_agenda_scroll_y', String(window.scrollY || window.pageYOffset || 0));
+    } catch (e) {}
+    window.location.href = url.toString();
+  }
+
   // Gère de manière exclusive les filtres d'affichage (Liste complète / Ayant répondu / Présent-Dispo)
   function updateAgendaFilterDisplay(mode) {
     var url = new URL(window.location.href);
@@ -133,7 +140,7 @@
         url.searchParams.delete('hide_empty_players');
         url.searchParams.delete('hide_absent_unavailable');
     }
-    window.location.href = url.toString();
+    navigateAgendaWithScroll(url);
   }
 
   // Gère de manière exclusive les filtres de période
@@ -149,7 +156,7 @@
         url.searchParams.delete('this_week');
         url.searchParams.delete('next_week');
     }
-    window.location.href = url.toString();
+    navigateAgendaWithScroll(url);
   }
 
   // Cette fonction s'occupe de mettre à jour un paramètre tout en conservant les autres (y compris view)
@@ -160,7 +167,7 @@
     } else {
         url.searchParams.delete(filterKey);
     }
-    window.location.href = url.toString();
+    navigateAgendaWithScroll(url);
   }
 
   // Cette fonction efface tous les filtres MAIS préserve explicitement la vue actuelle
@@ -175,7 +182,7 @@
     }
     
     url.pathname = '/agenda'; // Assure de pointer au bon endroit
-    window.location.href = url.toString();
+    navigateAgendaWithScroll(url);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -204,5 +211,18 @@
         } catch (e) {}
       });
     }
+
+    try {
+      var savedScroll = sessionStorage.getItem('usm_agenda_scroll_y');
+      if (savedScroll !== null) {
+        sessionStorage.removeItem('usm_agenda_scroll_y');
+        var targetY = parseInt(savedScroll, 10);
+        if (!isNaN(targetY) && targetY > 0) {
+          requestAnimationFrame(function() {
+            window.scrollTo(0, targetY);
+          });
+        }
+      }
+    } catch (e) {}
   });
 </script>
