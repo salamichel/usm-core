@@ -28,6 +28,7 @@
         function updateBulkFilters() {
             const events = cards.map(card => ({
                 type: card.dataset.eventTypeRaw || '',
+                matchCategory: card.dataset.matchCategory || '',
                 subtype: card.dataset.eventSubtypeRaw || '',
                 location: card.dataset.eventLocationRaw || '',
                 kind: card.dataset.eventKindRaw || ''
@@ -40,7 +41,11 @@
             let selectedKind = kindSelect.value;
 
             // Filtrer les options dynamiques par cascade
-            const eventsForType = selectedType ? events.filter(e => e.type === selectedType) : events;
+            const eventsForType = selectedType
+                ? events.filter(e => (selectedType === 'Match Adulte' || selectedType === 'Match jeune')
+                    ? e.matchCategory === selectedType
+                    : e.type === selectedType)
+                : events;
 
             const validSubtypes = [...new Set(eventsForType.map(e => e.subtype))].filter(Boolean);
             if (selectedSubtype && !validSubtypes.includes(selectedSubtype)) {
@@ -66,6 +71,18 @@
 
             // Mettre à jour les options des sélecteurs
             const uniqueTypes = [...new Set(events.map(e => e.type))].filter(Boolean).sort();
+            const matchIdx = uniqueTypes.indexOf('Match');
+            const hasAdulte = events.some(e => e.matchCategory === 'Match Adulte');
+            const hasJeune = events.some(e => e.matchCategory === 'Match jeune');
+            if (matchIdx !== -1) {
+                const extra = [];
+                if (hasAdulte) extra.push('Match Adulte');
+                if (hasJeune) extra.push('Match jeune');
+                uniqueTypes.splice(matchIdx + 1, 0, ...extra);
+            } else {
+                if (hasAdulte) uniqueTypes.unshift('Match Adulte');
+                if (hasJeune) uniqueTypes.unshift('Match jeune');
+            }
             updateSelectOptions(typeSelect, uniqueTypes, selectedType, 'Tous les types');
 
             const uniqueSubtypes = validSubtypes.sort();
@@ -646,6 +663,7 @@
         // Initialisation des filtres du tableau de bord adhérent
         initDashboardFilters();
         initBulkFilters();
+        initMemberTableView();
 
         // Gestion des filtres et du défilement automatique via URL
         handleUrlParamsOnLoad();
@@ -898,6 +916,7 @@
     // ==========================================
     let activeFilterType = null;
     let activeFilterValue = null;
+    let activeDisplayMode = 'all'; // 'all' | 'responded' | 'present_dispo'
 
     function getWeekRange(offsetWeeks = 0) {
         const today = new Date();
@@ -984,8 +1003,10 @@
         if (subtypeVal) labels.push(subtypeVal);
         if (locationVal) labels.push(locationVal);
         if (kindVal) labels.push(kindVal);
+        if (activeDisplayMode === 'responded') labels.push('Ayant répondu');
+        else if (activeDisplayMode === 'present_dispo') labels.push('Présent / Dispo');
 
-        const hasActiveFilters = Boolean(activeFilterType || typeVal || subtypeVal || locationVal || kindVal || searchVal);
+        const hasActiveFilters = Boolean(activeFilterType || typeVal || subtypeVal || locationVal || kindVal || searchVal || activeDisplayMode !== 'all');
         if (resetBtn) resetBtn.classList.toggle('hidden', !hasActiveFilters);
         if (labelSpan) labelSpan.textContent = labels.length > 0 ? ` (${labels.join(' + ')})` : '';
 
@@ -1034,11 +1055,36 @@
                 return;
             }
 
-            // B. Condition Type dropdown
+            // B. Condition Type dropdown (supporte Match Adulte / Match jeune)
             const cardType = card.dataset.eventTypeRaw || '';
-            if (typeVal && cardType !== typeVal) {
-                card.style.display = 'none';
-                return;
+            const cardMatchCategory = card.dataset.matchCategory || '';
+            if (typeVal) {
+                if (typeVal === 'Match Adulte' || typeVal === 'Match jeune') {
+                    if (cardMatchCategory !== typeVal) {
+                        card.style.display = 'none';
+                        return;
+                    }
+                } else if (cardType !== typeVal) {
+                    card.style.display = 'none';
+                    return;
+                }
+            }
+
+            // B2. Condition Affichage (Liste complète / Ayant répondu / Présent-Dispo)
+            if (activeDisplayMode !== 'all') {
+                const st = card.dataset.currentStatus || '.';
+                const cat = helperCat(st);
+                if (activeDisplayMode === 'responded') {
+                    if (!st || st === '.' || cat === 'empty') {
+                        card.style.display = 'none';
+                        return;
+                    }
+                } else if (activeDisplayMode === 'present_dispo') {
+                    if (!['present', 'available', 'available_if_needed', 'selected'].includes(cat)) {
+                        card.style.display = 'none';
+                        return;
+                    }
+                }
             }
 
             // C. Condition Sous-Type dropdown
@@ -1101,6 +1147,11 @@
         if (typeof buildDateSlider === 'function') {
             buildDateSlider();
         }
+
+        // Synchroniser la vue Liste (tableau croisé de l'espace perso)
+        if (typeof syncMemberTableWithFilters === 'function') {
+            syncMemberTableWithFilters();
+        }
     }
 
     // Alias pour la compatibilité
@@ -1129,6 +1180,15 @@
                     kind: card.dataset.eventKindRaw || ''
                 }));
                 const uniqueTypes = [...new Set(events.map(e => e.type))].filter(Boolean).sort();
+                const matchIdx = uniqueTypes.indexOf('Match');
+                const hasAdulte = cards.some(c => c.dataset.matchCategory === 'Match Adulte');
+                const hasJeune = cards.some(c => c.dataset.matchCategory === 'Match jeune');
+                if (matchIdx !== -1) {
+                    const extra = [];
+                    if (hasAdulte) extra.push('Match Adulte');
+                    if (hasJeune) extra.push('Match jeune');
+                    uniqueTypes.splice(matchIdx + 1, 0, ...extra);
+                }
                 const uniqueSubtypes = [...new Set(events.map(e => e.subtype))].filter(Boolean).sort();
                 const uniqueLocations = [...new Set(events.map(e => e.location))].filter(Boolean).sort();
                 const uniqueKinds = [...new Set(events.map(e => e.kind))].filter(Boolean).sort();
@@ -1211,14 +1271,388 @@
             });
         });
 
-        // Bouton réinitialiser (efface tout : KPIs, types, lieux, dropdowns et recherche)
+        // Boutons Affichage (Liste complète / Ayant répondu / Présent-Dispo)
+        document.querySelectorAll('[data-display-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeDisplayMode = btn.dataset.displayFilter || 'all';
+                document.querySelectorAll('[data-display-filter]').forEach(b => {
+                    const isActive = b.dataset.displayFilter === activeDisplayMode;
+                    b.className = `display-filter-btn px-3 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer ${isActive ? 'bg-[var(--primary)] text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`;
+                });
+                applyUnifiedFilters();
+            });
+        });
+
+        // Bouton réinitialiser (efface tout : KPIs, types, lieux, dropdowns, affichage et recherche)
         document.getElementById('reset-dashboard-filters')?.addEventListener('click', () => {
             resetBulkSelectsWithoutTriggering();
             activeFilterType = null;
             activeFilterValue = null;
+            activeDisplayMode = 'all';
+            document.querySelectorAll('[data-display-filter]').forEach(b => {
+                const isActive = b.dataset.displayFilter === 'all';
+                b.className = `display-filter-btn px-3 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer ${isActive ? 'bg-[var(--primary)] text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`;
+            });
             const searchInput = document.getElementById('agenda-search');
             if (searchInput) searchInput.value = '';
             applyUnifiedFilters();
+        });
+    }
+
+    // ==========================================
+    // 6. VUE LISTE (TABLEAU CROISÉ ESPACE PERSO)
+    // ==========================================
+    function syncMemberTableWithFilters() {
+        const tableContainer = document.getElementById('member-table-container');
+        if (!tableContainer) return;
+
+        const grid = document.getElementById('event-grid');
+        if (!grid) return;
+
+        // Déterminer les IDs des manifestations visibles (hors filtre displayMode qui ne doit pas masquer les colonnes du tableau)
+        const cards = Array.from(grid.querySelectorAll('[data-manifestation-id]'));
+        const visibleColIds = new Set();
+
+        const typeSelect = document.getElementById('bulk-type-select');
+        const subtypeSelect = document.getElementById('bulk-subtype-select');
+        const locationSelect = document.getElementById('bulk-location-select');
+        const kindSelect = document.getElementById('bulk-kind-select');
+        const searchInput = document.getElementById('agenda-search');
+
+        const typeVal = typeSelect ? typeSelect.value : '';
+        const subtypeVal = subtypeSelect ? subtypeSelect.value : '';
+        const locationVal = locationSelect ? locationSelect.value : '';
+        const kindVal = kindSelect ? kindSelect.value : '';
+        const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        const thisWeekRange = getWeekRange(0);
+        const nextWeekRange = getWeekRange(1);
+
+        cards.forEach(card => {
+            const mid = card.dataset.manifestationId;
+            let showCol = true;
+
+            if (activeFilterType === 'kpi') {
+                const dateStr = card.dataset.eventDate;
+                const eventDate = new Date(dateStr + 'T00:00:00');
+                const status = card.dataset.currentStatus || '.';
+                if (activeFilterValue === 'this-week') {
+                    showCol = eventDate >= thisWeekRange.start && eventDate <= thisWeekRange.end;
+                } else if (activeFilterValue === 'next-week') {
+                    showCol = eventDate >= nextWeekRange.start && eventDate <= nextWeekRange.end;
+                } else if (activeFilterValue === 'action-required') {
+                    const cat = helperCat(status);
+                    showCol = !status || status === '.' || cat === 'unknown' || cat === 'empty';
+                }
+            } else if (activeFilterType === 'type' && activeFilterValue) {
+                const normCardType = normalizeString(card.dataset.eventTypeRaw || '');
+                const normFilterVal = normalizeString(activeFilterValue);
+                if (normFilterVal === 'match') showCol = normCardType.includes('match');
+                else if (normFilterVal === 'entrainement') showCol = normCardType.includes('entrain');
+                else if (normFilterVal === 'tournois' || normFilterVal === 'tournoi') showCol = normCardType.includes('tournoi') || normCardType.includes('plateau');
+                else showCol = normCardType === normFilterVal;
+            } else if (activeFilterType === 'lieu' && activeFilterValue) {
+                showCol = (card.dataset.eventLocation || '').trim().toLowerCase() === activeFilterValue.trim().toLowerCase();
+            }
+
+            if (showCol && typeVal) {
+                if (typeVal === 'Match Adulte' || typeVal === 'Match jeune') {
+                    showCol = (card.dataset.matchCategory || '') === typeVal;
+                } else {
+                    showCol = (card.dataset.eventTypeRaw || '') === typeVal;
+                }
+            }
+            if (showCol && subtypeVal) showCol = (card.dataset.eventSubtypeRaw || '') === subtypeVal;
+            if (showCol && locationVal) showCol = (card.dataset.eventLocationRaw || '').toLowerCase().trim() === locationVal.toLowerCase().trim();
+            if (showCol && kindVal) showCol = (card.dataset.eventKindRaw || '') === kindVal;
+            if (showCol && searchVal) {
+                const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+                const loc = card.querySelector('.text-slate-500')?.textContent.toLowerCase() || '';
+                showCol = title.includes(searchVal) || loc.includes(searchVal);
+            }
+
+            if (showCol) visibleColIds.add(String(mid));
+        });
+
+        // Afficher/masquer les colonnes dans le tableau
+        tableContainer.querySelectorAll('[data-manifestation-col]').forEach(th => {
+            th.style.display = visibleColIds.has(String(th.dataset.manifestationCol)) ? '' : 'none';
+        });
+        tableContainer.querySelectorAll('td[data-col-mid]').forEach(td => {
+            td.style.display = visibleColIds.has(String(td.dataset.colMid)) ? '' : 'none';
+        });
+
+        // Filtrer les lignes de joueurs selon activeDisplayMode
+        let visiblePlayers = 0;
+        tableContainer.querySelectorAll('tr[data-player-row]').forEach(tr => {
+            const isCurrentUser = tr.dataset.isCurrentUser === '1';
+            let showRow = true;
+
+            if (activeDisplayMode !== 'all') {
+                const visibleCells = Array.from(tr.querySelectorAll('td[data-col-mid]')).filter(td => visibleColIds.has(String(td.dataset.colMid)));
+                if (activeDisplayMode === 'responded') {
+                    showRow = visibleCells.some(td => {
+                        const cat = td.dataset.cellCat || 'no_response';
+                        return cat !== 'no_response' && cat !== 'empty';
+                    });
+                } else if (activeDisplayMode === 'present_dispo') {
+                    showRow = isCurrentUser || visibleCells.some(td => {
+                        const cat = td.dataset.cellCat || 'no_response';
+                        return ['present', 'available', 'available_if_needed', 'selected'].includes(cat);
+                    });
+                }
+            }
+
+            tr.style.display = showRow ? '' : 'none';
+            if (showRow) visiblePlayers++;
+        });
+
+        const countEl = document.getElementById('member-table-player-count');
+        if (countEl) countEl.textContent = visiblePlayers;
+    }
+
+    function initMemberTableView() {
+        const cardsBtn = document.getElementById('member-view-cards-btn');
+        const tableBtn = document.getElementById('member-view-table-btn');
+        const grid = document.getElementById('event-grid');
+        const tableContainer = document.getElementById('member-table-container');
+        if (!cardsBtn || !tableBtn || !grid || !tableContainer) return;
+
+        function setView(mode) {
+            const isTable = (mode === 'table');
+            grid.classList.toggle('hidden', isTable);
+            tableContainer.classList.toggle('hidden', !isTable);
+
+            if (isTable) {
+                tableBtn.className = 'px-3.5 py-1.5 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer';
+                cardsBtn.className = 'px-3.5 py-1.5 text-xs rounded-full font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer';
+                syncMemberTableWithFilters();
+            } else {
+                cardsBtn.className = 'px-3.5 py-1.5 text-xs rounded-full bg-[var(--primary)] text-white font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer';
+                tableBtn.className = 'px-3.5 py-1.5 text-xs rounded-full font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer';
+            }
+
+            try {
+                localStorage.setItem('memberAgendaView', mode);
+            } catch (e) {}
+        }
+
+        cardsBtn.addEventListener('click', () => setView('cards'));
+        tableBtn.addEventListener('click', () => setView('table'));
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let initialView = urlParams.get('view');
+        if (!initialView) {
+            try {
+                initialView = localStorage.getItem('memberAgendaView');
+            } catch (e) {}
+        }
+        if (initialView === 'table') {
+            setView('table');
+        }
+
+        // Gestion du zoom sur le tableau
+        const table = tableContainer.querySelector('.member-agenda-table');
+        const zoomBtns = tableContainer.querySelectorAll('.member-zoom-btn');
+        if (table && zoomBtns.length) {
+            function applyZoom(z) {
+                table.style.zoom = z;
+                zoomBtns.forEach(b => b.classList.toggle('active', parseFloat(b.dataset.memberZoom) === z));
+                try {
+                    localStorage.setItem('memberAgendaZoom', String(z));
+                } catch (e) {}
+            }
+            let storedZoom = null;
+            try {
+                storedZoom = localStorage.getItem('memberAgendaZoom');
+            } catch (e) {}
+            applyZoom(storedZoom ? parseFloat(storedZoom) : (window.innerWidth < 768 ? 0.65 : 1));
+            zoomBtns.forEach(b => b.addEventListener('click', () => applyZoom(parseFloat(b.dataset.memberZoom))));
+        }
+
+        // Édition directe au clic sur les cellules de l'adhérent connecté dans le tableau
+        if (!table) return;
+        let statusesMatch = [];
+        let statusesEntrai = [];
+        try {
+            statusesMatch = JSON.parse(table.dataset.statusesMatch || '[]');
+            statusesEntrai = JSON.parse(table.dataset.statusesEntrainement || '[]');
+        } catch (e) {}
+
+        let activePopover = null;
+        function closePopover() {
+            if (activePopover) {
+                activePopover.remove();
+                activePopover = null;
+            }
+        }
+        document.addEventListener('click', (e) => {
+            if (activePopover && !activePopover.contains(e.target) && !e.target.closest('#member-table-container [data-user-cell="true"]')) {
+                closePopover();
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePopover();
+        });
+
+        function updateTableCellVisual(cell, newStatus) {
+            cell.dataset.currentStatus = newStatus;
+            const cat = helperCat(newStatus);
+            cell.dataset.cellCat = (cat === 'empty') ? 'no_response' : cat;
+
+            const bgClasses = ['bg-amber-100', 'bg-emerald-100', 'bg-sky-100', 'bg-cyan-100', 'bg-rose-100', 'bg-gray-100', 'bg-white'];
+            const textClasses = ['text-amber-800', 'text-emerald-800', 'text-sky-800', 'text-cyan-800', 'text-rose-800', 'text-gray-800', 'text-gray-400'];
+            cell.classList.remove(...bgClasses, ...textClasses);
+
+            let icon = '—', label = 'S.R.', cellBg = 'bg-white', textColor = 'text-gray-400';
+            if (cat === 'selected') { icon = '★'; label = 'Sél.'; cellBg = 'bg-amber-100'; textColor = 'text-amber-800'; }
+            else if (cat === 'present') {
+                icon = '✓';
+                if (newStatus.includes('à 2') || newStatus.includes('+1') || newStatus.includes('+ 1')) label = 'Prés. à 2';
+                else if (newStatus.includes('à 3') || newStatus.includes('+2') || newStatus.includes('+ 2')) label = 'Prés. à 3';
+                else if (newStatus.includes('à 4') || newStatus.includes('+3') || newStatus.includes('+ 3')) label = 'Prés. à 4';
+                else if (newStatus.includes('à 5') || newStatus.includes('+4') || newStatus.includes('+ 4')) label = 'Prés. à 5';
+                else label = 'Prés.';
+                cellBg = 'bg-emerald-100'; textColor = 'text-emerald-800';
+            }
+            else if (cat === 'available') { icon = '◐'; label = 'Dispo'; cellBg = 'bg-sky-100'; textColor = 'text-sky-800'; }
+            else if (cat === 'available_if_needed') { icon = '○'; label = 'Si néc.'; cellBg = 'bg-cyan-100'; textColor = 'text-cyan-800'; }
+            else if (cat === 'unavailable') { icon = '✗'; label = 'Indispo'; cellBg = 'bg-rose-100'; textColor = 'text-rose-800'; }
+            else if (cat === 'absent') { icon = '✗'; label = 'Absent'; cellBg = 'bg-rose-100'; textColor = 'text-rose-800'; }
+            else if (cat === 'unknown') { icon = '?'; label = '?'; cellBg = 'bg-gray-100'; textColor = 'text-gray-800'; }
+
+            cell.classList.add(cellBg, textColor);
+            const iconSpan = cell.querySelector('.cell-icon');
+            const labelSpan = cell.querySelector('.cell-label');
+            if (iconSpan) iconSpan.textContent = icon;
+            if (labelSpan) labelSpan.textContent = label;
+        }
+
+        function updateTableHeaderStats(mid, counts) {
+            if (!counts) return;
+            const mapping = {
+                'present': counts.present_confirmed ?? counts.present ?? 0,
+                'waiting': counts.waiting ?? 0,
+                'disponible': counts.available ?? 0,
+                'indisponible': counts.unavailable ?? 0,
+                'absent': counts.absent ?? 0,
+                'selection': counts.selected ?? 0
+            };
+            Object.keys(mapping).forEach(key => {
+                const val = mapping[key];
+                const el = tableContainer.querySelector(`[data-stat="${key}-${mid}"]`);
+                const wrap = tableContainer.querySelector(`[data-stat-wrap="${key}-${mid}"]`);
+                if (el) el.textContent = val;
+                if (wrap) {
+                    if (val > 0) wrap.classList.remove('hidden');
+                    else if (key !== 'present' && key !== 'absent') wrap.classList.add('hidden');
+                }
+            });
+            const badge = tableContainer.querySelector(`[data-team-badge="${mid}"]`);
+            if (badge) {
+                const totalOk = (mapping.present || 0) + (mapping.disponible || 0) + (mapping.selection || 0);
+                if (totalOk >= 6) {
+                    badge.textContent = '✓ Équipe OK';
+                    badge.className = 'px-2 py-1 rounded font-semibold text-xs text-center text-emerald-700 bg-emerald-50';
+                } else {
+                    badge.textContent = '⚠ Sous-effectif';
+                    badge.className = 'px-2 py-1 rounded font-semibold text-xs text-center text-rose-700 bg-rose-50';
+                }
+            }
+        }
+
+        tableContainer.querySelectorAll('[data-user-cell="true"]').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closePopover();
+
+                if (cell.dataset.isCancelled === '1' || cell.dataset.isSelected === '1') return;
+
+                const mid = cell.dataset.manifestationId;
+                const eventType = cell.dataset.eventType;
+                const currentStatus = cell.dataset.currentStatus || '';
+                const popover = document.createElement('div');
+                popover.className = 'fixed z-[9990] bg-white rounded-2xl shadow-xl border border-slate-200 p-2 space-y-1 text-xs min-w-[170px]';
+
+                const options = [];
+                if (eventType === 'match') {
+                    const list = statusesMatch.length ? statusesMatch : ['Disponible', 'Disponible si nécessaire', 'Indisponible'];
+                    list.forEach(stat => {
+                        const cat = helperCat(stat);
+                        let cls = 'text-slate-700 bg-slate-50 hover:bg-slate-100', ic = '';
+                        if (cat === 'available') { cls = 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'; ic = '✓ '; }
+                        else if (cat === 'available_if_needed') { cls = 'text-cyan-700 bg-cyan-50 hover:bg-cyan-100'; ic = '◐ '; }
+                        else if (cat === 'unavailable') { cls = 'text-rose-700 bg-rose-50 hover:bg-rose-100'; ic = '✗ '; }
+                        else if (cat === 'unknown') { cls = 'text-orange-700 bg-orange-50 hover:bg-orange-100'; ic = '? '; }
+                        options.push({ label: ic + stat, value: stat, class: cls });
+                    });
+                } else {
+                    const list = statusesEntrai.length ? statusesEntrai : ['Présent(e)', 'Absent(e)', 'Ne sait pas'];
+                    list.forEach(stat => {
+                        const cat = helperCat(stat);
+                        let cls = 'text-slate-700 bg-slate-50 hover:bg-slate-100', ic = '';
+                        if (cat === 'present') { cls = 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'; ic = '✓ '; }
+                        else if (cat === 'absent') { cls = 'text-rose-700 bg-rose-50 hover:bg-rose-100'; ic = '✗ '; }
+                        else if (cat === 'unknown') { cls = 'text-orange-700 bg-orange-50 hover:bg-orange-100'; ic = '? '; }
+                        options.push({ label: ic + stat, value: stat, class: cls });
+                    });
+                }
+                options.push({ label: '⊘ Sans réponse', value: '.', class: 'text-slate-500 bg-slate-50 hover:bg-slate-100' });
+
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isActive = (opt.value === currentStatus) || (opt.value === '.' && (!currentStatus || currentStatus === '.'));
+                    btn.className = `w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-2 cursor-pointer ${opt.class} ${isActive ? 'ring-2 ring-indigo-500' : ''}`;
+                    btn.innerHTML = `<span>${opt.label}</span>${isActive ? '<span class="text-[10px]">●</span>' : ''}`;
+                    btn.addEventListener('click', () => {
+                        closePopover();
+                        if (opt.value === currentStatus) return;
+
+                        cell.style.opacity = '0.5';
+                        fetch('/api/member/participations/upsert', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ manifestation_id: parseInt(mid), status: opt.value })
+                        })
+                            .then(r => r.json())
+                            .then(data => {
+                                cell.style.opacity = '1';
+                                if (data.ok) {
+                                    const newSt = data.new_status || opt.value;
+                                    updateTableCellVisual(cell, newSt);
+                                    updateTableHeaderStats(mid, data.counts);
+                                    if (data.kpis && typeof data.kpis.action_required !== 'undefined') {
+                                        updateActionRequiredKpi(data.kpis.action_required);
+                                    }
+                                    // Synchroniser la carte correspondante si elle existe
+                                    const card = grid.querySelector(`[data-manifestation-id="${mid}"]`);
+                                    if (card) {
+                                        card.dataset.currentStatus = newSt;
+                                    }
+                                } else {
+                                    alert(data.message || 'Erreur lors de la mise à jour.');
+                                }
+                            })
+                            .catch(() => {
+                                cell.style.opacity = '1';
+                                alert('Erreur réseau.');
+                            });
+                    });
+                    popover.appendChild(btn);
+                });
+
+                document.body.appendChild(popover);
+                activePopover = popover;
+                const rect = cell.getBoundingClientRect();
+                let left = Math.max(10, Math.min(rect.left - 20, window.innerWidth - 190));
+                let top = rect.bottom + 6;
+                if (top + popover.offsetHeight > window.innerHeight) {
+                    top = rect.top - popover.offsetHeight - 6;
+                }
+                popover.style.top = `${top}px`;
+                popover.style.left = `${left}px`;
+            });
         });
     }
 

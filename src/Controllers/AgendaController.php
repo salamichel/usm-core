@@ -43,32 +43,33 @@ class AgendaController
         }
 
         $canViewPlayerDetails = ($privacy === 'public') || ($privacy === 'hybrid' && $isLoggedIn);
+        $userId = $isLoggedIn ? ((int) ($_SESSION['LogInId'] ?? 0) ?: null) : null;
 
         // Obtenir les données de la table croisée qui sert de source unique de vérité
-        $data = AgendaService::getCrossTable($filters);
+        $serviceFilters = $filters;
+        if ($userId) {
+            $serviceFilters['current_user_id'] = $userId;
+        }
+        $data = AgendaService::getCrossTable($serviceFilters);
 
         if ($view === 'cards') {
             // Enrich with user status if logged in
             $userStatuses = [];
-            $userId = null;
             $currentUserName = '';
-            if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
-                $userId = (int) ($_SESSION['LogInId'] ?? 0);
-                if ($userId) {
-                    $upcoming = Participation::getUpcomingWithUserStatus($userId);
-                    foreach ($upcoming as $u) {
-                        $userStatuses[$u['id_manifestation']] = $u['user_status'];
-                    }
+            if ($userId) {
+                $upcoming = Participation::getUpcomingWithUserStatus($userId);
+                foreach ($upcoming as $u) {
+                    $userStatuses[$u['id_manifestation']] = $u['user_status'];
+                }
 
-                    // Récupérer le nom/prénom exact du joueur pour le JS
-                    $db = \App\Core\ExternalDatabase::get();
-                    if ($db) {
-                        $stmt = $db->prepare("SELECT Nom, `Prénom` FROM Joueurs WHERE id_joueur = ?");
-                        $stmt->execute([$userId]);
-                        $row = $stmt->fetch();
-                        if ($row) {
-                            $currentUserName = $row['Nom'] . ' ' . $row['Prénom'];
-                        }
+                // Récupérer le nom/prénom exact du joueur pour le JS
+                $db = \App\Core\ExternalDatabase::get();
+                if ($db) {
+                    $stmt = $db->prepare("SELECT Nom, `Prénom` FROM Joueurs WHERE id_joueur = ?");
+                    $stmt->execute([$userId]);
+                    $row = $stmt->fetch();
+                    if ($row) {
+                        $currentUserName = $row['Nom'] . ' ' . $row['Prénom'];
                     }
                 }
             }
@@ -79,6 +80,26 @@ class AgendaController
                 $m['user_status_category'] = $statusStr ? \App\Helpers\ParticipationStatus::categorize($statusStr) : null;
             }
             unset($m);
+
+            if (!empty($filters['hide_absent_unavailable'])) {
+                $data['manifestations'] = array_filter($data['manifestations'], static function (array $m) use ($userId): bool {
+                    if ($userId) {
+                        return in_array($m['user_status_category'] ?? '', ['present', 'available', 'available_if_needed', 'selected'], true);
+                    }
+                    return (($m['nb_present'] ?? 0) + ($m['nb_available'] ?? 0) + ($m['nb_available_if_needed'] ?? 0) + ($m['nb_selected'] ?? 0)) > 0;
+                });
+            } elseif (!empty($filters['hide_empty_players'])) {
+                $data['manifestations'] = array_filter($data['manifestations'], static function (array $m) use ($userId): bool {
+                    if ($userId) {
+                        $st = (string)($m['user_status'] ?? '');
+                        $cat = $m['user_status_category'] ?? 'no_response';
+                        return $st !== '' && $st !== '.' && $cat !== 'no_response';
+                    }
+                    $totalResponses = ($m['nb_present'] ?? 0) + ($m['nb_available'] ?? 0) + ($m['nb_available_if_needed'] ?? 0)
+                        + ($m['nb_selected'] ?? 0) + ($m['nb_unavailable'] ?? 0) + ($m['nb_absent'] ?? 0) + ($m['nb_unknown'] ?? 0);
+                    return $totalResponses > 0;
+                });
+            }
 
             if ($userId) {
                 \App\Services\AgendaService::flagOverlappingSelected($data['manifestations'], $userId);
@@ -114,11 +135,6 @@ class AgendaController
                 }
             }
             unset($row);
-        }
-
-        $userId = null;
-        if (isset($_SESSION['LogIn']) && $_SESSION['LogIn']) {
-            $userId = (int) ($_SESSION['LogInId'] ?? 0);
         }
 
         View::render('agenda/index.twig', [

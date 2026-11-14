@@ -210,6 +210,14 @@ class EventRepository
             }
             sort($types);
 
+            // Insérer "Match Adulte" et "Match jeune" juste après "Match"
+            $matchIdx = array_search('Match', $types, true);
+            if ($matchIdx !== false) {
+                array_splice($types, $matchIdx + 1, 0, ['Match Adulte', 'Match jeune']);
+            } else {
+                array_unshift($types, 'Match', 'Match Adulte', 'Match jeune');
+            }
+
             $today = date('Y-m-d');
             $lieux = [];
             $stmt  = $db->prepare(
@@ -311,8 +319,14 @@ class EventRepository
                 $bindings[] = $locationFilter;
             }
             if (!empty($filters['type'])) {
-                $sql .= " AND ManifestationTypée LIKE ?";
-                $bindings[] = '%' . $filters['type'] . '%';
+                $typeFilter = $filters['type'];
+                if ($typeFilter === 'Match Adulte' || $typeFilter === 'Match jeune') {
+                    $sql .= " AND ManifestationTypée LIKE ?";
+                    $bindings[] = '%Match%';
+                } else {
+                    $sql .= " AND ManifestationTypée LIKE ?";
+                    $bindings[] = '%' . $typeFilter . '%';
+                }
             }
             if (!empty($filters['manifestation'])) {
                 $sql .= " AND (ManifestationTypée LIKE ? OR ManifestationTypée LIKE ?)";
@@ -375,9 +389,16 @@ class EventRepository
             $manifestations = [];
             $totalJoueurs = count($joueurs);
 
+            $typeFilter = $filters['type'] ?? '';
             foreach ($manifRows as $row) {
                 $mid = (int)$row['id_manifestation'];
                 $m = EventNormalizer::buildBaseFields($row, $totalJoueurs);
+                if ($typeFilter === 'Match Adulte' && empty($m['is_match_adulte'])) {
+                    continue;
+                }
+                if ($typeFilter === 'Match jeune' && empty($m['is_match_jeune'])) {
+                    continue;
+                }
                 $m['min_players'] = ParticipationStatsService::getMinPlayersRequired($row['ManifestationTypée'] ?? '');
 
                 $mParts = $partsByManif[$mid] ?? [];
@@ -464,6 +485,10 @@ class EventRepository
                 $manifestations[$mid] = $m;
             }
 
+            if (empty($manifestations)) {
+                return $empty;
+            }
+
             // 5. Pré-charger les catégories des joueurs pour évaluer leurs participations possibles
             $playerCategories = [];
             $jids = array_keys($joueurs);
@@ -497,6 +522,7 @@ class EventRepository
             foreach ($joueurs as $jid => $nom) {
                 $cross[$jid] = [
                     'nb_participation'          => 0,
+                    'nb_present_dispo'          => 0,
                     'nb_non_absence'            => 0,
                     'nb_ne_sait_pas'            => 0,
                     'nb_ne_sait_pas_proche'     => 0,
@@ -527,6 +553,9 @@ class EventRepository
                             $cross[$jid]['nb_participation_possible']++;
                         }
 
+                        if ($status->isPresent() || $status->isAvailable() || $status->isSelected()) {
+                            $cross[$jid]['nb_present_dispo']++;
+                        }
                         if ($status->isNonAbsence()) {
                             $cross[$jid]['nb_non_absence']++;
                         }
@@ -550,7 +579,14 @@ class EventRepository
             return $empty;
         }
 
-        if (!empty($filters['hide_empty_players'])) {
+        if (!empty($filters['hide_absent_unavailable'])) {
+            $currentUid = isset($filters['current_user_id']) ? (int)$filters['current_user_id'] : 0;
+            foreach (array_keys($joueurs) as $jid) {
+                if ($jid !== $currentUid && $cross[$jid]['nb_present_dispo'] === 0) {
+                    unset($joueurs[$jid], $cross[$jid]);
+                }
+            }
+        } elseif (!empty($filters['hide_empty_players'])) {
             foreach (array_keys($joueurs) as $jid) {
                 if ($cross[$jid]['nb_participation'] === 0) {
                     unset($joueurs[$jid], $cross[$jid]);

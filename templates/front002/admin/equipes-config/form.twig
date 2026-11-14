@@ -74,8 +74,9 @@
         <div>
           {{ m.field_input('min_players', 'min_players', 'Effectif minimum (Équipe complète)', equipe.min_players ?? 6, 'number', true) }}
         </div>
-        <div class="sm:col-span-2 pt-2 border-t border-slate-50">
+        <div class="sm:col-span-2 pt-2 border-t border-slate-50 flex flex-wrap gap-6">
           {{ m.field_checkbox('is_active', 'is_active', 'Équipe active', equipe is null or equipe.is_active, '1') }}
+          {{ m.field_checkbox('is_jeune', 'is_jeune', 'Équipe Jeune (identifie ses matchs comme "Match jeune" dans l\'agenda)', equipe is not null and equipe.is_jeune, '1') }}
         </div>
       </div>
     </div>

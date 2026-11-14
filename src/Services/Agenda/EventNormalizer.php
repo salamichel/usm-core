@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Agenda;
 
 use App\Helpers\ParticipationStatus;
+use App\Models\EquipeConfig;
 
 /**
  * Transforme les lignes brutes de la table Manifestation en structures canoniques agenda.
@@ -107,6 +108,10 @@ class EventNormalizer
         $statut      = $row['Statut'] ?? '';
         $today       = new \DateTimeImmutable('today');
         $isSoon      = $date && $date->diff($today)->days <= 3 && $date >= $today;
+        $isMatch     = str_contains($type, 'Match');
+        $isMatchJeune = $isMatch && EquipeConfig::isJeuneMatch((string)($row['ManifestationTypée'] ?? ''));
+        $isMatchAdulte = $isMatch && !$isMatchJeune;
+        $matchCategory = $isMatch ? ($isMatchJeune ? 'Match jeune' : 'Match Adulte') : '';
 
         return [
             'id'                          => $id,
@@ -150,7 +155,10 @@ class EventNormalizer
             'unknown'                     => [],
             'no_response'                 => [],
             'pas_de_reponse'              => [],
-            'is_match'                    => str_contains($type, 'Match'),
+            'is_match'                    => $isMatch,
+            'is_match_jeune'              => $isMatchJeune,
+            'is_match_adulte'             => $isMatchAdulte,
+            'match_category'              => $matchCategory,
             'is_training'                 => str_contains($type, 'Entra') || str_contains($type, 'BEACH'),
             'type_simple'                 => $type,
             'type_libelle'                => $type,

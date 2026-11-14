@@ -8,6 +8,9 @@ use App\Core\ExternalDatabase;
 
 class EquipeConfig
 {
+    /** @var array<int, array>|null Cache mémoire des équipes actives */
+    private static ?array $activeCache = null;
+
     public static function all(): array
     {
         return Database::get()
@@ -82,8 +85,8 @@ class EquipeConfig
     {
         $db   = Database::get();
         $stmt = $db->prepare(
-            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, slug, team_filter, manifestation_filter, training_filter, description, description_courte, type, hauteur_filet, ffvb_link, min_players)
-             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :slug, :team_filter, :manifestation_filter, :training_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link, :min_players)"
+            "INSERT INTO equipes_config (slug_colonne, libelle, categorie, ordre, is_active, is_jeune, slug, team_filter, manifestation_filter, training_filter, description, description_courte, type, hauteur_filet, ffvb_link, min_players)
+             VALUES (:slug_colonne, :libelle, :categorie, :ordre, :is_active, :is_jeune, :slug, :team_filter, :manifestation_filter, :training_filter, :description, :description_courte, :type, :hauteur_filet, :ffvb_link, :min_players)"
         );
         $stmt->execute([
             ':slug_colonne'         => $data['slug_colonne'],
@@ -91,6 +94,7 @@ class EquipeConfig
             ':categorie'            => $data['categorie'],
             ':ordre'                => (int)($data['ordre'] ?? 0),
             ':is_active'            => (int)($data['is_active'] ?? 1),
+            ':is_jeune'             => (int)($data['is_jeune'] ?? 0),
             ':slug'                 => $data['slug'] ?? '',
             ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
@@ -102,6 +106,7 @@ class EquipeConfig
             ':ffvb_link'            => $data['ffvb_link'] ?? null,
             ':min_players'          => (int)($data['min_players'] ?? 6),
         ]);
+        self::$activeCache = null;
         return (int)$db->lastInsertId();
     }
 
@@ -114,6 +119,7 @@ class EquipeConfig
                  categorie            = :categorie,
                  ordre                = :ordre,
                  is_active            = :is_active,
+                 is_jeune             = :is_jeune,
                  slug                 = :slug,
                  team_filter          = :team_filter,
                  manifestation_filter = :manifestation_filter,
@@ -131,6 +137,7 @@ class EquipeConfig
             ':categorie'            => $data['categorie'],
             ':ordre'                => (int)($data['ordre'] ?? 0),
             ':is_active'            => (int)($data['is_active'] ?? 1),
+            ':is_jeune'             => (int)($data['is_jeune'] ?? 0),
             ':slug'                 => $data['slug'] ?? '',
             ':team_filter'          => $data['team_filter'] ?? null,
             ':manifestation_filter' => $data['manifestation_filter'] ?? null,
@@ -143,10 +150,50 @@ class EquipeConfig
             ':min_players'          => (int)($data['min_players'] ?? 6),
             ':id'                   => $id,
         ]);
+        self::$activeCache = null;
     }
 
     public static function delete(int $id): void
     {
         Database::get()->prepare("DELETE FROM equipes_config WHERE id = ?")->execute([$id]);
+        self::$activeCache = null;
+    }
+
+    /**
+     * Détermine si une manifestation de type Match correspond à une équipe Jeune (via equipes_config.is_jeune).
+     */
+    public static function isJeuneMatch(string $manifestationType): bool
+    {
+        if ($manifestationType === '') {
+            return false;
+        }
+
+        if (self::$activeCache === null) {
+            try {
+                self::$activeCache = self::allActive();
+            } catch (\Throwable) {
+                self::$activeCache = [];
+            }
+        }
+
+        foreach (self::$activeCache as $eq) {
+            if (empty($eq['is_jeune'])) {
+                continue;
+            }
+            $candidates = array_filter([
+                $eq['manifestation_filter'] ?? '',
+                $eq['team_filter'] ?? '',
+                $eq['slug_colonne'] ?? '',
+            ], static fn(string $v): bool => $v !== '');
+
+            foreach ($candidates as $needle) {
+                if (stripos($manifestationType, $needle) !== false) {
+                    return true;
+                }
+            }
+        }
+
+        // Fallback sur les mots-clés standards Jeunes si aucune équipe ne correspond
+        return (bool)preg_match('/\b(jeune|jeunes|m13f?|m15f?|m18f?)\b/iu', $manifestationType);
     }
 }

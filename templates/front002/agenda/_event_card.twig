@@ -34,6 +34,7 @@
      data-event-location="{{ m.lieu|default('') }}"
      data-min-players="{{ m.min_players|default(6) }}"
      data-event-type-raw="{{ m.type|default('') }}"
+     data-match-category="{{ m.match_category|default('') }}"
      data-event-subtype-raw="{{ m.titre|default('') }}"
      data-event-location-raw="{{ m.lieu|default('') }}"
      data-event-kind-raw="{% if 'Présences' in m.ManifestationTypée %}Présences{% else %}Disponibilités{% endif %}">

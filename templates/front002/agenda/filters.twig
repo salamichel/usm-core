@@ -23,22 +23,23 @@
     <div>
       <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Type d'évènement</p>
       
-      {# Extraction des types uniques existants depuis manifestations #}
-      {% set event_types = [] %}
-      {% for m in manifestations %}
+      {% set event_types = filterOptions.types|default([]) %}
+      {% if event_types is empty %}
+        {% for m in manifestations %}
           {% set type = m.type|default('Événement') %}
           {% if type not in event_types %}
-              {% set event_types = event_types|merge([type]) %}
-          {% endif %}         
-      {% endfor %}
+            {% set event_types = event_types|merge([type]) %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
 
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="updateAgendaFilter('type', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilter('type', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer {% if not filters.type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Tous
         </button>
         
         {% for type in event_types %}
-            <button type="button" onclick="updateAgendaFilter('type', '{{ type }}')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.type == type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+            <button type="button" onclick="updateAgendaFilter('type', '{{ type }}')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer {% if filters.type == type %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
               {{ type }}
             </button>
         {% endfor %}
@@ -88,11 +89,14 @@
     <div class="pt-5 border-t border-slate-100">
       <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3">Affichage</p>
       <div class="flex flex-wrap gap-2">
-        <button type="button" onclick="updateAgendaFilter('hide_empty_players', '')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if not filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilterDisplay('all')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer {% if not filters.hide_empty_players and not filters.hide_absent_unavailable %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Liste complète
         </button>
-        <button type="button" onclick="updateAgendaFilter('hide_empty_players', '1')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition {% if filters.hide_empty_players %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        <button type="button" onclick="updateAgendaFilterDisplay('responded')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer {% if filters.hide_empty_players and not filters.hide_absent_unavailable %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
           Ayant répondu
+        </button>
+        <button type="button" onclick="updateAgendaFilterDisplay('present_dispo')" class="px-3.5 py-1.5 text-xs rounded-xl font-bold transition cursor-pointer {% if filters.hide_absent_unavailable %}bg-[var(--primary)] text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+          Présent / Dispo
         </button>
       </div>
     </div>
@@ -116,6 +120,22 @@
 </div>
 
 <script>
+  // Gère de manière exclusive les filtres d'affichage (Liste complète / Ayant répondu / Présent-Dispo)
+  function updateAgendaFilterDisplay(mode) {
+    var url = new URL(window.location.href);
+    if (mode === 'responded') {
+        url.searchParams.set('hide_empty_players', '1');
+        url.searchParams.delete('hide_absent_unavailable');
+    } else if (mode === 'present_dispo') {
+        url.searchParams.set('hide_absent_unavailable', '1');
+        url.searchParams.delete('hide_empty_players');
+    } else {
+        url.searchParams.delete('hide_empty_players');
+        url.searchParams.delete('hide_absent_unavailable');
+    }
+    window.location.href = url.toString();
+  }
+
   // Gère de manière exclusive les filtres de période
   function updateAgendaFilterPeriod(period) {
     var url = new URL(window.location.href);

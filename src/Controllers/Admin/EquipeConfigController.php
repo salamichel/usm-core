@@ -291,6 +291,7 @@ class EquipeConfigController extends BaseAdminController
             'categorie'            => trim($_POST['categorie'] ?? ''),
             'ordre'                => (int)($_POST['ordre'] ?? 0),
             'is_active'            => isset($_POST['is_active']) ? 1 : 0,
+            'is_jeune'             => isset($_POST['is_jeune']) ? 1 : 0,
             'slug'                 => trim($_POST['slug'] ?? ''),
             'team_filter'          => !empty($_POST['team_filter']) ? trim($_POST['team_filter']) : null,
             'manifestation_filter' => !empty($_POST['manifestation_filter']) ? trim($_POST['manifestation_filter']) : null,

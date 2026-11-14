@@ -274,4 +274,156 @@ class MemberDashboardService
             'top_lieux_all' => $allLieux
         ];
     }
+
+    /**
+     * Construit le tableau croisé (joueurs × événements) limité aux affectations du membre connecté.
+     * - Colonnes : uniquement les manifestations à venir concernant le membre.
+     * - Lignes : le membre lui-même (en premier), les joueurs partageant ses équipes/catégories,
+     *            et ceux ayant déjà répondu à au moins un de ces événements.
+     */
+    public static function getMemberCrossTable(int $userId): array
+    {
+        $empty = ['joueurs' => [], 'manifestations' => [], 'cross' => []];
+        $categories = Joueur::getCategories($userId);
+        if (empty($categories)) {
+            return $empty;
+        }
+
+        $data = AgendaService::getCrossTable([]);
+        if (empty($data['manifestations'])) {
+            return $empty;
+        }
+
+        $equipes = \App\Services\Agenda\EventTargetingService::getPlayerEquipesConfig($userId, $categories);
+        $myEquipeIds = array_map(static fn(array $eq): int => (int)$eq['id'], $equipes);
+
+        // 1. Filtrer les manifestations auxquelles le membre est affecté
+        $memberManifestations = [];
+        foreach ($data['manifestations'] as $mid => $m) {
+            if (\App\Services\Agenda\EventTargetingService::isPlayerConcernedByEvent($userId, $m, $categories, $equipes)) {
+                $memberManifestations[$mid] = $m;
+            }
+        }
+
+        if (empty($memberManifestations)) {
+            return $empty;
+        }
+
+        // 2. Pré-charger les catégories/équipes des autres joueurs pour détecter les coéquipiers
+        $allJoueurs = $data['joueurs'];
+        $jids = array_keys($allJoueurs);
+        $playerCategories = [];
+        $dbExt = ExternalDatabase::get();
+        if ($dbExt && !empty($jids)) {
+            try {
+                $categoryColumns = \App\Models\EquipeConfig::getEquipesSlug();
+                $placeholders = implode(',', array_fill(0, count($jids), '?'));
+                $stmtCats = $dbExt->prepare("SELECT * FROM Joueurs WHERE id_joueur IN ($placeholders)");
+                $stmtCats->execute($jids);
+                while ($pRow = $stmtCats->fetch(PDO::FETCH_ASSOC)) {
+                    $pId = (int)$pRow['id_joueur'];
+                    $playerCategories[$pId] = [];
+                    foreach ($categoryColumns as $col) {
+                        if (!empty($pRow[$col]) && (int)$pRow[$col] === 1) {
+                            $playerCategories[$pId][] = $col;
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+        $playersEquipes = \App\Services\Agenda\EventTargetingService::preloadAllPlayersEquipes($playerCategories);
+
+        // 3. Filtrer les joueurs pertinents et pré-formater leurs cellules sur ce périmètre
+        $memberJoueurs = [];
+        $memberCross = [];
+
+        // Mettre l'utilisateur connecté en premier s'il existe dans la liste
+        $orderedJids = $jids;
+        if (isset($allJoueurs[$userId])) {
+            $orderedJids = array_values(array_diff($jids, [$userId]));
+            array_unshift($orderedJids, $userId);
+        }
+
+        foreach ($orderedJids as $jid) {
+            $nom = $allJoueurs[$jid];
+            $rawRow = $data['cross'][$jid] ?? [];
+
+            $nbParticipation = 0;
+            $nbPresentDispo = 0;
+            $nbNeSaitPas = 0;
+            $nbNeSaitPasProche = 0;
+            $nbManifPossible = 0;
+            $nbParticipationPossible = 0;
+            $dateTropProche = time() + 3 * 24 * 3600;
+
+            $formattedRow = [];
+            $pCats = $playerCategories[$jid] ?? [];
+            $pEquipes = $playersEquipes[$jid] ?? [];
+
+            foreach ($memberManifestations as $mid => $m) {
+                $isConcerned = \App\Services\Agenda\EventTargetingService::isPlayerConcernedByEvent($jid, $m, $pCats, $pEquipes);
+                if ($isConcerned) {
+                    $nbManifPossible++;
+                }
+
+                $statusStr = $rawRow[$mid] ?? '';
+                if (is_string($statusStr) && $statusStr !== '') {
+                    $status = new ParticipationStatus($statusStr);
+                    $cat = $status->getCategory();
+                    $waitingPos = $m['waiting_players'][$jid] ?? null;
+
+                    $formattedRow[$mid] = [
+                        'text'             => $statusStr,
+                        'category'         => $cat,
+                        'companion_count'  => $status->getCompanionCount(),
+                        'is_waiting'       => $waitingPos !== null,
+                        'waiting_position' => $waitingPos,
+                    ];
+
+                    $nbParticipation++;
+                    if ($isConcerned) {
+                        $nbParticipationPossible++;
+                    }
+                    if ($status->isPresent() || $status->isAvailable() || $status->isSelected()) {
+                        $nbPresentDispo++;
+                    }
+                    if ($status->isUnknown()) {
+                        $nbNeSaitPas++;
+                        if (strtotime((string)$m['Date']) < $dateTropProche) {
+                            $nbNeSaitPasProche++;
+                        }
+                    }
+                } else {
+                    $formattedRow[$mid] = '';
+                }
+            }
+
+            // Critère d'inclusion : soi-même, ou a répondu à au moins un de ces événements, ou partage une équipe/catégorie
+            $sharesCategory = !empty(array_intersect($pCats, $categories));
+            $pEqIds = array_map(static fn(array $eq): int => (int)$eq['id'], $pEquipes);
+            $sharesTeam = !empty(array_intersect($pEqIds, $myEquipeIds));
+
+            if ($jid !== $userId && $nbParticipation === 0 && !$sharesCategory && !$sharesTeam) {
+                continue;
+            }
+
+            $formattedRow['nb_participation'] = $nbParticipation;
+            $formattedRow['nb_present_dispo'] = $nbPresentDispo;
+            $formattedRow['nb_ne_sait_pas'] = $nbNeSaitPas;
+            $formattedRow['nb_ne_sait_pas_proche'] = $nbNeSaitPasProche;
+            $formattedRow['nb_manif_possible'] = $nbManifPossible;
+            $formattedRow['nb_participation_possible'] = $nbParticipationPossible;
+            $formattedRow['nb_manquante_possible'] = max(0, $nbManifPossible - $nbParticipationPossible);
+
+            $memberJoueurs[$jid] = $nom;
+            $memberCross[$jid] = $formattedRow;
+        }
+
+        return [
+            'joueurs'        => $memberJoueurs,
+            'manifestations' => $memberManifestations,
+            'cross'          => $memberCross,
+        ];
+    }
 }

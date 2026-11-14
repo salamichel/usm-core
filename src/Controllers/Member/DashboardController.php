@@ -31,12 +31,15 @@ class DashboardController
         $imminentEvents = \App\Services\MemberDashboardService::getImminentEvents($userId, 100);
         \App\Services\AgendaService::flagOverlappingSelected($imminentEvents, $userId);
         $stats = \App\Services\MemberDashboardService::getSeasonStats($userId);
+        $memberCrossTable = \App\Services\MemberDashboardService::getMemberCrossTable($userId);
 
         View::render('member/dashboard.twig', [
             'is_capitaine' => $_SESSION['IsCaptainSaison'] ?? false,
             'is_admin_web' => $_SESSION['AdminWeb'] ?? false,
             'kpis' => $kpis,
             'imminent_events' => $imminentEvents,
+            'member_cross_table' => $memberCrossTable,
+            'currentUserId' => $userId,
             'stats' => $stats,
             'statuses' => [
                 'match' => \App\Models\MotsClef::getByCategory('Participation_match'),
